@@ -1,0 +1,12 @@
+/$(top_builddir)/
+/autom4te.cache/
+/INSTALL
+/Makefile
+/Makefile.in
+/aclocal.m4
+/config.log
+/config.status
+/configure
+/depcomp
+/install-sh
+/missing
