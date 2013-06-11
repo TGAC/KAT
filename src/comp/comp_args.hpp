@@ -1,15 +1,16 @@
-#ifndef __SECT_ARGS_HPP__
-#define __SECT_ARGS_HPP__
+#ifndef __COMP_ARGS_HPP__
+#define __COMP_ARGS_HPP__
 
 #include <getopt.h>
 #include <stdlib.h>
 #include <iostream>
 
-class SectArgs
+class CompArgs
 {
 public:
     const char * 	fasta_arg;
-    const char * 	db_arg;
+    const char * 	db1_arg;
+    const char * 	db2_arg;
     const char *  input_type;
     const char *  output_arg;
     uint_t threads_arg;
@@ -17,12 +18,12 @@ public:
     bool verbose;
 
     // Default constructor
-    SectArgs() :
+    CompArgs() :
         output_arg(NULL), threads_arg(1), kmer_arg(31), verbose(false)
     {}
 
     // Constructor that parses command line options
-    SectArgs(int argc, char* argv[]) :
+    CompArgs(int argc, char* argv[]) :
         output_arg(NULL), threads_arg(1), kmer_arg(31), verbose(false)
     {
         parse(argc, argv);
@@ -31,7 +32,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "Usage: kat sect [options] -f <fasta_file_path> db_path"
+#define seqcvg_args_USAGE "Usage: kat comp [options] -f <fasta_file_path> db1_path db2_path"
     const char * usage() const
     {
         return seqcvg_args_USAGE;
@@ -46,7 +47,7 @@ public:
     }
 
 
-#define sect_args_HELP "Estimates coverage for sequences in a fasta file using jellyfish kmer counts\n\n" \
+#define sect_args_HELP "Compares two sets of jellyfish kmer counts\n\n" \
   "Options (default value in (), *required):\n" \
   " -f, --fasta          Fasta file contains sequences that should have coverage estimated.  Kmers containing any Ns derived from sequences in the fasta files will have 0 coverage.\n" \
   " -o, --count_output   File that should contain the sequence count profiles produced from this program. If not specified count data is not output\n" \
@@ -138,9 +139,10 @@ public:
         }
 
         // Parse arguments
-        if(argc - optind != 1)
-            error("Requires exactly 1 argument.");
-        db_arg = argv[optind++];
+        if(argc - optind != 2)
+            error("Requires exactly 2 arguments.");
+        db1_arg = argv[optind++];
+        db2_arg = argv[optind++];
     }
 
     bool outputGiven()
@@ -163,8 +165,11 @@ public:
         if (kmer_arg)
             std::cerr << "Kmer size: " << kmer_arg << "\n";
 
-        if (db_arg)
-            std::cerr << "Jellyfish hash: " << db_arg << "\n";
+        if (db1_arg)
+            std::cerr << "Jellyfish hash 1: " << db1_arg << "\n";
+
+        if (db2_arg)
+            std::cerr << "Jellyfish hash 2: " << db2_arg << "\n";
 
         if (outputGiven())
         {
@@ -179,5 +184,5 @@ public:
 private:
 };
 
-#endif // __SECT_ARGS_HPP__
+#endif // __COMP_ARGS_HPP__
 

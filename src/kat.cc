@@ -2,9 +2,11 @@
 #include <config.h>
 #endif
 
-#include "kat_args.hpp";
-#include "sect/sect.hpp";
+#include <iostream>
 
+#include "kat_args.hpp"
+#include "sect/sect_main.hpp"
+#include "comp/comp_main.hpp"
 
 // Start point
 int main(int argc, char *argv[])
@@ -12,23 +14,16 @@ int main(int argc, char *argv[])
     // Parse args
     KatArgs args(argc, argv);
 
-    // Print command line args to stderr if requested
-    if (args.verbose)
-    {
-        args.print();
-    }
-
 
     // Pass remaining args to relevant child tool
-    if (strncmp(args.getMode(), "sect"))
+    if (args.getMode().compare("sect") == 0)
     {
         sectStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (strncmp(args.getMode(), "comp"))
+    else if (args.getMode().compare("comp") == 0)
     {
         compStart(args.getModeArgC(), args.getModeArgV());
     }
-
 
     return 0;
 }

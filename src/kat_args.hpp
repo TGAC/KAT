@@ -3,25 +3,27 @@
 
 #include <getopt.h>
 #include <string.h>
+#include <stdlib.h>
+#include <iostream>
+
+using std::string;
 
 class KatArgs
 {
 private:
     string  mode_arg;
     int     mode_argc;
-    char*   mode_argv[];
+    char**   mode_argv;
 
 public:
 
 
     // Default constructor
-    SectArgs() :
-        mode_arg(NULL), mode_argc(0), mode_argv(NULL)
+    KatArgs()
     {}
 
     // Constructor that parses command line options
-    SectArgs(int argc, char* argv[]) :
-        mode_arg(NULL), mode_argc(0), mode_argv(NULL)
+    KatArgs(int argc, char* argv[])
     {
         parse(argc, argv);
     }
@@ -57,7 +59,7 @@ public:
 
 
 #define kat_args_HELP "The Kmer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish kmer hashes\n\n" \
-  "First argument should be the tool you wish to use: " \
+  "First argument should be the tool you wish to use: {sect,comp}\n\n" \
   "Options (default value in (), *required):\n" \
   "     --usage                              Usage\n" \
   "     --help                               This message\n" \
@@ -82,6 +84,12 @@ public:
         os << PACKAGE_VERSION << "\n";
     }
 
+    bool validMode(char* mode_str)
+    {
+        return (strcmp(mode_str, "sect") == 0 || strcmp(mode_str, "comp") == 0) ?
+                    true : false;
+    }
+
     void parse(int argc, char *argv[])
     {
         int c;
@@ -97,14 +105,15 @@ public:
         static const char *short_options = "Vuh";
 
 
-        if (argc == 0) {
+        if (argc <= 1) {
             std::cout << usage() << "\n\n" << help() << std::endl;
             exit(0);
         }
-        else if (validMode(argv[0])) {
-            mode_arg = argv[0];
-            mode_argc = argc -1;
-            mode_argv = &argv[1];
+        else if (validMode(argv[1])) {
+
+            mode_arg = argv[1];
+            mode_argc = argc - 1;
+            mode_argv = argv + 1;
         }
         else {
 
@@ -141,13 +150,12 @@ public:
 
                 }
             }
+
+            error("Invalid command line arguments passed to KAT\n\n");
+            exit(1);
         }
     }
 
-
-    void print()
-    {
-    }
 
 private:
 };

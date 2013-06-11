@@ -1906,6 +1906,8 @@ bool Gnuplot::file_available(const std::string &filename){
         throw GnuplotException( except.str() );
         return false;
     }
+
+    return true;
 }
 
 

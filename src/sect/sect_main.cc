@@ -24,18 +24,24 @@
 #include <kseq/kseq.h>
 #include "sect_args.hpp"
 #include "sect.hpp"
+#include "sect_main.hpp"
 
 using std::vector;
 using std::string;
+using std::cout;
+using std::cerr;
 
 KSEQ_INIT(gzFile, gzread)
 
 
 // Loads Fasta file into memory.  Two vectors hold names and sequences respectively.  Assumes no reordering will
 // take place
-void readFasta(const char *fastaPath, vector<string>& fastaNames, vector<string>& fastaSeqs)
+void readFasta(const char *fastaPath, vector<string>& fastaNames, vector<string>& fastaSeqs, bool verbose)
 {
-    std::cerr << "Fasta file load: " << fastaPath << "\n";
+    if (verbose)
+    {
+        cerr << "Fasta file load: " << fastaPath << "\n";
+    }
 
     gzFile fp;
     fp = gzopen(fastaPath, "r"); // STEP 2: open the file handler
@@ -46,7 +52,6 @@ void readFasta(const char *fastaPath, vector<string>& fastaNames, vector<string>
         fastaNames.push_back(seq->name.s);
         fastaSeqs.push_back(seq->seq.s);
     }
-    printf("return value: %d\n", l);
     kseq_destroy(seq); // STEP 5: destroy seq
     gzclose(fp); // STEP 6: close the file handler
 }
@@ -56,16 +61,16 @@ void printFastaData(vector<string>& names, vector<string>& seqs)
 {
     if (names.size() != seqs.size())
     {
-        printf("something went wrong!!\n");
+        cerr << "Somehow the fasta names and sequence vector went out of sync!  Names size: " << names.size() << "; Seqs size: " << seqs.size() << "\n";
         return;
     }
 
-    printf("Printing fasta data\n");
+    cerr << "Printing fasta data\n";
 
     for (int i = 0; i < names.size(); i++)
     {
-        printf("name: %s\n", names[i].c_str());
-        printf("seq: %s\n", seqs[i].c_str());
+        cerr << "name: " << names[i].c_str() << "\n";
+        cerr << "seq:  " << seqs[i].c_str() << "\n";
     }
 }
 
@@ -91,7 +96,7 @@ int sectStart(int argc, char *argv[])
     // Load enitre fasta file into memory
     vector<string> names;
     vector<string> seqs;
-    readFasta(args.fasta_arg, names, seqs);
+    readFasta(args.fasta_arg, names, seqs, args.verbose);
 
     // Get jellyfish has type
     char type[8];
@@ -100,13 +105,13 @@ int sectStart(int argc, char *argv[])
     // Process data differently depending on jellyfish hash type
     if(!strncmp(type, jellyfish::raw_hash::file_type, sizeof(type)))
     {
-        std::cerr << "Raw hash detected but not supported yet\n";
+        cerr << "Raw hash detected but not supported yet\n";
     }
     else if(!strncmp(type, jellyfish::compacted_hash::file_type, sizeof(type)))
     {
         if (args.verbose)
         {
-            std::cerr << "Compacted hash detected.  Setting up query structure.\n";
+            cerr << "Compacted hash detected.  Setting up query structure.\n";
         }
 
         // Load the jellyfish hash object
@@ -115,7 +120,7 @@ int sectStart(int argc, char *argv[])
         // Output jellyfish has details if requested
         if (args.verbose)
         {
-            std::cerr << "mer length  = " << hash.get_mer_len() << "\n"
+            cerr << "mer length  = " << hash.get_mer_len() << "\n"
                       << "hash size   = " << hash.get_size() << "\n"
                       << "max reprobe = " << hash.get_max_reprobe() << "\n"
                       << "matrix      = " << hash.get_hash_matrix().xor_sum() << "\n"
@@ -143,9 +148,7 @@ int sectStart(int argc, char *argv[])
         }
 
         // Send sequence coverage scores to standard out
-        ofstream_default out(0, std::cout);
-        sect.printCoverages(out);
-        out.close();
+        sect.printCoverages(std::cout);
     }
     else
     {
