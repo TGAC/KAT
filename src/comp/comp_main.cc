@@ -65,7 +65,7 @@ int compStart(int argc, char *argv[])
     memcpy(type2, dbf2.base(), sizeof(type2));
 
     // Create sparse matrix
-    SparseMatrix<long> matrix(1000, 1000);
+    SparseMatrix<uint64_t> matrix(1000, 1000);
 
     matrix(100,200) = 5L;
 
