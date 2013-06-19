@@ -13,18 +13,21 @@ public:
     const char * 	db2_arg;
     const char *  input_type;
     const char *  output_arg;
+    uint_t endlimit_arg;
+    float xscale_arg;
+    float yscale_arg;
     uint_t threads_arg;
     uint_t kmer_arg;
     bool verbose;
 
     // Default constructor
     CompArgs() :
-        output_arg(NULL), threads_arg(1), kmer_arg(31), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), kmer_arg(31), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_arg(NULL), threads_arg(1), kmer_arg(31), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), kmer_arg(31), verbose(false)
     {
         parse(argc, argv);
     }
@@ -48,9 +51,13 @@ public:
 
 
 #define sect_args_HELP "Compares two sets of jellyfish kmer counts\n\n" \
+  "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided first, then the assembly kmer hash second." \
   "Options (default value in (), *required):\n" \
-  " -f, --fasta          Fasta file contains sequences that should have coverage estimated.  Kmers containing any Ns derived from sequences in the fasta files will have 0 coverage.\n" \
-  " -o, --count_output   File that should contain the sequence count profiles produced from this program. If not specified count data is not output\n" \
+  " -f, --fasta          Assembly fasta file. If provided, the ends up to endsize from this sequences will be included in a separate frequency comparisson matrix.\n" \
+  " -e, --endsize        Size of the end section from the fasta file sequences that will be used as filters when creating the ends matrix.\n" \
+  " -o, --output         File that should contain the frequency comparison matrix from this program. If fasta file and endlimit specified, a second matrix file with the .ends suffix will be created also.\n" \
+  " -x, --x_scale	     Scaling factor for the first dataset (float multiplier).\n"\
+  " -y, --y_scale	     Scaling factor for the second dataset (float multiplier).\n"\
   " -t, --threads        The number of threads to use.  Default: 1\n" \
   " -k, --kmer           The kmer size to use (must be the same as kmer sized used for jellyfish hash).  Default: 31.\n" \
   "     --usage          Usage\n" \
@@ -74,17 +81,20 @@ public:
 
         static struct option long_options[] =
         {
-            {"verbose", no_argument,       0, 'v'},
-            {"fasta",   required_argument, 0, 'f'},
-            {"count_output",  required_argument, 0, 'o'},
-            {"threads", required_argument, 0, 't'},
-            {"kmer", required_argument,    0, 'k'},
-            {"help",  no_argument,         0, 'h'},
-            {"usage", no_argument,         0, 'u'},
+            {"verbose",         no_argument,        0, 'v'},
+            {"fasta",           required_argument,  0, 'f'},
+            {"endlimit",        optional_argument,  0, 'e'},
+            {"output",          required_argument,  0, 'o'},
+            {"x_scale" ,        required_argument,  0, 'x'},
+            {"y_scale" ,        required_argument,  0, 'y'},
+            {"threads",         required_argument,  0, 't'},
+            {"kmer",            required_argument,  0, 'k'},
+            {"help",            no_argument,        0, 'h'},
+            {"usage",           no_argument,        0, 'u'},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "f:o:t:k:vuh";
+        static const char *short_options = "f:e:o:x:y:t:k:vuh";
 
         if (argc <= 0)
         {
@@ -134,6 +144,15 @@ public:
             case 'k':
                 kmer_arg = atoi(optarg);
                 break;
+            case 'e':
+                endlimit_arg = atoi(optarg);
+                break;
+            case 'x':
+                xscale_arg = atof(optarg);
+                break;
+            case 'y':
+                yscale_arg = atof(optarg);
+                break;
 
             }
         }
@@ -165,20 +184,23 @@ public:
         if (kmer_arg)
             std::cerr << "Kmer size: " << kmer_arg << "\n";
 
+        if (endlimit_arg)
+            std::cerr << "Endlimit: " << endlimit_arg << "\n";
+
+        if (xscale_arg)
+            std::cerr << "X Scale Arg: " << xscale_arg << "\n";
+
+        if (yscale_arg)
+            std::cerr << "Y Scale Arg: " << yscale_arg << "\n";
+
         if (db1_arg)
             std::cerr << "Jellyfish hash 1: " << db1_arg << "\n";
 
         if (db2_arg)
             std::cerr << "Jellyfish hash 2: " << db2_arg << "\n";
 
-        if (outputGiven())
-        {
-            std::cerr << "Count Output file provided: " << output_arg << "\n";
-        }
-        else
-        {
-            std::cerr << "No output argument provided.  Not outputing count information\n";
-        }
+        if (output_arg)
+            std::cerr << "Matrix Output file provided: " << output_arg << "\n";
     }
 
 private:

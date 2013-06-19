@@ -25,8 +25,7 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 
-#include <matrix/sparse_matrix.hpp>
-
+#include "comp.hpp"
 #include "comp_args.hpp"
 #include "comp_main.hpp"
 
@@ -53,9 +52,10 @@ int compStart(int argc, char *argv[])
     mapped_file dbf1(args.db1_arg);
     mapped_file dbf2(args.db2_arg);
 
-    // Advise kernel on how we will use this memory (i.e. random access and we'll
-    // need it available soon.)
-    dbf1.random().will_need();
+    // Advise kernel on how we will use this memory.  For hash1 treat it as sequential as we will iterate through it
+    // hash2 should be random access as we will look up kmers from hash1.  It therefore makes sense for hash1 to be
+    // the bigger hash, for example if comparing reads to an assembly.
+    dbf1.sequential().will_need();
     dbf2.random().will_need();
 
     // Get jellyfish has type
@@ -64,12 +64,57 @@ int compStart(int argc, char *argv[])
     memcpy(type1, dbf1.base(), sizeof(type1));
     memcpy(type2, dbf2.base(), sizeof(type2));
 
-    // Create sparse matrix
-    SparseMatrix<uint64_t> matrix(1000, 1000);
 
-    matrix(100,200) = 5L;
+    if(!strncmp(type1, jellyfish::compacted_hash::file_type, sizeof(type1)) &&
+       !strncmp(type2, jellyfish::compacted_hash::file_type, sizeof(type2)))
+    {
+            if (args.verbose)
+            {
+                cerr << "Compacted hashes detected.  Setting up query structure.\n";
+            }
 
-    cout << matrix(100,200) << "\n";
+            // Load the jellyfish hashes
+            hash_query_t hash1(dbf1);
+            hash_query_t hash2(dbf2);
+
+            // Output jellyfish has details if requested
+            if (args.verbose)
+            {
+                cerr << "hash1 mer length  = " << hash1.get_mer_len() << "\n"
+                          << "hash1 hash size   = " << hash1.get_size() << "\n"
+                          << "hash1 max reprobe = " << hash1.get_max_reprobe() << "\n"
+                          << "hash1 matrix      = " << hash1.get_hash_matrix().xor_sum() << "\n"
+                          << "hash1 inv_matrix  = " << hash1.get_hash_inverse_matrix().xor_sum() << "\n";
+
+                cerr << "hash2 mer length  = " << hash2.get_mer_len() << "\n"
+                          << "hash2 hash size   = " << hash2.get_size() << "\n"
+                          << "hash2 max reprobe = " << hash2.get_max_reprobe() << "\n"
+                          << "hash2 matrix      = " << hash2.get_hash_matrix().xor_sum() << "\n"
+                          << "hash2 inv_matrix  = " << hash2.get_hash_inverse_matrix().xor_sum() << "\n";
+            }
+
+            // Create the sequence coverage object
+            Comp<hash_query_t> comp(&hash1, &hash2, NULL, NULL, args.kmer_arg, args.threads_arg, args.xscale_arg, args.yscale_arg);
+
+            // Output comp parameters to stderr if requested
+            if (args.verbose)
+                comp.printVars(cerr);
+
+            // Do the work
+            comp.do_it();
+
+            // Send matrix to output file
+            ofstream_default matrix_out(args.output_arg, std::cout);
+            comp.printMatrix(matrix_out);
+            matrix_out.close();
+
+            // Send kmer statistics to stdout
+            comp.printCounters(cout);
+    }
+    else
+    {
+        cerr << "Can't process jellyfish hashes.  Wrong type.  Can only process compacted hashes.\n";
+    }
 
     return 0;
 }

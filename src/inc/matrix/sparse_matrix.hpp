@@ -30,6 +30,18 @@ public:
         return mat[i][j];
     }
 
+    T inc(size_t i, size_t j, T val)
+    {
+        mat[i][j] = mat[i][j] + val;
+        return mat[i][j];
+    }
+
+    T get(size_t i, size_t j)
+    {
+        if(i>=m || j>=n) throw;
+        return mat[i][j];
+    }
+
     std::vector<T> operator*(const std::vector<T>& x)
     {  //Computes y=A*x
         if(this->m != x.size()) throw;
