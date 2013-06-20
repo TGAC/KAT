@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+using std::cerr;
+
 class SectArgs
 {
 public:
@@ -13,17 +15,16 @@ public:
     const char *  input_type;
     const char *  output_arg;
     uint_t threads_arg;
-    uint_t kmer_arg;
     bool verbose;
 
     // Default constructor
     SectArgs() :
-        output_arg(NULL), threads_arg(1), kmer_arg(31), verbose(false)
+        output_arg(NULL), threads_arg(1), verbose(false)
     {}
 
     // Constructor that parses command line options
     SectArgs(int argc, char* argv[]) :
-        output_arg(NULL), threads_arg(1), kmer_arg(31), verbose(false)
+        output_arg(NULL), threads_arg(1), verbose(false)
     {
         parse(argc, argv);
     }
@@ -31,7 +32,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "Usage: kat sect [options] -f <fasta_file_path> db_path"
+#define seqcvg_args_USAGE "\nUsage: kat sect [options] -f <fasta_file_path> db_path"
     const char * usage() const
     {
         return seqcvg_args_USAGE;
@@ -46,12 +47,11 @@ public:
     }
 
 
-#define sect_args_HELP "Estimates coverage for sequences in a fasta file using jellyfish kmer counts\n\n" \
+#define sect_args_HELP "Estimates coverage for sequences in a fasta file using jellyfish kmer counts. Kmers containing any Ns derived from sequences in the fasta files will have 0 coverage.\n\n" \
   "Options (default value in (), *required):\n" \
-  " -f, --fasta          Fasta file contains sequences that should have coverage estimated.  Kmers containing any Ns derived from sequences in the fasta files will have 0 coverage.\n" \
+  " -f, --fasta          *Fasta file contains sequences that should have coverage estimated.  \n" \
   " -o, --count_output   File that should contain the sequence count profiles produced from this program. If not specified count data is not output\n" \
-  " -t, --threads        The number of threads to use.  Default: 1\n" \
-  " -k, --kmer           The kmer size to use (must be the same as kmer sized used for jellyfish hash).  Default: 31.\n" \
+  " -t, --threads        The number of threads to use (1).\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
 
@@ -77,13 +77,12 @@ public:
             {"fasta",   required_argument, 0, 'f'},
             {"count_output",  required_argument, 0, 'o'},
             {"threads", required_argument, 0, 't'},
-            {"kmer", required_argument,    0, 'k'},
             {"help",  no_argument,         0, 'h'},
             {"usage", no_argument,         0, 'u'},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "f:o:t:k:vuh";
+        static const char *short_options = "f:o:t:vuh";
 
         if (argc <= 0)
         {
@@ -130,9 +129,6 @@ public:
             case 't':
                 threads_arg = atoi(optarg);
                 break;
-            case 'k':
-                kmer_arg = atoi(optarg);
-                break;
 
             }
         }
@@ -152,27 +148,24 @@ public:
     void print()
     {
         if (verbose)
-            std::cerr << "Verbose flag set\n";
+            cerr << "Verbose flag set\n";
 
         if (fasta_arg)
-            std::cerr << "Fasta file: " << fasta_arg << "\n";
+            cerr << "Fasta file: " << fasta_arg << "\n";
 
         if (threads_arg)
-            std::cerr << "Threads requested: " << threads_arg << "\n";
-
-        if (kmer_arg)
-            std::cerr << "Kmer size: " << kmer_arg << "\n";
+            cerr << "Threads requested: " << threads_arg << "\n";
 
         if (db_arg)
-            std::cerr << "Jellyfish hash: " << db_arg << "\n";
+            cerr << "Jellyfish hash: " << db_arg << "\n";
 
         if (outputGiven())
         {
-            std::cerr << "Count Output file provided: " << output_arg << "\n";
+            cerr << "Count Output file provided: " << output_arg << "\n";
         }
         else
         {
-            std::cerr << "No output argument provided.  Not outputing count information\n";
+            cerr << "No output argument provided.  Not outputing count information\n";
         }
     }
 

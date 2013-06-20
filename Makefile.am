@@ -10,8 +10,9 @@ AM_CXXFLAGS = -g -O3
 bin_PROGRAMS = $(top_builddir)/bin/kat
 
 __top_builddir__bin_kat_SOURCES = \
-                            src/sect/sect.hpp src/sect/sect_main.cc \
+                            src/sect/sect_main.cc \
                             src/comp/comp_main.cc \
+			    src/plot/plot_main.cc \
                             src/kat.cc
 
 __top_builddir__bin_kat_LDADD = lib/libjellyfish-1.1.a lib/libz.a

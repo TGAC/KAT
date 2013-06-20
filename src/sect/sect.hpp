@@ -11,6 +11,7 @@
 
 using std::vector;
 using std::string;
+using std::cerr;
 
 template<typename hash_t>
 class Sect : public thread_exec
@@ -18,7 +19,6 @@ class Sect : public thread_exec
     const hash_t            *hash;		// Jellyfish hash
     const vector<string>    *names;	    // Names of fasta sequences (in same order as seqs)
     const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
-    const uint_t            kmer;		// Kmer size to use
     const uint_t            threads;	// Number of threads to use
     const size_t            bucket_size, remaining;	// Chunking vars
     vector<vector<uint_t>*> *counts;    // Kmer counts for each kmer window in sequence (in same order as seqs and names; built by this class)
@@ -26,9 +26,9 @@ class Sect : public thread_exec
 
 public:
     Sect(const hash_t *_hash, const vector<string> *_names, const vector<string> *_seqs,
-         uint_t _kmer, uint_t _threads) :
+        uint_t _threads) :
         hash(_hash), names(_names), seqs(_seqs),
-        kmer(_kmer), threads(_threads),
+        threads(_threads),
         bucket_size(seqs->size() / threads),
         remaining(seqs->size() % (bucket_size < 1 ? 1 : threads))
     {
@@ -71,13 +71,14 @@ public:
     }
 
 
-    void printVars()
+    void printVars(std::ostream &out)
     {
-        std::cerr << "Sequences to process: " << seqs->size() << "\n";
-        std::cerr << "Kmer: " << kmer << "\n";
-        std::cerr << "Threads: " << threads << "\n";
-        std::cerr << "Bucket size: " << bucket_size << "\n";
-        std::cerr << "Remaining: " << remaining << "\n";
+        out << "SECT parameters:\n";
+        out << " - Hash: " << (hash ? "present" : "not specified") << "\n";
+        out << " - Sequences to process: " << seqs->size() << "\n";
+        out << " - Threads: " << threads << "\n";
+        out << " - Bucket size: " << bucket_size << "\n";
+        out << " - Remaining: " << remaining << "\n\n";
     }
 
 
@@ -147,6 +148,7 @@ private:
 
     void processSeq(const size_t index)
     {
+        uint_t kmer = hash->get_mer_len();
         string seq = (*seqs)[index];
         uint_t nbCounts = seq.length() - kmer + 1;
 
@@ -156,7 +158,7 @@ private:
             return;
         }
 
-        std::cerr << "Seq: " << seq << "; Counts to create: " << nbCounts << "\n";
+        //std::cerr << "Seq: " << seq << "; Counts to create: " << nbCounts << "\n";
 
         vector<uint_t>* seqCounts = new vector<uint_t>(nbCounts);
 

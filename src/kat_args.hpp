@@ -7,6 +7,8 @@
 #include <iostream>
 
 using std::string;
+using std::cerr;
+using std::cout;
 
 class KatArgs
 {
@@ -43,7 +45,7 @@ public:
 
 
 
-#define kat_args_USAGE "Usage: kat <mode>"
+#define kat_args_USAGE "\nUsage: kat <mode>"
     const char * usage() const
     {
         return kat_args_USAGE;
@@ -51,7 +53,7 @@ public:
 
     void error(const char *msg)
     {
-        std::cerr << "Error: " << msg << "\n" << usage()
+        cerr << "Error: " << msg << "\n" << usage()
                   << "\nUse --help for more information"
                   << std::endl;
         exit(1);
@@ -59,8 +61,11 @@ public:
 
 
 #define kat_args_HELP "The Kmer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish kmer hashes\n\n" \
-  "First argument should be the tool you wish to use: {sect,comp}\n\n" \
-  "Options (default value in (), *required):\n" \
+  "First argument should be the tool/mode you wish to use:\n\n" \
+  "   - sect: SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using kmers from a jellyfish hash\n" \
+  "   - comp: Kmer comparison tool.  Creates a matrix of shared kmers between two jellyfish hashes.\n" \
+  "   - plot: PLOT assisting tool.  Creates useful plots to visualise kmer distributions\n\n" \
+  "Options:\n" \
   "     --usage                              Usage\n" \
   "     --help                               This message\n" \
   " -V, --version                            Version"
@@ -86,7 +91,9 @@ public:
 
     bool validMode(char* mode_str)
     {
-        return (strcmp(mode_str, "sect") == 0 || strcmp(mode_str, "comp") == 0) ?
+        return (strcmp(mode_str, "sect") == 0 ||
+                strcmp(mode_str, "comp") == 0 ||
+                strcmp(mode_str, "plot")) ?
                     true : false;
     }
 
@@ -106,7 +113,7 @@ public:
 
 
         if (argc <= 1) {
-            std::cout << usage() << "\n\n" << help() << std::endl;
+            cout << usage() << "\n\n" << help() << std::endl;
             exit(0);
         }
         else if (validMode(argv[1])) {
@@ -131,21 +138,21 @@ public:
                 switch (c)
                 {
                 case ':':
-                    std::cerr << "Missing required argument for "
+                    cerr << "Missing required argument for "
                               << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
                               << std::endl;
                     exit(1);
                 case 'h':
-                    std::cout << usage() << "\n\n" << help() << std::endl;
+                    cout << usage() << "\n\n" << help() << std::endl;
                     exit(0);
                 case 'u':
-                    std::cout << usage() << "\nUse --help for more information." << std::endl;
+                    cout << usage() << "\nUse --help for more information." << std::endl;
                     exit(0);
                 case 'V':
                     print_version();
                     exit(0);
                 case '?':
-                    std::cerr << "Use --usage or --help for some help\n";
+                    cerr << "Use --usage or --help for some help\n";
                     exit(1);
 
                 }

@@ -17,17 +17,16 @@ public:
     float xscale_arg;
     float yscale_arg;
     uint_t threads_arg;
-    uint_t kmer_arg;
     bool verbose;
 
     // Default constructor
     CompArgs() :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), kmer_arg(31), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), kmer_arg(31), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), verbose(false)
     {
         parse(argc, argv);
     }
@@ -35,7 +34,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "Usage: kat comp [options] -f <fasta_file_path> db1_path db2_path"
+#define seqcvg_args_USAGE "\nUsage: kat comp [options] db1_path db2_path"
     const char * usage() const
     {
         return seqcvg_args_USAGE;
@@ -51,15 +50,15 @@ public:
 
 
 #define sect_args_HELP "Compares two sets of jellyfish kmer counts\n\n" \
-  "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided first, then the assembly kmer hash second." \
+  "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided first, then the assembly kmer hash second.\n\n" \
   "Options (default value in (), *required):\n" \
-  " -f, --fasta          Assembly fasta file. If provided, the ends up to endsize from this sequences will be included in a separate frequency comparisson matrix.\n" \
+  " -f, --fasta          Assembly fasta file. If provided, the ends up to endsize from this sequences will be included in a separate frequency comparison matrix.\n" \
   " -e, --endsize        Size of the end section from the fasta file sequences that will be used as filters when creating the ends matrix.\n" \
   " -o, --output         File that should contain the frequency comparison matrix from this program. If fasta file and endlimit specified, a second matrix file with the .ends suffix will be created also.\n" \
-  " -x, --x_scale	     Scaling factor for the first dataset (float multiplier).\n"\
-  " -y, --y_scale	     Scaling factor for the second dataset (float multiplier).\n"\
-  " -t, --threads        The number of threads to use.  Default: 1\n" \
-  " -k, --kmer           The kmer size to use (must be the same as kmer sized used for jellyfish hash).  Default: 31.\n" \
+  " -x, --x_scale        Scaling factor for the first dataset - float multiplier (1.0).\n"\
+  " -y, --y_scale        Scaling factor for the second dataset - float multiplier (1.0).\n"\
+  " -t, --threads        The number of threads to use (1)\n" \
+  " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
 
@@ -88,13 +87,12 @@ public:
             {"x_scale" ,        required_argument,  0, 'x'},
             {"y_scale" ,        required_argument,  0, 'y'},
             {"threads",         required_argument,  0, 't'},
-            {"kmer",            required_argument,  0, 'k'},
             {"help",            no_argument,        0, 'h'},
             {"usage",           no_argument,        0, 'u'},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "f:e:o:x:y:t:k:vuh";
+        static const char *short_options = "f:e:o:x:y:t:vuh";
 
         if (argc <= 0)
         {
@@ -141,9 +139,6 @@ public:
             case 't':
                 threads_arg = atoi(optarg);
                 break;
-            case 'k':
-                kmer_arg = atoi(optarg);
-                break;
             case 'e':
                 endlimit_arg = atoi(optarg);
                 break;
@@ -181,9 +176,6 @@ public:
         if (threads_arg)
             std::cerr << "Threads requested: " << threads_arg << "\n";
 
-        if (kmer_arg)
-            std::cerr << "Kmer size: " << kmer_arg << "\n";
-
         if (endlimit_arg)
             std::cerr << "Endlimit: " << endlimit_arg << "\n";
 
@@ -201,6 +193,8 @@ public:
 
         if (output_arg)
             std::cerr << "Matrix Output file provided: " << output_arg << "\n";
+
+        std::cerr << "\n";
     }
 
 private:

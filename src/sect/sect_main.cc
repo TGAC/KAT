@@ -22,8 +22,9 @@
 #include <jellyfish/fstream_default.hpp>
 
 #include <kseq/kseq.h>
-#include "sect_args.hpp"
+
 #include "sect.hpp"
+#include "sect_args.hpp"
 #include "sect_main.hpp"
 
 using std::vector;
@@ -39,9 +40,7 @@ KSEQ_INIT(gzFile, gzread)
 void readFasta(const char *fastaPath, vector<string>& fastaNames, vector<string>& fastaSeqs, bool verbose)
 {
     if (verbose)
-    {
         cerr << "Fasta file load: " << fastaPath << "\n";
-    }
 
     gzFile fp;
     fp = gzopen(fastaPath, "r"); // STEP 2: open the file handler
@@ -110,9 +109,7 @@ int sectStart(int argc, char *argv[])
     else if(!strncmp(type, jellyfish::compacted_hash::file_type, sizeof(type)))
     {
         if (args.verbose)
-        {
             cerr << "Compacted hash detected.  Setting up query structure.\n";
-        }
 
         // Load the jellyfish hash object
         hash_query_t hash(dbf);
@@ -124,17 +121,15 @@ int sectStart(int argc, char *argv[])
                       << "hash size   = " << hash.get_size() << "\n"
                       << "max reprobe = " << hash.get_max_reprobe() << "\n"
                       << "matrix      = " << hash.get_hash_matrix().xor_sum() << "\n"
-                      << "inv_matrix  = " << hash.get_hash_inverse_matrix().xor_sum() << "\n";
+                      << "inv_matrix  = " << hash.get_hash_inverse_matrix().xor_sum() << "\n\n";
         }
 
         // Create the sequence coverage object
-        Sect<hash_query_t> sect(&hash, &names, &seqs, args.kmer_arg, args.threads_arg);
+        Sect<hash_query_t> sect(&hash, &names, &seqs, args.threads_arg);
 
         // Output seqcvg parameters to stderr if requested
         if (args.verbose)
-        {
-            sect.printVars();
-        }
+            sect.printVars(cerr);
 
         // Do the work
         sect.do_it();
@@ -148,7 +143,7 @@ int sectStart(int argc, char *argv[])
         }
 
         // Send sequence coverage scores to standard out
-        sect.printCoverages(std::cout);
+        sect.printCoverages(cout);
     }
     else
     {

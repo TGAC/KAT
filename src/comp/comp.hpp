@@ -14,6 +14,7 @@
 
 using std::vector;
 using std::string;
+using std::cerr;
 
 class CompCounters{
 public:
@@ -80,21 +81,23 @@ public:
 
     void printCounts(std::ostream &out)
     {
-        out << "Total kmers in hash 1: " << hash1_total << "\n";
-        out << "Total kmers in hash 2: " << hash2_total << "\n\n";
+        out << "Kmer statistics for hash1 and hash2:\n\n";
 
-        out << "Distinct kmers in hash 1: " << hash1_distinct << "\n";
-        out << "Distinct kmers in hash 2: " << hash2_distinct << "\n\n";
+        out << " - Total kmers in hash 1: " << hash1_total << "\n";
+        out << " - Total kmers in hash 2: " << hash2_total << "\n\n";
 
-        out << "Total kmers only found in hash 1: " << hash1_only_total << "\n";
-        out << "Total kmers only found in hash 2: " << hash2_only_total << "\n\n";
+        out << " - Distinct kmers in hash 1: " << hash1_distinct << "\n";
+        out << " - Distinct kmers in hash 2: " << hash2_distinct << "\n\n";
 
-        out << "Distinct kmers only found in hash 1: " << hash1_only_distinct << "\n";
-        out << "Distinct kmers only found in hash 2: " << hash2_only_distinct << "\n\n";
+        out << " - Total kmers only found in hash 1: " << hash1_only_total << "\n";
+        out << " - Total kmers only found in hash 2: " << hash2_only_total << "\n\n";
 
-        out << "Total shared kmers found in hash 1: " << shared_hash1_total << "\n";
-        out << "Total shared kmers found in hash 2: " << shared_hash2_total << "\n";
-        out << "Distinct shared kmers: " << shared_distinct << "\n\n";
+        out << " - Distinct kmers only found in hash 1: " << hash1_only_distinct << "\n";
+        out << " - Distinct kmers only found in hash 2: " << hash2_only_distinct << "\n\n";
+
+        out << " - Total shared kmers found in hash 1: " << shared_hash1_total << "\n";
+        out << " - Total shared kmers found in hash 2: " << shared_hash2_total << "\n";
+        out << " - Distinct shared kmers: " << shared_distinct << "\n\n";
     }
 };
 
@@ -108,10 +111,8 @@ class Comp : public thread_exec
     const hash_t            *hash2;     // Jellyfish hash 2
     const vector<string>    *names;	    // Names of fasta sequences (in same order as seqs)
     const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
-    const uint_t            kmer;		// Kmer size to use
     const uint_t            threads;	// Number of threads to use
     const float             xscale, yscale;  // Scaling factors to make the matrix look pretty.
-    const size_t            bucket_size, remaining;	// Chunking vars
 
     // Final data (created by merging thread results)
     SparseMatrix<uint_t>    *final_matrix;
@@ -124,12 +125,10 @@ class Comp : public thread_exec
 
 public:
     Comp(const hash_t *_hash1, const hash_t *_hash2, const vector<string> *_names, const vector<string> *_seqs,
-         uint_t _kmer, uint_t _threads, float _xscale, float _yscale) :
+        uint_t _threads, float _xscale, float _yscale) :
         hash1(_hash1), hash2(_hash2), names(_names), seqs(_seqs),
-        kmer(_kmer), threads(_threads),
-        xscale(_xscale), yscale(_yscale),
-        bucket_size(seqs->size() / threads),
-        remaining(seqs->size() % (bucket_size < 1 ? 1 : threads))
+        threads(_threads),
+        xscale(_xscale), yscale(_yscale)
     {
         // Create the final kmer counter matrix
         final_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
@@ -187,12 +186,6 @@ public:
 
     void start(int th_id)
     {
-        // Check to see if we have useful work to do for this thread, return if not
-        if (bucket_size < 1 && th_id >= seqs->size())
-        {
-            return;
-        }
-
         // Get handle to sparse matrix for this thread
         SparseMatrix<uint_t>* thread_matrix = thread_matricies[th_id];
 
@@ -266,13 +259,13 @@ public:
     // Print Comp setup
     void printVars(std::ostream &out)
     {
-        out << "Kmer: " << kmer << "\n";
-        out << "Threads: " << threads << "\n";
-        out << "X scaling factor: " << xscale << "\n";
-        out << "Y scaling factor: " << yscale << "\n";
-        out << "Bucket size: " << bucket_size << "\n";
-        out << "Remaining: " << remaining << "\n";
-    }
+        out << "Comp parameters:\n";
+        out << " - Hash1: " << (hash1 ? "present" : "not specified") << "\n";
+        out << " - Hash2: " << (hash2 ? "present" : "not specified") << "\n";
+        out << " - Threads: " << threads << "\n";
+        out << " - X scaling factor: " << xscale << "\n";
+        out << " - Y scaling factor: " << yscale << "\n\n";
+   }
 
 
     // Print kmer comparison matrix

@@ -23,8 +23,6 @@
 
 #include <kseq/kseq.h>
 
-#include <gnuplot/gnuplot_i.hpp>
-
 #include "comp.hpp"
 #include "comp_args.hpp"
 #include "comp_main.hpp"
@@ -69,9 +67,7 @@ int compStart(int argc, char *argv[])
        !strncmp(type2, jellyfish::compacted_hash::file_type, sizeof(type2)))
     {
             if (args.verbose)
-            {
-                cerr << "Compacted hashes detected.  Setting up query structure.\n";
-            }
+                cerr << "Compacted hashes detected.  Setting up query structure.\n\n";
 
             // Load the jellyfish hashes
             hash_query_t hash1(dbf1);
@@ -84,17 +80,24 @@ int compStart(int argc, char *argv[])
                           << "hash1 hash size   = " << hash1.get_size() << "\n"
                           << "hash1 max reprobe = " << hash1.get_max_reprobe() << "\n"
                           << "hash1 matrix      = " << hash1.get_hash_matrix().xor_sum() << "\n"
-                          << "hash1 inv_matrix  = " << hash1.get_hash_inverse_matrix().xor_sum() << "\n";
+                          << "hash1 inv_matrix  = " << hash1.get_hash_inverse_matrix().xor_sum() << "\n\n";
 
                 cerr << "hash2 mer length  = " << hash2.get_mer_len() << "\n"
                           << "hash2 hash size   = " << hash2.get_size() << "\n"
                           << "hash2 max reprobe = " << hash2.get_max_reprobe() << "\n"
                           << "hash2 matrix      = " << hash2.get_hash_matrix().xor_sum() << "\n"
-                          << "hash2 inv_matrix  = " << hash2.get_hash_inverse_matrix().xor_sum() << "\n";
+                          << "hash2 inv_matrix  = " << hash2.get_hash_inverse_matrix().xor_sum() << "\n\n";
+            }
+
+            // Check kmer lengths are the same for both hashes.  We can't continue if they are not.
+            if (hash1.get_mer_len() != hash2.get_mer_len())
+            {
+                cerr << "Cannot process hashes that were created with different kmer lengths.\n";
+                return 1;
             }
 
             // Create the sequence coverage object
-            Comp<hash_query_t> comp(&hash1, &hash2, NULL, NULL, args.kmer_arg, args.threads_arg, args.xscale_arg, args.yscale_arg);
+            Comp<hash_query_t> comp(&hash1, &hash2, 0, 0, args.threads_arg, args.xscale_arg, args.yscale_arg);
 
             // Output comp parameters to stderr if requested
             if (args.verbose)
