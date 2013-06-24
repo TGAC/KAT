@@ -15,6 +15,7 @@
 using std::vector;
 using std::string;
 using std::cerr;
+using std::endl;
 
 class CompCounters{
 public:
@@ -81,23 +82,23 @@ public:
 
     void printCounts(std::ostream &out)
     {
-        out << "Kmer statistics for hash1 and hash2:\n\n";
+        out << "Kmer statistics for hash1 and hash2:" << endl << endl;
 
-        out << " - Total kmers in hash 1: " << hash1_total << "\n";
-        out << " - Total kmers in hash 2: " << hash2_total << "\n\n";
+        out << " - Total kmers in hash 1: " << hash1_total << endl;
+        out << " - Total kmers in hash 2: " << hash2_total << endl << endl;
 
-        out << " - Distinct kmers in hash 1: " << hash1_distinct << "\n";
-        out << " - Distinct kmers in hash 2: " << hash2_distinct << "\n\n";
+        out << " - Distinct kmers in hash 1: " << hash1_distinct << endl;
+        out << " - Distinct kmers in hash 2: " << hash2_distinct << endl << endl;
 
-        out << " - Total kmers only found in hash 1: " << hash1_only_total << "\n";
-        out << " - Total kmers only found in hash 2: " << hash2_only_total << "\n\n";
+        out << " - Total kmers only found in hash 1: " << hash1_only_total << endl;
+        out << " - Total kmers only found in hash 2: " << hash2_only_total << endl << endl;
 
-        out << " - Distinct kmers only found in hash 1: " << hash1_only_distinct << "\n";
-        out << " - Distinct kmers only found in hash 2: " << hash2_only_distinct << "\n\n";
+        out << " - Distinct kmers only found in hash 1: " << hash1_only_distinct << endl;
+        out << " - Distinct kmers only found in hash 2: " << hash2_only_distinct << endl << endl;
 
-        out << " - Total shared kmers found in hash 1: " << shared_hash1_total << "\n";
-        out << " - Total shared kmers found in hash 2: " << shared_hash2_total << "\n";
-        out << " - Distinct shared kmers: " << shared_distinct << "\n\n";
+        out << " - Total shared kmers found in hash 1: " << shared_hash1_total << endl;
+        out << " - Total shared kmers found in hash 2: " << shared_hash2_total << endl;
+        out << " - Distinct shared kmers: " << shared_distinct << endl << endl;
     }
 };
 
@@ -260,13 +261,13 @@ public:
     // Print Comp setup
     void printVars(std::ostream &out)
     {
-        out << "Comp parameters:\n";
-        out << " - Hash1: " << (hash1 ? "present" : "not specified") << "\n";
-        out << " - Hash2: " << (hash2 ? "present" : "not specified") << "\n";
-        out << " - Threads: " << threads << "\n";
-        out << " - X scaling factor: " << xscale << "\n";
-        out << " - Y scaling factor: " << yscale << "\n";
-        out << " - No index: " << noindex << "\n";
+        out << "Comp parameters:" << endl;
+        out << " - Hash1: " << (hash1 ? "present" : "not specified") << endl;
+        out << " - Hash2: " << (hash2 ? "present" : "not specified") << endl;
+        out << " - Threads: " << threads << endl;
+        out << " - X scaling factor: " << xscale << endl;
+        out << " - Y scaling factor: " << yscale << endl;
+        out << " - No index: " << noindex << endl;
    }
 
 
@@ -287,7 +288,7 @@ public:
                 if (j != MATRIX_SIZE - 1)
                     out << " ";
             }
-            out << "\n";
+            out << endl;
         }
     }
 
@@ -312,9 +313,9 @@ private:
     void merge() {
 
         // Merge matrix
-        for(int i = 0; i < 1000; i++)
+        for(int i = 0; i < KMER_LIMIT; i++)
         {
-            for(int j = 0; j < 1000; j++)
+            for(int j = 0; j < KMER_LIMIT; j++)
             {
                 for(int k = 0; k < threads; k++)
                 {

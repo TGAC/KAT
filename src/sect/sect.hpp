@@ -12,6 +12,7 @@
 using std::vector;
 using std::string;
 using std::cerr;
+using std::endl;
 
 template<typename hash_t>
 class Sect : public thread_exec
@@ -73,12 +74,12 @@ public:
 
     void printVars(std::ostream &out)
     {
-        out << "SECT parameters:\n";
-        out << " - Hash: " << (hash ? "present" : "not specified") << "\n";
-        out << " - Sequences to process: " << seqs->size() << "\n";
-        out << " - Threads: " << threads << "\n";
-        out << " - Bucket size: " << bucket_size << "\n";
-        out << " - Remaining: " << remaining << "\n\n";
+        out << "SECT parameters:" << endl;
+        out << " - Hash: " << (hash ? "present" : "not specified") << endl;
+        out << " - Sequences to process: " << seqs->size() << endl;
+        out << " - Threads: " << threads << endl;
+        out << " - Bucket size: " << bucket_size << endl;
+        out << " - Remaining: " << remaining << endl << endl;
     }
 
 
@@ -86,7 +87,7 @@ public:
     {
         for(int i = 0; i < names->size(); i++)
         {
-            out << ">" << (*names)[i].c_str() << "\n";
+            out << ">" << (*names)[i].c_str() << endl;
 
             vector<uint64_t>* seqCounts = (*counts)[i];
 
@@ -96,11 +97,11 @@ public:
                 {
                     out << " " << (*seqCounts)[j];
                 }
-                out << "\n";
+                out << endl;
             }
             else
             {
-                out << " 0\n";
+                out << " 0" << endl;
             }
         }
     }
@@ -109,7 +110,7 @@ public:
     {
         for(int i = 0; i < names->size(); i++)
         {
-            out << (*coverages)[i] << "\n";
+            out << (*coverages)[i] << endl;
         }
     }
 
@@ -154,7 +155,7 @@ private:
 
         if (seq.length() < kmer)
         {
-            std::cerr << (*names)[index].c_str() << ": " << seq << "  is too short to compute coverage.  Setting sequence coverage to 0.\n";
+            cerr << (*names)[index].c_str() << ": " << seq << "  is too short to compute coverage.  Setting sequence coverage to 0." << endl;
             return;
         }
 
