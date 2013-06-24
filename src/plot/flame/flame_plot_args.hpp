@@ -53,13 +53,13 @@ public:
 
     string getOutputWithoutExt()
     {
-        size_t result = output_arg->find(".png", output_arg->length()-5);
+        size_t result = output_arg->find(output_type->c_str(), output_arg->length() - output_type->length() - 2);
 
         return result == string::npos ? *output_arg : output_arg->substr(0, result);
     }
 
 
-#define flame_plot_args_USAGE "\nUsage: kat plot flame [options] matrix_path\n"
+#define flame_plot_args_USAGE "Usage: kat plot flame [options] -o <output_file_path> matrix_path\n"
     const char * usage() const
     {
         return flame_plot_args_USAGE;

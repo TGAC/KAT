@@ -9,6 +9,10 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
+#define DEFAULT_X_SCALE 1.0
+#define DEFAULT_Y_SCALE 1.0
+#define DEFAULT_THREADS 1
+
 class CompArgs
 {
 public:
@@ -26,12 +30,12 @@ public:
 
     // Default constructor
     CompArgs() :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), noindex(false), threads_arg(1), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), noindex(false), threads_arg(DEFAULT_THREADS), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), noindex(false), threads_arg(1), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), noindex(false), threads_arg(DEFAULT_THREADS), verbose(false)
     {
         parse(argc, argv);
     }
@@ -39,7 +43,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "\nUsage: kat comp [options] db1_path db2_path\n"
+#define seqcvg_args_USAGE "Usage: kat comp [options] -o <output_file_path> db1_path db2_path\n"
     const char * usage() const
     {
         return seqcvg_args_USAGE;

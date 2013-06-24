@@ -80,7 +80,7 @@ public:
     }
 
 
-#define asm_plot_args_USAGE "Usage: kat plot flame [options] matrix_path\n"
+#define asm_plot_args_USAGE "Usage: kat plot flame [options] -o <output_file_path> matrix_path\n"
     const char * usage() const
     {
         return asm_plot_args_USAGE;
