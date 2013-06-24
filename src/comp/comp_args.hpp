@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <iostream>
 
+using std::cout;
+using std::cerr;
+using std::endl;
+
 class CompArgs
 {
 public:
@@ -16,17 +20,18 @@ public:
     uint_t endlimit_arg;
     float xscale_arg;
     float yscale_arg;
+    bool noindex;
     uint_t threads_arg;
     bool verbose;
 
     // Default constructor
     CompArgs() :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), noindex(false), threads_arg(1), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), threads_arg(1), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(1.0), yscale_arg(1.0), noindex(false), threads_arg(1), verbose(false)
     {
         parse(argc, argv);
     }
@@ -34,7 +39,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "\nUsage: kat comp [options] db1_path db2_path"
+#define seqcvg_args_USAGE "\nUsage: kat comp [options] db1_path db2_path\n"
     const char * usage() const
     {
         return seqcvg_args_USAGE;
@@ -42,9 +47,10 @@ public:
 
     void error(const char *msg)
     {
-        std::cerr << "Error: " << msg << "\n" << usage()
-                  << "\nUse --help for more information"
-                  << std::endl;
+        cerr << endl
+             << "Error: " << msg << endl << endl
+             << usage() << endl
+             << "Use --help for more information" << endl << endl;
         exit(1);
     }
 
@@ -54,9 +60,10 @@ public:
   "Options (default value in (), *required):\n" \
   " -f, --fasta          Assembly fasta file. If provided, the ends up to endsize from this sequences will be included in a separate frequency comparison matrix.\n" \
   " -e, --endsize        Size of the end section from the fasta file sequences that will be used as filters when creating the ends matrix.\n" \
-  " -o, --output         File that should contain the frequency comparison matrix from this program. If fasta file and endlimit specified, a second matrix file with the .ends suffix will be created also.\n" \
-  " -x, --x_scale        Scaling factor for the first dataset - float multiplier (1.0).\n"\
-  " -y, --y_scale        Scaling factor for the second dataset - float multiplier (1.0).\n"\
+  " -o, --output         *File that should contain the frequency comparison matrix from this program. If fasta file and endlimit specified, a second matrix file with the .ends suffix will be created also.\n" \
+  " -x, --x_scale        Scaling factor for the first dataset - float multiplier (1.0).\n" \
+  " -y, --y_scale        Scaling factor for the second dataset - float multiplier (1.0).\n" \
+  " -i, --no_index       Removes the first column which contains the kmer multiplicity value for the first dataset\n" \
   " -t, --threads        The number of threads to use (1)\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
@@ -86,6 +93,7 @@ public:
             {"output",          required_argument,  0, 'o'},
             {"x_scale" ,        required_argument,  0, 'x'},
             {"y_scale" ,        required_argument,  0, 'y'},
+            {"noindex" ,        no_argument,        0, 'i'},
             {"threads",         required_argument,  0, 't'},
             {"help",            no_argument,        0, 'h'},
             {"usage",           no_argument,        0, 'u'},
@@ -94,9 +102,11 @@ public:
 
         static const char *short_options = "f:e:o:x:y:t:vuh";
 
-        if (argc <= 0)
+        if (argc <= 1)
         {
-            std::cout << usage() << "\n\n" << help() << std::endl;
+            cerr << endl
+                 << usage() << endl
+                 << help() << endl;
             exit(1);
         }
 
@@ -114,18 +124,20 @@ public:
             switch (c)
             {
             case ':':
-                std::cerr << "Missing required argument for "
+                cerr << "Missing required argument for "
                           << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                          << std::endl;
+                          << endl;
                 exit(1);
             case 'h':
-                std::cout << usage() << "\n\n" << help() << std::endl;
+                cout << usage() << endl
+                     << help() << endl;
                 exit(0);
             case 'u':
-                std::cout << usage() << "\nUse --help for more information." << std::endl;
+                cout << usage() << endl
+                     << "Use --help for more information." << endl << endl;
                 exit(0);
             case '?':
-                std::cerr << "Use --usage or --help for some help\n";
+                cerr << "Use --usage or --help for some help" << endl << endl;
                 exit(1);
             case 'v':
                 verbose = true;
@@ -148,6 +160,9 @@ public:
             case 'y':
                 yscale_arg = atof(optarg);
                 break;
+            case 'i':
+                noindex = true;
+                break;
 
             }
         }
@@ -168,33 +183,36 @@ public:
     void print()
     {
         if (verbose)
-            std::cerr << "Verbose flag set\n";
+            cerr << "Verbose flag set" << endl;
 
         if (fasta_arg)
-            std::cerr << "Fasta file: " << fasta_arg << "\n";
+            cerr << "Fasta file: " << fasta_arg << endl;
 
         if (threads_arg)
-            std::cerr << "Threads requested: " << threads_arg << "\n";
+            cerr << "Threads requested: " << threads_arg << endl;
 
         if (endlimit_arg)
-            std::cerr << "Endlimit: " << endlimit_arg << "\n";
+            cerr << "Endlimit: " << endlimit_arg << endl;
 
         if (xscale_arg)
-            std::cerr << "X Scale Arg: " << xscale_arg << "\n";
+            cerr << "X Scale Arg: " << xscale_arg << endl;
 
         if (yscale_arg)
-            std::cerr << "Y Scale Arg: " << yscale_arg << "\n";
+            cerr << "Y Scale Arg: " << yscale_arg << endl;
+
+        if (noindex)
+            cerr << "No index column in output: " << noindex << endl;
 
         if (db1_arg)
-            std::cerr << "Jellyfish hash 1: " << db1_arg << "\n";
+            cerr << "Jellyfish hash 1: " << db1_arg << endl;
 
         if (db2_arg)
-            std::cerr << "Jellyfish hash 2: " << db2_arg << "\n";
+            cerr << "Jellyfish hash 2: " << db2_arg << endl;
 
         if (output_arg)
-            std::cerr << "Matrix Output file provided: " << output_arg << "\n";
+            cerr << "Matrix Output file provided: " << output_arg << endl;
 
-        std::cerr << "\n";
+        cerr << endl;
     }
 
 private:

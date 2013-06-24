@@ -5,7 +5,9 @@
 #include <stdlib.h>
 #include <iostream>
 
+using std::cout;
 using std::cerr;
+using std::endl;
 
 class SectArgs
 {
@@ -32,7 +34,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "\nUsage: kat sect [options] -f <fasta_file_path> db_path"
+#define seqcvg_args_USAGE "Usage: kat sect [options] -f <fasta_file_path> db_path\n"
     const char * usage() const
     {
         return seqcvg_args_USAGE;
@@ -40,9 +42,10 @@ public:
 
     void error(const char *msg)
     {
-        std::cerr << "Error: " << msg << "\n" << usage()
-                  << "\nUse --help for more information"
-                  << std::endl;
+        cerr << endl
+             << "Error: " << msg << endl << endl
+             << usage() << endl
+             << "Use --help for more information" << endl << endl;
         exit(1);
     }
 
@@ -84,9 +87,11 @@ public:
 
         static const char *short_options = "f:o:t:vuh";
 
-        if (argc <= 0)
+        if (argc <= 1)
         {
-            std::cout << usage() << "\n\n" << help() << std::endl;
+            cerr << endl
+                 << usage() << endl
+                 << help() << endl;
             exit(1);
         }
 
@@ -104,18 +109,20 @@ public:
             switch (c)
             {
             case ':':
-                std::cerr << "Missing required argument for "
+                cerr << "Missing required argument for "
                           << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                          << std::endl;
+                          << endl << endl;
                 exit(1);
             case 'h':
-                std::cout << usage() << "\n\n" << help() << std::endl;
+                cout << usage() << endl
+                     << help() << endl;
                 exit(0);
             case 'u':
-                std::cout << usage() << "\nUse --help for more information." << std::endl;
+                cout << usage() << endl
+                     << "Use --help for more information." << endl << endl;
                 exit(0);
             case '?':
-                std::cerr << "Use --usage or --help for some help\n";
+                cerr << "Use --usage or --help for some help" << endl << endl;
                 exit(1);
             case 'v':
                 verbose = true;
@@ -148,25 +155,27 @@ public:
     void print()
     {
         if (verbose)
-            cerr << "Verbose flag set\n";
+            cerr << "Verbose flag set" << endl;
 
         if (fasta_arg)
-            cerr << "Fasta file: " << fasta_arg << "\n";
+            cerr << "Fasta file: " << fasta_arg << endl;
 
         if (threads_arg)
-            cerr << "Threads requested: " << threads_arg << "\n";
+            cerr << "Threads requested: " << threads_arg << endl;
 
         if (db_arg)
-            cerr << "Jellyfish hash: " << db_arg << "\n";
+            cerr << "Jellyfish hash: " << db_arg << endl;
 
         if (outputGiven())
         {
-            cerr << "Count Output file provided: " << output_arg << "\n";
+            cerr << "Count Output file provided: " << output_arg << endl;
         }
         else
         {
-            cerr << "No output argument provided.  Not outputing count information\n";
+            cerr << "No output argument provided.  Not outputing count information" << endl;
         }
+
+        cerr << endl;
     }
 
 private:

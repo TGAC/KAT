@@ -97,7 +97,7 @@ int compStart(int argc, char *argv[])
             }
 
             // Create the sequence coverage object
-            Comp<hash_query_t> comp(&hash1, &hash2, 0, 0, args.threads_arg, args.xscale_arg, args.yscale_arg);
+            Comp<hash_query_t> comp(&hash1, &hash2, 0, 0, args.threads_arg, args.xscale_arg, args.yscale_arg, args.noindex);
 
             // Output comp parameters to stderr if requested
             if (args.verbose)
@@ -107,7 +107,7 @@ int compStart(int argc, char *argv[])
             comp.do_it();
 
             // Send matrix to output file
-            ofstream_default matrix_out(args.output_arg, std::cout);
+            ofstream_default matrix_out(args.output_arg, cout);
             comp.printMatrix(matrix_out);
             matrix_out.close();
 

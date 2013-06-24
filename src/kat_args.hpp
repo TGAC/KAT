@@ -1,5 +1,5 @@
-#ifndef __SECT_ARGS_HPP__
-#define __SECT_ARGS_HPP__
+#ifndef __KAT_ARGS_HPP__
+#define __KAT_ARGS_HPP__
 
 #include <getopt.h>
 #include <string.h>
@@ -9,6 +9,7 @@
 using std::string;
 using std::cerr;
 using std::cout;
+using std::endl;
 
 class KatArgs
 {
@@ -45,7 +46,7 @@ public:
 
 
 
-#define kat_args_USAGE "\nUsage: kat <mode>"
+#define kat_args_USAGE "Usage: kat <mode>\n"
     const char * usage() const
     {
         return kat_args_USAGE;
@@ -53,9 +54,10 @@ public:
 
     void error(const char *msg)
     {
-        cerr << "Error: " << msg << "\n" << usage()
-                  << "\nUse --help for more information"
-                  << std::endl;
+        cerr << endl
+             << "Error: " << msg << endl << endl
+             << usage() << endl
+             << "Use --help for more information" << endl;
         exit(1);
     }
 
@@ -64,11 +66,11 @@ public:
   "First argument should be the tool/mode you wish to use:\n\n" \
   "   - sect: SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using kmers from a jellyfish hash\n" \
   "   - comp: Kmer comparison tool.  Creates a matrix of shared kmers between two jellyfish hashes.\n" \
-  "   - plot: PLOT assisting tool.  Creates useful plots to visualise kmer distributions\n\n" \
+  "   - plot: Plotting tool.  Creates useful plots to visualise kmer distributions.  Requires gnuplot \n\n" \
   "Options:\n" \
   "     --usage                              Usage\n" \
   "     --help                               This message\n" \
-  " -V, --version                            Version"
+  " -V, --version                            Version\n"
 
     const char * help() const
     {
@@ -93,7 +95,7 @@ public:
     {
         return (strcmp(mode_str, "sect") == 0 ||
                 strcmp(mode_str, "comp") == 0 ||
-                strcmp(mode_str, "plot")) ?
+                strcmp(mode_str, "plot") == 0) ?
                     true : false;
     }
 
@@ -113,8 +115,10 @@ public:
 
 
         if (argc <= 1) {
-            cout << usage() << "\n\n" << help() << std::endl;
-            exit(0);
+            cerr << endl
+                 << usage() << endl
+                 << help() << endl;
+            exit(1);
         }
         else if (validMode(argv[1])) {
 
@@ -140,32 +144,31 @@ public:
                 case ':':
                     cerr << "Missing required argument for "
                               << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                              << std::endl;
+                              << endl;
                     exit(1);
                 case 'h':
-                    cout << usage() << "\n\n" << help() << std::endl;
+                    cout << usage() << endl
+                         << help() << endl;
                     exit(0);
                 case 'u':
-                    cout << usage() << "\nUse --help for more information." << std::endl;
+                    cout << usage() << endl
+                         << "Use --help for more information." << endl << endl;
                     exit(0);
                 case 'V':
                     print_version();
                     exit(0);
                 case '?':
-                    cerr << "Use --usage or --help for some help\n";
+                    cerr << "Use --usage or --help for some help" << endl << endl;
                     exit(1);
 
                 }
             }
 
-            error("Invalid command line arguments passed to KAT\n\n");
+            error("Invalid command line arguments passed to \"kat\"\n\n");
             exit(1);
         }
     }
-
-
-private:
 };
 
-#endif // __SECT_ARGS_HPP__
+#endif // __KAT_ARGS_HPP__
 

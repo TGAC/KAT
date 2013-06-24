@@ -113,6 +113,7 @@ class Comp : public thread_exec
     const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
     const uint_t            threads;	// Number of threads to use
     const float             xscale, yscale;  // Scaling factors to make the matrix look pretty.
+    const bool              noindex;    // Whether or not to output an index value for the first column of the matrix.
 
     // Final data (created by merging thread results)
     SparseMatrix<uint_t>    *final_matrix;
@@ -125,10 +126,10 @@ class Comp : public thread_exec
 
 public:
     Comp(const hash_t *_hash1, const hash_t *_hash2, const vector<string> *_names, const vector<string> *_seqs,
-        uint_t _threads, float _xscale, float _yscale) :
+        uint_t _threads, float _xscale, float _yscale, bool _noindex) :
         hash1(_hash1), hash2(_hash2), names(_names), seqs(_seqs),
         threads(_threads),
-        xscale(_xscale), yscale(_yscale)
+        xscale(_xscale), yscale(_yscale), noindex(_noindex)
     {
         // Create the final kmer counter matrix
         final_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
@@ -264,15 +265,21 @@ public:
         out << " - Hash2: " << (hash2 ? "present" : "not specified") << "\n";
         out << " - Threads: " << threads << "\n";
         out << " - X scaling factor: " << xscale << "\n";
-        out << " - Y scaling factor: " << yscale << "\n\n";
+        out << " - Y scaling factor: " << yscale << "\n";
+        out << " - No index: " << noindex << "\n";
    }
 
 
     // Print kmer comparison matrix
     void printMatrix(std::ostream &out)
     {
-        for(int i = 0; i < MATRIX_SIZE; i++)
+        uint_t iMax = noindex ? MATRIX_SIZE : MATRIX_SIZE + 1;
+
+        for(int i = 0; i < iMax; i++)
         {
+            if (!noindex)
+                out << i << " ";
+
             for(int j = 0; j < MATRIX_SIZE; j++)
             {
                 out << final_matrix->get(i, j);
