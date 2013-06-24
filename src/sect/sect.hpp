@@ -8,6 +8,7 @@
 
 #include <jellyfish/counter.hpp>
 #include <jellyfish/thread_exec.hpp>
+#include <jellyfish/jellyfish_helper.hpp>
 
 using std::vector;
 using std::string;
@@ -17,28 +18,41 @@ using std::endl;
 template<typename hash_t>
 class Sect : public thread_exec
 {
-    const hash_t            *hash;		// Jellyfish hash
+    const char              *jfHashPath;
     const vector<string>    *names;	    // Names of fasta sequences (in same order as seqs)
     const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
     const uint_t            threads;	// Number of threads to use
     const size_t            bucket_size, remaining;	// Chunking vars
+
+    JellyfishHelper         *jfh;
+    hash_t                  *hash;		// Jellyfish hash
     vector<vector<uint_t>*> *counts;    // Kmer counts for each kmer window in sequence (in same order as seqs and names; built by this class)
     vector<float>           *coverages; // Overall coverage calculated for each sequence from the kmer windows.
 
 public:
-    Sect(const hash_t *_hash, const vector<string> *_names, const vector<string> *_seqs,
+    Sect(const char *_jfHashPath, const vector<string> *_names, const vector<string> *_seqs,
         uint_t _threads) :
-        hash(_hash), names(_names), seqs(_seqs),
+        jfHashPath(_jfHashPath), names(_names), seqs(_seqs),
         threads(_threads),
         bucket_size(seqs->size() / threads),
         remaining(seqs->size() % (bucket_size < 1 ? 1 : threads))
     {
+        // Setup handle to jellyfish hash
+        jfh = new JellyfishHelper(jfHashPath);
+
+        // Setup space for storing output
         counts = new vector<vector<uint_t>*>(seqs->size());
         coverages = new vector<float>(seqs->size());
     }
 
     ~Sect()
     {
+        if (hash)
+            delete hash;
+
+        if (jfh)
+            delete jfh;
+
         if(counts)
         {
             for(uint_t i = 0; i < counts->size(); i++)
@@ -55,6 +69,11 @@ public:
 
     void do_it()
     {
+        // Load the jellyfish hash
+        hash = jfh->loadHash(true, cerr);
+
+        // Process each fasta sequence in a different thread.
+        // In each thread lookup each kmer in the hash
         exec_join(threads);
     }
 
@@ -68,7 +87,6 @@ public:
 
         //processInBlocks(th_id);
         processInterlaced(th_id);
-
     }
 
 

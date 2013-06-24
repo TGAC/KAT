@@ -81,74 +81,33 @@ int sectStart(int argc, char *argv[])
 
     // Print command line args to stderr if requested
     if (args.verbose)
-    {
         args.print();
-    }
-
-    // Create handle to the memory mapped hash file into memory
-    mapped_file dbf(args.db_arg);
-
-    // Advise kernel on how we will use this memory (i.e. random access and we'll
-    // need it available soon.)
-    dbf.random().will_need();
 
     // Load enitre fasta file into memory
     vector<string> names;
     vector<string> seqs;
     readFasta(args.fasta_arg, names, seqs, args.verbose);
 
-    // Get jellyfish has type
-    char type[8];
-    memcpy(type, dbf.base(), sizeof(type));
+    // Create the sequence coverage object
+    Sect<hash_query_t> sect(args.db_arg, &names, &seqs, args.threads_arg);
 
-    // Process data differently depending on jellyfish hash type
-    if(!strncmp(type, jellyfish::raw_hash::file_type, sizeof(type)))
+    // Output seqcvg parameters to stderr if requested
+    if (args.verbose)
+        sect.printVars(cerr);
+
+    // Do the work
+    sect.do_it();
+
+    // Send sequence kmer counts to file if requested
+    if (args.outputGiven())
     {
-        cerr << "Raw hash detected but not supported yet\n";
+        ofstream_default count_out(args.outputGiven() ? args.output_arg : 0, std::cout);
+        sect.printCounts(count_out);
+        count_out.close();
     }
-    else if(!strncmp(type, jellyfish::compacted_hash::file_type, sizeof(type)))
-    {
-        if (args.verbose)
-            cerr << "Compacted hash detected.  Setting up query structure.\n";
 
-        // Load the jellyfish hash object
-        hash_query_t hash(dbf);
-
-        // Output jellyfish has details if requested
-        if (args.verbose)
-        {
-            cerr << "mer length  = " << hash.get_mer_len() << "\n"
-                      << "hash size   = " << hash.get_size() << "\n"
-                      << "max reprobe = " << hash.get_max_reprobe() << "\n"
-                      << "matrix      = " << hash.get_hash_matrix().xor_sum() << "\n"
-                      << "inv_matrix  = " << hash.get_hash_inverse_matrix().xor_sum() << "\n\n";
-        }
-
-        // Create the sequence coverage object
-        Sect<hash_query_t> sect(&hash, &names, &seqs, args.threads_arg);
-
-        // Output seqcvg parameters to stderr if requested
-        if (args.verbose)
-            sect.printVars(cerr);
-
-        // Do the work
-        sect.do_it();
-
-        // Send sequence kmer counts to file if requested
-        if (args.outputGiven())
-        {
-            ofstream_default count_out(args.outputGiven() ? args.output_arg : 0, std::cout);
-            sect.printCounts(count_out);
-            count_out.close();
-        }
-
-        // Send sequence coverage scores to standard out
-        sect.printCoverages(cout);
-    }
-    else
-    {
-        die << "Invalid jellyfish file type '" << err::substr(type, sizeof(type)) << "'.";
-    }
+    // Send sequence coverage scores to standard out
+    sect.printCoverages(cout);
 
     return 0;
 }

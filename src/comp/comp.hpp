@@ -11,6 +11,7 @@
 
 #include <jellyfish/counter.hpp>
 #include <jellyfish/thread_exec.hpp>
+#include <jellyfish/jellyfish_helper.hpp>
 
 using std::vector;
 using std::string;
@@ -108,13 +109,21 @@ public:
 template<typename hash_t>
 class Comp : public thread_exec
 {
-    const hash_t            *hash1;		// Jellyfish hash 1
-    const hash_t            *hash2;     // Jellyfish hash 2
+    const char              *jfHashPath1;
+    const char              *jfHashPath2;
+    const char              *jfHashPath3;
     const vector<string>    *names;	    // Names of fasta sequences (in same order as seqs)
     const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
     const uint_t            threads;	// Number of threads to use
     const float             xscale, yscale;  // Scaling factors to make the matrix look pretty.
-    const bool              noindex;    // Whether or not to output an index value for the first column of the matrix.
+
+
+    JellyfishHelper         *jfh1;
+    JellyfishHelper         *jfh2;
+    JellyfishHelper         *jfh3;
+    hash_t                  *hash1;		// Jellyfish hash 1
+    hash_t                  *hash2;     // Jellyfish hash 2
+    hash_t                  *hash3;     // Jellyfish hash 3
 
     // Final data (created by merging thread results)
     SparseMatrix<uint_t>    *final_matrix;
@@ -126,12 +135,19 @@ class Comp : public thread_exec
 
 
 public:
-    Comp(const hash_t *_hash1, const hash_t *_hash2, const vector<string> *_names, const vector<string> *_seqs,
+    Comp(const char *_jfHashPath1, const char *_jfHashPath2, const char *_jfHashPath3,
         uint_t _threads, float _xscale, float _yscale, bool _noindex) :
-        hash1(_hash1), hash2(_hash2), names(_names), seqs(_seqs),
-        threads(_threads),
-        xscale(_xscale), yscale(_yscale), noindex(_noindex)
+        jfHashPath1(_jfHashPath1), jfHashPath2(_jfHashPath2), jfHashPath3(_jfHashPath3),
+        threads(_threads), xscale(_xscale), yscale(_yscale)
     {
+        // Setup handles to load hashes
+        jfh1 = new JellyfishHelper(jfHashPath1);
+        jfh2 = new JellyfishHelper(jfHashPath2);
+
+        // Only try to load hash3 if path is provided
+        if (jfHashPath3)
+            jfh3 = new JellyfishHelper(jfHashPath3);
+
         // Create the final kmer counter matrix
         final_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
 
@@ -153,6 +169,25 @@ public:
 
     ~Comp()
     {
+        if (jfh1)
+            delete jfh1;
+
+        if (jfh2)
+            delete jfh2;
+
+        if (jfh3)
+            delete jfh3;
+
+        if (hash1)
+            delete hash1;
+
+        if (hash2)
+            delete hash2;
+
+        if (hash3)
+            delete hash3;
+
+
         if(final_matrix)
             delete final_matrix;
 
@@ -181,8 +216,31 @@ public:
 
     void do_it()
     {
+        // Load the hashes
+        hash1 = jfh1->loadHash(true, cerr);
+        hash2 = jfh2->loadHash(false, cerr);
+
+        if (jfh3)
+            hash3 = jfh3->loadHash(false, cerr);
+
+        // Check kmer lengths are the same for both hashes.  We can't continue if they are not.
+        if (hash1->get_mer_len() != hash2->get_mer_len())
+        {
+            cerr << "Cannot process hashes that were created with different kmer lengths.  "
+                 << "Hash1: " << hash1->get_mer_len() << ".  Hash2: " << hash2->get_mer_len() << "." << endl;
+            throw;
+        }
+        else if(hash3 && hash3->get_mer_len() != hash1->get_mer_len())
+        {
+            cerr << "Cannot process hashes that were created with different kmer lengths.  "
+                 << "Hash1: " << hash1->get_mer_len() << ".  Hash3: " << hash3->get_mer_len() << "." << endl;
+            throw;
+        }
+
+        // Run the threads
         exec_join(threads);
 
+        // Merge results from the threads
         merge();
     }
 
@@ -267,20 +325,17 @@ public:
         out << " - Threads: " << threads << endl;
         out << " - X scaling factor: " << xscale << endl;
         out << " - Y scaling factor: " << yscale << endl;
-        out << " - No index: " << noindex << endl;
    }
 
 
     // Print kmer comparison matrix
     void printMatrix(std::ostream &out)
     {
-        uint_t iMax = noindex ? MATRIX_SIZE : MATRIX_SIZE + 1;
+        out << "# Each row represents kmer multiplicity for hash file 1" << endl;
+        out << "# Each column represents " << endl;
 
-        for(int i = 0; i < iMax; i++)
+        for(int i = 0; i < MATRIX_SIZE; i++)
         {
-            if (!noindex)
-                out << i << " ";
-
             for(int j = 0; j < MATRIX_SIZE; j++)
             {
                 out << final_matrix->get(i, j);

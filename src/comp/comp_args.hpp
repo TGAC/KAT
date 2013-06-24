@@ -24,18 +24,17 @@ public:
     uint_t endlimit_arg;
     float xscale_arg;
     float yscale_arg;
-    bool noindex;
     uint_t threads_arg;
     bool verbose;
 
     // Default constructor
     CompArgs() :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), noindex(false), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), noindex(false), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
     {
         parse(argc, argv);
     }
@@ -67,7 +66,6 @@ public:
   " -o, --output         *File that should contain the frequency comparison matrix from this program. If fasta file and endlimit specified, a second matrix file with the .ends suffix will be created also.\n" \
   " -x, --x_scale        Scaling factor for the first dataset - float multiplier (1.0).\n" \
   " -y, --y_scale        Scaling factor for the second dataset - float multiplier (1.0).\n" \
-  " -i, --no_index       Removes the first column which contains the kmer multiplicity value for the first dataset\n" \
   " -t, --threads        The number of threads to use (1)\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
@@ -97,7 +95,6 @@ public:
             {"output",          required_argument,  0, 'o'},
             {"x_scale" ,        required_argument,  0, 'x'},
             {"y_scale" ,        required_argument,  0, 'y'},
-            {"noindex" ,        no_argument,        0, 'i'},
             {"threads",         required_argument,  0, 't'},
             {"help",            no_argument,        0, 'h'},
             {"usage",           no_argument,        0, 'u'},
@@ -164,9 +161,6 @@ public:
             case 'y':
                 yscale_arg = atof(optarg);
                 break;
-            case 'i':
-                noindex = true;
-                break;
 
             }
         }
@@ -203,9 +197,6 @@ public:
 
         if (yscale_arg)
             cerr << "Y Scale Arg: " << yscale_arg << endl;
-
-        if (noindex)
-            cerr << "No index column in output: " << noindex << endl;
 
         if (db1_arg)
             cerr << "Jellyfish hash 1: " << db1_arg << endl;
