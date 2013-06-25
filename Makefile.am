@@ -11,6 +11,7 @@ bin_PROGRAMS = $(top_builddir)/bin/kat
 
 __top_builddir__bin_kat_SOURCES = \
                             src/inc/gnuplot/gnuplot_i.cc \
+                            src/inc/jellyfish/jellyfish_helper.hpp \
                             src/sect/sect_main.cc \
                             src/comp/comp_main.cc \
 			    src/plot/plot_main.cc \
