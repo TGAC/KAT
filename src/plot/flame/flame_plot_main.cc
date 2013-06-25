@@ -52,8 +52,19 @@ int flamePlotStart(int argc, char *argv[])
     flame->set_xlabel(args.xlabel);
     flame->set_ylabel(args.ylabel);
 
-    flame->set_xrange(0, 1000);
-    flame->set_yrange(0, 1000);
+    flame->set_xrange(-1, 1000);
+    flame->set_yrange(-1, 1000);
+
+    //flame->set_xlogscale();
+    //flame->set_ylogscale();
+    //flame->set_zlogscale();
+
+    flame->cmd("set palette rgb 21,22,23");
+    flame->cmd("set size ratio 1");
+
+    std::ostringstream rangestr;
+    rangestr << "set cbrange [0:" << args.zrange << "]";
+    flame->cmd(rangestr.str());
 
     std::ostringstream plotstr;
     plotstr << "plot '" << args.mx_arg->c_str() << "' matrix with image";

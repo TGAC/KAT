@@ -14,6 +14,7 @@ using std::endl;
 #define DEFAULT_TITLE "Flame plot"
 #define DEFAULT_X_LABEL "Hash1 Multiplicity"
 #define DEFAULT_Y_LABEL "Hash2 Multiplicity"
+#define DEFAULT_Z_RANGE 10000
 
 
 
@@ -26,18 +27,19 @@ public:
     const char*  title;
     const char*  xlabel;
     const char*  ylabel;
+    uint zrange;
     bool verbose;
 
     // Default constructor
     FlamePlotArgs() :
-        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL), verbose(false)
+        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL), zrange(DEFAULT_Z_RANGE), verbose(false)
     {
         output_type = new string("png");
     }
 
     // Constructor that parses command line options
     FlamePlotArgs(int argc, char* argv[]) :
-        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL), verbose(false)
+        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL), zrange(DEFAULT_Z_RANGE), verbose(false)
     {
         output_type = new string("png");
         parse(argc, argv);
@@ -85,6 +87,7 @@ public:
   " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
   " -x, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
   " -y, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
+  " -z, --z_range        Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000)\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
@@ -113,12 +116,13 @@ public:
             {"title",           required_argument,  0, 't'},
             {"x_label",         required_argument,  0, 'x'},
             {"y_label",         required_argument,  0, 'y'},
+            {"z_range",         required_argument,  0, 'z'},
             {"help",            no_argument,        0, 'h'},
             {"usage",           no_argument,        0, 'u'},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "o:p:t:x:y:vuh";
+        static const char *short_options = "o:p:t:x:y:z:vuh";
 
         if (argc <= 1)
         {
@@ -176,7 +180,9 @@ public:
             case 'y':
                 ylabel = optarg;
                 break;
-
+            case 'z':
+                zrange = atoi(optarg);
+                break;
             }
         }
 
@@ -214,6 +220,9 @@ public:
 
         if (ylabel)
             cerr << "Y Label: " << ylabel << endl;
+
+        if (zrange)
+            cerr << "Z range: " << zrange << endl;
 
         cerr << endl;
     }
