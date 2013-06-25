@@ -34,8 +34,11 @@ public:
 
     ~JellyfishHelper()
     {
-        delete hash;
-        delete dbf;
+        if (hash)
+            delete hash;
+
+        if (dbf)
+            delete dbf;
     }
 
 

@@ -27,7 +27,6 @@ using std::cout;
 using std::cerr;
 
 
-
 // Start point
 int compStart(int argc, char *argv[])
 {
@@ -39,7 +38,7 @@ int compStart(int argc, char *argv[])
         args.print();
 
     // Create the sequence coverage object
-    Comp<hash_query_t> comp(args.db1_arg, args.db2_arg, 0, 0, args.threads_arg, args.xscale_arg, args.yscale_arg);
+    Comp<hash_query_t> comp(args.db1_arg, args.db2_arg, args.db3_arg, args.threads_arg, args.xscale_arg, args.yscale_arg, args.verbose);
 
     // Output comp parameters to stderr if requested
     if (args.verbose)
@@ -48,12 +47,46 @@ int compStart(int argc, char *argv[])
     // Do the work
     comp.do_it();
 
-    // Send matrix to output file
-    ofstream_default matrix_out(args.output_arg, cout);
-    comp.printMatrix(matrix_out);
-    matrix_out.close();
+    // Send main matrix to output file
+    std::ostringstream main_mx_out_path;
+    main_mx_out_path << args.output_prefix_arg << "_main.mx";
+    ofstream_default main_mx_out_stream(main_mx_out_path.str().c_str(), cout);
+    comp.printMainMatrix(main_mx_out_stream);
+    main_mx_out_stream.close();
 
-    // Send kmer statistics to stdout
+    // Output ends matricies if required
+    if (args.db3_arg)
+    {
+        // Ends matrix
+        std::ostringstream ends_mx_out_path;
+        ends_mx_out_path << args.output_prefix_arg << "_ends.mx";
+        ofstream_default ends_mx_out_stream(ends_mx_out_path.str().c_str(), cout);
+        comp.printEndsMatrix(ends_mx_out_stream);
+        ends_mx_out_stream.close();
+
+        // Middle matrix
+        std::ostringstream middle_mx_out_path;
+        middle_mx_out_path << args.output_prefix_arg << "_middle.mx";
+        ofstream_default middle_mx_out_stream(middle_mx_out_path.str().c_str(), cout);
+        comp.printMiddleMatrix(middle_mx_out_stream);
+        middle_mx_out_stream.close();
+
+        // Mixed matrix
+        std::ostringstream mixed_mx_out_path;
+        mixed_mx_out_path << args.output_prefix_arg << "_mixed.mx";
+        ofstream_default mixed_mx_out_stream(mixed_mx_out_path.str().c_str(), cout);
+        comp.printMixedMatrix(mixed_mx_out_stream);
+        mixed_mx_out_stream.close();
+    }
+
+    // Send kmer statistics to file
+    std::ostringstream stats_out_path;
+    stats_out_path << args.output_prefix_arg << ".stats";
+    ofstream_default stats_out_stream(stats_out_path.str().c_str(), cout);
+    comp.printCounters(stats_out_stream);
+    stats_out_stream.close();
+
+    // Send kmer statistics to stdout as well
     comp.printCounters(cout);
 
 

@@ -55,7 +55,7 @@ public:
     {
         size_t result = output_arg->find(output_type->c_str(), output_arg->length() - output_type->length() - 2);
 
-        return result == string::npos ? *output_arg : output_arg->substr(0, result);
+        return result == string::npos ? *output_arg : output_arg->substr(0, result-1);
     }
 
 

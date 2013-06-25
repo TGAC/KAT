@@ -16,7 +16,7 @@ using std::cout;
 #define DEFAULT_Y_LABEL "Distinct Kmer Count"
 
 #define DEFAULT_X_MAX 1000
-#define DEFAULT_Y_MAX 10000000
+#define DEFAULT_Y_MAX 1000000
 
 #define DEFAULT_X_LOGSCALE 0
 #define DEFAULT_Y_LOGSCALE 0
@@ -76,7 +76,7 @@ public:
     {
         size_t result = output_arg->find(output_type->c_str(), output_arg->length() - output_type->length() - 2);
 
-        return result == string::npos ? *output_arg : output_arg->substr(0, result);
+        return result == string::npos ? *output_arg : output_arg->substr(0, result-1);
     }
 
 

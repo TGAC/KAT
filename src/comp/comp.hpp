@@ -18,12 +18,15 @@ using std::string;
 using std::cerr;
 using std::endl;
 
+
 class CompCounters{
 public:
     uint64_t hash1_total;
     uint64_t hash2_total;
+    uint64_t hash3_total;
     uint64_t hash1_distinct;
     uint64_t hash2_distinct;
+    uint64_t hash3_distinct;
     uint64_t hash1_only_total;
     uint64_t hash2_only_total;
     uint64_t hash1_only_distinct;
@@ -32,12 +35,19 @@ public:
     uint64_t shared_hash2_total;
     uint64_t shared_distinct;
 
-    CompCounters()
+    const char* hash1_path;
+    const char* hash2_path;
+    const char* hash3_path;
+
+    CompCounters(const char* _hash1_path, const char* _hash2_path, const char* _hash3_path) :
+        hash1_path(_hash1_path), hash2_path(_hash2_path), hash3_path(_hash3_path)
     {
         hash1_total = 0;
         hash2_total = 0;
+        hash3_total = 0;
         hash1_distinct = 0;
         hash2_distinct = 0;
+        hash3_distinct = 0;
         hash1_only_total = 0;
         hash2_only_total = 0;
         hash1_only_distinct = 0;
@@ -71,6 +81,13 @@ public:
         }
     }
 
+    void updateHash3Counters(uint64_t hash3_count)
+    {
+        hash3_total += hash3_count;
+        hash3_distinct++;
+    }
+
+
     void updateSharedCounters(uint64_t hash1_count, uint64_t hash2_count)
     {
         if (hash1_count && hash2_count)
@@ -83,22 +100,44 @@ public:
 
     void printCounts(std::ostream &out)
     {
-        out << "Kmer statistics for hash1 and hash2:" << endl << endl;
+        out << "Kmer statistics for: " << endl;
+        out << " - Hash 1: " << hash1_path << endl;
+        out << " - Hash 2: " << hash2_path << endl;
 
-        out << " - Total kmers in hash 1: " << hash1_total << endl;
-        out << " - Total kmers in hash 2: " << hash2_total << endl << endl;
+        if (hash3_total > 0)
+            out << " - Hash 3: " << hash3_path << endl;
 
-        out << " - Distinct kmers in hash 1: " << hash1_distinct << endl;
-        out << " - Distinct kmers in hash 2: " << hash2_distinct << endl << endl;
+        out << endl;
 
-        out << " - Total kmers only found in hash 1: " << hash1_only_total << endl;
-        out << " - Total kmers only found in hash 2: " << hash2_only_total << endl << endl;
+        out << "Total kmers in: " << endl;
+        out << " - Hash 1: " << hash1_total << endl;
+        out << " - Hash 2: " << hash2_total << endl;
 
-        out << " - Distinct kmers only found in hash 1: " << hash1_only_distinct << endl;
-        out << " - Distinct kmers only found in hash 2: " << hash2_only_distinct << endl << endl;
+        if (hash3_total > 0)
+            out << " - Hash 3: " << hash3_total << endl;
 
-        out << " - Total shared kmers found in hash 1: " << shared_hash1_total << endl;
-        out << " - Total shared kmers found in hash 2: " << shared_hash2_total << endl;
+        out << endl;
+
+        out << "Distinct kmers in:" << endl;
+        out << " - Hash 1: " << hash1_distinct << endl;
+        out << " - Hash 2: " << hash2_distinct << endl;
+        if (hash3_total > 0)
+            out << " - Hash 3: " << hash3_distinct << endl;
+
+        out << endl;
+
+        out << "Total kmers only found in:" << endl;
+        out << " - Hash 1: " << hash1_only_total << endl;
+        out << " - Hash 2: " << hash2_only_total << endl;
+        out << endl;
+
+        out << "Distinct kmers only found in:" << endl;
+        out << " - Hash 1: " << hash1_only_distinct << endl;
+        out << " - Hash 2: " << hash2_only_distinct << endl << endl;
+
+        out << "Shared kmers:" << endl;
+        out << " - Total shared found in hash 1: " << shared_hash1_total << endl;
+        out << " - Total shared found in hash 2: " << shared_hash2_total << endl;
         out << " - Distinct shared kmers: " << shared_distinct << endl << endl;
     }
 };
@@ -109,15 +148,15 @@ public:
 template<typename hash_t>
 class Comp : public thread_exec
 {
-    const char              *jfHashPath1;
-    const char              *jfHashPath2;
-    const char              *jfHashPath3;
-    const vector<string>    *names;	    // Names of fasta sequences (in same order as seqs)
-    const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
+    // Args passed in
+    const char              *jf_hash_path_1;
+    const char              *jf_hash_path_2;
+    const char              *jf_hash_path_3;
     const uint_t            threads;	// Number of threads to use
     const float             xscale, yscale;  // Scaling factors to make the matrix look pretty.
+    const bool              verbose;
 
-
+    // Jellyfish mapped file hash vars
     JellyfishHelper         *jfh1;
     JellyfishHelper         *jfh2;
     JellyfishHelper         *jfh3;
@@ -126,45 +165,80 @@ class Comp : public thread_exec
     hash_t                  *hash3;     // Jellyfish hash 3
 
     // Final data (created by merging thread results)
-    SparseMatrix<uint_t>    *final_matrix;
+    SparseMatrix<uint_t>    *final_main_matrix;
+    SparseMatrix<uint_t>    *final_ends_matrix;
+    SparseMatrix<uint_t>    *final_middle_matrix;
+    SparseMatrix<uint_t>    *final_mixed_matrix;
     CompCounters            *final_comp_counters;
 
     // Thread specific data
-    SparseMatrix<uint_t>    **thread_matricies;
+    SparseMatrix<uint_t>    **thread_main_matricies;
+    SparseMatrix<uint_t>    **thread_ends_matricies;
+    SparseMatrix<uint_t>    **thread_middle_matricies;
+    SparseMatrix<uint_t>    **thread_mixed_matricies;
     CompCounters            **thread_comp_counters;
 
 
 public:
     Comp(const char *_jfHashPath1, const char *_jfHashPath2, const char *_jfHashPath3,
-        uint_t _threads, float _xscale, float _yscale, bool _noindex) :
-        jfHashPath1(_jfHashPath1), jfHashPath2(_jfHashPath2), jfHashPath3(_jfHashPath3),
-        threads(_threads), xscale(_xscale), yscale(_yscale)
+        uint_t _threads, float _xscale, float _yscale, bool _verbose) :
+        jf_hash_path_1(_jfHashPath1), jf_hash_path_2(_jfHashPath2), jf_hash_path_3(_jfHashPath3),
+        threads(_threads), xscale(_xscale), yscale(_yscale), verbose(_verbose)
     {
+        if (verbose)
+            cerr << "Setting up comp tool..." << endl;
+
         // Setup handles to load hashes
-        jfh1 = new JellyfishHelper(jfHashPath1);
-        jfh2 = new JellyfishHelper(jfHashPath2);
+        jfh1 = new JellyfishHelper(jf_hash_path_1);
+        jfh2 = new JellyfishHelper(jf_hash_path_2);
+        jfh3 = jf_hash_path_3 ? new JellyfishHelper(jf_hash_path_3) : NULL;
 
-        // Only try to load hash3 if path is provided
-        if (jfHashPath3)
-            jfh3 = new JellyfishHelper(jfHashPath3);
+        // Ensure all hashes are null at this stage (we'll load them later)
+        hash1 = NULL;
+        hash2 = NULL;
+        hash3 = NULL;
 
-        // Create the final kmer counter matrix
-        final_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+        // Create the final kmer counter matricies
+        final_main_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
 
         // Create kmer counter matricies for each thread
-        thread_matricies = new SparseMatrix<uint_t>*[threads];
+        thread_main_matricies = new SparseMatrix<uint_t>*[threads];
+
         for(int i = 0; i < threads; i++) {
-            thread_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+            thread_main_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+        }
+
+        if (jf_hash_path_3)
+        {
+            if (verbose)
+                cerr << " - Setting up matricies for hash 3" << endl;
+
+            final_ends_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+            final_middle_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+            final_mixed_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+
+            thread_ends_matricies = new SparseMatrix<uint_t>*[threads];
+            thread_middle_matricies = new SparseMatrix<uint_t>*[threads];
+            thread_mixed_matricies = new SparseMatrix<uint_t>*[threads];
+
+            for(int i = 0; i < threads; i++) {
+                thread_ends_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+                thread_middle_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+                thread_mixed_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+            }
         }
 
         // Create the final comp counters
-        final_comp_counters = new CompCounters();
+        final_comp_counters = new CompCounters(jf_hash_path_1, jf_hash_path_2, jf_hash_path_3);
 
         // Create the comp counters for each thread
         thread_comp_counters = new CompCounters*[threads];
         for(int i = 0; i < threads; i++) {
-            thread_comp_counters[i] = new CompCounters();
+            thread_comp_counters[i] = new CompCounters(jf_hash_path_1, jf_hash_path_2, jf_hash_path_3);
         }
+
+        if (verbose)
+            cerr << "Comp tool setup without error." << endl;
     }
 
     ~Comp()
@@ -188,15 +262,51 @@ public:
             delete hash3;
 
 
-        if(final_matrix)
-            delete final_matrix;
+        if(final_main_matrix)
+            delete final_main_matrix;
 
-        if (thread_matricies)
+        if(final_ends_matrix)
+            delete final_ends_matrix;
+
+        if(final_middle_matrix)
+            delete final_middle_matrix;
+
+        if(final_mixed_matrix)
+            delete final_mixed_matrix;
+
+        if (thread_main_matricies)
         {
             for(int i = 0; i < threads; i++)
             {
-                if (thread_matricies[i])
-                    delete thread_matricies[i];
+                if (thread_main_matricies[i])
+                    delete thread_main_matricies[i];
+            }
+        }
+
+        if (thread_ends_matricies)
+        {
+            for(int i = 0; i < threads; i++)
+            {
+                if (thread_ends_matricies[i])
+                    delete thread_ends_matricies[i];
+            }
+        }
+
+        if (thread_middle_matricies)
+        {
+            for(int i = 0; i < threads; i++)
+            {
+                if (thread_middle_matricies[i])
+                    delete thread_middle_matricies[i];
+            }
+        }
+
+        if (thread_mixed_matricies)
+        {
+            for(int i = 0; i < threads; i++)
+            {
+                if (thread_mixed_matricies[i])
+                    delete thread_mixed_matricies[i];
             }
         }
 
@@ -216,6 +326,9 @@ public:
 
     void do_it()
     {
+        if (verbose)
+            cerr << "Loading hashes..." << endl << endl;
+
         // Load the hashes
         hash1 = jfh1->loadHash(true, cerr);
         hash2 = jfh2->loadHash(false, cerr);
@@ -230,24 +343,36 @@ public:
                  << "Hash1: " << hash1->get_mer_len() << ".  Hash2: " << hash2->get_mer_len() << "." << endl;
             throw;
         }
-        else if(hash3 && hash3->get_mer_len() != hash1->get_mer_len())
+        else if(hash3 && (hash3->get_mer_len() != hash1->get_mer_len()))
         {
             cerr << "Cannot process hashes that were created with different kmer lengths.  "
                  << "Hash1: " << hash1->get_mer_len() << ".  Hash3: " << hash3->get_mer_len() << "." << endl;
             throw;
         }
 
+        if (verbose)
+            cerr << endl
+                 << "All hashes loaded successfully." << endl
+                 << "Starting threads...";
+
         // Run the threads
         exec_join(threads);
 
+        if (verbose)
+            cerr << "done." << endl
+                 << "Merging results...";
+
         // Merge results from the threads
         merge();
+
+        if (verbose)
+            cerr << "done." << endl;
     }
 
     void start(int th_id)
     {
         // Get handle to sparse matrix for this thread
-        SparseMatrix<uint_t>* thread_matrix = thread_matricies[th_id];
+        SparseMatrix<uint_t>* thread_matrix = thread_main_matricies[th_id];
 
         // Get handle on this thread's comp counter
         CompCounters* comp_counters = thread_comp_counters[th_id];
@@ -264,6 +389,9 @@ public:
             // Get the count for this kmer in hash2 (assuming it exists... 0 if not)
             uint64_t hash2_count = (*hash2)[hash1Iterator.get_key()];
 
+            // Get the count for this kmer in hash3 (assuming it exists... 0 if not)
+            uint64_t hash3_count = hash3 ? (*hash3)[hash1Iterator.get_key()] : 0;
+
             // Increment hash1's unique counters
             comp_counters->updateHash1Counters(hash1_count, hash2_count);
 
@@ -273,13 +401,26 @@ public:
             // Scale counters to make the matrix look pretty
             uint64_t scaled_hash1_count = scaleCounter(hash1_count, xscale);
             uint64_t scaled_hash2_count = scaleCounter(hash2_count, yscale);
+            uint64_t scaled_hash3_count = scaleCounter(hash3_count, yscale);
 
             // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
             if (scaled_hash1_count > KMER_LIMIT) scaled_hash1_count = KMER_LIMIT;
             if (scaled_hash2_count > KMER_LIMIT) scaled_hash2_count = KMER_LIMIT;
+            if (scaled_hash3_count > KMER_LIMIT) scaled_hash3_count = KMER_LIMIT;
 
             // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
             thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
+
+            // Update hash 3 related matricies if hash 3 was provided
+            if (hash3)
+            {
+                if (scaled_hash2_count == scaled_hash3_count)
+                   thread_ends_matricies[th_id]->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                else if (scaled_hash3_count > 0)
+                   thread_mixed_matricies[th_id]->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                else
+                   thread_middle_matricies[th_id]->inc(scaled_hash1_count, scaled_hash3_count, 1);
+            }
         }
 
         // Setup iterator for this thread's chunk of hash2
@@ -312,6 +453,23 @@ public:
                 thread_matrix->inc(0, scaled_hash2_count, 1);
             }
         }
+
+        // Only update hash3 counters if hash3 was provided
+        if (hash3)
+        {
+            // Setup iterator for this thread's chunk of hash3
+            typename hash_t::iterator hash3Iterator = hash3->iterator_slice(th_id, threads);
+
+            // Iterate through this thread's slice of hash2
+            while (hash3Iterator.next())
+            {
+                // Get the current kmer count for hash2
+                uint64_t hash3_count = hash3Iterator.get_val();
+
+                // Increment hash3's unique counters (don't bother with shared counters... we've already done this)
+                comp_counters->updateHash3Counters(hash3_count);
+            }
+        }
     }
 
 
@@ -319,32 +477,51 @@ public:
     // Print Comp setup
     void printVars(std::ostream &out)
     {
+        out << endl;
         out << "Comp parameters:" << endl;
-        out << " - Hash1: " << (hash1 ? "present" : "not specified") << endl;
-        out << " - Hash2: " << (hash2 ? "present" : "not specified") << endl;
+        out << " - Hash 1: " << (jfh1 ? "mapped file configured" : "not specified") << endl;
+        out << " - Hash 2: " << (jfh2 ? "mapped file configured" : "not specified") << endl;
+        out << " - Hash 3: " << (jfh3 ? "mapped file configured" : "not specified") << endl;
         out << " - Threads: " << threads << endl;
         out << " - X scaling factor: " << xscale << endl;
-        out << " - Y scaling factor: " << yscale << endl;
+        out << " - Y scaling factor: " << yscale << endl << endl;
    }
 
 
     // Print kmer comparison matrix
-    void printMatrix(std::ostream &out)
+    void printMainMatrix(std::ostream &out)
     {
-        out << "# Each row represents kmer multiplicity for hash file 1" << endl;
-        out << "# Each column represents " << endl;
+        out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
+        out << "# Each column represents kmer multiplicity for: " << jf_hash_path_2 << endl;
 
-        for(int i = 0; i < MATRIX_SIZE; i++)
-        {
-            for(int j = 0; j < MATRIX_SIZE; j++)
-            {
-                out << final_matrix->get(i, j);
+        printMatrix(out, final_main_matrix);
+    }
 
-                if (j != MATRIX_SIZE - 1)
-                    out << " ";
-            }
-            out << endl;
-        }
+    // Print kmer comparison matrix
+    void printEndsMatrix(std::ostream &out)
+    {
+        out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
+        out << "# Each column represents kmer multiplicity for sequence ends: " << jf_hash_path_3 << endl;
+
+        printMatrix(out, final_ends_matrix);
+    }
+
+    // Print kmer comparison matrix
+    void printMiddleMatrix(std::ostream &out)
+    {
+        out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
+        out << "# Each column represents kmer multiplicity for sequence middles: " << jf_hash_path_2 << endl;
+
+        printMatrix(out, final_middle_matrix);
+    }
+
+    // Print kmer comparison matrix
+    void printMixedMatrix(std::ostream &out)
+    {
+        out << "# Each row represents kmer multiplicity for hash file 1: " << jf_hash_path_1 << endl;
+        out << "# Each column represents kmer multiplicity for mixed: " << jf_hash_path_2 << " and " << jf_hash_path_3 << endl;
+
+        printMatrix(out, final_mixed_matrix);
     }
 
     // Print kmer statistics
@@ -356,6 +533,22 @@ public:
 
 
 private:
+
+
+    void printMatrix(std::ostream &out, SparseMatrix<uint_t>* matrix)
+    {
+        for(int i = 0; i < MATRIX_SIZE; i++)
+        {
+            out << matrix->get(i, 0);
+
+            for(int j = 1; j < MATRIX_SIZE; j++)
+            {
+                out << " " << matrix->get(i, j);
+            }
+
+            out << endl;
+        }
+    }
 
 
     // Scale counters to make the matrix look pretty
@@ -374,7 +567,24 @@ private:
             {
                 for(int k = 0; k < threads; k++)
                 {
-                    final_matrix->inc(i, j, thread_matricies[k]->get(i, j));
+                    final_main_matrix->inc(i, j, thread_main_matricies[k]->get(i, j));
+                }
+            }
+        }
+
+        // Merge hash3 related matricies
+        if (hash3)
+        {
+            for(int i = 0; i < KMER_LIMIT; i++)
+            {
+                for(int j = 0; j < KMER_LIMIT; j++)
+                {
+                    for(int k = 0; k < threads; k++)
+                    {
+                        final_ends_matrix->inc(i, j, thread_ends_matricies[k]->get(i, j));
+                        final_middle_matrix->inc(i, j, thread_middle_matricies[k]->get(i, j));
+                        final_mixed_matrix->inc(i, j, thread_mixed_matricies[k]->get(i, j));
+                    }
                 }
             }
         }
@@ -386,8 +596,10 @@ private:
 
             final_comp_counters->hash1_total += thread_comp_counter->hash1_total;
             final_comp_counters->hash2_total += thread_comp_counter->hash2_total;
+            final_comp_counters->hash3_total += thread_comp_counter->hash3_total;
             final_comp_counters->hash1_distinct += thread_comp_counter->hash1_distinct;
             final_comp_counters->hash2_distinct += thread_comp_counter->hash2_distinct;
+            final_comp_counters->hash3_distinct += thread_comp_counter->hash3_distinct;
             final_comp_counters->hash1_only_total += thread_comp_counter->hash1_only_total;
             final_comp_counters->hash2_only_total += thread_comp_counter->hash2_only_total;
             final_comp_counters->hash1_only_distinct += thread_comp_counter->hash1_only_distinct;

@@ -91,14 +91,14 @@ int asmPlotStart(int argc, char *argv[])
     std::ostringstream absentstr;
 
     if (!args.ignoreAbsent)
-        absentstr << "'" << args.mx_arg->c_str() << "' u $0:1 t \"Absent\", ";
+        absentstr << "'" << args.mx_arg->c_str() << "' u 1 t \"Absent\", ";
 
     std::ostringstream plotstr;
     plotstr << "plot " << absentstr.str() << \
-                    "'" << args.mx_arg->c_str() << "' u $0:2 t \"Distinct\", " \
-                    "'" << args.mx_arg->c_str() << "' u $0:3 t \"Duplicate\", " \
-                    "'" << args.mx_arg->c_str() << "' u $0:4 t \"Triplicate\", " \
-                    "'" << args.mx_arg->c_str() << "' u $0:5 t \"Quadruplate\"";
+                    "'" << args.mx_arg->c_str() << "' u 2 t \"Distinct\", " \
+                    "'" << args.mx_arg->c_str() << "' u 3 t \"Duplicate\", " \
+                    "'" << args.mx_arg->c_str() << "' u 4 t \"Triplicate\", " \
+                    "'" << args.mx_arg->c_str() << "' u 5 t \"Quadruplate\"";
 
     asmPlot->cmd(plotstr.str());
 

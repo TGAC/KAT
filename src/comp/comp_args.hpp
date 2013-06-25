@@ -12,16 +12,17 @@ using std::endl;
 #define DEFAULT_X_SCALE 1.0
 #define DEFAULT_Y_SCALE 1.0
 #define DEFAULT_THREADS 1
+#define DEFAULT_OUTPUT_PREFIX "./kat_comp_output"
+
 
 class CompArgs
 {
 public:
-    const char * 	fasta_arg;
     const char * 	db1_arg;
     const char * 	db2_arg;
-    const char *  input_type;
-    const char *  output_arg;
-    uint_t endlimit_arg;
+    const char * 	db3_arg;
+
+    const char *  output_prefix_arg;
     float xscale_arg;
     float yscale_arg;
     uint_t threads_arg;
@@ -29,12 +30,12 @@ public:
 
     // Default constructor
     CompArgs() :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_arg(NULL), endlimit_arg(-1), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
     {
         parse(argc, argv);
     }
@@ -42,7 +43,7 @@ public:
 
 
 
-#define seqcvg_args_USAGE "Usage: kat comp [options] -o <output_file_path> db1_path db2_path\n"
+#define seqcvg_args_USAGE "Usage: kat comp [options] db1_path db2_path [db3_path]\n"
     const char * usage() const
     {
         return seqcvg_args_USAGE;
@@ -58,12 +59,14 @@ public:
     }
 
 
-#define sect_args_HELP "Compares two sets of jellyfish kmer counts\n\n" \
-  "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided first, then the assembly kmer hash second.\n\n" \
+#define sect_args_HELP "Compares sets of jellyfish kmer counts.  Normally, this will be two sets of kmers, although " \
+  "when comparing kmers from assemblies, it is possible to add a 3rd set of kmers which describe the ends of each assembly " \
+  "sequence to determine issues at end of sequences that may have prevented the assembler joining sequences together.\n\n" \
+  "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided " \
+  "first, then the assembly kmer hash second.  Finally, if comparing kmers at the ends of sequences this should be supplied last.\n\n" \
   "Options (default value in (), *required):\n" \
-  " -f, --fasta          Assembly fasta file. If provided, the ends up to endsize from this sequences will be included in a separate frequency comparison matrix.\n" \
-  " -e, --endsize        Size of the end section from the fasta file sequences that will be used as filters when creating the ends matrix.\n" \
-  " -o, --output         *File that should contain the frequency comparison matrix from this program. If fasta file and endlimit specified, a second matrix file with the .ends suffix will be created also.\n" \
+  " -o, --output_prefix  Path prefix for files produced by this program (./kat_comp_output)\n" \
+  "specified, a second matrix file with the .ends suffix will be created also.\n" \
   " -x, --x_scale        Scaling factor for the first dataset - float multiplier (1.0).\n" \
   " -y, --y_scale        Scaling factor for the second dataset - float multiplier (1.0).\n" \
   " -t, --threads        The number of threads to use (1)\n" \
@@ -90,9 +93,7 @@ public:
         static struct option long_options[] =
         {
             {"verbose",         no_argument,        0, 'v'},
-            {"fasta",           required_argument,  0, 'f'},
-            {"endlimit",        optional_argument,  0, 'e'},
-            {"output",          required_argument,  0, 'o'},
+            {"output_prefix",   required_argument,  0, 'o'},
             {"x_scale" ,        required_argument,  0, 'x'},
             {"y_scale" ,        required_argument,  0, 'y'},
             {"threads",         required_argument,  0, 't'},
@@ -143,17 +144,11 @@ public:
             case 'v':
                 verbose = true;
                 break;
-            case 'f':
-                fasta_arg = optarg;
-                break;
             case 'o':
-                output_arg = optarg;
+                output_prefix_arg = optarg;
                 break;
             case 't':
                 threads_arg = atoi(optarg);
-                break;
-            case 'e':
-                endlimit_arg = atoi(optarg);
                 break;
             case 'x':
                 xscale_arg = atof(optarg);
@@ -166,31 +161,26 @@ public:
         }
 
         // Parse arguments
-        if(argc - optind != 2)
-            error("Requires exactly 2 arguments.");
+        int remaining_args = argc - optind;
+
+        if (verbose)
+            cerr << "Found " << remaining_args << " remaining arguments on the command line." << endl;
+
+        if(remaining_args < 2 || remaining_args > 3)
+            error("Requires 2 or 3 arguments describing paths to jellyfish kmer counts.");
+
         db1_arg = argv[optind++];
-        db2_arg = argv[optind++];
+        db2_arg = argv[optind++];        
+        db3_arg = remaining_args == 3 ? argv[optind++] : NULL;
     }
-
-    bool outputGiven()
-    {
-        return output_arg == NULL ? false : true;
-    }
-
 
     void print()
     {
         if (verbose)
             cerr << "Verbose flag set" << endl;
 
-        if (fasta_arg)
-            cerr << "Fasta file: " << fasta_arg << endl;
-
         if (threads_arg)
             cerr << "Threads requested: " << threads_arg << endl;
-
-        if (endlimit_arg)
-            cerr << "Endlimit: " << endlimit_arg << endl;
 
         if (xscale_arg)
             cerr << "X Scale Arg: " << xscale_arg << endl;
@@ -204,8 +194,11 @@ public:
         if (db2_arg)
             cerr << "Jellyfish hash 2: " << db2_arg << endl;
 
-        if (output_arg)
-            cerr << "Matrix Output file provided: " << output_arg << endl;
+        if (db3_arg)
+            cerr << "Jellyfish hash 3: " << db3_arg << endl;
+
+        if (output_prefix_arg)
+            cerr << "Output file path prefix: " << output_prefix_arg << endl;
 
         cerr << endl;
     }

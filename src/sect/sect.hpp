@@ -109,17 +109,20 @@ public:
 
             vector<uint64_t>* seqCounts = (*counts)[i];
 
-            if (seqCounts != NULL)
+            if (seqCounts != NULL && !seqCounts->empty())
             {
-                for(uint_t j = 0; j < seqCounts->size(); j++)
+                out << (*seqCounts)[0];
+
+                for(uint_t j = 1; j < seqCounts->size(); j++)
                 {
                     out << " " << (*seqCounts)[j];
                 }
+
                 out << endl;
             }
             else
             {
-                out << " 0" << endl;
+                out << "0" << endl;
             }
         }
     }
