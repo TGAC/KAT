@@ -12,25 +12,29 @@
 #include "asm_plot_main.hpp"
 
 
-void setAsmPlotOutputType(Gnuplot* plot, string* type, const char* output_path)
+void configurePlot(Gnuplot* plot, string* type, const char* output_path)
 {
     if (type->compare("png") == 0)
     {
-        plot->savetopng(output_path);
+        plot->cmd("set terminal png font \"Helvetica\"");
     }
     else if (type->compare("ps") == 0)
     {
-        plot->savetops(output_path);
+        plot->cmd("set terminal postscript color font \"Helvetica\"");
     }
     else if (type->compare("pdf") == 0)
     {
-        plot->savetopdf(output_path);
+        plot->cmd("set terminal pdf color font \"Helvetica\"");
     }
     else
     {
         std::cerr << "Unknown file type, assuming PNG\n";
-        plot->savetopng(output_path);
+        plot->cmd("set terminal png font \"Helvetica\"");
     }
+
+    std::ostringstream cmdstr;
+    cmdstr << "set output \"" << output_path << "\"";
+    plot->cmd(cmdstr.str());
 }
 
 string createLineStyleStr(int i, const char* colour)
@@ -55,7 +59,7 @@ int asmPlotStart(int argc, char *argv[])
 
     Gnuplot* asmPlot = new Gnuplot("lines");
 
-    setAsmPlotOutputType(asmPlot, args.output_type, args.getOutputWithoutExt().c_str());
+    configurePlot(asmPlot, args.output_type, args.output_arg);
 
     asmPlot->set_title(args.title);
     asmPlot->set_xlabel(args.xlabel);

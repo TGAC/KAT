@@ -12,25 +12,29 @@
 #include "flame_plot_main.hpp"
 
 
-void setFlamePlotOutputType(Gnuplot* plot, string* type, const char* output_path)
+void configurePlot(Gnuplot* plot, string* type, const char* output_path)
 {
     if (type->compare("png") == 0)
     {
-        plot->savetopng(output_path);
+        plot->cmd("set terminal png font \"Helvetica\" size 1024,1024");
     }
     else if (type->compare("ps") == 0)
     {
-        plot->savetops(output_path);
+        plot->cmd("set terminal postscript color font \"Helvetica\" size 1024,1024");
     }
     else if (type->compare("pdf") == 0)
     {
-        plot->savetopdf(output_path);
+        plot->cmd("set terminal pdf color font \"Helvetica\" size 1024,1024");
     }
     else
     {
         std::cerr << "Unknown file type, assuming PNG\n";
-        plot->savetopng(output_path);
+        plot->cmd("set terminal png font \"Helvetica\" size 1024,1024");
     }
+
+    std::ostringstream cmdstr;
+    cmdstr << "set output \"" << output_path << "\"";
+    plot->cmd(cmdstr.str());
 }
 
 
@@ -46,7 +50,7 @@ int flamePlotStart(int argc, char *argv[])
 
     Gnuplot* flame = new Gnuplot("lines");
 
-    setFlamePlotOutputType(flame, args.output_type, args.getOutputWithoutExt().c_str());
+    configurePlot(flame, args.output_type, args.output_arg);
 
     flame->set_title(args.title);
     flame->set_xlabel(args.xlabel);
