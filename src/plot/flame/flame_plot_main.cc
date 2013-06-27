@@ -12,29 +12,38 @@
 #include "flame_plot_main.hpp"
 
 
-void configurePlot(Gnuplot* plot, string* type, const char* output_path)
+void configureFlamePlot(Gnuplot* plot, string* type, const char* output_path,
+	uint canvas_width, uint canvas_height)
 {
+    
+    std::ostringstream term_str;
+
     if (type->compare("png") == 0)
     {
-        plot->cmd("set terminal png font \"Helvetica\" size 1024,1024");
+        term_str << "set terminal png";
     }
     else if (type->compare("ps") == 0)
     {
-        plot->cmd("set terminal postscript color font \"Helvetica\" size 1024,1024");
+        term_str << "set terminal postscript color";
     }
     else if (type->compare("pdf") == 0)
     {
-        plot->cmd("set terminal pdf color font \"Helvetica\" size 1024,1024");
+        term_str << "set terminal pdf color";
     }
     else
     {
         std::cerr << "Unknown file type, assuming PNG\n";
-        plot->cmd("set terminal png font \"Helvetica\" size 1024,1024");
+        term_str << "set terminal png";
     }
 
-    std::ostringstream cmdstr;
-    cmdstr << "set output \"" << output_path << "\"";
-    plot->cmd(cmdstr.str());
+    term_str << " large";
+    term_str << " size " << canvas_width << "," << canvas_height;
+
+    plot->cmd(term_str.str());
+
+    std::ostringstream output_str;
+    output_str << "set output \"" << output_path << "\"";
+    plot->cmd(output_str.str());
 }
 
 
@@ -50,11 +59,11 @@ int flamePlotStart(int argc, char *argv[])
 
     Gnuplot* flame = new Gnuplot("lines");
 
-    configurePlot(flame, args.output_type, args.output_arg);
+    configureFlamePlot(flame, args.output_type, args.output_arg->c_str(), args.width, args.height);
 
     flame->set_title(args.title);
-    flame->set_xlabel(args.xlabel);
-    flame->set_ylabel(args.ylabel);
+    flame->set_xlabel(args.x_label);
+    flame->set_ylabel(args.y_label);
 
     flame->set_xrange(-1, 1000);
     flame->set_yrange(-1, 1000);
@@ -67,7 +76,7 @@ int flamePlotStart(int argc, char *argv[])
     flame->cmd("set size ratio 1");
 
     std::ostringstream rangestr;
-    rangestr << "set cbrange [0:" << args.zrange << "]";
+    rangestr << "set cbrange [0:" << args.z_cap << "]";
     flame->cmd(rangestr.str());
 
     std::ostringstream plotstr;

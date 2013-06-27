@@ -3,6 +3,7 @@
 
 #include <getopt.h>
 #include <string.h>
+#include <stdint.h>
 #include <iostream>
 
 using std::string;
@@ -14,8 +15,9 @@ using std::endl;
 #define DEFAULT_TITLE "Flame plot"
 #define DEFAULT_X_LABEL "Hash1 Multiplicity"
 #define DEFAULT_Y_LABEL "Hash2 Multiplicity"
-#define DEFAULT_Z_RANGE 10000
-
+#define DEFAULT_Z_CAP 10000
+#define DEFAULT_WIDTH 1024
+#define DEFAULT_HEIGHT 1024
 
 
 class FlamePlotArgs
@@ -25,21 +27,25 @@ public:
     string*  output_type;
     string*  output_arg;
     const char*  title;
-    const char*  xlabel;
-    const char*  ylabel;
-    uint zrange;
+    const char*  x_label;
+    const char*  y_label;
+    uint16_t width;
+    uint16_t height;
+    uint16_t z_cap;
     bool verbose;
 
     // Default constructor
     FlamePlotArgs() :
-        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL), zrange(DEFAULT_Z_RANGE), verbose(false)
+        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
     }
 
     // Constructor that parses command line options
     FlamePlotArgs(int argc, char* argv[]) :
-        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL), zrange(DEFAULT_Z_RANGE), verbose(false)
+        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
         parse(argc, argv);
@@ -79,7 +85,9 @@ public:
   " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
   " -x, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
   " -y, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
-  " -z, --z_range        Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000)\n" \
+  " -w, --width          Width of canvas (1024)\n" \
+  " -h, --height         Height of canvas (1024)\n" \
+  " -z, --z_cap          Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000)\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
@@ -99,6 +107,8 @@ public:
     void parse(int argc, char *argv[])
     {
         int c;
+        int help_flag = 0;
+        int usage_flag = 0;
 
         static struct option long_options[] =
         {
@@ -108,13 +118,15 @@ public:
             {"title",           required_argument,  0, 't'},
             {"x_label",         required_argument,  0, 'x'},
             {"y_label",         required_argument,  0, 'y'},
-            {"z_range",         required_argument,  0, 'z'},
-            {"help",            no_argument,        0, 'h'},
-            {"usage",           no_argument,        0, 'u'},
+            {"width",           required_argument,  0, 'w'},
+            {"height",          required_argument,  0, 'h'},
+            {"z_cap",           required_argument,  0, 'z'},
+            {"help",            no_argument,        &help_flag, 1},
+            {"usage",           no_argument,        &usage_flag, 1},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "o:p:t:x:y:z:vuh";
+        static const char *short_options = "o:p:t:x:y:w:h:z:vuh";
 
         if (argc <= 1)
         {
@@ -131,6 +143,7 @@ public:
 
             c = getopt_long (argc, argv, short_options, long_options, &index);
 
+
             /* Detect the end of the options. */
             if (c == -1)
                 break;
@@ -142,14 +155,6 @@ public:
                           << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
                           << endl << endl;
                 exit(1);
-            case 'h':
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            case 'u':
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
             case '?':
                 cerr << "Use --usage or --help for some help" << endl << endl;
                 exit(1);
@@ -167,15 +172,35 @@ public:
                 title = optarg;
                 break;
             case 'x':
-                xlabel = optarg;
+                x_label = optarg;
                 break;
             case 'y':
-                ylabel = optarg;
+                y_label = optarg;
+                break;
+            case 'w':
+                width = atoi(optarg);
+                break;
+            case 'h':
+                height = atoi(optarg);
                 break;
             case 'z':
-                zrange = atoi(optarg);
+                z_cap = atoi(optarg);
                 break;
             }
+        }
+
+        if (help_flag)
+        {
+            cout << usage() << endl
+                 << help() << endl;
+            exit(0);
+        }
+
+        if (usage_flag)
+        {
+            cout << usage() << endl
+                 << "Use --help for more information." << endl << endl;
+            exit(0);
         }
 
         // Parse arguments
@@ -207,14 +232,20 @@ public:
         if (title)
             cerr << "Plot title: " << title << endl;
 
-        if (xlabel)
-            cerr << "X Label: " << xlabel << endl;
+        if (x_label)
+            cerr << "X Label: " << x_label << endl;
 
-        if (ylabel)
-            cerr << "Y Label: " << ylabel << endl;
+        if (y_label)
+            cerr << "Y Label: " << y_label << endl;
 
-        if (zrange)
-            cerr << "Z range: " << zrange << endl;
+        if (width)
+            cerr << "Width: " << width << endl;
+
+        if (height)
+            cerr << "Height: " << height << endl;
+
+        if (z_cap)
+            cerr << "Z cap: " << z_cap << endl;
 
         cerr << endl;
     }

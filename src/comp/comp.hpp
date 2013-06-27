@@ -142,18 +142,17 @@ public:
     }
 };
 
-#define KMER_LIMIT 1000
-#define MATRIX_SIZE KMER_LIMIT+1        // Adds one to kmer limit so we can add absent kmers
-
 template<typename hash_t>
 class Comp : public thread_exec
 {
+private:
     // Args passed in
     const char              *jf_hash_path_1;
     const char              *jf_hash_path_2;
     const char              *jf_hash_path_3;
-    const uint_t            threads;	// Number of threads to use
-    const float             xscale, yscale;  // Scaling factors to make the matrix look pretty.
+    const uint16_t          threads;	// Number of threads to use
+    const float             d1_scale, d2_scale;  // Scaling factors to make the matrix look pretty.
+    const uint16_t          d1_bins, d2_bins;  // Scaling factors to make the matrix look pretty.
     const bool              verbose;
 
     // Jellyfish mapped file hash vars
@@ -165,25 +164,28 @@ class Comp : public thread_exec
     hash_t                  *hash3;     // Jellyfish hash 3
 
     // Final data (created by merging thread results)
-    SparseMatrix<uint_t>    *final_main_matrix;
-    SparseMatrix<uint_t>    *final_ends_matrix;
-    SparseMatrix<uint_t>    *final_middle_matrix;
-    SparseMatrix<uint_t>    *final_mixed_matrix;
+    SparseMatrix<uint64_t>    *final_main_matrix;
+    SparseMatrix<uint64_t>    *final_ends_matrix;
+    SparseMatrix<uint64_t>    *final_middle_matrix;
+    SparseMatrix<uint64_t>    *final_mixed_matrix;
     CompCounters            *final_comp_counters;
 
     // Thread specific data
-    SparseMatrix<uint_t>    **thread_main_matricies;
-    SparseMatrix<uint_t>    **thread_ends_matricies;
-    SparseMatrix<uint_t>    **thread_middle_matricies;
-    SparseMatrix<uint_t>    **thread_mixed_matricies;
+    SparseMatrix<uint64_t>    **thread_main_matricies;
+    SparseMatrix<uint64_t>    **thread_ends_matricies;
+    SparseMatrix<uint64_t>    **thread_middle_matricies;
+    SparseMatrix<uint64_t>    **thread_mixed_matricies;
     CompCounters            **thread_comp_counters;
 
 
 public:
     Comp(const char *_jfHashPath1, const char *_jfHashPath2, const char *_jfHashPath3,
-        uint_t _threads, float _xscale, float _yscale, bool _verbose) :
+        uint16_t _threads, float _xscale, float _yscale, uint16_t _d1_bins, uint16_t _d2_bins, bool _verbose) :
         jf_hash_path_1(_jfHashPath1), jf_hash_path_2(_jfHashPath2), jf_hash_path_3(_jfHashPath3),
-        threads(_threads), xscale(_xscale), yscale(_yscale), verbose(_verbose)
+        threads(_threads),
+        d1_scale(_xscale), d2_scale(_yscale),
+        d1_bins(_d1_bins), d2_bins(_d2_bins),
+        verbose(_verbose)
     {
         if (verbose)
             cerr << "Setting up comp tool..." << endl;
@@ -199,34 +201,14 @@ public:
         hash3 = NULL;
 
         // Create the final kmer counter matricies
-        final_main_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
+        final_main_matrix = new SparseMatrix<uint64_t>(d1_bins, d2_bins);
+        thread_main_matricies = new SparseMatrix<uint64_t>*[threads];
 
-        // Create kmer counter matricies for each thread
-        thread_main_matricies = new SparseMatrix<uint_t>*[threads];
+        // Create kmer counter matricies for each thread        
+        createThreadMatricies(thread_main_matricies, threads, d1_bins, d2_bins);
 
-        for(int i = 0; i < threads; i++) {
-            thread_main_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-        }
-
-        if (jf_hash_path_3)
-        {
-            if (verbose)
-                cerr << " - Setting up matricies for hash 3" << endl;
-
-            final_ends_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-            final_middle_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-            final_mixed_matrix = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-
-            thread_ends_matricies = new SparseMatrix<uint_t>*[threads];
-            thread_middle_matricies = new SparseMatrix<uint_t>*[threads];
-            thread_mixed_matricies = new SparseMatrix<uint_t>*[threads];
-
-            for(int i = 0; i < threads; i++) {
-                thread_ends_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-                thread_middle_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-                thread_mixed_matricies[i] = new SparseMatrix<uint_t>(MATRIX_SIZE, MATRIX_SIZE);
-            }
-        }
+        // Initialise extra matricies for hash3 (only allocates space if required)
+        setupHash3();
 
         // Create the final comp counters
         final_comp_counters = new CompCounters(jf_hash_path_1, jf_hash_path_2, jf_hash_path_3);
@@ -243,91 +225,23 @@ public:
 
     ~Comp()
     {
-        if (jfh1)
-            delete jfh1;
+        destroyFinalMatricies();
 
-        if (jfh2)
-            delete jfh2;
+        destroyThreadMatricies(thread_main_matricies);
+        destroyThreadMatricies(thread_ends_matricies);
+        destroyThreadMatricies(thread_middle_matricies);
+        destroyThreadMatricies(thread_mixed_matricies);
 
-        if (jfh3)
-            delete jfh3;
+        destroyCounters();
 
-        if (hash1)
-            delete hash1;
-
-        if (hash2)
-            delete hash2;
-
-        if (hash3)
-            delete hash3;
-
-
-        if(final_main_matrix)
-            delete final_main_matrix;
-
-        if(final_ends_matrix)
-            delete final_ends_matrix;
-
-        if(final_middle_matrix)
-            delete final_middle_matrix;
-
-        if(final_mixed_matrix)
-            delete final_mixed_matrix;
-
-        if (thread_main_matricies)
-        {
-            for(int i = 0; i < threads; i++)
-            {
-                if (thread_main_matricies[i])
-                    delete thread_main_matricies[i];
-            }
-        }
-
-        if (thread_ends_matricies)
-        {
-            for(int i = 0; i < threads; i++)
-            {
-                if (thread_ends_matricies[i])
-                    delete thread_ends_matricies[i];
-            }
-        }
-
-        if (thread_middle_matricies)
-        {
-            for(int i = 0; i < threads; i++)
-            {
-                if (thread_middle_matricies[i])
-                    delete thread_middle_matricies[i];
-            }
-        }
-
-        if (thread_mixed_matricies)
-        {
-            for(int i = 0; i < threads; i++)
-            {
-                if (thread_mixed_matricies[i])
-                    delete thread_mixed_matricies[i];
-            }
-        }
-
-        if (final_comp_counters)
-            delete final_comp_counters;
-
-        if (thread_comp_counters)
-        {
-            for(int i = 0; i < threads; i++)
-            {
-                if (thread_comp_counters[i])
-                    delete thread_comp_counters[i];
-            }
-        }
+        destroyJellyfishHashes();
     }
 
 
     void do_it()
     {
         if (verbose)
-            cerr << "Loading hashes..." << endl << endl;
+            cerr << "Loading hashes..." << endl;
 
         // Load the hashes
         hash1 = jfh1->loadHash(true, cerr);
@@ -399,14 +313,14 @@ public:
             comp_counters->updateSharedCounters(hash1_count, hash2_count);
 
             // Scale counters to make the matrix look pretty
-            uint64_t scaled_hash1_count = scaleCounter(hash1_count, xscale);
-            uint64_t scaled_hash2_count = scaleCounter(hash2_count, yscale);
-            uint64_t scaled_hash3_count = scaleCounter(hash3_count, yscale);
+            uint64_t scaled_hash1_count = scaleCounter(hash1_count, d1_scale);
+            uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2_scale);
+            uint64_t scaled_hash3_count = scaleCounter(hash3_count, d2_scale);
 
             // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
-            if (scaled_hash1_count > KMER_LIMIT) scaled_hash1_count = KMER_LIMIT;
-            if (scaled_hash2_count > KMER_LIMIT) scaled_hash2_count = KMER_LIMIT;
-            if (scaled_hash3_count > KMER_LIMIT) scaled_hash3_count = KMER_LIMIT;
+            if (scaled_hash1_count >= d1_bins) scaled_hash1_count = d1_bins - 1;
+            if (scaled_hash2_count >= d2_bins) scaled_hash2_count = d2_bins - 1;
+            if (scaled_hash3_count >= d2_bins) scaled_hash3_count = d2_bins - 1;
 
             // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
             thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
@@ -444,10 +358,10 @@ public:
             if (!hash1_count)
             {
                 // Scale counters to make the matrix look pretty
-                uint64_t scaled_hash2_count = scaleCounter(hash2_count, yscale);
+                uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2_scale);
 
                 // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
-                if (scaled_hash2_count > KMER_LIMIT) scaled_hash2_count = KMER_LIMIT;
+                if (scaled_hash2_count >= d2_bins) scaled_hash2_count = d2_bins - 1;
 
                 // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
                 thread_matrix->inc(0, scaled_hash2_count, 1);
@@ -483,8 +397,11 @@ public:
         out << " - Hash 2: " << (jfh2 ? "mapped file configured" : "not specified") << endl;
         out << " - Hash 3: " << (jfh3 ? "mapped file configured" : "not specified") << endl;
         out << " - Threads: " << threads << endl;
-        out << " - X scaling factor: " << xscale << endl;
-        out << " - Y scaling factor: " << yscale << endl << endl;
+        out << " - Dataset 1 scaling factor: " << d1_scale << endl;
+        out << " - Dataset 2 scaling factor: " << d2_scale << endl;
+        out << " - Dataset 1 bins: " << d1_bins << endl;
+        out << " - Dataset 1 bins: " << d2_bins << endl;
+        out << endl;
    }
 
 
@@ -537,11 +454,11 @@ private:
 
     void printMatrix(std::ostream &out, SparseMatrix<uint_t>* matrix)
     {
-        for(int i = 0; i < MATRIX_SIZE; i++)
+        for(int i = 0; i < d1_bins; i++)
         {
             out << matrix->get(i, 0);
 
-            for(int j = 1; j < MATRIX_SIZE; j++)
+            for(int j = 1; j < d2_bins; j++)
             {
                 out << " " << matrix->get(i, j);
             }
@@ -552,18 +469,18 @@ private:
 
 
     // Scale counters to make the matrix look pretty
-    uint64_t scaleCounter(uint64_t count, float scale_factor)
+    uint64_t scaleCounter(uint64_t count, double scale_factor)
     {
-        return count == 0 ? 0 : ceil(count * scale_factor);
+        return count == 0 ? 0 : (uint64_t)ceil((double)count * scale_factor);
     }
 
     // Combines each threads matrix into a single matrix
     void merge() {
 
         // Merge matrix
-        for(int i = 0; i < KMER_LIMIT; i++)
+        for(int i = 0; i < d1_bins; i++)
         {
-            for(int j = 0; j < KMER_LIMIT; j++)
+            for(int j = 0; j < d2_bins; j++)
             {
                 for(int k = 0; k < threads; k++)
                 {
@@ -575,9 +492,9 @@ private:
         // Merge hash3 related matricies
         if (hash3)
         {
-            for(int i = 0; i < KMER_LIMIT; i++)
+            for(int i = 0; i < d1_bins; i++)
             {
-                for(int j = 0; j < KMER_LIMIT; j++)
+                for(int j = 0; j < d2_bins; j++)
                 {
                     for(int k = 0; k < threads; k++)
                     {
@@ -608,6 +525,137 @@ private:
             final_comp_counters->shared_hash2_total += thread_comp_counter->shared_hash2_total;
             final_comp_counters->shared_distinct += thread_comp_counter->shared_distinct;
         }
+    }
+
+    void setupHash3()
+    {
+        if (jf_hash_path_3)
+        {
+            if (verbose)
+                cerr << " - Setting up matricies for hash 3" << endl;
+
+            final_ends_matrix = new SparseMatrix<uint64_t>(d1_bins, d2_bins);
+            final_middle_matrix = new SparseMatrix<uint64_t>(d1_bins, d2_bins);
+            final_mixed_matrix = new SparseMatrix<uint64_t>(d1_bins, d2_bins);
+
+            thread_ends_matricies = new SparseMatrix<uint64_t>*[threads];
+            thread_middle_matricies = new SparseMatrix<uint64_t>*[threads];
+            thread_mixed_matricies = new SparseMatrix<uint64_t>*[threads];
+
+            createThreadMatricies(thread_ends_matricies, threads, d1_bins, d2_bins);
+            createThreadMatricies(thread_middle_matricies, threads, d1_bins, d2_bins);
+            createThreadMatricies(thread_mixed_matricies, threads, d1_bins, d2_bins);
+        }
+        else
+        {
+            final_ends_matrix = NULL;
+            final_middle_matrix = NULL;
+            final_mixed_matrix = NULL;
+
+            thread_ends_matricies = NULL;
+            thread_middle_matricies = NULL;
+            thread_mixed_matricies = NULL;
+        }
+    }
+
+
+    void createThreadMatricies(SparseMatrix<uint64_t> **thread_matricies, uint16_t nb_threads, uint16_t mx_width, uint16_t mx_height)
+    {
+        for(int i = 0; i < nb_threads; i++) {
+            thread_matricies[i] = new SparseMatrix<uint_t>(mx_width, mx_height);
+        }
+    }
+
+    void destroyThreadMatricies(SparseMatrix<uint64_t> **thread_matricies)
+    {
+        if (thread_matricies)
+        {
+            // No way of modifying threads after object initialisation so this is safe
+            for(int i = 0; i < threads; i++)
+            {
+                if (thread_matricies[i])
+                {
+                    delete thread_matricies[i];
+                    thread_matricies[i] = NULL;
+                }
+            }
+
+            delete thread_matricies;
+            thread_matricies = NULL;
+        }
+    }
+
+    void destroyCounters()
+    {
+        if (final_comp_counters)
+            delete final_comp_counters;
+
+        final_comp_counters = NULL;
+
+        if (thread_comp_counters)
+        {
+            for(int i = 0; i < threads; i++)
+            {
+                if (thread_comp_counters[i])
+                {
+                    delete thread_comp_counters[i];
+                    thread_comp_counters[i] = NULL;
+                }
+            }
+
+            delete thread_comp_counters;
+            thread_comp_counters = NULL;
+        }
+    }
+
+    void destroyJellyfishHashes()
+    {
+        // No need to destroy the hashes... jellyfish helper takes care of that.
+        /*if (hash1)
+            delete hash1;
+
+        if (hash2)
+            delete hash2;
+
+        if (hash3)
+            delete hash3;
+
+        hash1 = NULL;
+        hash2 = NULL;
+        hash3 = NULL;*/
+
+        if (jfh1)
+            delete jfh1;
+
+        if (jfh2)
+            delete jfh2;
+
+        if (jfh3)
+            delete jfh3;
+
+        jfh1 = NULL;
+        jfh2 = NULL;
+        jfh3 = NULL;
+    }
+
+    void destroyFinalMatricies()
+    {
+        if(final_main_matrix)
+            delete final_main_matrix;
+
+        if(final_ends_matrix)
+            delete final_ends_matrix;
+
+        if(final_middle_matrix)
+            delete final_middle_matrix;
+
+        if(final_mixed_matrix)
+            delete final_mixed_matrix;
+
+        final_main_matrix = NULL;
+        final_ends_matrix = NULL;
+        final_middle_matrix = NULL;
+        final_mixed_matrix = NULL;
     }
 
 

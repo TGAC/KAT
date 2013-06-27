@@ -5,46 +5,110 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <iomanip>
+#include <vector>
 
 #include <gnuplot/gnuplot_i.hpp>
 
 #include "asm_plot_args.hpp"
 #include "asm_plot_main.hpp"
 
+using std::string;
+using std::ostringstream;
+using std::vector;
 
-void configurePlot(Gnuplot* plot, string* type, const char* output_path)
+void configureAsmPlot(Gnuplot* plot, string* type, const char* output_path,
+    uint canvas_width, uint canvas_height)
 {
+
+    std::ostringstream term_str;
+
     if (type->compare("png") == 0)
     {
-        plot->cmd("set terminal png font \"Helvetica\"");
+        term_str << "set terminal png";
     }
     else if (type->compare("ps") == 0)
     {
-        plot->cmd("set terminal postscript color font \"Helvetica\"");
+        term_str << "set terminal postscript color";
     }
     else if (type->compare("pdf") == 0)
     {
-        plot->cmd("set terminal pdf color font \"Helvetica\"");
+        term_str << "set terminal pdf color";
     }
     else
     {
         std::cerr << "Unknown file type, assuming PNG\n";
-        plot->cmd("set terminal png font \"Helvetica\"");
+        term_str << "set terminal png";
     }
 
-    std::ostringstream cmdstr;
-    cmdstr << "set output \"" << output_path << "\"";
-    plot->cmd(cmdstr.str());
+    term_str << " large";
+    term_str << " size " << canvas_width << "," << canvas_height;
+
+    plot->cmd(term_str.str());
+
+    std::ostringstream output_str;
+    output_str << "set output \"" << output_path << "\"";
+    plot->cmd(output_str.str());
 }
 
-string createLineStyleStr(int i, const char* colour)
+string createLineStyleStr(uint16_t i, const char* colour)
 {
-    std::ostringstream lineStyleStr;
-
-    lineStyleStr << "set style line " << i << " lc rgb \"#" << colour << "\"";
-
-    return lineStyleStr.str();
+    ostringstream line_style_str;
+    line_style_str << "set style line " << i << " lc rgb \"" << colour << "\"";
+    return line_style_str.str();
 }
+
+string createSinglePlotString(const char* data_file, uint16_t idx)
+{
+    uint16_t col = idx+1;
+
+    ostringstream plot_str;
+    plot_str << "'" << data_file << "' u " << col << " t \"" << idx << "x\"";
+    return plot_str.str();
+}
+
+
+vector<uint16_t>* getStandardCols(AsmPlotArgs* args)
+{
+    vector<uint16_t>* col_defs = new vector<uint16_t>();
+
+    if (!args->ignore_absent)
+    {
+        col_defs->push_back(0);
+    }
+
+    for(uint16_t i = 1; i <= args->max_duplication; i++)
+    {
+        col_defs->push_back(i);
+    }
+
+    return col_defs;
+}
+
+
+vector<uint16_t>* getUserDefinedCols(AsmPlotArgs* args)
+{
+    vector<uint16_t>* col_defs = new vector<uint16_t>();
+
+    string delimiter = ",";
+    string s(args->columns->c_str());
+
+    size_t pos = 0;
+    string token;
+    while ((pos = s.find(delimiter)) != string::npos) {
+        token = s.substr(0, pos);
+
+        col_defs->push_back(atoi(s.c_str()));
+
+        s.erase(0, pos + delimiter.length());
+    }
+
+    col_defs->push_back(atoi(s.c_str()));
+
+    return col_defs;
+}
+
+
 
 
 // Start point
@@ -57,56 +121,83 @@ int asmPlotStart(int argc, char *argv[])
     if (args.verbose)
         args.print();
 
-    Gnuplot* asmPlot = new Gnuplot("lines");
-
-    configurePlot(asmPlot, args.output_type, args.output_arg);
-
-    asmPlot->set_title(args.title);
-    asmPlot->set_xlabel(args.xlabel);
-    asmPlot->set_ylabel(args.ylabel);
 
 
-    int i = 1;
 
-    if (!args.ignoreAbsent)
-        asmPlot->cmd(createLineStyleStr(i++, "FF8080"));
+    vector<uint16_t>* plot_cols = !args.columns ? getStandardCols(&args) : getUserDefinedCols(&args);
 
-    asmPlot->cmd(createLineStyleStr(i++, "80FF80"));
-    asmPlot->cmd(createLineStyleStr(i++, "80FFFF"));
-    asmPlot->cmd(createLineStyleStr(i++, "8080FF"));
-    asmPlot->cmd(createLineStyleStr(i++, "FFFF40"));
+    if (!plot_cols->empty())
+    {
+        // Determine configuration
+        bool request_absent = (*plot_cols)[0] == 0 ? true : false;
+        uint16_t level_count = request_absent ? plot_cols->size() - 1 : plot_cols->size();
 
 
-    asmPlot->cmd("set style increment user");
+        if (args.verbose)
+        {
+            cerr << "Request plot fo absent kmers" << endl
+                 << level_count << " levels of present kmers requested for plotting" << endl << endl;
+        }
 
-    asmPlot->cmd("set style fill solid 1 noborder");
-    asmPlot->cmd("set style histogram rowstacked");
-    asmPlot->cmd("set style data histograms");
+        // Initialise gnuplot
+        Gnuplot* asm_plot = new Gnuplot("lines");
 
-    asmPlot->set_xrange(0, args.xmax);
-    asmPlot->set_yrange(0, args.ymax);
+        configureAsmPlot(asm_plot, args.output_type, args.output_arg->c_str(), args.width, args.height);
 
-    if (args.xlogscale)
-        asmPlot->set_xlogscale();
+        asm_plot->set_title(args.title);
+        asm_plot->set_xlabel(args.x_label);
+        asm_plot->set_ylabel(args.y_label);
 
-    if (args.ylogscale)
-        asmPlot->set_ylogscale();
 
-    std::ostringstream absentstr;
+        // Get plot strings
+        ostringstream plot_str;
 
-    if (!args.ignoreAbsent)
-        absentstr << "'" << args.mx_arg->c_str() << "' u 1 t \"Absent\", ";
 
-    std::ostringstream plotstr;
-    plotstr << "plot " << absentstr.str() << \
-                    "'" << args.mx_arg->c_str() << "' u 2 t \"Distinct\", " \
-                    "'" << args.mx_arg->c_str() << "' u 3 t \"Duplicate\", " \
-                    "'" << args.mx_arg->c_str() << "' u 4 t \"Triplicate\", " \
-                    "'" << args.mx_arg->c_str() << "' u 5 t \"Quadruplate\"";
 
-    asmPlot->cmd(plotstr.str());
+        bool first = true;
 
-    delete asmPlot;
+        if (request_absent)
+        {
+            plot_str << createSinglePlotString(args.mx_arg->c_str(), 0) << " lt rgb \"black\"";
+            first = false;
+        }
+
+        for(uint16_t i = 0; i < level_count; i++)
+        {
+            if (first)
+                first = false;
+            else
+                plot_str << ", ";
+
+
+            double col_frac = 1.0 - ((double)i / (double)(level_count - 1));
+            uint16_t index = request_absent ? i+1 : i;
+
+            plot_str << createSinglePlotString(args.mx_arg->c_str(), (*plot_cols)[index]) << " lt palette frac " << std::fixed << col_frac;
+        }
+
+        asm_plot->cmd("set palette rgb 33,13,10");
+        asm_plot->cmd("unset colorbox");
+
+        asm_plot->cmd("set style fill solid 1 noborder");
+        asm_plot->cmd("set style histogram rowstacked");
+        asm_plot->cmd("set style data histograms");
+
+        asm_plot->set_xrange(0, args.x_max);
+        asm_plot->set_yrange(0, args.y_max);
+
+        ostringstream plot_cmd;
+        plot_cmd << "plot " << plot_str.str();
+        asm_plot->cmd(plot_cmd.str());
+
+        if (args.verbose)
+            cerr << "Gnuplot command: " << plot_cmd.str() << endl;
+
+        delete asm_plot;
+    }
+
+
+    delete plot_cols;
 
     return 0;
 }

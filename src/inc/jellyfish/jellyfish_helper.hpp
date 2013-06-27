@@ -34,11 +34,15 @@ public:
 
     ~JellyfishHelper()
     {
+        if (dbf)
+            delete dbf;
+
+        dbf = NULL;
+
         if (hash)
             delete hash;
 
-        if (dbf)
-            delete dbf;
+        hash = NULL;
     }
 
 
@@ -59,7 +63,7 @@ public:
         if(!strncmp(type, jellyfish::compacted_hash::file_type, sizeof(type)))
         {
             if (out)
-                out << "Compacted hashes detected.  Setting up query structure.\n\n";
+                out << endl << "Compacted hash detected.  Setting up query structure." << endl;
 
             // Load the jellyfish hashes
             hash = new hash_query_t(*dbf);
@@ -79,7 +83,7 @@ public:
         }
         else
         {
-            cerr << "Can't process jellyfish hashes.  Wrong type.  Can only process compacted hashes.\n";
+            cerr << "Can't process jellyfish hash.  Wrong hash type.  Can only process compacted hash.\n";
             throw;
         }
     }

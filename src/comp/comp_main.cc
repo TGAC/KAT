@@ -38,7 +38,10 @@ int compStart(int argc, char *argv[])
         args.print();
 
     // Create the sequence coverage object
-    Comp<hash_query_t> comp(args.db1_arg, args.db2_arg, args.db3_arg, args.threads_arg, args.xscale_arg, args.yscale_arg, args.verbose);
+    Comp<hash_query_t> comp(args.db1_arg, args.db2_arg, args.db3_arg, args.threads_arg,
+                            args.d1_scale_arg, args.d2_scale_arg,
+                            args.d1_bins, args.d2_bins,
+                            args.verbose);
 
     // Output comp parameters to stderr if requested
     if (args.verbose)

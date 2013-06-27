@@ -18,8 +18,10 @@ using std::cout;
 #define DEFAULT_X_MAX 1000
 #define DEFAULT_Y_MAX 1000000
 
-#define DEFAULT_X_LOGSCALE 0
-#define DEFAULT_Y_LOGSCALE 0
+#define DEFAULT_WIDTH 1024
+#define DEFAULT_HEIGHT 1024
+
+#define DEFAULT_DUPLICATION 5
 
 using std::cout;
 using std::cerr;
@@ -32,35 +34,41 @@ public:
     string*  output_type;
     string*  output_arg;
     const char*  title;
-    const char*  xlabel;
-    const char*  ylabel;
-    uint16_t xmax;
-    uint64_t ymax;
-    bool xlogscale;
-    bool ylogscale;
-    bool ignoreAbsent;
+    const char*  x_label;
+    const char*  y_label;
+    uint16_t x_max;
+    uint64_t y_max;
+    uint16_t width;
+    uint16_t height;
+    bool ignore_absent;
+    uint16_t max_duplication;
+    string* columns;
     bool verbose;
 
     // Default constructor
     AsmPlotArgs() :
         mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE),
-        xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL),
-        xmax(DEFAULT_X_MAX), ymax(DEFAULT_Y_MAX),
-        xlogscale(DEFAULT_X_LOGSCALE), ylogscale(DEFAULT_Y_LOGSCALE),
-        ignoreAbsent(false), verbose(false)
+        x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
+        width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
+        ignore_absent(false), max_duplication(DEFAULT_DUPLICATION),
+        verbose(false)
     {
         output_type = new string("png");
+        columns = NULL;
     }
 
     // Constructor that parses command line options
     AsmPlotArgs(int argc, char* argv[]) :
         mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE),
-        xlabel(DEFAULT_X_LABEL), ylabel(DEFAULT_Y_LABEL),
-        xmax(DEFAULT_X_MAX), ymax(DEFAULT_Y_MAX),
-        xlogscale(DEFAULT_X_LOGSCALE), ylogscale(DEFAULT_Y_LOGSCALE),
-        ignoreAbsent(false), verbose(false)
+        x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
+        width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
+        ignore_absent(false), max_duplication(DEFAULT_DUPLICATION),
+        verbose(false)
     {
         output_type = new string("png");
+        columns = NULL;
         parse(argc, argv);
     }
 
@@ -99,9 +107,11 @@ public:
   " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
   " -x  --x_max          Maximum value for the x-axis (1000)\n" \
   " -y  --y_max          Maximum value for the y-axis (10000000)\n" \
-  " -k  --x_logscale     Use logscale for x-axis (false)\n" \
-  " -l  --y_logscale     Use logscale for y-axis (false)\n" \
-  " -a  --ignore_absent  Ignore kmers in reads but absent from the assembly\n" \
+  " -w, --width          Width of canvas (1024)\n" \
+  " -h, --height         Height of canvas (1024)\n" \
+  " -a, --ignore_absent  Ignore kmers in reads but absent from the assembly\n" \
+  " -m, --max_dup        Maximum duplication level to show in plots (5)\n" \
+  " -c, --columns        Comma separated string listing columns to show in plot.  If used, this overrides \"--ignore_absent\" and \"--columns\"\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
@@ -121,6 +131,8 @@ public:
     void parse(int argc, char *argv[])
     {
         int c;
+        int help_flag = 0;
+        int usage_flag = 0;
 
         static struct option long_options[] =
         {
@@ -132,15 +144,15 @@ public:
             {"y_label",         required_argument,  0, 'j'},
             {"x_max",           required_argument,  0, 'x'},
             {"y_max",           required_argument,  0, 'y'},
-            {"x_logscale",      no_argument,        0, 'k'},
-            {"y_logscale",      required_argument,  0, 'l'},
             {"ignore_absent",   no_argument,        0, 'a'},
-            {"help",            no_argument,        0, 'h'},
-            {"usage",           no_argument,        0, 'u'},
+            {"max_dup",         required_argument,  0, 'm'},
+            {"columns",         required_argument,  0, 'c'},
+            {"help",            no_argument,        &help_flag, 1},
+            {"usage",           no_argument,        &usage_flag, 1},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "o:p:t:i:j:x:y:klavuh";
+        static const char *short_options = "o:p:t:i:j:x:y:w:h:m:c:avuh";
 
         if (argc <= 1)
         {
@@ -168,14 +180,6 @@ public:
                           << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
                           << endl;
                 exit(1);
-            case 'h':
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            case 'u':
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
             case '?':
                 cerr << "Use --usage or --help for some help" << endl << endl;
                 exit(1);
@@ -193,33 +197,53 @@ public:
                 title = optarg;
                 break;
             case 'i':
-                xlabel = optarg;
+                x_label = optarg;
                 break;
             case 'j':
-                ylabel = optarg;
-                break;
-            case 'k':
-                xlogscale = true;
-                break;
-            case 'l':
-                ylogscale = true;
+                y_label = optarg;
                 break;
             case 'x':
-                xmax = atoi(optarg);
+                x_max = atoi(optarg);
                 break;
             case 'y':
-                ymax = atol(optarg);
+                y_max = atol(optarg);
+                break;
+            case 'w':
+                width = atoi(optarg);
+                break;
+            case 'h':
+                height = atoi(optarg);
                 break;
             case 'a':
-                ignoreAbsent = true;
+                ignore_absent = true;
                 break;
-
+            case 'm':
+                max_duplication = atoi(optarg);
+                break;
+            case 'c':
+                columns = new string(optarg);
+                break;
             }
+        }
+
+        if (help_flag)
+        {
+            cout << usage() << endl
+                 << help() << endl;
+            exit(0);
+        }
+
+        if (usage_flag)
+        {
+            cout << usage() << endl
+                 << "Use --help for more information." << endl << endl;
+            exit(0);
         }
 
         // Parse arguments
         if(argc - optind != 1)
             error("Requires exactly 1 argument.");
+
         mx_arg = new string(argv[optind++]);
     }
 
@@ -246,26 +270,32 @@ public:
         if (title)
             cerr << "Plot title: " << title << endl;
 
-        if (xlabel)
-            cerr << "X Label: " << xlabel << endl;
+        if (x_label)
+            cerr << "X Label: " << x_label << endl;
 
-        if (ylabel)
-            cerr << "Y Label: " << ylabel << endl;
+        if (y_label)
+            cerr << "Y Label: " << y_label << endl;
 
-        if (xmax)
-            cerr << "X Max: " << xmax << endl;
+        if (x_max)
+            cerr << "X Max: " << x_max << endl;
 
-        if (ymax)
-            cerr << "Y Max: " << ymax << endl;
+        if (y_max)
+            cerr << "Y Max: " << y_max << endl;
 
-        if (xlogscale)
-            cerr << "X Logscale: " << xlogscale << endl;
+        if (width)
+            cerr << "Width: " << width << endl;
 
-        if (ylogscale)
-            cerr << "Y Logscale: " << ylogscale << endl;
+        if (height)
+            cerr << "Height: " << height << endl;
 
-        if (ignoreAbsent)
-            cerr << "Ingore absent kmers: " << ignoreAbsent << endl;
+        if (max_duplication)
+            cerr << "Max duplication level to plot: " << max_duplication << endl;
+
+        if (columns)
+            cerr << "Columns to plot: " << columns->c_str() << endl;
+
+        if (ignore_absent)
+            cerr << "Ignore absent kmers: " << ignore_absent << endl;
 
 
         cerr << endl;

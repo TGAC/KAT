@@ -4,16 +4,18 @@
 #include <getopt.h>
 #include <stdlib.h>
 #include <iostream>
+#include <stdint.h>
 
 using std::cout;
 using std::cerr;
 using std::endl;
 
-#define DEFAULT_X_SCALE 1.0
-#define DEFAULT_Y_SCALE 1.0
+#define DEFAULT_D1_SCALE 1.0
+#define DEFAULT_D2_SCALE 1.0
 #define DEFAULT_THREADS 1
 #define DEFAULT_OUTPUT_PREFIX "./kat_comp_output"
-
+#define DEFAULT_D1_BINS 1001
+#define DEFAULT_D2_BINS 1001
 
 class CompArgs
 {
@@ -23,19 +25,25 @@ public:
     const char * 	db3_arg;
 
     const char *  output_prefix_arg;
-    float xscale_arg;
-    float yscale_arg;
-    uint_t threads_arg;
+    double d1_scale_arg;
+    double d2_scale_arg;
+    uint16_t d1_bins;
+    uint16_t d2_bins;
+    uint16_t threads_arg;
     bool verbose;
 
     // Default constructor
     CompArgs() :
-        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), d1_scale_arg(DEFAULT_D1_SCALE), d2_scale_arg(DEFAULT_D2_SCALE),
+        d1_bins(DEFAULT_D1_BINS), d2_bins(DEFAULT_D2_BINS),
+        threads_arg(DEFAULT_THREADS), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), xscale_arg(DEFAULT_X_SCALE), yscale_arg(DEFAULT_Y_SCALE), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), d1_scale_arg(DEFAULT_D1_SCALE), d2_scale_arg(DEFAULT_D2_SCALE),
+        d1_bins(DEFAULT_D1_BINS), d2_bins(DEFAULT_D2_BINS),
+        threads_arg(DEFAULT_THREADS), verbose(false)
     {
         parse(argc, argv);
     }
@@ -67,8 +75,10 @@ public:
   "Options (default value in (), *required):\n" \
   " -o, --output_prefix  Path prefix for files produced by this program (./kat_comp_output)\n" \
   "specified, a second matrix file with the .ends suffix will be created also.\n" \
-  " -x, --x_scale        Scaling factor for the first dataset - float multiplier (1.0).\n" \
-  " -y, --y_scale        Scaling factor for the second dataset - float multiplier (1.0).\n" \
+  " -x, --d1_scale       Scaling factor for the first dataset - float multiplier (1.0).  Max value: 1.0\n" \
+  " -y, --d2_scale       Scaling factor for the second dataset - float multiplier (1.0).  Max value: 1.0.\n" \
+  " -i, --d1_bins        Number of bins for the first dataset.  i.e. number of rows in the matrix (1001)\n" \
+  " -j, --d2_bins        Number of bins for the second dataset.  i.e. number of columns in the matrix (1001)\n" \
   " -t, --threads        The number of threads to use (1)\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
@@ -89,20 +99,24 @@ public:
     void parse(int argc, char *argv[])
     {
         int c;
+        int help_flag = 0;
+        int usage_flag = 0;
 
         static struct option long_options[] =
         {
             {"verbose",         no_argument,        0, 'v'},
             {"output_prefix",   required_argument,  0, 'o'},
-            {"x_scale" ,        required_argument,  0, 'x'},
-            {"y_scale" ,        required_argument,  0, 'y'},
+            {"d1_scale" ,       required_argument,  0, 'x'},
+            {"d2_scale" ,       required_argument,  0, 'y'},
+            {"d1_bins",         required_argument,  0, 'i'},
+            {"d2_bins",         required_argument,  0, 'j'},
             {"threads",         required_argument,  0, 't'},
-            {"help",            no_argument,        0, 'h'},
-            {"usage",           no_argument,        0, 'u'},
+            {"help",            no_argument,        &help_flag, 1},
+            {"usage",           no_argument,        &usage_flag, 1},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "f:e:o:x:y:t:vuh";
+        static const char *short_options = "f:e:o:x:y:i:j:t:vuh";
 
         if (argc <= 1)
         {
@@ -111,6 +125,7 @@ public:
                  << help() << endl;
             exit(1);
         }
+
 
         while (true)
         {
@@ -130,14 +145,6 @@ public:
                           << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
                           << endl;
                 exit(1);
-            case 'h':
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            case 'u':
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
             case '?':
                 cerr << "Use --usage or --help for some help" << endl << endl;
                 exit(1);
@@ -151,14 +158,38 @@ public:
                 threads_arg = atoi(optarg);
                 break;
             case 'x':
-                xscale_arg = atof(optarg);
+                d1_scale_arg = atof(optarg);
+                if (d1_scale_arg > 1.0)
+                    d1_scale_arg = 1.0;
                 break;
             case 'y':
-                yscale_arg = atof(optarg);
+                d2_scale_arg = atof(optarg);
+                if (d2_scale_arg > 1.0)
+                    d2_scale_arg = 1.0;
                 break;
-
+            case 'i':
+                d1_bins = atoi(optarg);
+                break;
+            case 'j':
+                d2_bins = atoi(optarg);
+                break;
             }
         }
+
+        if (help_flag)
+        {
+            cout << usage() << endl
+                 << help() << endl;
+            exit(0);
+        }
+
+        if (usage_flag)
+        {
+            cout << usage() << endl
+                 << "Use --help for more information." << endl << endl;
+            exit(0);
+        }
+
 
         // Parse arguments
         int remaining_args = argc - optind;
@@ -182,11 +213,17 @@ public:
         if (threads_arg)
             cerr << "Threads requested: " << threads_arg << endl;
 
-        if (xscale_arg)
-            cerr << "X Scale Arg: " << xscale_arg << endl;
+        if (d1_scale_arg)
+            cerr << "Dataset 1 Scaling Factor: " << d1_scale_arg << endl;
 
-        if (yscale_arg)
-            cerr << "Y Scale Arg: " << yscale_arg << endl;
+        if (d2_scale_arg)
+            cerr << "Dataset 2 Scaling Factor: " << d2_scale_arg << endl;
+
+        if (d1_bins)
+            cerr << "Number of Dataset 1 bins: " << d1_bins << endl;
+
+        if (d2_bins)
+            cerr << "Number of Dataset 2 bins: " << d2_bins << endl;
 
         if (db1_arg)
             cerr << "Jellyfish hash 1: " << db1_arg << endl;
