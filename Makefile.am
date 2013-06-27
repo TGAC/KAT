@@ -23,4 +23,4 @@ __top_builddir__bin_kat_LDADD = lib/libjellyfish-1.1.a lib/libz.a
 
 
 dist_noinst_SCRIPTS = autogen.sh
-
+dist_bin_SCRIPTS = scripts/kat_comp_reads.sh
