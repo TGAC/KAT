@@ -241,14 +241,18 @@ public:
     void do_it()
     {
         if (verbose)
+        {
             cerr << "Loading hashes..." << endl;
+        }
+
+        std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
         // Load the hashes
-        hash1 = jfh1->loadHash(true, cerr);
-        hash2 = jfh2->loadHash(false, cerr);
+        hash1 = jfh1->loadHash(true, out_stream);
+        hash2 = jfh2->loadHash(false, out_stream);
 
         if (jfh3)
-            hash3 = jfh3->loadHash(false, cerr);
+            hash3 = jfh3->loadHash(false, out_stream);
 
         // Check kmer lengths are the same for both hashes.  We can't continue if they are not.
         if (hash1->get_mer_len() != hash2->get_mer_len())

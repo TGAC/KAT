@@ -65,7 +65,8 @@ public:
   "                      this is used to compare a jellyfish hash produced from a read set to a jellyfish\n" \
   "                      hash produced from an assembly. The plot shows the amount of distinct kmers absent\n" \
   "                      in the assembly, those that are found once, and those found more (up to 10\n" \
-  "                      duplications plotted)\n\n" \
+  "                      duplications plotted)\n" \
+  "   - sect:            Creates a kmer coverage plot for a single sequence\n" \
   "Options (default value in (), *required):\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
@@ -84,7 +85,8 @@ public:
     bool validMode(char* mode_str)
     {
         return (strcmp(mode_str, "flame") == 0 ||
-                strcmp(mode_str, "asm") == 0) ?
+                strcmp(mode_str, "asm") == 0 ||
+                strcmp(mode_str, "sect") == 0) ?
                     true : false;
     }
 

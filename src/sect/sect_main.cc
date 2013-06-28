@@ -89,7 +89,7 @@ int sectStart(int argc, char *argv[])
     readFasta(args.fasta_arg, names, seqs, args.verbose);
 
     // Create the sequence coverage object
-    Sect<hash_query_t> sect(args.db_arg, &names, &seqs, args.threads_arg);
+    Sect<hash_query_t> sect(args.db_arg, &names, &seqs, args.threads_arg, args.verbose);
 
     // Output seqcvg parameters to stderr if requested
     if (args.verbose)

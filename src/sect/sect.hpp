@@ -22,6 +22,7 @@ class Sect : public thread_exec
     const vector<string>    *names;	    // Names of fasta sequences (in same order as seqs)
     const vector<string>    *seqs;	    // Sequences in fasta sequences (in same order as names)
     const uint_t            threads;	// Number of threads to use
+    const bool              verbose;
     const size_t            bucket_size, remaining;	// Chunking vars
 
     JellyfishHelper         *jfh;
@@ -31,9 +32,9 @@ class Sect : public thread_exec
 
 public:
     Sect(const char *_jfHashPath, const vector<string> *_names, const vector<string> *_seqs,
-        uint_t _threads) :
+        uint_t _threads, bool _verbose) :
         jfHashPath(_jfHashPath), names(_names), seqs(_seqs),
-        threads(_threads),
+        threads(_threads), verbose(_verbose),
         bucket_size(seqs->size() / threads),
         remaining(seqs->size() % (bucket_size < 1 ? 1 : threads))
     {
@@ -47,30 +48,39 @@ public:
 
     ~Sect()
     {
-        if (hash)
-            delete hash;
+        // Jellyfish helper takes care of freeing the hash
+        //if (hash)
+        //    delete hash;
 
         if (jfh)
             delete jfh;
+
+        jfh = NULL;
 
         if(counts)
         {
             for(uint_t i = 0; i < counts->size(); i++)
             {
                 delete (*counts)[i];
+                (*counts)[i] = NULL;
             }
             delete counts;
+            counts = NULL;
         }
 
         if (coverages)
             delete coverages;
+
+        coverages = NULL;
     }
 
 
     void do_it()
     {
+        std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
+
         // Load the jellyfish hash
-        hash = jfh->loadHash(true, cerr);
+        hash = jfh->loadHash(true, out_stream);
 
         // Process each fasta sequence in a different thread.
         // In each thread lookup each kmer in the hash

@@ -17,6 +17,7 @@ __top_builddir__bin_kat_SOURCES = \
 			    src/plot/plot_main.cc \
                             src/plot/flame/flame_plot_main.cc \
                             src/plot/asm/asm_plot_main.cc \
+                            src/plot/sect/sect_plot_main.cc \
                             src/kat.cc
 
 __top_builddir__bin_kat_LDADD = lib/libjellyfish-1.1.a lib/libz.a

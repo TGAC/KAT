@@ -6,6 +6,8 @@
 
 #include "flame/flame_plot_main.hpp"
 #include "asm/asm_plot_main.hpp"
+#include "sect/sect_plot_main.hpp"
+
 
 #include "plot_args.hpp"
 #include "plot_main.hpp"
@@ -26,6 +28,10 @@ int plotStart(int argc, char *argv[])
     else if (args.getMode().compare("asm") == 0)
     {
         asmPlotStart(args.getModeArgC(), args.getModeArgV());
+    }
+    else if (args.getMode().compare("sect") == 0)
+    {
+        sectPlotStart(args.getModeArgC(), args.getModeArgV());
     }
 
     return 0;

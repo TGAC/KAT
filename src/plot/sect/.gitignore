@@ -1,0 +1,4 @@
+/.deps/
+/.dirstamp
+/asm_plot_main.o
+/*.o

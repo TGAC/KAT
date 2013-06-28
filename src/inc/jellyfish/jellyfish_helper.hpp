@@ -46,8 +46,9 @@ public:
     }
 
 
-    hash_query_t* loadHash(const bool sequential, std::ostream &out)
+    hash_query_t* loadHash(const bool sequential, std::ostream* out)
     {
+
         // Advise kernel on how we will use this memory.
         if (sequential)
             dbf->sequential();
@@ -63,7 +64,7 @@ public:
         if(!strncmp(type, jellyfish::compacted_hash::file_type, sizeof(type)))
         {
             if (out)
-                out << endl << "Compacted hash detected.  Setting up query structure." << endl;
+                *out << endl << "Compacted hash detected.  Setting up query structure." << endl;
 
             // Load the jellyfish hashes
             hash = new hash_query_t(*dbf);
@@ -71,7 +72,7 @@ public:
             // Output jellyfish has details if requested
             if (out)
             {
-                out << "Jellyfish hash: " << jfHashPath.c_str() << endl
+                *out << "Jellyfish hash: " << jfHashPath.c_str() << endl
                     << " - mer length  = " << hash->get_mer_len() << endl
                     << " - hash size   = " << hash->get_size() << endl
                     << " - max reprobe = " << hash->get_max_reprobe() << endl
