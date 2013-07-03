@@ -59,7 +59,7 @@ int sectStart(int argc, char *argv[])
 
     // Send average sequence coverage and GC% scores to file
     std::ostringstream cvg_gc_path;
-    cvg_gc_path << args.output_prefix << "_cvg-gc.csv";
+    cvg_gc_path << args.output_prefix << "_stats.csv";
     ofstream_default cvg_gc_stream(cvg_gc_path.str().c_str(), cout);
     sect.printStatTable(cvg_gc_stream);
     cvg_gc_stream.close();

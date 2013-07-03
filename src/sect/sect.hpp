@@ -171,9 +171,10 @@ public:
 
     void printStatTable(std::ostream &out)
     {
+        out << "seq_name coverage gc% seq_length" << endl;
         for(int i = 0; i < names->size(); i++)
         {
-            out << (*coverages)[i] << " " << (*gcs)[i] << endl;
+            out << (*names)[i] << " " << (*coverages)[i] << " " << (*gcs)[i] << " " << (*lengths)[i] << endl;
         }
     }
 
