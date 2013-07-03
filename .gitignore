@@ -12,3 +12,9 @@
 /missing
 /bin/
 /test/
+/config.h
+/config.h.in
+/stamp-h1
+/*.configure.ac.swp
+/*.h.in~
+/test-driver

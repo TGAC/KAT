@@ -8,7 +8,6 @@
 #include "asm/asm_plot_main.hpp"
 #include "sect/sect_plot_main.hpp"
 
-
 #include "plot_args.hpp"
 #include "plot_main.hpp"
 

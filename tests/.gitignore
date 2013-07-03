@@ -1,0 +1,8 @@
+/.deps/
+/*.log
+/*.o
+/*.trs
+/Makefile
+/Makefile.in
+/check_comp
+/check_sect

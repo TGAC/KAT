@@ -73,7 +73,7 @@ public:
   "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided " \
   "first, then the assembly kmer hash second.  Finally, if comparing kmers at the ends of sequences this should be supplied last.\n\n" \
   "Options (default value in (), *required):\n" \
-  " -o, --output_prefix  Path prefix for files produced by this program (./kat_comp_output)\n" \
+  " -o, --output_prefix  Path prefix for files produced by this program (" DEFAULT_OUTPUT_PREFIX ")\n" \
   "specified, a second matrix file with the .ends suffix will be created also.\n" \
   " -x, --d1_scale       Scaling factor for the first dataset - float multiplier (1.0).  Max value: 1.0\n" \
   " -y, --d2_scale       Scaling factor for the second dataset - float multiplier (1.0).  Max value: 1.0.\n" \

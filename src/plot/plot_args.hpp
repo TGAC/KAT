@@ -66,7 +66,8 @@ public:
   "                      hash produced from an assembly. The plot shows the amount of distinct kmers absent\n" \
   "                      in the assembly, those that are found once, and those found more (up to 10\n" \
   "                      duplications plotted)\n" \
-  "   - sect:            Creates a kmer coverage plot for a single sequence\n" \
+  "   - sect:            Creates a kmer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
+  "                      coverage from the \"sect\" tool\n\n" \
   "Options (default value in (), *required):\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \

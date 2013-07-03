@@ -10,18 +10,9 @@
 #include <fstream>
 #include <vector>
 
-
-#include <zlib/zlib.h>
-
-#include <jellyfish/err.hpp>
-#include <jellyfish/misc.hpp>
 #include <jellyfish/mer_counting.hpp>
-#include <jellyfish/compacted_hash.hpp>
-#include <jellyfish/thread_exec.hpp>
-#include <jellyfish/atomic_gcc.hpp>
-#include <jellyfish/fstream_default.hpp>
 
-#include <kseq/kseq.h>
+#include <kseq/kseq_helper.h>
 
 #include "sect.hpp"
 #include "sect_args.hpp"
@@ -32,46 +23,6 @@ using std::string;
 using std::cout;
 using std::cerr;
 
-KSEQ_INIT(gzFile, gzread)
-
-
-// Loads Fasta file into memory.  Two vectors hold names and sequences respectively.  Assumes no reordering will
-// take place
-void readFasta(const char *fastaPath, vector<string>& fastaNames, vector<string>& fastaSeqs, bool verbose)
-{
-    if (verbose)
-        cerr << "Fasta file load: " << fastaPath << "\n";
-
-    gzFile fp;
-    fp = gzopen(fastaPath, "r"); // STEP 2: open the file handler
-    kseq_t *seq = kseq_init(fp); // STEP 3: initialize seq
-    int l;
-    while ((l = kseq_read(seq)) >= 0)   // STEP 4: read sequence
-    {
-        fastaNames.push_back(seq->name.s);
-        fastaSeqs.push_back(seq->seq.s);
-    }
-    kseq_destroy(seq); // STEP 5: destroy seq
-    gzclose(fp); // STEP 6: close the file handler
-}
-
-// Debugging routine.. not required for normal use
-void printFastaData(vector<string>& names, vector<string>& seqs)
-{
-    if (names.size() != seqs.size())
-    {
-        cerr << "Somehow the fasta names and sequence vector went out of sync!  Names size: " << names.size() << "; Seqs size: " << seqs.size() << "\n";
-        return;
-    }
-
-    cerr << "Printing fasta data\n";
-
-    for (int i = 0; i < names.size(); i++)
-    {
-        cerr << "name: " << names[i].c_str() << "\n";
-        cerr << "seq:  " << seqs[i].c_str() << "\n";
-    }
-}
 
 // Start point
 int sectStart(int argc, char *argv[])
@@ -89,7 +40,7 @@ int sectStart(int argc, char *argv[])
     readFasta(args.fasta_arg, names, seqs, args.verbose);
 
     // Create the sequence coverage object
-    Sect<hash_query_t> sect(args.db_arg, &names, &seqs, args.threads_arg, args.verbose);
+    Sect<hash_query_t> sect(args.db_arg, &names, &seqs, args.gc_bins, args.cvg_bins, args.cvg_logscale, args.threads_arg, args.verbose);
 
     // Output seqcvg parameters to stderr if requested
     if (args.verbose)
@@ -98,16 +49,27 @@ int sectStart(int argc, char *argv[])
     // Do the work
     sect.do_it();
 
-    // Send sequence kmer counts to file if requested
-    if (args.outputGiven())
-    {
-        ofstream_default count_out(args.outputGiven() ? args.output_arg : 0, std::cout);
-        sect.printCounts(count_out);
-        count_out.close();
-    }
+    // Send sequence kmer counts to file
+    std::ostringstream count_path;
+    count_path << args.output_prefix << "_counts.cvg";
+    ofstream_default count_path_stream(count_path.str().c_str(), cout);
+    sect.printCounts(count_path_stream);
+    count_path_stream.close();
 
-    // Send sequence coverage scores to standard out
-    sect.printCoverages(cout);
+
+    // Send average sequence coverage and GC% scores to file
+    std::ostringstream cvg_gc_path;
+    cvg_gc_path << args.output_prefix << "_cvg-gc.csv";
+    ofstream_default cvg_gc_stream(cvg_gc_path.str().c_str(), cout);
+    sect.printStatTable(cvg_gc_stream);
+    cvg_gc_stream.close();
+
+    // Send contamination matrix to file
+    std::ostringstream contamination_mx_path;
+    contamination_mx_path << args.output_prefix << "_contamination.mx";
+    ofstream_default contamination_mx_stream(contamination_mx_path.str().c_str(), cout);
+    sect.printContaminationMatrix(contamination_mx_stream);
+    contamination_mx_stream.close();
 
     return 0;
 }

@@ -75,6 +75,21 @@ public:
             }
         } std::cout << std::endl;
     }
+
+    void printMatrix(std::ostream &out)
+    {
+        for(int i = 0; i < n; i++)
+        {
+            out << mat[0][i];
+
+            for(int j = 1; j < m; j++)
+            {
+                out << " " << mat[j][i];
+            }
+
+            out << endl;
+        }
+    }
     
 protected:
     SparseMatrix(){}
