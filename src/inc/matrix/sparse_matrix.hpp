@@ -78,13 +78,13 @@ public:
 
     void printMatrix(std::ostream &out)
     {
-        for(int i = 0; i < n; i++)
+        for(int i = 0; i < m; i++)
         {
-            out << mat[0][i];
+            out << mat[i][0];
 
-            for(int j = 1; j < m; j++)
+            for(int j = 1; j < n; j++)
             {
-                out << " " << mat[j][i];
+                out << " " << mat[i][j];
             }
 
             out << endl;
