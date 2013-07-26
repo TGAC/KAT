@@ -107,10 +107,16 @@ int flamePlotStart(int argc, char *argv[])
         args.print();
 
 
+    // Get range from matrix
     int x_range = getCols(args.mx_arg->c_str());
     int y_range = getRows(args.mx_arg->c_str());
 
+    // Cap to user specified values
+    x_range = args.x_max < x_range ? args.x_max : x_range;
+    y_range = args.y_max < y_range ? args.y_max : y_range;
 
+
+    // Start defining the plot
     Gnuplot* flame = new Gnuplot("lines");
 
     configureFlamePlot(flame, args.output_type, args.output_arg->c_str(), args.width, args.height);

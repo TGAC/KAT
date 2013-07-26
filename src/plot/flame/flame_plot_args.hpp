@@ -18,6 +18,8 @@ using std::endl;
 #define DEFAULT_Z_CAP 10000
 #define DEFAULT_WIDTH 1024
 #define DEFAULT_HEIGHT 1024
+#define DEFAULT_X_MAX 1000
+#define DEFAULT_Y_MAX 1000
 
 
 class FlamePlotArgs
@@ -29,6 +31,8 @@ public:
     const char*  title;
     const char*  x_label;
     const char*  y_label;
+    uint16_t x_max;
+    uint16_t y_max;
     uint16_t width;
     uint16_t height;
     uint16_t z_cap;
@@ -37,7 +41,7 @@ public:
     // Default constructor
     FlamePlotArgs() :
         mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
-        width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
+        x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
     }
@@ -45,7 +49,7 @@ public:
     // Constructor that parses command line options
     FlamePlotArgs(int argc, char* argv[]) :
         mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
-        width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
+        x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
         parse(argc, argv);
@@ -83,8 +87,10 @@ public:
   "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
   " -o, --output         *Output file\n" \
   " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
-  " -x, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
-  " -y, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
+  " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
+  " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
+  " -x, --x_max          Maximum value for the x-axis (1000)\n" \
+  " -y  --y_max          Maximum value for the y-axis (1000)\n" \
   " -w, --width          Width of canvas (1024)\n" \
   " -h, --height         Height of canvas (1024)\n" \
   " -z, --z_cap          Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000)\n" \
@@ -116,8 +122,10 @@ public:
             {"output_type",     required_argument,  0, 'p'},
             {"output",          required_argument,  0, 'o'},
             {"title",           required_argument,  0, 't'},
-            {"x_label",         required_argument,  0, 'x'},
-            {"y_label",         required_argument,  0, 'y'},
+            {"x_label",         required_argument,  0, 'i'},
+            {"y_label",         required_argument,  0, 'j'},
+            {"x_max",           required_argument,  0, 'x'},
+            {"y_max",           required_argument,  0, 'y'},
             {"width",           required_argument,  0, 'w'},
             {"height",          required_argument,  0, 'h'},
             {"z_cap",           required_argument,  0, 'z'},
@@ -171,11 +179,17 @@ public:
             case 't':
                 title = optarg;
                 break;
-            case 'x':
+            case 'i':
                 x_label = optarg;
                 break;
-            case 'y':
+            case 'j':
                 y_label = optarg;
+                break;
+            case 'x':
+                x_max = atoi(optarg);
+                break;
+            case 'y':
+                y_max = atoi(optarg);
                 break;
             case 'w':
                 width = atoi(optarg);
@@ -237,6 +251,12 @@ public:
 
         if (y_label)
             cerr << "Y Label: " << y_label << endl;
+
+        if (x_max)
+            cerr << "X Max: " << x_max << endl;
+
+        if (y_max)
+            cerr << "Y Max: " << y_max << endl;
 
         if (width)
             cerr << "Width: " << width << endl;
