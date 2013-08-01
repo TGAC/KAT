@@ -1,5 +1,4 @@
-#if !defined(DEF_SECT_H)
-#define DEF_SECT_H
+#pragma once
 
 #include <iostream>
 #include <string.h>
@@ -10,6 +9,7 @@
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
+#include <jellyfish/hash.hpp>
 #include <jellyfish/counter.hpp>
 #include <jellyfish/thread_exec.hpp>
 #include <jellyfish/jellyfish_helper.hpp>
@@ -41,20 +41,20 @@ private:
     const SectArgs                  *args;
     const size_t                    bucket_size, remaining;	// Chunking vars
 
-    // Variables that live for the lifetime of this instance
+    // Variables that live for the lifetime of this object
     JellyfishHelper                 *jfh;
     hash_t                          *hash;		// Jellyfish hash
     ThreadedSparseMatrix<uint64_t>  *contamination_mx;  // Stores cumulative base count for each sequence where GC and CVG are binned
     uint32_t                        offset;
     uint16_t                        recordsInBatch;
 
-    // Variables that live for the lifetime of each batch
+    // Variables that are refreshed for each batch
     StringSet<CharString>           *names;
     StringSet<Dna5String>           *seqs;
     vector<vector<uint64_t>*>       *counts;    // Kmer counts for each kmer window in sequence (in same order as seqs and names; built by this class)
     vector<float>                   *coverages; // Overall coverage calculated for each sequence from the kmer windows.
     vector<float>                   *gcs;       // GC% for each sequence
-    vector<uint32_t>                *lengths;       // GC% for each sequence
+    vector<uint32_t>                *lengths;   // Length in nucleotides for each sequence
 
 public:
     Sect(SectArgs *_args) :
@@ -106,7 +106,7 @@ public:
         std::ostream* out_stream = args->verbose ? &cerr : (std::ostream*)0;
 
         // Load the jellyfish hash
-        hash = jfh->loadHash(true, out_stream);
+        hash = jfh->loadHash(false, out_stream);
 
         // Setup stream to sequence file and check all is well
         SequenceStream seqStream(args->fasta_arg, SequenceStream::READ);
@@ -430,5 +430,3 @@ private:
     }
 
 };
-
-#endif //DEF_SECT_H

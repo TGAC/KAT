@@ -1,5 +1,4 @@
-#ifndef __ASM_PLOT_ARGS_HPP__
-#define __ASM_PLOT_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <string.h>
@@ -301,6 +300,3 @@ public:
         cerr << endl;
     }
 };
-
-#endif // __ASM_PLOT_ARGS_HPP__
-

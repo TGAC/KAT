@@ -1,9 +1,11 @@
-#ifndef _SPARSEMATRIX_H
-#define	_SPARSEMATRIX_H
+#pragma once
 
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <iostream>
+
+using std::endl;
 
 template <class T>
 class SparseMatrix
@@ -40,6 +42,24 @@ public:
     {
         if(i>=m || j>=n) throw;
         return mat[i][j];
+    }
+
+    size_t width()   {return m;}
+    size_t height()  {return n;}
+
+    T getMaxVal()
+    {
+        T maxVal = 0;
+
+        for(int i = 0; i < m; i++)
+        {
+            for(int j = 0; j < n; j++)
+            {
+                maxVal = maxVal < mat[i][j] ? mat[i][j] : maxVal;
+            }
+        }
+
+        return maxVal;
     }
 
     std::vector<T> operator*(const std::vector<T>& x)
@@ -99,5 +119,3 @@ private:
     size_t m;
     size_t n;
 };
-
-#endif	/* _SPARSEMATRIX_H */

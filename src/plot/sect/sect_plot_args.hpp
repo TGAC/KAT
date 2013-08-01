@@ -1,5 +1,4 @@
-#ifndef __SECT_PLOT_ARGS_HPP__
-#define __SECT_PLOT_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <string.h>
@@ -265,6 +264,3 @@ public:
         cerr << endl;
     }
 };
-
-#endif // __SECT_PLOT_ARGS_HPP__
-

@@ -1,6 +1,4 @@
-#ifndef __FLAME_PLOT_MAIN_HPP__
-#define __FLAME_PLOT_MAIN_HPP__
+#pragma once
 
 int flamePlotStart(int argc, char *argv[]);
 
-#endif // __FLAME_PLOT_MAIN_HPP__

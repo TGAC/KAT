@@ -9,6 +9,8 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 
+#include <matrix/matrix_metadata_extractor.hpp>
+
 #include "flame_plot_args.hpp"
 #include "flame_plot_main.hpp"
 
@@ -51,51 +53,6 @@ void configureFlamePlot(Gnuplot* plot, string* type, const char* output_path,
 }
 
 
-int getRows(const char* path)
-{
-    string line;
-    ifstream infile;
-    infile.open (path);
-    uint32_t nb_lines = 0;
-    while (!infile.eof())
-    {
-        getline(infile, line);
-        if (line[0] != '#')
-            nb_lines++;
-    }
-    infile.close();
-
-    return nb_lines;
-}
-
-int getCols(const char* path)
-{
-    string line;
-    ifstream infile;
-    infile.open (path);
-    uint32_t nb_elements = 0;
-    while(!infile.eof())
-    {
-        getline(infile, line);
-        if (line[0] != '#')
-        {
-            istringstream iss(line);
-
-            do
-            {
-                string sub;
-                iss >> sub;
-                nb_elements++;
-            } while (iss);
-
-            break;
-        }
-    }
-
-    return nb_elements;
-}
-
-
 // Start point
 int flamePlotStart(int argc, char *argv[])
 {
@@ -107,26 +64,51 @@ int flamePlotStart(int argc, char *argv[])
         args.print();
 
 
-    // Get range from matrix
-    int x_range = getCols(args.mx_arg->c_str());
-    int y_range = getRows(args.mx_arg->c_str());
+    // Get plotting properties, either from file, or user.  User args have precedence.
+    uint16_t x_range = args.x_max != DEFAULT_X_MAX ? args.x_max : mme::getNumeric(*args.mx_arg, mme::KEY_NB_COLUMNS);
+    uint16_t y_range = args.y_max != DEFAULT_Y_MAX ? args.y_max : mme::getNumeric(*args.mx_arg, mme::KEY_NB_ROWS);
+    uint32_t z_cap = args.z_cap != DEFAULT_Z_CAP ? args.z_cap : mme::getNumeric(*args.mx_arg, mme::KEY_MAX_VAL);
 
-    // Cap to user specified values
-    x_range = args.x_max < x_range ? args.x_max : x_range;
-    y_range = args.y_max < y_range ? args.y_max : y_range;
+    string x_label = args.x_label.compare(DEFAULT_X_LABEL) != 0 ? args.x_label : mme::getString(*args.mx_arg, mme::KEY_X_LABEL);
+    string y_label = args.y_label.compare(DEFAULT_Y_LABEL) != 0 ? args.y_label : mme::getString(*args.mx_arg, mme::KEY_Y_LABEL);
+
+    string title = args.title.compare(DEFAULT_TITLE) != 0 ? args.title : mme::getString(*args.mx_arg, mme::KEY_TITLE);
+
+
+
+    // If neither the user or the data file contain any ideas of what values to use then use defaults
+    x_range = x_range == -1 ? 1001 : x_range;
+    y_range = y_range == -1 ? 1001 : y_range;
+    z_cap = z_cap == -1 ? 10000 : z_cap / 2;    // Saturate the hot spots a bit to show more detail around the edges
+
+    x_label = x_label.empty() ? DEFAULT_X_LABEL : x_label;
+    y_label = y_label.empty() ? DEFAULT_Y_LABEL : y_label;
+
+    title = title.empty() ? DEFAULT_TITLE : title;
+
+    if (args.verbose)
+    {
+        cerr << "Actual variables used to create plot:" << endl;
+        cerr << "X Range: " << x_range << endl;
+        cerr << "Y Range: " << y_range << endl;
+        cerr << "Z cap: " << z_cap << endl;
+        cerr << "X Label: " << x_label << endl;
+        cerr << "Y Label: " << y_label << endl;
+        cerr << "Title: " << title << endl;
+    }
 
 
     // Start defining the plot
     Gnuplot* flame = new Gnuplot("lines");
 
-    configureFlamePlot(flame, args.output_type, args.output_arg->c_str(), args.width, args.height);
+    configureFlamePlot(flame, args.output_type, args.output_path->c_str(), args.width, args.height);
 
-    flame->set_title(args.title);
-    flame->set_xlabel(args.x_label);
-    flame->set_ylabel(args.y_label);
+    flame->set_title(title);
+    flame->set_xlabel(x_label);
+    flame->set_ylabel(y_label);
 
-    flame->set_xrange(-1, x_range);
-    flame->set_yrange(-1, y_range);
+    flame->set_xrange(0, x_range);
+    flame->set_yrange(0, y_range);
 
     //flame->set_xlogscale();
     //flame->set_ylogscale();
@@ -136,7 +118,7 @@ int flamePlotStart(int argc, char *argv[])
     flame->cmd("set size ratio 1");
 
     std::ostringstream rangestr;
-    rangestr << "set cbrange [0:" << args.z_cap << "]";
+    rangestr << "set cbrange [0:" << z_cap << "]";
     flame->cmd(rangestr.str());
 
     std::ostringstream plotstr;

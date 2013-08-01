@@ -1,6 +1,4 @@
-#ifndef __ASM_PLOT_MAIN_HPP__
-#define __ASM_PLOT_MAIN_HPP__
+#pragma once
 
 int asmPlotStart(int argc, char *argv[]);
 
-#endif // __ASM_PLOT_MAIN_HPP__

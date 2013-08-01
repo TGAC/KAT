@@ -8,14 +8,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <jellyfish/err.hpp>
-#include <jellyfish/misc.hpp>
-#include <jellyfish/mer_counting.hpp>
 #include <jellyfish/compacted_hash.hpp>
-#include <jellyfish/thread_exec.hpp>
-#include <jellyfish/atomic_gcc.hpp>
-#include <jellyfish/fstream_default.hpp>
-#include <jellyfish/jellyfish_helper.hpp>
 
 #include "comp.hpp"
 #include "comp_args.hpp"

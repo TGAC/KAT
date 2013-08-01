@@ -1,5 +1,4 @@
-#ifndef __COMP_ARGS_HPP__
-#define __COMP_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <stdlib.h>
@@ -243,5 +242,4 @@ public:
 private:
 };
 
-#endif // __COMP_ARGS_HPP__
 

@@ -1,5 +1,4 @@
-#ifndef __KAT_ARGS_HPP__
-#define __KAT_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <string.h>
@@ -66,6 +65,7 @@ public:
   "First argument should be the tool/mode you wish to use:\n\n" \
   "   - sect: SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using kmers from a jellyfish hash\n" \
   "   - comp: Kmer comparison tool.  Creates a matrix of shared kmers between two jellyfish hashes.\n" \
+  "   - gcp:  Kmer GC Processor.  Creates a matrix of the number of kmers found given a GC count and a kmer count.\n" \
   "   - plot: Plotting tool.  Creates useful plots to visualise kmer distributions.  Requires gnuplot \n\n" \
   "Options:\n" \
   "     --usage                              Usage\n" \
@@ -95,6 +95,7 @@ public:
     {
         return (strcmp(mode_str, "sect") == 0 ||
                 strcmp(mode_str, "comp") == 0 ||
+                strcmp(mode_str, "gcp") == 0 ||
                 strcmp(mode_str, "plot") == 0) ?
                     true : false;
     }
@@ -169,6 +170,4 @@ public:
         }
     }
 };
-
-#endif // __KAT_ARGS_HPP__
 

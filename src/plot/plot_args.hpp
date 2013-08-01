@@ -1,5 +1,4 @@
-#ifndef __PLOT_ARGS_HPP__
-#define __PLOT_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <string.h>
@@ -158,6 +157,3 @@ public:
         }
     }
 };
-
-#endif // __PLOT_ARGS_HPP__
-

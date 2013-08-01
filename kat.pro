@@ -20,7 +20,15 @@ HEADERS += \
     src/plot/sect/sect_plot_args.hpp \
     src/kat_args.hpp \
     templates/template_main.hpp \
-    templates/template_args.hpp
+    templates/template_args.hpp \
+    src/inc/matrix/threaded_sparse_matrix.hpp \
+    src/inc/matrix/sparse_matrix.hpp \
+    src/gc/gc_main.hpp \
+    src/gc/gc_args.hpp \
+    src/gcp/gcp_main.hpp \
+    src/gcp/gcp_args.hpp \
+    src/gcp/gcp.hpp \
+    src/inc/matrix/matrix_metadata_extractor.hpp
 
 SOURCES += \
     src/comp/comp_main.cc \
@@ -32,7 +40,10 @@ SOURCES += \
     src/plot/flame/flame_plot_main.cc \
     src/plot/sect/sect_plot_main.cc \
     src/kat.cc \
-    templates/template_main.cc
+    templates/template_main.cc \
+    src/gc/gc_main.cc \
+    src/gcp/gcp_main.cc \
+    src/inc/matrix/matrix_metadata_extractor.cc
 
 OTHER_FILES += \
     src/Makefile.am \

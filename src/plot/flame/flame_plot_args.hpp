@@ -1,5 +1,4 @@
-#ifndef __FLAME_PLOT_ARGS_HPP__
-#define __FLAME_PLOT_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <string.h>
@@ -12,14 +11,14 @@ using std::cout;
 using std::endl;
 
 
-#define DEFAULT_TITLE "Flame plot"
-#define DEFAULT_X_LABEL "Hash1 Multiplicity"
-#define DEFAULT_Y_LABEL "Hash2 Multiplicity"
-#define DEFAULT_Z_CAP 10000
-#define DEFAULT_WIDTH 1024
-#define DEFAULT_HEIGHT 1024
-#define DEFAULT_X_MAX 1000
-#define DEFAULT_Y_MAX 1000
+const string DEFAULT_TITLE      = "Title";
+const string DEFAULT_X_LABEL    = "X";
+const string DEFAULT_Y_LABEL    = "Y";
+const int64_t DEFAULT_Z_CAP     = -1;
+const uint16_t DEFAULT_WIDTH    = 1024;
+const uint16_t DEFAULT_HEIGHT   = 1024;
+const int32_t DEFAULT_X_MAX     = -1;
+const int32_t DEFAULT_Y_MAX     = -1;
 
 
 class FlamePlotArgs
@@ -27,20 +26,20 @@ class FlamePlotArgs
 public:
     string*  mx_arg;
     string*  output_type;
-    string*  output_arg;
-    const char*  title;
-    const char*  x_label;
-    const char*  y_label;
-    uint16_t x_max;
-    uint16_t y_max;
+    string*  output_path;
+    string  title;
+    string  x_label;
+    string  y_label;
+    int16_t x_max;
+    int16_t y_max;
     uint16_t width;
     uint16_t height;
-    uint16_t z_cap;
+    int64_t z_cap;
     bool verbose;
 
     // Default constructor
     FlamePlotArgs() :
-        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
         x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
@@ -48,7 +47,7 @@ public:
 
     // Constructor that parses command line options
     FlamePlotArgs(int argc, char* argv[]) :
-        mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
         x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
@@ -59,7 +58,7 @@ public:
     {
         delete mx_arg;
         delete output_type;
-        delete output_arg;
+        delete output_path;
     }
 
 
@@ -86,17 +85,17 @@ public:
   " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
   "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
   " -o, --output         *Output file\n" \
-  " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
-  " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
-  " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
-  " -x, --x_max          Maximum value for the x-axis (1000)\n" \
-  " -y  --y_max          Maximum value for the y-axis (1000)\n" \
+  " -t, --title          Title for plot\n" \
+  " -i, --x_label        Label for the x-axis\n" \
+  " -j, --y_label        Label for the y-axis\n" \
+  " -x, --x_max          Maximum value for the x-axis\n" \
+  " -y  --y_max          Maximum value for the y-axis\n" \
   " -w, --width          Width of canvas (1024)\n" \
   " -h, --height         Height of canvas (1024)\n" \
   " -z, --z_cap          Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000)\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
-  "     --help           This message\n" \
+  "     --help           This message\n"
 
     const char * help() const
     {
@@ -170,20 +169,20 @@ public:
                 verbose = true;
                 break;
             case 'o':
-                output_arg = new string(optarg);
+                output_path = new string(optarg);
                 break;
             case 'p':
                 delete output_type;
                 output_type = new string(optarg);
                 break;
             case 't':
-                title = optarg;
+                title = string(optarg);
                 break;
             case 'i':
-                x_label = optarg;
+                x_label = string(optarg);
                 break;
             case 'j':
-                y_label = optarg;
+                y_label = string(optarg);
                 break;
             case 'x':
                 x_max = atoi(optarg);
@@ -223,11 +222,6 @@ public:
         mx_arg = new string(argv[optind++]);
     }
 
-    bool outputGiven()
-    {
-        return output_arg == NULL ? false : true;
-    }
-
 
     void print()
     {
@@ -235,21 +229,21 @@ public:
             cerr << "Verbose flag set\n";
 
         if (output_type != NULL)
-            cerr << "Output type: " << output_type->c_str() << endl;
+            cerr << "Output type: " << *output_type << endl;
 
-        if (output_arg != NULL)
-            cerr << "Output file specified: " << output_arg->c_str() << endl;
+        if (output_path != NULL)
+            cerr << "Output file specified: " << *output_path << endl;
 
         if (mx_arg != NULL)
-            cerr << "Kmer Matrix input file specified: " << mx_arg->c_str() << endl;
+            cerr << "Kmer Matrix input file specified: " << *mx_arg << endl;
 
-        if (title)
+        if (!title.empty())
             cerr << "Plot title: " << title << endl;
 
-        if (x_label)
+        if (!x_label.empty())
             cerr << "X Label: " << x_label << endl;
 
-        if (y_label)
+        if (!y_label.empty())
             cerr << "Y Label: " << y_label << endl;
 
         if (x_max)
@@ -270,6 +264,4 @@ public:
         cerr << endl;
     }
 };
-
-#endif // __FLAME_PLOT_ARGS_HPP__
 

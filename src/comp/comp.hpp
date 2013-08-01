@@ -1,5 +1,4 @@
-#if !defined(DEF_COMP_H)
-#define DEF_COMP_H
+#pragma once
 
 #include <iostream>
 #include <string.h>
@@ -7,9 +6,11 @@
 #include <vector>
 #include <math.h>
 
+#include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
 
+#include <jellyfish/hash.hpp>
 #include <jellyfish/counter.hpp>
 #include <jellyfish/thread_exec.hpp>
 #include <jellyfish/jellyfish_helper.hpp>
@@ -18,6 +19,7 @@ using std::vector;
 using std::string;
 using std::cerr;
 using std::endl;
+using std::ostream;
 
 
 class CompCounters{
@@ -99,7 +101,7 @@ public:
         }
     }
 
-    void printCounts(std::ostream &out)
+    void printCounts(ostream &out)
     {
         out << "Kmer statistics for: " << endl;
         out << " - Hash 1: " << hash1_path << endl;
@@ -397,7 +399,7 @@ public:
 
 
     // Print Comp setup
-    void printVars(std::ostream &out)
+    void printVars(ostream &out)
     {
         out << endl;
         out << "Comp parameters:" << endl;
@@ -408,22 +410,29 @@ public:
         out << " - Dataset 1 scaling factor: " << d1_scale << endl;
         out << " - Dataset 2 scaling factor: " << d2_scale << endl;
         out << " - Dataset 1 bins: " << d1_bins << endl;
-        out << " - Dataset 1 bins: " << d2_bins << endl;
+        out << " - Dataset 2 bins: " << d2_bins << endl;
         out << endl;
    }
 
 
     // Print kmer comparison matrix
-    void printMainMatrix(std::ostream &out)
+    void printMainMatrix(ostream &out)
     {
-        out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
-        out << "# Each column represents kmer multiplicity for: " << jf_hash_path_2 << endl;
+        SparseMatrix<uint64_t>* mx = main_matrix->getFinalMatrix();
 
-        main_matrix->getFinalMatrix()->printMatrix(out);
+        out << mme::KEY_TITLE << "Kmer comparison plot" << endl;
+        out << mme::KEY_X_LABEL << "Kmer multiplicity for: " << jf_hash_path_1 << endl;
+        out << mme::KEY_Y_LABEL << "Kmer multiplicity for: " << jf_hash_path_2 << endl;
+        out << mme::KEY_NB_COLUMNS << mx->height() << endl;
+        out << mme::KEY_NB_ROWS << mx->width() << endl;
+        out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
+        out << mme::MX_META_END << endl;
+
+        mx->printMatrix(out);
     }
 
     // Print kmer comparison matrix
-    void printEndsMatrix(std::ostream &out)
+    void printEndsMatrix(ostream &out)
     {
         out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
         out << "# Each column represents kmer multiplicity for sequence ends: " << jf_hash_path_3 << endl;
@@ -432,7 +441,7 @@ public:
     }
 
     // Print kmer comparison matrix
-    void printMiddleMatrix(std::ostream &out)
+    void printMiddleMatrix(ostream &out)
     {
         out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
         out << "# Each column represents kmer multiplicity for sequence middles: " << jf_hash_path_2 << endl;
@@ -441,7 +450,7 @@ public:
     }
 
     // Print kmer comparison matrix
-    void printMixedMatrix(std::ostream &out)
+    void printMixedMatrix(ostream &out)
     {
         out << "# Each row represents kmer multiplicity for hash file 1: " << jf_hash_path_1 << endl;
         out << "# Each column represents kmer multiplicity for mixed: " << jf_hash_path_2 << " and " << jf_hash_path_3 << endl;
@@ -450,7 +459,7 @@ public:
     }
 
     // Print kmer statistics
-    void printCounters(std::ostream &out)
+    void printCounters(ostream &out)
     {
        final_comp_counters->printCounts(out);
     }
@@ -561,5 +570,3 @@ private:
 
 
 };
-
-#endif //DEF_COMP_H

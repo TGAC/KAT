@@ -7,6 +7,7 @@
 #include "kat_args.hpp"
 #include "sect/sect_main.hpp"
 #include "comp/comp_main.hpp"
+#include "gcp/gcp_main.hpp"
 #include "plot/plot_main.hpp"
 
 // Start point
@@ -24,6 +25,10 @@ int main(int argc, char *argv[])
     else if (args.getMode().compare("comp") == 0)
     {
         compStart(args.getModeArgC(), args.getModeArgV());
+    }
+    else if (args.getMode().compare("gcp") == 0)
+    {
+        gcpStart(args.getModeArgC(), args.getModeArgV());
     }
     else if (args.getMode().compare("plot") == 0)
     {

@@ -1,5 +1,4 @@
-#ifndef __THREADED_SPARSE_MATRIX_HPP__
-#define __THREADED_SPARSE_MATRIX_HPP__
+#pragma once
 
 #include "sparse_matrix.hpp"
 
@@ -82,6 +81,3 @@ public:
     }
 
 };
-
-
-#endif // __THREADED_SPARSE_MATRIX_HPP__

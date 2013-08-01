@@ -1,5 +1,4 @@
-#ifndef __SECT_ARGS_HPP__
-#define __SECT_ARGS_HPP__
+#pragma once
 
 #include <getopt.h>
 #include <stdlib.h>
@@ -222,6 +221,4 @@ public:
 
 private:
 };
-
-#endif // __SECT_ARGS_HPP__
 

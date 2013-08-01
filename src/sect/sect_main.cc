@@ -2,21 +2,14 @@
 #include <config.h>
 #endif
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
 #include <iostream>
-#include <fstream>
-#include <vector>
+
+#include <jellyfish/mer_counting.hpp>
 
 #include "sect.hpp"
 #include "sect_args.hpp"
 #include "sect_main.hpp"
 
-using std::vector;
-using std::string;
-using std::cout;
 using std::cerr;
 
 

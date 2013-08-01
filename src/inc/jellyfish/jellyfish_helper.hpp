@@ -1,5 +1,4 @@
-#ifndef __JELLYFISH_HELPER_HPP__
-#define __JELLYFISH_HELPER_HPP__
+#pragma once
 
 #include <string.h>
 #include <iostream>
@@ -96,8 +95,3 @@ public:
 
 
 };
-
-
-
-
-#endif // __JELLYFISH_HELPER_HPP__
