@@ -681,7 +681,9 @@ ac_user_opts='
 enable_option_checking
 enable_silent_rules
 enable_dependency_tracking
-with_jellyfish_dir
+with_jellyfish
+with_boost
+with_seqan
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1318,7 +1320,9 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-jellyfish-dir=LIB_DIR     search static jellyfish library there.
+  --with-jellyfish=LIB_DIR     search static jellyfish library there.
+  --with-boost=LIB_DIR     search static boost library there.
+  --with-boost=LIB_DIR     search static seqan library there.
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -3769,24 +3773,48 @@ echo "LIBS now: ${LIBS}"
 echo "+++++++++++++++++++++++++++++++++++++"
 
 
-# check for jellyfish and zlib
+# check for jellyfish boost and seqan, which are dependencies for kat
 jellyfish_dir=":"
+boost_dir=":"
+seqan_dir=":"
 
 
-# Check whether --with-jellyfish-dir was given.
-if test "${with_jellyfish_dir+set}" = set; then :
-  withval=$with_jellyfish_dir;  jellyfish_dir=$withval
+# Check whether --with-jellyfish was given.
+if test "${with_jellyfish+set}" = set; then :
+  withval=$with_jellyfish;  jellyfish_dir=$withval
 else
-   jellyfish_dir=""
+   jellyfish_dir=":"
 fi
 
 
-if test "${jellyfish_dir}" = ":"; then
-    echo "Did not specify jellyfish directory... assuming env vars are set correctly"
+
+
+# Check whether --with-boost was given.
+if test "${with_boost+set}" = set; then :
+  withval=$with_boost;  boost_dir=$withval
+else
+   boost_dir=":"
+fi
+
+
+
+
+# Check whether --with-seqan was given.
+if test "${with_seqan+set}" = set; then :
+  withval=$with_seqan;  seqan_dir=$withval
+else
+   seqan_dir=":"
+fi
+
+
+
+
+if test "$jellyfish_dir" = ":"; then
+    echo "WARNING: JELLYFISH: Did not specify jellyfish v1.1.10 directory... assuming env vars are set correctly"
 
 else
     echo
-    echo "JELLYFISH: Modifying environment variables for jellyfish: ${jellyfish_dir}"
+    echo "JELLYFISH: Custom jellyfish dir specified.  Modifying environment variables for jellyfish: ${jellyfish_dir}"
 
     CPPFLAGS="$CPPFLAGS -I${jellyfish_dir}/include/jellyfish-1.1.10"
     LIBS="$LIBS ${jellyfish_dir}/lib/libjellyfish-1.1.a"
@@ -3801,6 +3829,46 @@ else
     echo "+++++++++++++++++++++++++++++++++++++"
 fi
 
+
+if test "${boost_dir}" = ":"; then
+    echo "WARNING: BOOST: Did not specify boost directory... assuming env vars are set correctly"
+
+else
+    echo
+    echo "BOOST: Custom boost dir specified.  Modifying environment variables for boost: ${boost_dir}"
+
+    CPPFLAGS="$CPPFLAGS -I${boost_dir}/include"
+    LIBS="$LIBS ${boost_dir}/lib/libboost_unit_test_framework.so"
+
+    echo
+    echo "+++++++++++++++++++++++++++++++++++++"
+    echo "CFLAGS now: ${CFLAGS}"
+    echo "CPPFLAGS now: ${CPPFLAGS}"
+    echo "CXXFLAGS now: ${CXXFLAGS}"
+    echo "LDFLAGS now: ${LDFLAGS}"
+    echo "LIBS now: ${LIBS}"
+    echo "+++++++++++++++++++++++++++++++++++++"
+fi
+
+
+if test "${seqan_dir}" = ":"; then
+    echo "WARNING: SEQAN: Did not specify seqan directory... assuming env vars are set correctly"
+
+else
+    echo
+    echo "SEQAN: Custom seqan dir specified.  Modifying environment variables for seqan: ${seqan_dir}"
+
+    CPPFLAGS="$CPPFLAGS -I${seqan_dir}/include"
+
+    echo
+    echo "+++++++++++++++++++++++++++++++++++++"
+    echo "CFLAGS now: ${CFLAGS}"
+    echo "CPPFLAGS now: ${CPPFLAGS}"
+    echo "CXXFLAGS now: ${CXXFLAGS}"
+    echo "LDFLAGS now: ${LDFLAGS}"
+    echo "LIBS now: ${LIBS}"
+    echo "+++++++++++++++++++++++++++++++++++++"
+fi
 
 
 ac_config_headers="$ac_config_headers config.h"
