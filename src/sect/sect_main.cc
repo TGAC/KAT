@@ -37,7 +37,7 @@ int sectStart(int argc, char *argv[])
     if (args.verbose)
         sect.printVars(cerr);
 
-    // Do the work
+    // Do the work (outputs data to files as it goes)
     sect.do_it();
 
     return 0;

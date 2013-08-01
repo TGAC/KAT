@@ -8,8 +8,8 @@
 #include <vector>
 #include <algorithm>
 
-#include <zlib/zlib.h>
-#include <kseq/kseq.h>
+#include <seqan/sequence.h>
+#include <seqan/seq_io.h>
 
 #include <gnuplot/gnuplot_i.hpp>
 
@@ -17,28 +17,49 @@
 #include "sect_plot_main.hpp"
 
 using std::string;
+using std::stringstream;
 using std::istringstream;
 using std::ostringstream;
 using std::vector;
 
-KSEQ_INIT(gzFile, gzread)
+using seqan::SequenceStream;
+using seqan::CharString;
+using seqan::Dna5String;
 
 // Finds a particular fasta header in a fasta file and returns the associated sequence
 const string* getEntryFromFasta(const string *fasta_path, const string header)
 {
-    gzFile fp;
-    fp = gzopen(fasta_path->c_str(), "r"); // STEP 2: open the file handler
-    kseq_t *seq = kseq_init(fp); // STEP 3: initialize seq
-    int l;
-    while ((l = kseq_read(seq)) >= 0)   // STEP 4: read sequence
+    // Setup stream to sequence file and check all is well
+    SequenceStream seqStream(fasta_path->c_str(), SequenceStream::READ);
+    if (!isGood(seqStream))
     {
-        if (header.compare(seq->name.s) == 0)
+        std::cerr << "ERROR: Could not open the sequence file: " << *fasta_path << endl;
+        return NULL;
+    }
+
+    CharString id;
+    Dna5String seq;
+
+    while(!atEnd(seqStream))
+    {
+        // Read record
+        if (readRecord(id, seq, seqStream) != 0)
         {
-            return new string(seq->seq.s);
+            std::cerr << "ERROR: Could not read record!" << endl;
+            return NULL;
+        }
+
+        stringstream ssHeader;
+        ssHeader << id;
+
+        if (header.compare(ssHeader.str()) == 0)
+        {
+            stringstream ssSeq;
+            ssSeq << seq;
+
+            return new string(ssSeq.str());
         }
     }
-    kseq_destroy(seq); // STEP 5: destroy seq
-    gzclose(fp); // STEP 6: close the file handler
 
     return NULL;
 }
@@ -46,22 +67,36 @@ const string* getEntryFromFasta(const string *fasta_path, const string header)
 // Finds the nth entry from the fasta file and returns the associated sequence
 const string* getEntryFromFasta(const string *fasta_path, uint32_t n)
 {
-    gzFile fp;
-    fp = gzopen(fasta_path->c_str(), "r"); // STEP 2: open the file handler
-    kseq_t *seq = kseq_init(fp); // STEP 3: initialize seq
-    int l;
-    uint32_t i = 1;
-    while ((l = kseq_read(seq)) >= 0)   // STEP 4: read sequence
+    // Setup stream to sequence file and check all is well
+    SequenceStream seqStream(fasta_path->c_str(), SequenceStream::READ);
+    if (!isGood(seqStream))
     {
+        std::cerr << "ERROR: Could not open the sequence file: " << *fasta_path << endl;
+        return NULL;
+    }
+
+    CharString header;
+    Dna5String seq;
+    uint32_t i = 1;
+
+    while(!atEnd(seqStream))
+    {
+        // Read record
+        if (readRecord(header, seq, seqStream) != 0)
+        {
+            std::cerr << "ERROR: Could not read record!" << endl;
+            return NULL;
+        }
+
         if (i == n)
         {
-            return new string(seq->seq.s);
+            stringstream ssSeq;
+            ssSeq << seq;
+            return new string(ssSeq.str());
         }
 
         i++;
     }
-    kseq_destroy(seq); // STEP 5: destroy seq
-    gzclose(fp); // STEP 6: close the file handler
 
     return NULL;
 }
