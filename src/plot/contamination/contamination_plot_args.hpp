@@ -19,7 +19,7 @@ using std::endl;
 #define DEFAULT_HEIGHT 1024
 
 
-class FlamePlotArgs
+class ContaminationPlotArgs
 {
 public:
     string*  mx_arg;
@@ -80,7 +80,7 @@ public:
   "Options (default value in (), *required):\n" \
   " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
   "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
-  " -o, --output         *Output file\n" \
+  " -o, --output         Output file (<matrix_path>.<output_type>)\n" \
   " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
   " -x, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
   " -y, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
@@ -208,9 +208,12 @@ public:
         mx_arg = new string(argv[optind++]);
     }
 
-    bool outputGiven()
+    // Work out the output path to use (either user specified or auto generated)
+    string determineOutputPath()
     {
-        return output_arg == NULL ? false : true;
+        std::ostringstream output_str;
+        output_str << *mx_arg << "." << *output_type;
+        return output_arg == NULL ? output_str.str() : *output_arg;
     }
 
 

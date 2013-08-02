@@ -17,39 +17,6 @@ using std::string;
 using std::ostringstream;
 using std::vector;
 
-void configureAsmPlot(Gnuplot* plot, string* type, const char* output_path,
-    uint canvas_width, uint canvas_height)
-{
-
-    std::ostringstream term_str;
-
-    if (type->compare("png") == 0)
-    {
-        term_str << "set terminal png";
-    }
-    else if (type->compare("ps") == 0)
-    {
-        term_str << "set terminal postscript color";
-    }
-    else if (type->compare("pdf") == 0)
-    {
-        term_str << "set terminal pdf color";
-    }
-    else
-    {
-        std::cerr << "Unknown file type, assuming PNG\n";
-        term_str << "set terminal png";
-    }
-
-    term_str << " large";
-    term_str << " size " << canvas_width << "," << canvas_height;
-
-    plot->cmd(term_str.str());
-
-    std::ostringstream output_str;
-    output_str << "set output \"" << output_path << "\"";
-    plot->cmd(output_str.str());
-}
 
 string createLineStyleStr(uint16_t i, const char* colour)
 {
@@ -142,7 +109,12 @@ int asmPlotStart(int argc, char *argv[])
         // Initialise gnuplot
         Gnuplot* asm_plot = new Gnuplot("lines");
 
-        configureAsmPlot(asm_plot, args.output_type, args.output_arg->c_str(), args.width, args.height);
+
+        // Work out the output path to use (either user specified or auto generated)
+        string output_path = args.determineOutputPath();
+
+
+        asm_plot->configurePlot(*(args.output_type), output_path, args.width, args.height);
 
         asm_plot->set_title(args.title);
         asm_plot->set_xlabel(args.x_label);

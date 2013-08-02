@@ -222,6 +222,14 @@ public:
         mx_arg = new string(argv[optind++]);
     }
 
+    // Work out the output path to use (either user specified or auto generated)
+    string determineOutputPath()
+    {
+        std::ostringstream output_str;
+        output_str << *mx_arg << "." << *output_type;
+        return output_path == NULL ? output_str.str() : *output_path;
+    }
+
 
     void print()
     {

@@ -102,6 +102,46 @@ inline Gnuplot::Gnuplot(const std::vector<double> &x,
     plot_xyz(x,y,z,title);
 }
 
+//------------------------------------------------------------------------------
+//
+// configure plot: setup file output and canvas size
+//
+void Gnuplot::configurePlot(const std::string& type, const std::string& output_path,
+    uint canvas_width, uint canvas_height)
+{
+
+    std::ostringstream term_str;
+
+    if (type.compare("png") == 0)
+    {
+        term_str << "set terminal png";
+    }
+    else if (type.compare("ps") == 0)
+    {
+        term_str << "set terminal postscript color";
+    }
+    else if (type.compare("pdf") == 0)
+    {
+        term_str << "set terminal pdf color";
+    }
+    else
+    {
+        std::cerr << "Unknown file type, assuming PNG\n";
+        term_str << "set terminal png";
+    }
+
+    term_str << " large";
+    term_str << " size " << canvas_width << "," << canvas_height;
+
+    cmd(term_str.str());
+
+    std::ostringstream output_str;
+    output_str << "set output \"" << output_path << "\"";
+    cmd(output_str.str());
+}
+
+
+
 
 //------------------------------------------------------------------------------
 //

@@ -222,7 +222,12 @@ class Gnuplot
         return(*this);
     }
 
-
+    //------------------------------------------------------------------------------
+    //
+    // configure plot: setup file output and canvas size
+    //
+    void configurePlot(const std::string& type, const std::string& output_path,
+        uint canvas_width, uint canvas_height);
 
     //----------------------------------------------------------------------------------
     // show on screen or write to file

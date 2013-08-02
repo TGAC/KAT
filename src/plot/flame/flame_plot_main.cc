@@ -18,40 +18,6 @@ using std::string;
 using std::ifstream;
 using std::istringstream;
 
-void configureFlamePlot(Gnuplot* plot, string* type, const char* output_path,
-	uint canvas_width, uint canvas_height)
-{
-    
-    std::ostringstream term_str;
-
-    if (type->compare("png") == 0)
-    {
-        term_str << "set terminal png";
-    }
-    else if (type->compare("ps") == 0)
-    {
-        term_str << "set terminal postscript color";
-    }
-    else if (type->compare("pdf") == 0)
-    {
-        term_str << "set terminal pdf color";
-    }
-    else
-    {
-        std::cerr << "Unknown file type, assuming PNG\n";
-        term_str << "set terminal png";
-    }
-
-    term_str << " large";
-    term_str << " size " << canvas_width << "," << canvas_height;
-
-    plot->cmd(term_str.str());
-
-    std::ostringstream output_str;
-    output_str << "set output \"" << output_path << "\"";
-    plot->cmd(output_str.str());
-}
-
 
 // Start point
 int flamePlotStart(int argc, char *argv[])
@@ -86,10 +52,7 @@ int flamePlotStart(int argc, char *argv[])
     title = title.empty() ? DEFAULT_TITLE : title;
 
     // Work out the output path to use (either user specified or auto generated)
-    std::ostringstream output_str;
-    output_str << args.mx_arg << "." << args.output_type;
-    string default_output_path = output_str.str();
-    string output_path = args.output_path == NULL ? default_output_path : *(args.output_path);
+    string output_path = args.determineOutputPath();
 
 
     if (args.verbose)
@@ -108,7 +71,7 @@ int flamePlotStart(int argc, char *argv[])
     // Start defining the plot
     Gnuplot* flame = new Gnuplot("lines");
 
-    configureFlamePlot(flame, args.output_type, output_path.c_str(), args.width, args.height);
+    flame->configurePlot(*(args.output_type), output_path, args.width, args.height);
 
     flame->set_title(title);
     flame->set_xlabel(x_label);

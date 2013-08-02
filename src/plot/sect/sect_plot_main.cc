@@ -103,40 +103,6 @@ const string* getEntryFromFasta(const string *fasta_path, uint32_t n)
 
 
 
-void configureSectPlot(Gnuplot* plot, string* type, const char* output_path,
-    uint canvas_width, uint canvas_height)
-{
-
-    std::ostringstream term_str;
-
-    if (type->compare("png") == 0)
-    {
-        term_str << "set terminal png";
-    }
-    else if (type->compare("ps") == 0)
-    {
-        term_str << "set terminal postscript color";
-    }
-    else if (type->compare("pdf") == 0)
-    {
-        term_str << "set terminal pdf color";
-    }
-    else
-    {
-        std::cerr << "Unknown file type, assuming PNG\n";
-        term_str << "set terminal png";
-    }
-
-    term_str << " large";
-    term_str << " size " << canvas_width << "," << canvas_height;
-
-    plot->cmd(term_str.str());
-
-    std::ostringstream output_str;
-    output_str << "set output \"" << output_path << "\"";
-    plot->cmd(output_str.str());
-}
-
 uint32_t strToInt(string s)
 {
     istringstream str_val(s);
@@ -208,7 +174,10 @@ int sectPlotStart(int argc, char *argv[])
         // Initialise gnuplot
         Gnuplot* sect_plot = new Gnuplot("lines");
 
-        configureSectPlot(sect_plot, args.output_type, args.output_arg->c_str(), args.width, args.height);
+        // Work out the output path to use (either user specified or auto generated)
+        string output_path = args.determineOutputPath();
+
+        sect_plot->configurePlot(*(args.output_type), output_path, args.width, args.height);
 
         sect_plot->set_title(args.title);
         sect_plot->set_xlabel(args.x_label);
