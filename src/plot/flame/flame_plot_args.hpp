@@ -84,7 +84,7 @@ public:
   "Options (default value in (), *required):\n" \
   " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
   "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
-  " -o, --output         *Output file\n" \
+  " -o, --output         Output file (<matrix_path>.<output_type>)\n" \
   " -t, --title          Title for plot\n" \
   " -i, --x_label        Label for the x-axis\n" \
   " -j, --y_label        Label for the y-axis\n" \

@@ -75,7 +75,6 @@ int flamePlotStart(int argc, char *argv[])
     string title = args.title.compare(DEFAULT_TITLE) != 0 ? args.title : mme::getString(*args.mx_arg, mme::KEY_TITLE);
 
 
-
     // If neither the user or the data file contain any ideas of what values to use then use defaults
     x_range = x_range == -1 ? 1001 : x_range;
     y_range = y_range == -1 ? 1001 : y_range;
@@ -86,9 +85,17 @@ int flamePlotStart(int argc, char *argv[])
 
     title = title.empty() ? DEFAULT_TITLE : title;
 
+    // Work out the output path to use (either user specified or auto generated)
+    std::ostringstream output_str;
+    output_str << args.mx_arg << "." << args.output_type;
+    string default_output_path = output_str.str();
+    string output_path = args.output_path == NULL ? default_output_path : *(args.output_path);
+
+
     if (args.verbose)
     {
         cerr << "Actual variables used to create plot:" << endl;
+        cerr << "Output Path: " << output_path << endl;
         cerr << "X Range: " << x_range << endl;
         cerr << "Y Range: " << y_range << endl;
         cerr << "Z cap: " << z_cap << endl;
@@ -101,7 +108,7 @@ int flamePlotStart(int argc, char *argv[])
     // Start defining the plot
     Gnuplot* flame = new Gnuplot("lines");
 
-    configureFlamePlot(flame, args.output_type, args.output_path->c_str(), args.width, args.height);
+    configureFlamePlot(flame, args.output_type, output_path.c_str(), args.width, args.height);
 
     flame->set_title(title);
     flame->set_xlabel(x_label);
