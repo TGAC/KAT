@@ -13,6 +13,7 @@ using std::endl;
 #define DEFAULT_GC_BINS 1001
 #define DEFAULT_CVG_BINS 1001
 #define DEFAULT_CVG_LOG 1
+const bool DEFAULT_BOTH_STRANDS = false;
 
 class SectArgs
 {
@@ -25,16 +26,19 @@ public:
     uint16_t cvg_bins;
     bool cvg_logscale;
     uint16_t threads_arg;
+    bool both_strands;
     bool verbose;
 
     // Default constructor
     SectArgs() :
-        output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS), cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
+        cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS), verbose(false)
     {}
 
     // Constructor that parses command line options
     SectArgs(int argc, char* argv[]) :
-        output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS), cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), verbose(false)
+        output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
+        cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS), verbose(false)
     {
         parse(argc, argv);
     }
@@ -70,6 +74,8 @@ public:
   " -l, --cvg_logscale   Compresses cvg scores into logscale for determining the cvg bins within the contamination matrix.\n" \
   "                      Otherwise compresses cvg scores by a factor of 0.1 into the available bins.\n" \
   " -t, --threads        The number of threads to use (1).\n" \
+  " -C, --both_strands   IMPORTANT: Whether the jellyfish hash contains kmers produced for both strands.\n" \
+  "                      If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
 
@@ -102,12 +108,13 @@ public:
             {"cvg_bins", required_argument, 0, 'y'},
             {"cvg_logscale", no_argument,  &cvg_logscale_flag, 'l'},
             {"threads", required_argument, 0, 't'},
+            {"both_strands", required_argument, 0, 'C'},
             {"help",  no_argument,         &help_flag, 'h'},
             {"usage", no_argument,         &usage_flag, 'u'},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "f:o:x:y:lt:vuh";
+        static const char *short_options = "f:o:x:y:lt:Cvuh";
 
         if (argc <= 1)
         {
@@ -164,6 +171,9 @@ public:
             case 'y':
                 cvg_bins = atoi(optarg);
                 break;
+            case 'C':
+                both_strands = true;
+                break;
             }
         }
 
@@ -215,6 +225,10 @@ public:
 
         if (output_prefix)
             cerr << "Output prefix: " << output_prefix << endl;
+
+        if (both_strands)
+            cerr << "Jellyfish hash to be treated as containing double_stranded information." << endl;
+
 
         cerr << endl;
     }

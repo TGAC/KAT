@@ -108,6 +108,12 @@ public:
         // Load the jellyfish hash
         hash = jfh->loadHash(false, out_stream);
 
+        // Whether to treat this hash as double stranded or not.
+        // Ideally it would be nice to determine this directly from the hash but I'm
+        // not sure how to do that at the moment... it might not be possible
+        if (args->both_strands)
+            hash->set_canonical(true);
+
         // Setup stream to sequence file and check all is well
         SequenceStream seqStream(args->fasta_arg, SequenceStream::READ);
         if (!isGood(seqStream))
@@ -142,8 +148,12 @@ public:
             // Read batch of records
             if (readBatch(*names, *seqs, seqStream, BATCH_SIZE) != 0)
             {
-                std::cerr << "ERROR: Could not read batch of records! Offset: " << offset << endl;
-                return;
+                if (length(*names) < 1)
+                {
+                    std::cerr << "ERROR: Could not read batch of records! Offset: " << offset
+                              << " Found " << length(*names) << " header and " << length(*seqs) << " sequences." << endl;
+                    return;
+                }
             }
 
             // Record the number of records in this batch (may not be BATCH_SIZE) if we are at the end of the file
@@ -162,6 +172,7 @@ public:
             printStatTable(cvg_gc_stream);
 
             // Remove any batch specific variables from memory
+            // (includes "names" and "seqs")
             destroyBatchVars();
 
             // Increment batch management vars
