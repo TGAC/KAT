@@ -15,6 +15,8 @@
 #include <jellyfish/thread_exec.hpp>
 #include <jellyfish/jellyfish_helper.hpp>
 
+#include "comp_args.hpp"
+
 using std::vector;
 using std::string;
 using std::cerr;
@@ -150,13 +152,7 @@ class Comp : public thread_exec
 {
 private:
     // Args passed in
-    const char              *jf_hash_path_1;
-    const char              *jf_hash_path_2;
-    const char              *jf_hash_path_3;
-    const uint16_t          threads;	// Number of threads to use
-    const float             d1_scale, d2_scale;  // Scaling factors to make the matrix look pretty.
-    const uint16_t          d1_bins, d2_bins;  // Scaling factors to make the matrix look pretty.
-    const bool              verbose;
+    const CompArgs          *args;
 
     // Jellyfish mapped file hash vars
     JellyfishHelper         *jfh1;
@@ -180,21 +176,15 @@ private:
 
 
 public:
-    Comp(const char *_jfHashPath1, const char *_jfHashPath2, const char *_jfHashPath3,
-        uint16_t _threads, float _xscale, float _yscale, uint16_t _d1_bins, uint16_t _d2_bins, bool _verbose) :
-        jf_hash_path_1(_jfHashPath1), jf_hash_path_2(_jfHashPath2), jf_hash_path_3(_jfHashPath3),
-        threads(_threads),
-        d1_scale(_xscale), d2_scale(_yscale),
-        d1_bins(_d1_bins), d2_bins(_d2_bins),
-        verbose(_verbose)
+    Comp(CompArgs * _args) : args(_args)
     {
-        if (verbose)
+        if (args->verbose)
             cerr << "Setting up comp tool..." << endl;
 
         // Setup handles to load hashes
-        jfh1 = new JellyfishHelper(jf_hash_path_1);
-        jfh2 = new JellyfishHelper(jf_hash_path_2);
-        jfh3 = jf_hash_path_3 ? new JellyfishHelper(jf_hash_path_3) : NULL;
+        jfh1 = new JellyfishHelper(args->db1_path);
+        jfh2 = new JellyfishHelper(args->db2_path);
+        jfh3 = args->db3_path ? new JellyfishHelper(args->db3_path) : NULL;
 
         // Ensure all hashes are null at this stage (we'll load them later)
         hash1 = NULL;
@@ -202,17 +192,17 @@ public:
         hash3 = NULL;
 
         // Create the final kmer counter matricies
-        main_matrix = new ThreadedSparseMatrix<uint64_t>(d1_bins, d2_bins, threads);
+        main_matrix = new ThreadedSparseMatrix<uint64_t>(args->d1_bins, args->d2_bins, args->threads);
 
         // Initialise extra matricies for hash3 (only allocates space if required)
-        if (jf_hash_path_3)
+        if (args->db3_path)
         {
-            if (verbose)
+            if (args->verbose)
                 cerr << " - Setting up matricies for hash 3" << endl;
 
-            ends_matrix = new ThreadedSparseMatrix<uint64_t>(d1_bins, d2_bins, threads);
-            middle_matrix = new ThreadedSparseMatrix<uint64_t>(d1_bins, d2_bins, threads);
-            mixed_matrix = new ThreadedSparseMatrix<uint64_t>(d1_bins, d2_bins, threads);
+            ends_matrix = new ThreadedSparseMatrix<uint64_t>(args->d1_bins, args->d2_bins, args->threads);
+            middle_matrix = new ThreadedSparseMatrix<uint64_t>(args->d1_bins, args->d2_bins, args->threads);
+            mixed_matrix = new ThreadedSparseMatrix<uint64_t>(args->d1_bins, args->d2_bins, args->threads);
         }
         else
         {
@@ -222,15 +212,15 @@ public:
         }
 
         // Create the final comp counters
-        final_comp_counters = new CompCounters(jf_hash_path_1, jf_hash_path_2, jf_hash_path_3);
+        final_comp_counters = new CompCounters(args->db1_path, args->db2_path, args->db3_path);
 
         // Create the comp counters for each thread
-        thread_comp_counters = new CompCounters*[threads];
-        for(int i = 0; i < threads; i++) {
-            thread_comp_counters[i] = new CompCounters(jf_hash_path_1, jf_hash_path_2, jf_hash_path_3);
+        thread_comp_counters = new CompCounters*[args->threads];
+        for(int i = 0; i < args->threads; i++) {
+            thread_comp_counters[i] = new CompCounters(args->db1_path, args->db2_path, args->db3_path);
         }
 
-        if (verbose)
+        if (args->verbose)
             cerr << "Comp tool setup without error." << endl;
     }
 
@@ -246,12 +236,12 @@ public:
 
     void do_it()
     {
-        if (verbose)
+        if (args->verbose)
         {
             cerr << "Loading hashes..." << endl;
         }
 
-        std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
+        std::ostream* out_stream = args->verbose ? &cerr : (std::ostream*)0;
 
         // Load the hashes
         hash1 = jfh1->loadHash(true, out_stream);
@@ -259,6 +249,17 @@ public:
 
         if (jfh3)
             hash3 = jfh3->loadHash(false, out_stream);
+
+        // Whether to treat this hash as double stranded or not.
+        // Ideally it would be nice to determine this directly from the hash but I'm
+        // not sure how to do that at the moment... it might not be possible
+        if (args->both_strands)
+        {
+            hash1->set_canonical(true);
+            hash2->set_canonical(true);
+            if (hash3)
+                hash3->set_canonical(true);
+        }
 
         // Check kmer lengths are the same for both hashes.  We can't continue if they are not.
         if (hash1->get_mer_len() != hash2->get_mer_len())
@@ -274,22 +275,22 @@ public:
             throw;
         }
 
-        if (verbose)
+        if (args->verbose)
             cerr << endl
                  << "All hashes loaded successfully." << endl
                  << "Starting threads...";
 
         // Run the threads
-        exec_join(threads);
+        exec_join(args->threads);
 
-        if (verbose)
+        if (args->verbose)
             cerr << "done." << endl
                  << "Merging results...";
 
         // Merge results from the threads
         merge();
 
-        if (verbose)
+        if (args->verbose)
             cerr << "done." << endl;
     }
 
@@ -302,7 +303,7 @@ public:
         CompCounters* comp_counters = thread_comp_counters[th_id];
 
         // Setup iterator for this thread's chunk of hash1
-        typename hash_t::iterator hash1Iterator = hash1->iterator_slice(th_id, threads);
+        typename hash_t::iterator hash1Iterator = hash1->iterator_slice(th_id, args->threads);
 
         // Go through this thread's slice for hash1
         while (hash1Iterator.next())
@@ -323,14 +324,14 @@ public:
             comp_counters->updateSharedCounters(hash1_count, hash2_count);
 
             // Scale counters to make the matrix look pretty
-            uint64_t scaled_hash1_count = scaleCounter(hash1_count, d1_scale);
-            uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2_scale);
-            uint64_t scaled_hash3_count = scaleCounter(hash3_count, d2_scale);
+            uint64_t scaled_hash1_count = scaleCounter(hash1_count, args->d1_scale);
+            uint64_t scaled_hash2_count = scaleCounter(hash2_count, args->d2_scale);
+            uint64_t scaled_hash3_count = scaleCounter(hash3_count, args->d2_scale);
 
             // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
-            if (scaled_hash1_count >= d1_bins) scaled_hash1_count = d1_bins - 1;
-            if (scaled_hash2_count >= d2_bins) scaled_hash2_count = d2_bins - 1;
-            if (scaled_hash3_count >= d2_bins) scaled_hash3_count = d2_bins - 1;
+            if (scaled_hash1_count >= args->d1_bins) scaled_hash1_count = args->d1_bins - 1;
+            if (scaled_hash2_count >= args->d2_bins) scaled_hash2_count = args->d2_bins - 1;
+            if (scaled_hash3_count >= args->d2_bins) scaled_hash3_count = args->d2_bins - 1;
 
             // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
             thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
@@ -350,7 +351,7 @@ public:
         // Setup iterator for this thread's chunk of hash2
         // We setup hash2 for random access, so hopefully performance isn't too bad here...
         // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-        typename hash_t::iterator hash2Iterator = hash2->iterator_slice(th_id, threads);
+        typename hash_t::iterator hash2Iterator = hash2->iterator_slice(th_id, args->threads);
 
         // Iterate through this thread's slice of hash2
         while (hash2Iterator.next())
@@ -368,10 +369,10 @@ public:
             if (!hash1_count)
             {
                 // Scale counters to make the matrix look pretty
-                uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2_scale);
+                uint64_t scaled_hash2_count = scaleCounter(hash2_count, args->d2_scale);
 
                 // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
-                if (scaled_hash2_count >= d2_bins) scaled_hash2_count = d2_bins - 1;
+                if (scaled_hash2_count >= args->d2_bins) scaled_hash2_count = args->d2_bins - 1;
 
                 // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
                 thread_matrix->inc(0, scaled_hash2_count, 1);
@@ -382,7 +383,7 @@ public:
         if (hash3)
         {
             // Setup iterator for this thread's chunk of hash3
-            typename hash_t::iterator hash3Iterator = hash3->iterator_slice(th_id, threads);
+            typename hash_t::iterator hash3Iterator = hash3->iterator_slice(th_id, args->threads);
 
             // Iterate through this thread's slice of hash2
             while (hash3Iterator.next())
@@ -406,11 +407,11 @@ public:
         out << " - Hash 1: " << (jfh1 ? "mapped file configured" : "not specified") << endl;
         out << " - Hash 2: " << (jfh2 ? "mapped file configured" : "not specified") << endl;
         out << " - Hash 3: " << (jfh3 ? "mapped file configured" : "not specified") << endl;
-        out << " - Threads: " << threads << endl;
-        out << " - Dataset 1 scaling factor: " << d1_scale << endl;
-        out << " - Dataset 2 scaling factor: " << d2_scale << endl;
-        out << " - Dataset 1 bins: " << d1_bins << endl;
-        out << " - Dataset 2 bins: " << d2_bins << endl;
+        out << " - Threads: " << args->threads << endl;
+        out << " - Dataset 1 scaling factor: " << args->d1_scale << endl;
+        out << " - Dataset 2 scaling factor: " << args->d2_scale << endl;
+        out << " - Dataset 1 bins: " << args->d1_bins << endl;
+        out << " - Dataset 2 bins: " << args->d2_bins << endl;
         out << endl;
    }
 
@@ -421,8 +422,8 @@ public:
         SparseMatrix<uint64_t>* mx = main_matrix->getFinalMatrix();
 
         out << mme::KEY_TITLE << "Kmer comparison plot" << endl;
-        out << mme::KEY_X_LABEL << "Kmer multiplicity for: " << jf_hash_path_1 << endl;
-        out << mme::KEY_Y_LABEL << "Kmer multiplicity for: " << jf_hash_path_2 << endl;
+        out << mme::KEY_X_LABEL << "Kmer multiplicity for: " << args->db1_path << endl;
+        out << mme::KEY_Y_LABEL << "Kmer multiplicity for: " << args->db2_path << endl;
         out << mme::KEY_NB_COLUMNS << mx->height() << endl;
         out << mme::KEY_NB_ROWS << mx->width() << endl;
         out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
@@ -434,8 +435,8 @@ public:
     // Print kmer comparison matrix
     void printEndsMatrix(ostream &out)
     {
-        out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
-        out << "# Each column represents kmer multiplicity for sequence ends: " << jf_hash_path_3 << endl;
+        out << "# Each row represents kmer multiplicity for: " << args->db1_path << endl;
+        out << "# Each column represents kmer multiplicity for sequence ends: " << args->db3_path << endl;
 
         ends_matrix->getFinalMatrix()->printMatrix(out);
     }
@@ -443,8 +444,8 @@ public:
     // Print kmer comparison matrix
     void printMiddleMatrix(ostream &out)
     {
-        out << "# Each row represents kmer multiplicity for: " << jf_hash_path_1 << endl;
-        out << "# Each column represents kmer multiplicity for sequence middles: " << jf_hash_path_2 << endl;
+        out << "# Each row represents kmer multiplicity for: " << args->db1_path << endl;
+        out << "# Each column represents kmer multiplicity for sequence middles: " << args->db2_path << endl;
 
         middle_matrix->getFinalMatrix()->printMatrix(out);
     }
@@ -452,8 +453,8 @@ public:
     // Print kmer comparison matrix
     void printMixedMatrix(ostream &out)
     {
-        out << "# Each row represents kmer multiplicity for hash file 1: " << jf_hash_path_1 << endl;
-        out << "# Each column represents kmer multiplicity for mixed: " << jf_hash_path_2 << " and " << jf_hash_path_3 << endl;
+        out << "# Each row represents kmer multiplicity for hash file 1: " << args->db1_path << endl;
+        out << "# Each column represents kmer multiplicity for mixed: " << args->db2_path << " and " << args->db3_path << endl;
 
         mixed_matrix->getFinalMatrix()->printMatrix(out);
     }
@@ -488,7 +489,7 @@ private:
         }
 
         // Merge counters
-        for(int k = 0; k < threads; k++)
+        for(int k = 0; k < args->threads; k++)
         {
             CompCounters* thread_comp_counter = thread_comp_counters[k];
 
@@ -518,7 +519,7 @@ private:
 
         if (thread_comp_counters)
         {
-            for(int i = 0; i < threads; i++)
+            for(int i = 0; i < args->threads; i++)
             {
                 if (thread_comp_counters[i])
                 {

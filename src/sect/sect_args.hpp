@@ -9,11 +9,11 @@ using std::cerr;
 using std::endl;
 
 #define DEFAULT_OUTPUT_PREFIX "./kat_sect_output"
-#define DEFAULT_THREADS 1
-#define DEFAULT_GC_BINS 1001
-#define DEFAULT_CVG_BINS 1001
-#define DEFAULT_CVG_LOG 1
-const bool DEFAULT_BOTH_STRANDS = false;
+const uint16_t  DEFAULT_THREADS         = 1;
+const uint16_t  DEFAULT_GC_BINS         = 1001;
+const uint16_t  DEFAULT_CVG_BINS        = 1001;
+const bool      DEFAULT_CVG_LOG         = true;
+const bool      DEFAULT_BOTH_STRANDS    = false;
 
 class SectArgs
 {
@@ -164,6 +164,8 @@ public:
                 break;
             case 't':
                 threads_arg = atoi(optarg);
+                if (both_strands)
+                    cerr << "Jellyfish hash to be treated as containing double_stranded information." << endl;
                 break;
             case 'x':
                 gc_bins = atoi(optarg);

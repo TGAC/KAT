@@ -26,7 +26,6 @@ private:
     const GcpArgs                   *args;
     const uint64_t                  nb_slices;
     counter_t                       slice_id;
-    uint8_t                         kmer_length;
 
 
     // Variables that live for the lifetime of this object
@@ -69,6 +68,12 @@ public:
 
         // Load the jellyfish hash for sequential access
         hash = jfh->loadHash(true, out_stream);
+
+        // Whether to treat this hash as double stranded or not.
+        // Ideally it would be nice to determine this directly from the hash but I'm
+        // not sure how to do that at the moment... it might not be possible
+        if (args->both_strands)
+            hash->set_canonical(true);
 
         // Create matrix of appropriate size
         gcp_mx = new ThreadedSparseMatrix<uint64_t>(hash->get_mer_len(), MAX_COUNT + 1, args->threads_arg);

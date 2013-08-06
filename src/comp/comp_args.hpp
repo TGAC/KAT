@@ -9,40 +9,42 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-#define DEFAULT_D1_SCALE 1.0
-#define DEFAULT_D2_SCALE 1.0
-#define DEFAULT_THREADS 1
+const double    DEFAULT_D1_SCALE        = 1.0;
+const double    DEFAULT_D2_SCALE        = 1.0;
+const uint16_t  DEFAULT_THREADS         = 1;
 #define DEFAULT_OUTPUT_PREFIX "./kat_comp_output"
-#define DEFAULT_D1_BINS 1001
-#define DEFAULT_D2_BINS 1001
+const uint16_t  DEFAULT_D1_BINS         = 1001;
+const uint16_t  DEFAULT_D2_BINS         = 1001;
+const bool      DEFAULT_BOTH_STRANDS    = false;
 
 class CompArgs
 {
 public:
-    const char * 	db1_arg;
-    const char * 	db2_arg;
-    const char * 	db3_arg;
+    const char * 	db1_path;
+    const char * 	db2_path;
+    const char * 	db3_path;
 
-    const char *  output_prefix_arg;
-    double d1_scale_arg;
-    double d2_scale_arg;
+    const char *  output_prefix;
+    double d1_scale;
+    double d2_scale;
     uint16_t d1_bins;
     uint16_t d2_bins;
-    uint16_t threads_arg;
+    uint16_t threads;
+    bool both_strands;
     bool verbose;
 
     // Default constructor
     CompArgs() :
-        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), d1_scale_arg(DEFAULT_D1_SCALE), d2_scale_arg(DEFAULT_D2_SCALE),
+        output_prefix(DEFAULT_OUTPUT_PREFIX), d1_scale(DEFAULT_D1_SCALE), d2_scale(DEFAULT_D2_SCALE),
         d1_bins(DEFAULT_D1_BINS), d2_bins(DEFAULT_D2_BINS),
-        threads_arg(DEFAULT_THREADS), verbose(false)
+        threads(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS), verbose(false)
     {}
 
     // Constructor that parses command line options
     CompArgs(int argc, char* argv[]) :
-        output_prefix_arg(DEFAULT_OUTPUT_PREFIX), d1_scale_arg(DEFAULT_D1_SCALE), d2_scale_arg(DEFAULT_D2_SCALE),
+        output_prefix(DEFAULT_OUTPUT_PREFIX), d1_scale(DEFAULT_D1_SCALE), d2_scale(DEFAULT_D2_SCALE),
         d1_bins(DEFAULT_D1_BINS), d2_bins(DEFAULT_D2_BINS),
-        threads_arg(DEFAULT_THREADS), verbose(false)
+        threads(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS), verbose(false)
     {
         parse(argc, argv);
     }
@@ -79,6 +81,9 @@ public:
   " -i, --d1_bins        Number of bins for the first dataset.  i.e. number of rows in the matrix (1001)\n" \
   " -j, --d2_bins        Number of bins for the second dataset.  i.e. number of columns in the matrix (1001)\n" \
   " -t, --threads        The number of threads to use (1)\n" \
+  " -C, --both_strands   IMPORTANT: Whether the jellyfish hashes contains kmers produced for both strands.\n" \
+  "                      If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.\n" \
+  "                      Note that all hashes must be built with either both strands or with single strands.  Using a mix will also produce unpredictable results.\n" \
   " -v, --verbose        Outputs additional information to stderr\n" \
   "     --usage          Usage\n" \
   "     --help           This message\n" \
@@ -110,12 +115,13 @@ public:
             {"d1_bins",         required_argument,  0, 'i'},
             {"d2_bins",         required_argument,  0, 'j'},
             {"threads",         required_argument,  0, 't'},
+            {"both_strands",    required_argument,  0, 'C'},
             {"help",            no_argument,        &help_flag, 1},
             {"usage",           no_argument,        &usage_flag, 1},
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "f:e:o:x:y:i:j:t:vuh";
+        static const char *short_options = "f:e:o:x:y:i:j:t:Cvuh";
 
         if (argc <= 1)
         {
@@ -151,26 +157,29 @@ public:
                 verbose = true;
                 break;
             case 'o':
-                output_prefix_arg = optarg;
+                output_prefix = optarg;
                 break;
             case 't':
-                threads_arg = atoi(optarg);
+                threads = atoi(optarg);
                 break;
             case 'x':
-                d1_scale_arg = atof(optarg);
-                if (d1_scale_arg > 1.0)
-                    d1_scale_arg = 1.0;
+                d1_scale = atof(optarg);
+                if (d1_scale > 1.0)
+                    d1_scale = 1.0;
                 break;
             case 'y':
-                d2_scale_arg = atof(optarg);
-                if (d2_scale_arg > 1.0)
-                    d2_scale_arg = 1.0;
+                d2_scale = atof(optarg);
+                if (d2_scale > 1.0)
+                    d2_scale = 1.0;
                 break;
             case 'i':
                 d1_bins = atoi(optarg);
                 break;
             case 'j':
                 d2_bins = atoi(optarg);
+                break;
+            case 'C':
+                both_strands = true;
                 break;
             }
         }
@@ -199,9 +208,9 @@ public:
         if(remaining_args < 2 || remaining_args > 3)
             error("Requires 2 or 3 arguments describing paths to jellyfish kmer counts.");
 
-        db1_arg = argv[optind++];
-        db2_arg = argv[optind++];        
-        db3_arg = remaining_args == 3 ? argv[optind++] : NULL;
+        db1_path = argv[optind++];
+        db2_path = argv[optind++];
+        db3_path = remaining_args == 3 ? argv[optind++] : NULL;
     }
 
     void print()
@@ -209,14 +218,14 @@ public:
         if (verbose)
             cerr << "Verbose flag set" << endl;
 
-        if (threads_arg)
-            cerr << "Threads requested: " << threads_arg << endl;
+        if (threads)
+            cerr << "Threads requested: " << threads << endl;
 
-        if (d1_scale_arg)
-            cerr << "Dataset 1 Scaling Factor: " << d1_scale_arg << endl;
+        if (d1_scale)
+            cerr << "Dataset 1 Scaling Factor: " << d1_scale << endl;
 
-        if (d2_scale_arg)
-            cerr << "Dataset 2 Scaling Factor: " << d2_scale_arg << endl;
+        if (d2_scale)
+            cerr << "Dataset 2 Scaling Factor: " << d2_scale << endl;
 
         if (d1_bins)
             cerr << "Number of Dataset 1 bins: " << d1_bins << endl;
@@ -224,17 +233,20 @@ public:
         if (d2_bins)
             cerr << "Number of Dataset 2 bins: " << d2_bins << endl;
 
-        if (db1_arg)
-            cerr << "Jellyfish hash 1: " << db1_arg << endl;
+        if (db1_path)
+            cerr << "Jellyfish hash 1: " << db1_path << endl;
 
-        if (db2_arg)
-            cerr << "Jellyfish hash 2: " << db2_arg << endl;
+        if (db2_path)
+            cerr << "Jellyfish hash 2: " << db2_path << endl;
 
-        if (db3_arg)
-            cerr << "Jellyfish hash 3: " << db3_arg << endl;
+        if (db3_path)
+            cerr << "Jellyfish hash 3: " << db3_path << endl;
 
-        if (output_prefix_arg)
-            cerr << "Output file path prefix: " << output_prefix_arg << endl;
+        if (output_prefix)
+            cerr << "Output file path prefix: " << output_prefix << endl;
+
+        if (both_strands)
+            cerr << "Jellyfish hash to be treated as containing double_stranded information." << endl;
 
         cerr << endl;
     }
