@@ -9,13 +9,15 @@ using std::string;
 using std::cerr;
 using std::cout;
 
+const string DEFAULT_OUTPUT_TYPE = "png";
 
 #define DEFAULT_TITLE "Sequence Coverage Plot"
 #define DEFAULT_X_LABEL "Position (nt)"
 #define DEFAULT_Y_LABEL "Kmer Coverage"
 
-#define DEFAULT_WIDTH 1024
-#define DEFAULT_HEIGHT 1024
+const uint32_t DEFAULT_Y_MAX = -1;
+const uint16_t DEFAULT_WIDTH = 1024;
+const uint16_t DEFAULT_HEIGHT = 1024;
 
 
 using std::cout;
@@ -25,46 +27,38 @@ using std::endl;
 class SectPlotArgs
 {
 public:
-    string*  sect_file_arg;
-    string*  output_type;
-    string*  output_arg;
-    const char*  title;
-    const char*  x_label;
-    const char*  y_label;
+    string  sect_file_arg;
+    string  output_type;
+    string  output_arg;
+    string  title;
+    string  x_label;
+    string  y_label;
+    uint32_t y_max;
     uint16_t width;
     uint16_t height;
     uint32_t fasta_index;
-    const char* fasta_header;
+    string fasta_header;
     bool verbose;
 
     // Default constructor
     SectPlotArgs() :
-        sect_file_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE),
-        x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
+        x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
         width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-        fasta_index(0), fasta_header(NULL),
+        fasta_index(0), fasta_header(""),
         verbose(false)
     {
-        output_type = new string("png");
     }
 
     // Constructor that parses command line options
     SectPlotArgs(int argc, char* argv[]) :
-        sect_file_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE),
-        x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
+        x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
         width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-        fasta_index(0), fasta_header(NULL),
+        fasta_index(0), fasta_header(""),
         verbose(false)
     {
-        output_type = new string("png");
         parse(argc, argv);
-    }
-
-    ~SectPlotArgs()
-    {
-        delete sect_file_arg;
-        delete output_type;
-        delete output_arg;
     }
 
 
@@ -93,6 +87,7 @@ public:
   " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
   " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
   " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
+  " -y  --y_max          Maximum value for the y-axis (Auto calculate max coverage in data)\n" \
   " -w, --width          Width of canvas (1024)\n" \
   " -h, --height         Height of canvas (1024)\n" \
   " -n, --index          Index of fasta entry to plot.  First entry is 1. (0)\n" \
@@ -127,6 +122,9 @@ public:
             {"title",           required_argument,  0, 't'},
             {"x_label",         required_argument,  0, 'i'},
             {"y_label",         required_argument,  0, 'j'},
+            {"y_max",           required_argument,  0, 'y'},
+            {"width",           required_argument,  0, 'w'},
+            {"height",          required_argument,  0, 'h'},
             {"index",           required_argument,  0, 'n'},
             {"header",          required_argument,  0, 'd'},
             {"help",            no_argument,        &help_flag, 1},
@@ -134,7 +132,7 @@ public:
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "o:p:t:i:j:w:h:n:d:vuh";
+        static const char *short_options = "o:p:t:i:j:y:w:h:n:d:vuh";
 
         if (argc <= 1)
         {
@@ -169,20 +167,22 @@ public:
                 verbose = true;
                 break;
             case 'o':
-                output_arg = new string(optarg);
+                output_arg = string(optarg);
                 break;
             case 'p':
-                delete output_type;
-                output_type = new string(optarg);
+                output_type = string(optarg);
                 break;
             case 't':
-                title = optarg;
+                title = string(optarg);
                 break;
             case 'i':
-                x_label = optarg;
+                x_label = string(optarg);
                 break;
             case 'j':
-                y_label = optarg;
+                y_label = string(optarg);
+                break;
+            case 'y':
+                y_max = atoi(optarg);
                 break;
             case 'w':
                 width = atoi(optarg);
@@ -217,16 +217,24 @@ public:
         if(argc - optind != 1)
             error("Requires exactly 1 argument.");
 
-        sect_file_arg = new string(argv[optind++]);
+        sect_file_arg = string(argv[optind++]);
     }
 
     // Work out the output path to use (either user specified or auto generated)
     string determineOutputPath()
     {
         std::ostringstream output_str;
-        output_str << *sect_file_arg << "." << *output_type;
-        return output_arg == NULL ? output_str.str() : *output_arg;
+        output_str << sect_file_arg << "." << output_type;
+        return output_arg.empty() ? output_str.str() : output_arg;
     }
+
+    string autoTitle(string& header)
+    {
+        std::ostringstream output_str;
+        output_str << DEFAULT_TITLE << ": " << sect_file_arg << " - " << header;
+        return title.compare(DEFAULT_TITLE) == 0 ? output_str.str() : title;
+    }
+
 
 
     void print()
@@ -234,35 +242,17 @@ public:
         if (verbose)
             cerr << "Verbose flag set" << endl;
 
-        if (output_type != NULL)
-            cerr << "Output type: " << output_type->c_str() << endl;
-
-        if (output_arg != NULL)
-            cerr << "Output file specified: " << output_arg->c_str() << endl;
-
-        if (sect_file_arg != NULL)
-            cerr << "SECT input file specified: " << sect_file_arg->c_str() << endl;
-
-        if (title)
-            cerr << "Plot title: " << title << endl;
-
-        if (x_label)
-            cerr << "X Label: " << x_label << endl;
-
-        if (y_label)
-            cerr << "Y Label: " << y_label << endl;
-
-        if (width)
-            cerr << "Width: " << width << endl;
-
-        if (height)
-            cerr << "Height: " << height << endl;
-
-        if (fasta_index)
-            cerr << "Fasta index to plot: " << fasta_index << endl;
-
-        if (fasta_header)
-            cerr << "Fasta header to plot: " << fasta_header << endl;
+        cerr << "Output type: " << output_type.c_str() << endl;
+        cerr << "Output file specified: " << output_arg.c_str() << endl;
+        cerr << "SECT input file specified: " << sect_file_arg.c_str() << endl;
+        cerr << "Plot title: " << title << endl;
+        cerr << "X Label: " << x_label << endl;
+        cerr << "Y Label: " << y_label << endl;
+        cerr << "Y Max: " << y_max << endl;
+        cerr << "Width: " << width << endl;
+        cerr << "Height: " << height << endl;
+        cerr << "Fasta index to plot: " << fasta_index << endl;
+        cerr << "Fasta header to plot: " << fasta_header << endl;
 
         cerr << endl;
     }

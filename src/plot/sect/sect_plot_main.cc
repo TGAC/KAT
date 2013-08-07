@@ -5,11 +5,10 @@
 #include <sstream>
 #include <string>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <algorithm>
-
-#include <seqan/sequence.h>
-#include <seqan/seq_io.h>
+#include <iterator>
 
 #include <gnuplot/gnuplot_i.hpp>
 
@@ -22,83 +21,105 @@ using std::istringstream;
 using std::ostringstream;
 using std::vector;
 
-using seqan::SequenceStream;
-using seqan::CharString;
-using seqan::Dna5String;
+
+int readRecord(std::ifstream& stream, string& id, string& counts)
+{
+    std::string line;
+    if (std::getline(stream, line)) {
+        if ('>' == line[0]) {
+
+            id.assign(line.begin() + 1, line.end());
+
+            std::string sequence;
+            while (stream.good() && '>' != stream.peek()) {
+                std::getline(stream, line);
+                sequence += line;
+
+            }
+            counts.swap(sequence);
+
+            stream.clear();
+
+            return 0;
+        }
+        else {
+            stream.clear(std::ios_base::failbit);
+        }
+    }
+
+    return -1;
+}
+
+
 
 // Finds a particular fasta header in a fasta file and returns the associated sequence
-const string* getEntryFromFasta(const string *fasta_path, const string header)
+int getEntryFromFasta(const string& fasta_path, const string& header, string& sequence)
 {
     // Setup stream to sequence file and check all is well
-    SequenceStream seqStream(fasta_path->c_str(), SequenceStream::READ);
-    if (!isGood(seqStream))
+    std::ifstream inputStream (fasta_path.c_str());
+
+    if (!inputStream.is_open())
     {
-        std::cerr << "ERROR: Could not open the sequence file: " << *fasta_path << endl;
+        std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
         return NULL;
     }
 
-    CharString id;
-    Dna5String seq;
+    string id;
+    string seq;
 
-    while(!atEnd(seqStream))
+    // Read a record
+    while(inputStream.good() && readRecord(inputStream, id, seq) == 0)
     {
-        // Read record
-        if (readRecord(id, seq, seqStream) != 0)
-        {
-            std::cerr << "ERROR: Could not read record!" << endl;
-            return NULL;
-        }
-
         stringstream ssHeader;
         ssHeader << id;
 
         if (header.compare(ssHeader.str()) == 0)
         {
-            stringstream ssSeq;
-            ssSeq << seq;
+            inputStream.close();
+            sequence.swap(seq);
 
-            return new string(ssSeq.str());
+            return 0;
         }
     }
 
-    return NULL;
+    inputStream.close();
+    return -1;
 }
 
 // Finds the nth entry from the fasta file and returns the associated sequence
-const string* getEntryFromFasta(const string *fasta_path, uint32_t n)
+int getEntryFromFasta(const string& fasta_path, uint32_t n, string& header, string& sequence)
 {
     // Setup stream to sequence file and check all is well
-    SequenceStream seqStream(fasta_path->c_str(), SequenceStream::READ);
-    if (!isGood(seqStream))
+    std::ifstream inputStream (fasta_path.c_str());
+
+    if (!inputStream.is_open())
     {
-        std::cerr << "ERROR: Could not open the sequence file: " << *fasta_path << endl;
+        std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
         return NULL;
     }
 
-    CharString header;
-    Dna5String seq;
+
+    std::string id;
+    std::string seq;
     uint32_t i = 1;
 
-    while(!atEnd(seqStream))
+    // Read a record
+    while(inputStream.good() && readRecord(inputStream, id, seq) == 0)
     {
-        // Read record
-        if (readRecord(header, seq, seqStream) != 0)
-        {
-            std::cerr << "ERROR: Could not read record!" << endl;
-            return NULL;
-        }
-
         if (i == n)
         {
-            stringstream ssSeq;
-            ssSeq << seq;
-            return new string(ssSeq.str());
+            inputStream.close();
+
+            header.swap(id);
+            sequence.swap(seq);
+            return 0;
         }
 
         i++;
     }
 
-    return NULL;
+    inputStream.close();
+    return -1;
 }
 
 
@@ -111,26 +132,20 @@ uint32_t strToInt(string s)
     return int_val;
 }
 
-unsigned int split(const string *txt, vector<uint32_t> *strs, const char ch)
+// This is horribly inefficient! :(  Fix later
+void split(const string& txt, vector<uint32_t> &strs, const char ch)
 {
-    unsigned int pos = txt->find( ch );
-    unsigned int initialPos = 0;
-    strs->clear();
+    vector<string> tokens;
+    istringstream iss(txt);
+    std::copy(std::istream_iterator<string>(iss),
+             std::istream_iterator<string>(),
+             std::back_inserter<vector<string> >(tokens));
 
-    // Decompose statement
-    while( pos != string::npos ) {
-
-        strs->push_back( strToInt(txt->substr( initialPos, pos - initialPos + 1 )) );
-        initialPos = pos + 1;
-
-        pos = txt->find( ch, initialPos );
+    for(std::vector<string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
+        strs.push_back(strToInt(*it));
     }
-
-    // Add the last one
-    strs->push_back( strToInt(txt->substr( initialPos, std::min( pos, (unsigned int)txt->size() ) - initialPos + 1 )) );
-
-    return strs->size();
 }
+
 
 
 // Start point
@@ -143,47 +158,54 @@ int sectPlotStart(int argc, char *argv[])
     if (args.verbose)
         args.print();
 
-    const string* coverages = NULL;
+    string header;
+    string coverages;
 
-    if (args.fasta_header)
+    if (!args.fasta_header.empty())
     {
-        string header(args.fasta_header);
-        coverages = getEntryFromFasta(args.sect_file_arg, header);
+        header.assign(args.fasta_header);
+        getEntryFromFasta(args.sect_file_arg, header, coverages);
     }
     else if (args.fasta_index > 0)
     {
-        coverages = getEntryFromFasta(args.sect_file_arg, args.fasta_index);
+        getEntryFromFasta(args.sect_file_arg, args.fasta_index, header, coverages);
     }
 
-    if (!coverages)
+    if (coverages.length() == 0)
     {
         cerr << "Could not find requested fasta header in sect coverages fasta file" << endl;
     }
     else
     {
         if (args.verbose)
-            cerr << "Found requested sequence" << endl;
+            cerr << "Found requested sequence : " << coverages << endl << endl;
 
         // Split coverages
-        vector<uint32_t> cvs(coverages->length() / 2);
-        split(coverages, &cvs, ' ');
+        vector<uint32_t> cvs;
+        split(coverages, cvs, ' ');
+
+        uint32_t maxCvgVal = args.y_max != DEFAULT_Y_MAX ? args.y_max : (*(std::max_element(cvs.begin(), cvs.end())) + 1);
+
+        string title = args.autoTitle(header);
 
         if (args.verbose)
             cerr << "Acquired kmer counts" << endl;
 
         // Initialise gnuplot
-        Gnuplot* sect_plot = new Gnuplot("lines");
+        Gnuplot sect_plot = Gnuplot("lines");
 
         // Work out the output path to use (either user specified or auto generated)
         string output_path = args.determineOutputPath();
 
-        sect_plot->configurePlot(*(args.output_type), output_path, args.width, args.height);
+        sect_plot.configurePlot(args.output_type, output_path, args.width, args.height);
 
-        sect_plot->set_title(args.title);
-        sect_plot->set_xlabel(args.x_label);
-        sect_plot->set_ylabel(args.y_label);
+        sect_plot.set_title(title);
+        sect_plot.set_xlabel(args.x_label);
+        sect_plot.set_ylabel(args.y_label);
+        sect_plot.set_yrange(0, cvs.size());
+        sect_plot.set_yrange(0, maxCvgVal);
 
-        sect_plot->cmd("set style data linespoints");
+        sect_plot.cmd("set style data linespoints");
 
         std::ostringstream data_str;
 
@@ -197,10 +219,7 @@ int sectPlotStart(int argc, char *argv[])
 
         plot_str << "plot '-'\n" << data_str.str() << "e\n";
 
-        sect_plot->cmd(plot_str.str());
-
-        delete sect_plot;
-        delete coverages;
+        sect_plot.cmd(plot_str.str());
 
         if (args.verbose)
             cerr << "Plotted data" << endl;
