@@ -37,6 +37,7 @@ int flamePlotStart(int argc, char *argv[])
 
     string x_label = args.x_label.compare(DEFAULT_X_LABEL) != 0 ? args.x_label : mme::getString(*args.mx_arg, mme::KEY_X_LABEL);
     string y_label = args.y_label.compare(DEFAULT_Y_LABEL) != 0 ? args.y_label : mme::getString(*args.mx_arg, mme::KEY_Y_LABEL);
+    string z_label = args.z_label.compare(DEFAULT_Z_LABEL) != 0 ? args.z_label : mme::getString(*args.mx_arg, mme::KEY_Z_LABEL);
 
     string title = args.title.compare(DEFAULT_TITLE) != 0 ? args.title : mme::getString(*args.mx_arg, mme::KEY_TITLE);
 
@@ -48,6 +49,7 @@ int flamePlotStart(int argc, char *argv[])
 
     x_label = x_label.empty() ? DEFAULT_X_LABEL : x_label;
     y_label = y_label.empty() ? DEFAULT_Y_LABEL : y_label;
+    z_label = z_label.empty() ? DEFAULT_Z_LABEL : z_label;
 
     title = title.empty() ? DEFAULT_TITLE : title;
 
@@ -64,6 +66,7 @@ int flamePlotStart(int argc, char *argv[])
         cerr << "Z cap: " << z_cap << endl;
         cerr << "X Label: " << x_label << endl;
         cerr << "Y Label: " << y_label << endl;
+        cerr << "Z Label: " << z_label << endl;
         cerr << "Title: " << title << endl;
     }
 
@@ -76,6 +79,10 @@ int flamePlotStart(int argc, char *argv[])
     flame->set_title(title);
     flame->set_xlabel(x_label);
     flame->set_ylabel(y_label);
+
+    std::ostringstream cblabelstr;
+    cblabelstr << "set cblabel \"" << z_label << "\"";
+    flame->cmd(cblabelstr.str());
 
     flame->set_xrange(0, x_range);
     flame->set_yrange(0, y_range);

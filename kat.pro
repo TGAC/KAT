@@ -43,8 +43,11 @@ SOURCES += \
     templates/template_main.cc \
     src/gc/gc_main.cc \
     src/gcp/gcp_main.cc \
-    src/inc/matrix/matrix_metadata_extractor.cc
+    src/inc/matrix/matrix_metadata_extractor.cc \
+    tests/check_sect.cc \
+    tests/check_comp.cc
 
 OTHER_FILES += \
     src/Makefile.am \
-    Makefile.am
+    Makefile.am \
+    tests/Makefile.am

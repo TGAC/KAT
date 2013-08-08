@@ -33,5 +33,6 @@ int sectStart(int argc, char *argv[])
     // Do the work (outputs data to files as it goes)
     sect.do_it();
 
-    return 0;
+    // Return the Sect result code... hopefully should be 0
+    return sect.getResultCode();
 }

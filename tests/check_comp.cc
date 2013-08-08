@@ -1,22 +1,10 @@
-/*
-#include <check.h>
-#include <vector.h>
+#include <my_class.hpp>
+#define BOOST_TEST_MODULE Comp
+#include <boost/test/unit_test.hpp>
 
-#include "../src/comp/comp.hpp"
-
-
-#define TEST_JF_HASH_1 ""
-#define TEST_FASTA_1 "data/test1.fa"
-
-START_TEST (check_comp)
+BOOST_AUTO_TEST_CASE( comp )
 {
+    //my_class test_object( "qwerty" );
 
-
-    ck_assert_int_eq (5, 5);
-}
-END_TEST
-*/
-int main (void)
-{
-   return 0;
+    BOOST_CHECK( true );
 }

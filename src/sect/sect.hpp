@@ -6,6 +6,7 @@
 #include <vector>
 #include <math.h>
 
+#include <seqan/basic.h>
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
@@ -14,6 +15,7 @@
 #include <jellyfish/thread_exec.hpp>
 #include <jellyfish/jellyfish_helper.hpp>
 
+#include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
 
 #include "sect_args.hpp"
@@ -26,11 +28,12 @@ using std::stringstream;
 
 using seqan::SequenceStream;
 using seqan::StringSet;
+using seqan::String;
 using seqan::CharString;
 using seqan::Dna5String;
 
 
-#define BATCH_SIZE 1024
+const uint16_t BATCH_SIZE = 1024;
 
 template<typename hash_t>
 class Sect : public thread_exec
@@ -49,12 +52,14 @@ private:
     uint16_t                        recordsInBatch;
 
     // Variables that are refreshed for each batch
-    StringSet<CharString>           *names;
-    StringSet<Dna5String>           *seqs;
+    StringSet<CharString>           names;
+    StringSet<Dna5String>           seqs;
     vector<vector<uint64_t>*>       *counts;    // Kmer counts for each kmer window in sequence (in same order as seqs and names; built by this class)
     vector<float>                   *coverages; // Overall coverage calculated for each sequence from the kmer windows.
     vector<float>                   *gcs;       // GC% for each sequence
     vector<uint32_t>                *lengths;   // Length in nucleotides for each sequence
+
+    int                             resultCode;
 
 public:
     Sect(SectArgs *_args) :
@@ -69,7 +74,12 @@ public:
         offset = 0;
         recordsInBatch = 0;
 
+        names = StringSet<CharString>();
+        seqs = StringSet<Dna5String>();
+
         contamination_mx = new ThreadedSparseMatrix<uint64_t>(args->gc_bins, args->cvg_bins, args->threads_arg);
+
+        resultCode = 0;
     }
 
     ~Sect()
@@ -85,18 +95,9 @@ public:
 
         contamination_mx = NULL;
 
-        if(names)
-            delete names;
-
-        names = NULL;
-
-        if(seqs)
-            delete seqs;
-
-        seqs = NULL;
 
         // Destroy any remaining batch variables
-        destroyBatchVars();
+        //destroyBatchVars();
     }
 
 
@@ -114,16 +115,21 @@ public:
         if (args->both_strands)
             hash->set_canonical(true);
 
-        // Setup stream to sequence file and check all is well
-        SequenceStream seqStream(args->fasta_arg, SequenceStream::READ);
-        if (!isGood(seqStream))
+        // Open file, create RecordReader and check all is well
+        std::fstream in(args->fasta_arg, std::ios::in);
+        seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
+
+        // Create the AutoSeqStreamFormat object and guess the file format.
+        seqan::AutoSeqStreamFormat formatTag;
+        if (!guessStreamFormat(reader, formatTag))
         {
-            std::cerr << "ERROR: Could not open the sequence file: " << args->fasta_arg << endl;
+            std::cerr << "ERROR: Could not detect file format for: " << args->fasta_arg << endl;
             return;
         }
 
 
         // Setup output streams for files
+        *out_stream << endl;
 
         // Sequence kmer counts output stream
         std::ostringstream count_path;
@@ -136,28 +142,16 @@ public:
         ofstream_default cvg_gc_stream(cvg_gc_path.str().c_str(), cout);
         cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
 
-
+        int res = 0;
 
         // Processes sequences in batches of records to reduce memory requirements
-        while(!atEnd(seqStream))
+        while(!atEnd(reader) && res == 0)
         {
-            // Create object to contain records to process for this batch
-            names = new StringSet<CharString>();
-            seqs = new StringSet<Dna5String>();
+            *out_stream << "Loading Batch of sequences... ";
 
-            // Read batch of records
-            if (readBatch(*names, *seqs, seqStream, BATCH_SIZE) != 0)
-            {
-                if (length(*names) < 1)
-                {
-                    std::cerr << "ERROR: Could not read batch of records! Offset: " << offset
-                              << " Found " << length(*names) << " header and " << length(*seqs) << " sequences." << endl;
-                    return;
-                }
-            }
+            res = loadBatch(reader, formatTag, recordsInBatch);
 
-            // Record the number of records in this batch (may not be BATCH_SIZE) if we are at the end of the file
-            recordsInBatch = length(*seqs);
+            *out_stream << "Loaded " << recordsInBatch << " records.  Processing batch... ";
 
             // Allocate memory for output produced by this batch
             createBatchVars(recordsInBatch);
@@ -172,13 +166,13 @@ public:
             printStatTable(cvg_gc_stream);
 
             // Remove any batch specific variables from memory
-            // (includes "names" and "seqs")
             destroyBatchVars();
 
             // Increment batch management vars
             offset += recordsInBatch;
-        }
 
+            *out_stream << "done" << endl;
+        }
 
         // Close output streams
         count_path_stream.close();
@@ -193,6 +187,14 @@ public:
         ofstream_default contamination_mx_stream(contamination_mx_path.str().c_str(), cout);
         printContaminationMatrix(contamination_mx_stream, args->fasta_arg);
         contamination_mx_stream.close();
+
+        // If there was a problem reading the data notify the user, otherwise output
+        // the contamination matrix
+        if (res != 0)
+        {
+            cerr << "ERROR: SECT could not analyse all sequences in the provided sequence file." << endl;
+            resultCode = 1;
+        }
     }
 
     void start(int th_id)
@@ -220,6 +222,7 @@ public:
     }
 
 
+    int getResultCode()    { return resultCode; }
 
 
 
@@ -227,39 +230,30 @@ private:
 
     void destroyBatchVars()
     {
-        if(names)
-            delete names;
-
-        names = NULL;
-
-        if(seqs)
-            delete seqs;
-
-        seqs = NULL;
-
-
-        if(counts)
+        if(counts != NULL)
         {
-            for(uint_t i = 0; i < counts->size(); i++)
+            for(uint16_t i = 0; i < counts->size(); i++)
             {
-                delete (*counts)[i];
-                (*counts)[i] = NULL;
+                vector<uint64_t>* ci = (*counts)[i];
+                if (ci != NULL)
+                    delete ci;
+                ci = NULL;
             }
             delete counts;
             counts = NULL;
         }
 
-        if (coverages)
+        if (coverages != NULL)
             delete coverages;
 
         coverages = NULL;
 
-        if (gcs)
+        if (gcs != NULL)
             delete gcs;
 
         gcs = NULL;
 
-        if (lengths)
+        if (lengths != NULL)
             delete lengths;
 
         lengths = NULL;
@@ -273,12 +267,50 @@ private:
         lengths = new vector<uint32_t>(batchSize);
     }
 
+    uint16_t loadBatch(seqan::RecordReader<std::fstream, seqan::SinglePass<> >& reader, seqan::AutoSeqStreamFormat& formatTag, uint16_t& recordsRead)
+    {
+        // Create object to contain records to process for this batch
+        clear(names);
+        clear(seqs);
+
+        int res = 0;
+        uint32_t recordIndex = offset;
+
+        // Read in a batch (Don't use readBatch... this seems to be broken!)
+        // Room for improvement here... we could load the next batch while processing the previous one.
+        // This would require double buffering.
+        for (unsigned i = 0; (res == 0) && (i < BATCH_SIZE) && !atEnd(reader); ++i)
+        {
+            CharString id;
+            Dna5String seq; // Auto converts chars not in {A,T,G,C,N} to N
+
+            res = seqan::readRecord(id, seq, reader, formatTag);
+            if (res == 0)
+            {
+                seqan::appendValue(names, id);
+                seqan::appendValue(seqs, seq);
+
+                recordIndex++;
+            }
+            else
+            {
+                cerr << endl << "ERROR: SECT cannot finish processing all records in file.  SECT encountered an error reading file at record: " << recordIndex
+                     << "; Error code: " << res << "; Last sequence ID: " << id << "; Continuing to process currently loaded records." << endl;
+            }
+        }
+
+        // Record the number of records in this batch (may not be BATCH_SIZE) if we are at the end of the file
+        recordsRead = length(names);
+
+        return res;
+    }
+
 
     void printCounts(std::ostream &out)
     {
         for(int i = 0; i < recordsInBatch; i++)
         {
-            out << ">" << toCString((*names)[i]) << endl;
+            out << ">" << toCString(names[i]) << endl;
 
             vector<uint64_t>* seqCounts = (*counts)[i];
 
@@ -304,17 +336,23 @@ private:
     {
         for(int i = 0; i < recordsInBatch; i++)
         {
-            out << (*names)[i] << " " << (*coverages)[i] << " " << (*gcs)[i] << " " << (*lengths)[i] << endl;
+            out << names[i] << " " << (*coverages)[i] << " " << (*gcs)[i] << " " << (*lengths)[i] << endl;
         }
     }
 
     // Print kmer comparison matrix
     void printContaminationMatrix(std::ostream &out, const char* seqFile)
     {
-        out << "# Sequence file processed: " << seqFile << endl;
-        out << "# Jellyfish hash: " << args->db_arg << endl;
-        out << "# Each column represents the GC%, with " << args->gc_bins << " bins. First bin is 0% and last bin in 100%" << endl;
-        out << "# Each row represents the sequence coverage, with " << args->cvg_bins << " bins.  First bin in 0x last bin in " << endl;
+        SparseMatrix<uint64_t>* mx = contamination_mx->getFinalMatrix();
+
+        out << mme::KEY_TITLE << "Contamination Plot for " << args->fasta_arg << " and " << args->db_arg << endl;
+        out << mme::KEY_X_LABEL << "GC%" << endl;
+        out << mme::KEY_Y_LABEL << "Average Kmer Coverage" << endl;
+        out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;
+        out << mme::KEY_NB_COLUMNS << args->gc_bins << endl;
+        out << mme::KEY_NB_ROWS << args->cvg_bins << endl;
+        out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
+        out << mme::MX_META_END << endl;
 
         contamination_mx->getFinalMatrix()->printMatrix(out);
     }
@@ -358,7 +396,7 @@ private:
         // functionality, at which time I might change this code to make it run faster using
         // SeqAn's datastructures.
         stringstream ssSeq;
-        ssSeq << (*seqs)[index];
+        ssSeq << seqs[index];
         string seq = ssSeq.str();
 
         uint16_t seqLength = seq.length();
@@ -367,12 +405,12 @@ private:
 
         if (seqLength < kmer)
         {
-            cerr << (*names)[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
+            cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
                  << seqLength << " and kmer length is " << kmer << ". Setting sequence coverage to 0." << endl;
         }
         else
         {
-            vector<uint_t>* seqCounts = new vector<uint_t>(nbCounts);
+            vector<uint64_t>* seqCounts = new vector<uint64_t>(nbCounts);
 
             uint64_t sum = 0;
 

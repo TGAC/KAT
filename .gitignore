@@ -20,3 +20,4 @@
 /test-driver
 /*.pro.user
 /*.1.tar.gz
+/doxygen-doc/

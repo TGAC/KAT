@@ -10,7 +10,10 @@
 #include "gcp/gcp_main.hpp"
 #include "plot/plot_main.hpp"
 
-// Start point
+/**
+ * Start point for KAT.  Processes the start of the command line and then
+ * delegates the rest of the command line to the child tool.
+ */
 int main(int argc, char *argv[])
 {
     // Parse args

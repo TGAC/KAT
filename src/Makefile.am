@@ -1,9 +1,12 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 
+
+# additional include paths necessary to compile the C++ library
+AM_CXXFLAGS = -I$(top_srcdir)/src @AM_CXXFLAGS@
+
 AM_LDFLAGS = -all-static -pthread
 AM_CPPFLAGS = -Wall -Wno-sign-compare -Wnon-virtual-dtor -Iinc
-AM_CXXFLAGS = -g -O3
 
 bin_PROGRAMS = kat
 

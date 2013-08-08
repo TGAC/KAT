@@ -1,40 +1,12 @@
-#include <iostream>
-#include <vector>
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE "Sect"
 
-#include <kseq/kseq_helper.h>
+#include <boost/test/unit_test.hpp>
 
-#include "../src/sect/sect.hpp"
+#include "sect/sect.hpp"
 
-
-#define TEST_JF_HASH_1 "data/jf_hash"
-#define TEST_FASTA_1 "data/test1.fa"
-
-
-int testFastaLoad()
-{
-    vector<string> names;
-    vector<string> seqs;
-    readFasta(TEST_FASTA_1, names, seqs, false);
-
-    if (names.size() != 6)
-        return 1;
-
-    if (seqs.size() != 6)
-        return 1;
-
-    return 0;
-}
-
-int main (void)
-{
-    int fastaLoad = testFastaLoad();
-
-    if (fastaLoad != 0)
-    {
-        std::cerr << "Fasta Load failed" << std::endl;
-        return 1;
+BOOST_AUTO_TEST_SUITE(SectTestSuite);
+    BOOST_AUTO_TEST_CASE(FastaLoadTest) {
+        BOOST_CHECK(true);
     }
-
-    return 0;
-}
-
+BOOST_AUTO_TEST_SUITE_END();

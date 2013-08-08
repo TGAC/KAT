@@ -424,6 +424,7 @@ public:
         out << mme::KEY_TITLE << "Kmer comparison plot" << endl;
         out << mme::KEY_X_LABEL << "Kmer multiplicity for: " << args->db1_path << endl;
         out << mme::KEY_Y_LABEL << "Kmer multiplicity for: " << args->db2_path << endl;
+        out << mme::KEY_Z_LABEL << "Distinct Kmers per bin" << endl;
         out << mme::KEY_NB_COLUMNS << mx->height() << endl;
         out << mme::KEY_NB_ROWS << mx->width() << endl;
         out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;

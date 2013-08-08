@@ -14,6 +14,7 @@ using std::endl;
 const string DEFAULT_TITLE      = "Title";
 const string DEFAULT_X_LABEL    = "X";
 const string DEFAULT_Y_LABEL    = "Y";
+const string DEFAULT_Z_LABEL    = "Z";
 const int64_t DEFAULT_Z_CAP     = -1;
 const uint16_t DEFAULT_WIDTH    = 1024;
 const uint16_t DEFAULT_HEIGHT   = 1024;
@@ -24,22 +25,23 @@ const int32_t DEFAULT_Y_MAX     = -1;
 class FlamePlotArgs
 {
 public:
-    string*  mx_arg;
-    string*  output_type;
-    string*  output_path;
-    string  title;
-    string  x_label;
-    string  y_label;
-    int16_t x_max;
-    int16_t y_max;
-    uint16_t width;
-    uint16_t height;
-    int64_t z_cap;
-    bool verbose;
+    string*     mx_arg;
+    string*     output_type;
+    string*     output_path;
+    string      title;
+    string      x_label;
+    string      y_label;
+    string      z_label;
+    int16_t     x_max;
+    int16_t     y_max;
+    uint16_t    width;
+    uint16_t    height;
+    int64_t     z_cap;
+    bool        verbose;
 
     // Default constructor
     FlamePlotArgs() :
-        mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), z_label(DEFAULT_Z_LABEL),
         x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
@@ -47,7 +49,7 @@ public:
 
     // Constructor that parses command line options
     FlamePlotArgs(int argc, char* argv[]) :
-        mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+        mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), z_label(DEFAULT_Z_LABEL),
         x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
     {
         output_type = new string("png");
@@ -88,6 +90,7 @@ public:
   " -t, --title          Title for plot\n" \
   " -i, --x_label        Label for the x-axis\n" \
   " -j, --y_label        Label for the y-axis\n" \
+  " -k, --z_label        Label for the z-axis\n" \
   " -x, --x_max          Maximum value for the x-axis\n" \
   " -y  --y_max          Maximum value for the y-axis\n" \
   " -w, --width          Width of canvas (1024)\n" \
@@ -123,6 +126,7 @@ public:
             {"title",           required_argument,  0, 't'},
             {"x_label",         required_argument,  0, 'i'},
             {"y_label",         required_argument,  0, 'j'},
+            {"z_label",         required_argument,  0, 'k'},
             {"x_max",           required_argument,  0, 'x'},
             {"y_max",           required_argument,  0, 'y'},
             {"width",           required_argument,  0, 'w'},
@@ -133,7 +137,7 @@ public:
             {0, 0, 0, 0}
         };
 
-        static const char *short_options = "o:p:t:x:y:w:h:z:vuh";
+        static const char *short_options = "o:p:t:i:j:k:x:y:w:h:z:vuh";
 
         if (argc <= 1)
         {
@@ -183,6 +187,9 @@ public:
                 break;
             case 'j':
                 y_label = string(optarg);
+                break;
+            case 'k':
+                z_label = string(optarg);
                 break;
             case 'x':
                 x_max = atoi(optarg);
@@ -253,6 +260,9 @@ public:
 
         if (!y_label.empty())
             cerr << "Y Label: " << y_label << endl;
+
+        if (!z_label.empty())
+            cerr << "Z Label: " << z_label << endl;
 
         if (x_max)
             cerr << "X Max: " << x_max << endl;
