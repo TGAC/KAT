@@ -30,13 +30,15 @@ int readRecord(std::ifstream& stream, string& id, string& counts)
 
             id.assign(line.begin() + 1, line.end());
 
-            std::string sequence;
-            while (stream.good() && '>' != stream.peek()) {
+            //std::string sequence;
+            /*while (stream.good() && '>' != stream.peek()) {
                 std::getline(stream, line);
                 sequence += line;
+            }*/
 
-            }
-            counts.swap(sequence);
+            // We assume the counts are on a single line
+            std::getline(stream, line);
+            counts = line;
 
             stream.clear();
 
@@ -76,10 +78,11 @@ int getEntryFromFasta(const string& fasta_path, const string& header, string& se
         if (header.compare(ssHeader.str()) == 0)
         {
             inputStream.close();
-            sequence.swap(seq);
+            sequence = seq;
 
             return 0;
         }
+        seq.clear();
     }
 
     inputStream.close();
@@ -111,10 +114,11 @@ int getEntryFromFasta(const string& fasta_path, uint32_t n, string& header, stri
             inputStream.close();
 
             header.swap(id);
-            sequence.swap(seq);
+            sequence = seq;
             return 0;
         }
 
+        seq.clear();
         i++;
     }
 
@@ -135,15 +139,15 @@ uint32_t strToInt(string s)
 // This is horribly inefficient! :(  Fix later
 void split(const string& txt, vector<uint32_t> &strs, const char ch)
 {
-    vector<string> tokens;
+    strs.clear();
     istringstream iss(txt);
-    std::copy(std::istream_iterator<string>(iss),
-             std::istream_iterator<string>(),
-             std::back_inserter<vector<string> >(tokens));
-
-    for(std::vector<string>::iterator it = tokens.begin(); it != tokens.end(); ++it) {
-        strs.push_back(strToInt(*it));
-    }
+    do
+    {
+        string sub;
+        iss >> sub;
+        uint32_t intVal = strToInt(sub);
+        strs.push_back(intVal);
+    } while (iss);
 }
 
 
@@ -178,7 +182,7 @@ int sectPlotStart(int argc, char *argv[])
     else
     {
         if (args.verbose)
-            cerr << "Found requested sequence : " << coverages << endl << endl;
+            cerr << "Found requested sequence : " << header << endl << coverages << endl << endl;
 
         // Split coverages
         vector<uint32_t> cvs;
@@ -202,7 +206,7 @@ int sectPlotStart(int argc, char *argv[])
         sect_plot.set_title(title);
         sect_plot.set_xlabel(args.x_label);
         sect_plot.set_ylabel(args.y_label);
-        sect_plot.set_yrange(0, cvs.size());
+        sect_plot.set_xrange(0, cvs.size());
         sect_plot.set_yrange(0, maxCvgVal);
 
         sect_plot.cmd("set style data linespoints");
@@ -222,7 +226,7 @@ int sectPlotStart(int argc, char *argv[])
         sect_plot.cmd(plot_str.str());
 
         if (args.verbose)
-            cerr << "Plotted data" << endl;
+            cerr << "Plotted data: " << plot_str.str() << endl;
     }
 
     return 0;
