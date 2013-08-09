@@ -102,10 +102,14 @@ public:
 
     void print_version(std::ostream &os = std::cout) const
     {
-#ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.1.0"
+#ifndef PACKAGE_NAME
+#define PACKAGE_NAME "Kmer Analysis Toolkit (KAT)
 #endif
-        os << PACKAGE_VERSION << "\n";
+
+#ifndef PACKAGE_VERSION
+#define PACKAGE_VERSION "0.2.0"
+#endif
+        os << PACKAGE_NAME << " V" << PACKAGE_VERSION << "\n";
     }
 
     bool validMode(char* mode_str)
