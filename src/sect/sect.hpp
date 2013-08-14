@@ -299,13 +299,17 @@ private:
         for (unsigned i = 0; (res == 0) && (i < BATCH_SIZE) && !atEnd(reader); ++i)
         {
             CharString id;
-            Dna5String seq; // Auto converts chars not in {A,T,G,C,N} to N
+            CharString seq;
 
             res = seqan::readRecord(id, seq, reader, formatTag);
             if (res == 0)
             {
                 seqan::appendValue(names, id);
-                seqan::appendValue(seqs, seq);
+
+                // Hopefully auto converts chars not in {A,T,G,C,N} to N
+                Dna5String dnaSeq = seq;
+
+                seqan::appendValue(seqs, dnaSeq);
 
                 recordIndex++;
             }
