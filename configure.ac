@@ -1,4 +1,4 @@
-AC_INIT([Kmer Analysis Toolkit (KAT)], [0.2], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
+AC_INIT([Kmer Analysis Toolkit (KAT)], [0.2.1], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
 AM_INIT_AUTOMAKE([1.11 -Wall no-define])
 
 # store current user given compiler flags to avoid default setup via AC_PROG_CXX
@@ -44,7 +44,7 @@ fi
 DX_HTML_FEATURE(ON)
 DX_CHM_FEATURE(OFF)
 DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(OFF)
+DX_MAN_FEATURE(ON)
 DX_RTF_FEATURE(OFF)
 DX_XML_FEATURE(OFF)
 DX_PDF_FEATURE(ON)
