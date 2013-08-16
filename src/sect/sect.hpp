@@ -146,7 +146,8 @@ public:
 
 
         // Setup output streams for files
-        *out_stream << endl;
+        if (args->verbose)
+            *out_stream << endl;
 
         // Sequence kmer counts output stream
         std::ostringstream count_path;
@@ -164,11 +165,13 @@ public:
         // Processes sequences in batches of records to reduce memory requirements
         while(!atEnd(reader) && res == 0)
         {
-            *out_stream << "Loading Batch of sequences... ";
+            if (args->verbose)
+                *out_stream << "Loading Batch of sequences... ";
 
             res = loadBatch(reader, formatTag, recordsInBatch);
 
-            *out_stream << "Loaded " << recordsInBatch << " records.  Processing batch... ";
+            if (args->verbose)
+                *out_stream << "Loaded " << recordsInBatch << " records.  Processing batch... ";
 
             // Allocate memory for output produced by this batch
             createBatchVars(recordsInBatch);
@@ -188,7 +191,8 @@ public:
             // Increment batch management vars
             offset += recordsInBatch;
 
-            *out_stream << "done" << endl;
+            if (args->verbose)
+                *out_stream << "done" << endl;
         }
 
         // Close output streams
