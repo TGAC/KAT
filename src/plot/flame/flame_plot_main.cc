@@ -89,38 +89,36 @@ int flamePlotStart(int argc, char *argv[])
 
 
     // Start defining the plot
-    Gnuplot* flame = new Gnuplot("lines");
+    Gnuplot flame("lines");
 
-    flame->configurePlot(*(args.output_type), output_path, args.width, args.height);
+    flame.configurePlot(*(args.output_type), output_path, args.width, args.height);
 
-    flame->set_title(title);
-    flame->set_xlabel(x_label);
-    flame->set_ylabel(y_label);
+    flame.set_title(title);
+    flame.set_xlabel(x_label);
+    flame.set_ylabel(y_label);
 
     std::ostringstream cblabelstr;
     cblabelstr << "set cblabel \"" << z_label << "\"";
-    flame->cmd(cblabelstr.str());
+    flame.cmd(cblabelstr.str());
 
-    flame->set_xrange(0, x_range);
-    flame->set_yrange(0, y_range);
+    flame.set_xrange(0, x_range);
+    flame.set_yrange(0, y_range);
 
-    //flame->set_xlogscale();
-    //flame->set_ylogscale();
-    //flame->set_zlogscale();
+    //flame.set_xlogscale();
+    //flame.set_ylogscale();
+    //flame.set_zlogscale();
 
-    flame->cmd("set palette rgb 21,22,23");
-    flame->cmd("set size ratio 1");
+    flame.cmd("set palette rgb 21,22,23");
+    flame.cmd("set size ratio 1");
 
     std::ostringstream rangestr;
     rangestr << "set cbrange [0:" << z_cap << "]";
-    flame->cmd(rangestr.str());
+    flame.cmd(rangestr.str());
 
     std::ostringstream plotstr;
     plotstr << "plot '" << args.mx_arg->c_str() << "' matrix with image";
 
-    flame->cmd(plotstr.str());
-
-    delete flame;
+    flame.cmd(plotstr.str());
 
     return 0;
 }

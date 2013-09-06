@@ -18,8 +18,9 @@
 /*.configure.ac.swp
 /*.h.in~
 /test-driver
-/*.pro.user
+/*.pro.user*
 /*.1.tar.gz
 /doxygen-doc/
 /*.2.tar.gz
 /kat-0.2.1/
+/.metadata/

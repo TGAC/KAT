@@ -1,6 +1,8 @@
 AC_INIT([Kmer Analysis Toolkit (KAT)], [0.2.1], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
 AM_INIT_AUTOMAKE([1.11 -Wall no-define])
 
+AC_LANG_CPLUSPLUS
+
 # store current user given compiler flags to avoid default setup via AC_PROG_CXX
 OLD_CXXFLAGS=$CXXFLAGS
 # check for C++ preprocessor and compiler and the library compiler
@@ -60,103 +62,84 @@ DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg])
 ######################################################################
 
 
-#echo
-#echo "+++++++++++++++++++++++++++++++++++++"
-#echo "CFLAGS now: ${CFLAGS}"
-#echo "CPPFLAGS now: ${CPPFLAGS}"
-#echo "CXXFLAGS now: ${CXXFLAGS}"
-#echo "LDFLAGS now: ${LDFLAGS}"
-#echo "LIBS now: ${LIBS}"
-#echo "+++++++++++++++++++++++++++++++++++++"
+# Allow users to specify custom directories for jellyfish, boost and seqan
 
-
-# check for jellyfish boost and seqan, which are dependencies for kat
 jellyfish_dir=":"
-boost_dir=":"
 seqan_dir=":"
+boost_dir=":"
+doxygen_dir=":"
+
 
 AC_ARG_WITH(jellyfish,
-        [  --with-jellyfish=LIB_DIR     search static jellyfish library there. ],
+        [  --with-jellyfish=LIB_DIR jellyfish root directory is here. ],
         [ jellyfish_dir=$withval], [ jellyfish_dir=":"])
 
-
-AC_ARG_WITH(boost,
-        [  --with-boost=LIB_DIR     search static boost library there. ],
-        [ boost_dir=$withval], [ boost_dir=":"])
-
-
 AC_ARG_WITH(seqan,
-        [  --with-seqan=LIB_DIR     search static seqan library there. ],
+        [  --with-seqan=LIB_DIR    seqan root directory is here. ],
         [ seqan_dir=$withval], [ seqan_dir=":"])
 
+AC_ARG_WITH(boost,
+        [  --with-boost=LIB_DIR    boost root directory is here... (boost is only required for running unit tests) ],
+        [ boost_dir=$withval], [ boost_dir=":"])
+
+AC_ARG_WITH(doxygen,
+        [  --with-doxygen=LIB_DIR  doxygen root directory is here... (doxygen is only required for generating source code documentation) ],
+        [ doxygen_dir=$withval], [ doxygen_dir=":"])
 
 
-if test "$jellyfish_dir" = ":"; then
-    echo "WARNING: JELLYFISH: Did not specify jellyfish v1.1.10 directory... assuming env vars are set correctly"
 
-else
-    echo
-    echo "JELLYFISH: Custom jellyfish dir specified.  Modifying environment variables for jellyfish: ${jellyfish_dir}"
 
+# Modify environment variables as appropriate
+
+if test "$jellyfish_dir" != ":"; then
     CPPFLAGS="$CPPFLAGS -I${jellyfish_dir}/include/jellyfish-1.1.10"
     LIBS="$LIBS ${jellyfish_dir}/lib/libjellyfish-1.1.a"
-
-    echo
-    echo "+++++++++++++++++++++++++++++++++++++"
-    echo "CFLAGS now: ${CFLAGS}"
-    echo "CPPFLAGS now: ${CPPFLAGS}"
-    echo "CXXFLAGS now: ${CXXFLAGS}"
-    echo "LDFLAGS now: ${LDFLAGS}"
-    echo "LIBS now: ${LIBS}"
-    echo "+++++++++++++++++++++++++++++++++++++"
 fi
 
-
-if test "${boost_dir}" = ":"; then
-    echo "WARNING: BOOST: Did not specify boost directory... assuming env vars are set correctly"
-
-else
-    echo
-    echo "BOOST: Custom boost dir specified.  Modifying environment variables for boost: ${boost_dir}"
-
+if test "${boost_dir}" != ":"; then
     CPPFLAGS="$CPPFLAGS -I${boost_dir}/include"
-    LIBS="$LIBS ${boost_dir}/lib/libboost_unit_test_framework.so"
-
-    echo
-    echo "+++++++++++++++++++++++++++++++++++++"
-    echo "CFLAGS now: ${CFLAGS}"
-    echo "CPPFLAGS now: ${CPPFLAGS}"
-    echo "CXXFLAGS now: ${CXXFLAGS}"
-    echo "LDFLAGS now: ${LDFLAGS}"
-    echo "LIBS now: ${LIBS}"
-    echo "+++++++++++++++++++++++++++++++++++++"
+#    LIBS="$LIBS ${boost_dir}/lib/libboost_unit_test_framework.so"
 fi
 
-
-if test "${seqan_dir}" = ":"; then
-    echo "WARNING: SEQAN: Did not specify seqan directory... assuming env vars are set correctly"
-
-else
-    echo
-    echo "SEQAN: Custom seqan dir specified.  Modifying environment variables for seqan: ${seqan_dir}"
-
+if test "${seqan_dir}" != ":"; then
     CPPFLAGS="$CPPFLAGS -I${seqan_dir}/include"
-
-    echo
-    echo "+++++++++++++++++++++++++++++++++++++"
-    echo "CFLAGS now: ${CFLAGS}"
-    echo "CPPFLAGS now: ${CPPFLAGS}"
-    echo "CXXFLAGS now: ${CXXFLAGS}"
-    echo "LDFLAGS now: ${LDFLAGS}"
-    echo "LIBS now: ${LIBS}"
-    echo "+++++++++++++++++++++++++++++++++++++"
 fi
+
+if test "${doxygen_dir}" != ":"; then
+    PATH="$PATH ${doxygen_dir}/bin"
+fi
+
+
+# Only jellyfish and seqan are required. boost is only used for unit testing
+# if the tests fail it's not the end of the world, and doxygen is only required
+# for generating source code documentation.
+
+# We should check for the jellyfish library as well as the header but this is difficult because jellyfish is very
+# c++ and does have any conventional C functions exposed.
+
+AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
+         echo "Jellyfish-1.1 is required to compile and run KAT.  Please make sure jellyfish is installed on your system."
+         echo "If jellyfish is installed but not currently available on the PATH; CPPFLAGS; and LIBS flags, then please "
+         echo "re-run ./configure with the \"--with-jellyfish\" argument to specify the root directory of your jellyfish"
+         echo "installation."
+         exit -1],
+         [])
+
+AC_CHECK_HEADER([seqan/sequence.h], [], [
+         echo "Seqan is required to compile and run KAT.  Please make sure seqan is installed on your system."
+         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment variable"
+         echo "then please re-run ./configure with the \"--with-seqan\" argument to specify the root directory of your"
+         echo "seqan installation"
+         exit -1],
+         [])
+
+
 
 # distribute the changed variables among the Makefiles
+
 AC_SUBST([LIBS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])
-
 
 
 AC_CONFIG_HEADERS([config.h])
