@@ -28,7 +28,10 @@ HEADERS += \
     src/gcp/gcp_main.hpp \
     src/gcp/gcp_args.hpp \
     src/gcp/gcp.hpp \
-    src/inc/matrix/matrix_metadata_extractor.hpp
+    src/inc/matrix/matrix_metadata_extractor.hpp \
+    src/histo/histo_main.hpp \
+    src/histo/histo_args.hpp \
+    src/histo/histogram.hpp
 
 SOURCES += \
     src/comp/comp_main.cc \
@@ -45,7 +48,8 @@ SOURCES += \
     src/gcp/gcp_main.cc \
     src/inc/matrix/matrix_metadata_extractor.cc \
     tests/check_sect.cc \
-    tests/check_comp.cc
+    tests/check_comp.cc \
+    src/histo/histo_main.cc
 
 OTHER_FILES += \
     src/Makefile.am \

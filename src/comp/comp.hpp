@@ -238,7 +238,7 @@ public:
         }
 
         if (args->verbose)
-            cerr << "Comp tool setup without error." << endl;
+            cerr << "Comp tool setup successfully." << endl;
     }
 
     ~Comp()

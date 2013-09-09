@@ -80,10 +80,11 @@ public:
 
 #define kat_args_HELP "The Kmer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish kmer hashes\n\n" \
   "First argument should be the tool/mode you wish to use:\n\n" \
-  "   - sect: SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using kmers from a jellyfish hash\n" \
-  "   - comp: Kmer comparison tool.  Creates a matrix of shared kmers between two jellyfish hashes.\n" \
-  "   - gcp:  Kmer GC Processor.  Creates a matrix of the number of kmers found given a GC count and a kmer count.\n" \
-  "   - plot: Plotting tool.  Creates useful plots to visualise kmer distributions.  Requires gnuplot \n\n" \
+  "   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using kmers from a jellyfish hash\n" \
+  "   - comp:  Kmer comparison tool.  Creates a matrix of shared kmers between two jellyfish hashes.\n" \
+  "   - gcp:   Kmer GC Processor.  Creates a matrix of the number of kmers found given a GC count and a kmer count.\n" \
+  "   - histo: Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy plotting.\n" \
+  "   - plot:  Plotting tool.  Creates useful plots to visualise kmer distributions.  Requires gnuplot \n\n" \
   "Options:\n" \
   "     --usage                              Usage\n" \
   "     --help                               This message\n" \
@@ -107,7 +108,7 @@ public:
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "0.2.0"
+#define PACKAGE_VERSION "0.3.0"
 #endif
         os << PACKAGE_NAME << " V" << PACKAGE_VERSION << "\n";
     }
@@ -117,6 +118,7 @@ public:
         return (strcmp(mode_str, "sect") == 0 ||
                 strcmp(mode_str, "comp") == 0 ||
                 strcmp(mode_str, "gcp") == 0 ||
+                strcmp(mode_str, "histo") == 0 ||
                 strcmp(mode_str, "plot") == 0) ?
                     true : false;
     }

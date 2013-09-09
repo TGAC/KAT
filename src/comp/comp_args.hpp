@@ -91,19 +91,18 @@ public:
   "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided " \
   "first, then the assembly kmer hash second.  Finally, if comparing kmers at the ends of sequences this should be supplied last.\n\n" \
   "Options (default value in (), *required):\n" \
-  " -o, --output_prefix  Path prefix for files produced by this program (" DEFAULT_OUTPUT_PREFIX ")\n" \
-  "specified, a second matrix file with the .ends suffix will be created also.\n" \
-  " -x, --d1_scale       Scaling factor for the first dataset - float multiplier (1.0).  Max value: 1.0\n" \
-  " -y, --d2_scale       Scaling factor for the second dataset - float multiplier (1.0).  Max value: 1.0.\n" \
-  " -i, --d1_bins        Number of bins for the first dataset.  i.e. number of rows in the matrix (1001)\n" \
-  " -j, --d2_bins        Number of bins for the second dataset.  i.e. number of columns in the matrix (1001)\n" \
-  " -t, --threads        The number of threads to use (1)\n" \
-  " -C, --both_strands   IMPORTANT: Whether the jellyfish hashes contains kmers produced for both strands.\n" \
-  "                      If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.\n" \
-  "                      Note that all hashes must be built with either both strands or with single strands.  Using a mix will also produce unpredictable results.\n" \
-  " -v, --verbose        Outputs additional information to stderr\n" \
-  "     --usage          Usage\n" \
-  "     --help           This message\n" \
+  " -o, --output_prefix=string  Path prefix for files produced by this program (" DEFAULT_OUTPUT_PREFIX ")\n" \
+  " -x, --d1_scale=double       Scaling factor for the first dataset  - float multiplier (1.0).  Max value: 1.0\n" \
+  " -y, --d2_scale=double       Scaling factor for the second dataset - float multiplier (1.0).  Max value: 1.0.\n" \
+  " -i, --d1_bins=uint16        Number of bins for the first dataset.  i.e. number of rows in the matrix (1001)\n" \
+  " -j, --d2_bins-uint16        Number of bins for the second dataset. i.e. number of columns in the matrix (1001)\n" \
+  " -t, --threads=uint16        The number of threads to use (1)\n" \
+  " -C, --both_strands          IMPORTANT: Whether the jellyfish hashes contains kmers produced for both strands.\n" \
+  "                             If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.\n" \
+  "                             Note that all hashes must be built with either both strands or with single strands.  Using a mix will also produce unpredictable results.\n" \
+  " -v, --verbose               Outputs additional information to stderr (false)\n" \
+  "     --usage                 Usage\n" \
+  "     --help                  This message\n" \
 
     const char * help() const
     {

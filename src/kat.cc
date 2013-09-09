@@ -25,6 +25,7 @@
 #include "sect/sect_main.hpp"
 #include "comp/comp_main.hpp"
 #include "gcp/gcp_main.hpp"
+#include "histo/histo_main.hpp"
 #include "plot/plot_main.hpp"
 
 /**
@@ -35,7 +36,6 @@ int main(int argc, char *argv[])
 {
     // Parse args
     KatArgs args(argc, argv);
-
 
     // Pass remaining args to relevant child tool
     if (args.getMode().compare("sect") == 0)
@@ -49,6 +49,10 @@ int main(int argc, char *argv[])
     else if (args.getMode().compare("gcp") == 0)
     {
         gcpStart(args.getModeArgC(), args.getModeArgV());
+    }
+    else if (args.getMode().compare("histo") == 0)
+    {
+        kat::histoStart(args.getModeArgC(), args.getModeArgV());
     }
     else if (args.getMode().compare("plot") == 0)
     {

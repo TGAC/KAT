@@ -32,6 +32,10 @@ kat_SOURCES = \
 		gcp/gcp.hpp \
 		gcp/gcp_args.hpp \
 		gcp/gcp_main.hpp \
+		histo/histo_main.cc \
+		histo/histogram.hpp \
+		histo/histo_args.hpp \
+		histo/histo_main.hpp \
                 plot/plot_main.cc \
 		plot/plot_args.hpp \
 		plot/plot_main.hpp \
