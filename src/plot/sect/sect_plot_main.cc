@@ -28,6 +28,7 @@
 #include <iterator>
 
 #include <gnuplot/gnuplot_i.hpp>
+#include <string/str_utils.hpp>
 
 #include "sect_plot_args.hpp"
 #include "sect_plot_main.hpp"
@@ -37,140 +38,121 @@ using std::stringstream;
 using std::istringstream;
 using std::ostringstream;
 using std::vector;
+using std::endl;
 
+using kat::SectPlotArgs;
 
-int readRecord(std::ifstream& stream, string& id, string& counts)
+namespace kat
 {
-    std::string line;
-    if (std::getline(stream, line)) {
-        if ('>' == line[0]) {
+    int readRecord(std::ifstream& stream, string& id, string& counts)
+    {
+        std::string line;
+        if (std::getline(stream, line)) {
+            if ('>' == line[0]) {
 
-            id.assign(line.begin() + 1, line.end());
+                id.assign(line.begin() + 1, line.end());
 
-            //std::string sequence;
-            /*while (stream.good() && '>' != stream.peek()) {
+                //std::string sequence;
+                /*while (stream.good() && '>' != stream.peek()) {
+                    std::getline(stream, line);
+                    sequence += line;
+                }*/
+
+                // We assume the counts are on a single line
                 std::getline(stream, line);
-                sequence += line;
-            }*/
+                counts = line;
 
-            // We assume the counts are on a single line
-            std::getline(stream, line);
-            counts = line;
+                stream.clear();
 
-            stream.clear();
-
-            return 0;
+                return 0;
+            }
+            else {
+                stream.clear(std::ios_base::failbit);
+            }
         }
-        else {
-            stream.clear(std::ios_base::failbit);
-        }
+
+        return -1;
     }
 
-    return -1;
-}
 
 
-
-// Finds a particular fasta header in a fasta file and returns the associated sequence
-int getEntryFromFasta(const string& fasta_path, const string& header, string& sequence)
-{
-    // Setup stream to sequence file and check all is well
-    std::ifstream inputStream (fasta_path.c_str());
-
-    if (!inputStream.is_open())
+    // Finds a particular fasta header in a fasta file and returns the associated sequence
+    int getEntryFromFasta(const string& fasta_path, const string& header, string& sequence)
     {
-        std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
-        return NULL;
-    }
+        // Setup stream to sequence file and check all is well
+        std::ifstream inputStream (fasta_path.c_str());
 
-    string id;
-    string seq;
-
-    // Read a record
-    while(inputStream.good() && readRecord(inputStream, id, seq) == 0)
-    {
-        stringstream ssHeader;
-        ssHeader << id;
-
-        if (header.compare(ssHeader.str()) == 0)
+        if (!inputStream.is_open())
         {
-            inputStream.close();
-            sequence = seq;
-
-            return 0;
+            std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
+            return NULL;
         }
-        seq.clear();
-    }
 
-    inputStream.close();
-    return -1;
-}
+        string id;
+        string seq;
 
-// Finds the nth entry from the fasta file and returns the associated sequence
-int getEntryFromFasta(const string& fasta_path, uint32_t n, string& header, string& sequence)
-{
-    // Setup stream to sequence file and check all is well
-    std::ifstream inputStream (fasta_path.c_str());
-
-    if (!inputStream.is_open())
-    {
-        std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
-        return NULL;
-    }
-
-
-    std::string id;
-    std::string seq;
-    uint32_t i = 1;
-
-    // Read a record
-    while(inputStream.good() && readRecord(inputStream, id, seq) == 0)
-    {
-        if (i == n)
+        // Read a record
+        while(inputStream.good() && readRecord(inputStream, id, seq) == 0)
         {
-            inputStream.close();
+            stringstream ssHeader;
+            ssHeader << id;
 
-            header.swap(id);
-            sequence = seq;
-            return 0;
+            if (header.compare(ssHeader.str()) == 0)
+            {
+                inputStream.close();
+                sequence = seq;
+
+                return 0;
+            }
+            seq.clear();
         }
 
-        seq.clear();
-        i++;
+        inputStream.close();
+        return -1;
     }
 
-    inputStream.close();
-    return -1;
-}
-
-
-
-uint32_t strToInt(string s)
-{
-    istringstream str_val(s);
-    uint32_t int_val;
-    str_val >> int_val;
-    return int_val;
-}
-
-// This is horribly inefficient! :(  Fix later
-void split(const string& txt, vector<uint32_t> &strs, const char ch)
-{
-    strs.clear();
-    istringstream iss(txt);
-    do
+    // Finds the nth entry from the fasta file and returns the associated sequence
+    int getEntryFromFasta(const string& fasta_path, uint32_t n, string& header, string& sequence)
     {
-        string sub;
-        iss >> sub;
-        uint32_t intVal = strToInt(sub);
-        strs.push_back(intVal);
-    } while (iss);
-}
+        // Setup stream to sequence file and check all is well
+        std::ifstream inputStream (fasta_path.c_str());
 
+        if (!inputStream.is_open())
+        {
+            std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
+            return NULL;
+        }
+
+
+        std::string id;
+        std::string seq;
+        uint32_t i = 1;
+
+        // Read a record
+        while(inputStream.good() && readRecord(inputStream, id, seq) == 0)
+        {
+            if (i == n)
+            {
+                inputStream.close();
+
+                header.swap(id);
+                sequence = seq;
+                return 0;
+            }
+
+            seq.clear();
+            i++;
+        }
+
+        inputStream.close();
+        return -1;
+    }
+
+}
 
 
 // Start point
-int sectPlotStart(int argc, char *argv[])
+int kat::sectPlotStart(int argc, char *argv[])
 {
     // Parse args
     SectPlotArgs args(argc, argv);
@@ -203,9 +185,9 @@ int sectPlotStart(int argc, char *argv[])
 
         // Split coverages
         vector<uint32_t> cvs;
-        split(coverages, cvs, ' ');
+        kat::split(coverages, cvs, ' ');
 
-        uint32_t maxCvgVal = args.y_max != DEFAULT_Y_MAX ? args.y_max : (*(std::max_element(cvs.begin(), cvs.end())) + 1);
+        uint32_t maxCvgVal = args.y_max != kat::DEFAULT_Y_MAX ? args.y_max : (*(std::max_element(cvs.begin(), cvs.end())) + 1);
 
         string title = args.autoTitle(header);
 

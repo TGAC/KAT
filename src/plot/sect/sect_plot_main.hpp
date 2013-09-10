@@ -17,5 +17,8 @@
 
 #pragma once
 
-int sectPlotStart(int argc, char *argv[]);
+namespace kat
+{
+    int sectPlotStart(int argc, char *argv[]);
+}
 

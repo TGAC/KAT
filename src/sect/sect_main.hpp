@@ -17,4 +17,7 @@
 
 #pragma once
 
-int sectStart(int argc, char *argv[]);
+namespace kat
+{
+    int sectStart(int argc, char *argv[]);
+}

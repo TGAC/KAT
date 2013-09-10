@@ -19,5 +19,6 @@
 
 namespace kat
 {
-    int compStart(int argc, char *argv[]);
+    int spectraPlotStart(int argc, char *argv[]);
 }
+

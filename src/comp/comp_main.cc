@@ -36,9 +36,11 @@ using std::string;
 using std::cout;
 using std::cerr;
 
+using kat::CompArgs;
+using kat::Comp;
 
 // Start point
-int compStart(int argc, char *argv[])
+int kat::compStart(int argc, char *argv[])
 {
     // Parse args
     CompArgs args(argc, argv);

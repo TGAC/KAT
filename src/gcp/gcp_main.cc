@@ -30,8 +30,11 @@
 
 //using std::cerr;
 
+using kat::GcpArgs;
+using kat::Gcp;
+
 // Start point
-int gcpStart(int argc, char *argv[])
+int kat::gcpStart(int argc, char *argv[])
 {
     // Parse args
     GcpArgs args(argc, argv);

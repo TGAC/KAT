@@ -17,5 +17,8 @@
 
 #pragma once
 
-int asmPlotStart(int argc, char *argv[]);
+namespace kat
+{
+    int asmPlotStart(int argc, char *argv[]);
+}
 

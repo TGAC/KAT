@@ -36,6 +36,9 @@ using std::string;
 using std::cout;
 using std::cerr;
 
+using kat::HistoArgs;
+using kat::Histogram;
+
 // Start point
 int kat::histoStart(int argc, char *argv[])
 {

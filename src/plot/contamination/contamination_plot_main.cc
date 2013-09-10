@@ -28,9 +28,10 @@
 #include "contamination_plot_args.hpp"
 #include "contamination_plot_main.hpp"
 
+using kat::ContaminationPlotArgs;
 
 // Start point
-int contaminationPlotStart(int argc, char *argv[])
+int kat::contaminationPlotStart(int argc, char *argv[])
 {
     // Parse args
     ContaminationPlotArgs args(argc, argv);

@@ -29,9 +29,11 @@
 
 using std::cerr;
 
+using kat::SectArgs;
+using kat::Sect;
 
 // Start point
-int sectStart(int argc, char *argv[])
+int kat::sectStart(int argc, char *argv[])
 {
     // Parse args
     SectArgs args(argc, argv);

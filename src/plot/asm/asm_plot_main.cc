@@ -34,6 +34,7 @@ using std::string;
 using std::ostringstream;
 using std::vector;
 
+using kat::AsmPlotArgs;
 
 string createLineStyleStr(uint16_t i, const char* colour)
 {
@@ -96,7 +97,7 @@ vector<uint16_t>* getUserDefinedCols(AsmPlotArgs* args)
 
 
 // Start point
-int asmPlotStart(int argc, char *argv[])
+int kat::asmPlotStart(int argc, char *argv[])
 {
     // Parse args
     AsmPlotArgs args(argc, argv);

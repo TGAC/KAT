@@ -20,6 +20,7 @@ kat_SOURCES = \
 		inc/matrix/threaded_sparse_matrix.hpp \
 		inc/matrix/matrix_metadata_extractor.hpp \
                 inc/matrix/matrix_metadata_extractor.cc \
+		inc/string/str_utils.hpp \
                 sect/sect_main.cc \
 		sect/sect.hpp \
 		sect/sect_args.hpp \
@@ -46,8 +47,11 @@ kat_SOURCES = \
 		plot/asm/asm_plot_args.hpp \
 		plot/asm/asm_plot_main.hpp \
                 plot/sect/sect_plot_main.cc \
+                plot/sect/sect_plot_main.hpp \
 		plot/sect/sect_plot_args.hpp \
-		plot/sect/sect_plot_main.hpp \
+		plot/spectra/spectra_plot_main.cc \
+		plot/spectra/spectra_plot_args.hpp \
+		plot/spectra/spectra_plot_main.hpp \
                 kat.cc \
 		kat_args.hpp
 

@@ -31,7 +31,10 @@ HEADERS += \
     src/inc/matrix/matrix_metadata_extractor.hpp \
     src/histo/histo_main.hpp \
     src/histo/histo_args.hpp \
-    src/histo/histogram.hpp
+    src/histo/histogram.hpp \
+    src/plot/spectra/spectra_plot_main.hpp \
+    src/plot/spectra/spectra_plot_args.hpp \
+    src/inc/string/str_utils.hpp
 
 SOURCES += \
     src/comp/comp_main.cc \
@@ -49,7 +52,8 @@ SOURCES += \
     src/inc/matrix/matrix_metadata_extractor.cc \
     tests/check_sect.cc \
     tests/check_comp.cc \
-    src/histo/histo_main.cc
+    src/histo/histo_main.cc \
+    src/plot/spectra/spectra_plot_main.cc
 
 OTHER_FILES += \
     src/Makefile.am \

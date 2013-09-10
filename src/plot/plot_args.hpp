@@ -27,150 +27,156 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-class PlotArgs
+namespace kat
 {
-private:
-    string  mode_arg;
-    int     mode_argc;
-    char**   mode_argv;
-public:
-
-    // Default constructor
-    PlotArgs()
-    {}
-
-    // Constructor that parses command line options
-    PlotArgs(int argc, char* argv[])
+    class PlotArgs
     {
-        parse(argc, argv);
-    }
+    private:
+        string  mode_arg;
+        int     mode_argc;
+        char**   mode_argv;
+    public:
 
-    string getMode() {
-        return mode_arg;
-    }
+        // Default constructor
+        PlotArgs()
+        {}
 
-    int getModeArgC() {
-        return mode_argc;
-    }
-
-    char** getModeArgV() {
-        return mode_argv;
-    }
-
-#define seqcvg_args_USAGE "Usage: kat plot <mode>\n"
-    const char * usage() const
-    {
-        return seqcvg_args_USAGE;
-    }
-
-    void error(const char *msg)
-    {
-        cerr << endl
-             << "Error: " << msg << endl << endl
-             << usage() << endl
-             << "Use --help for more information" << endl;
-        exit(1);
-    }
-
-
-#define sect_args_HELP "Create Kmer Plots\n\n" \
-  "First argument should be the plot mode you wish to use:\n\n" \
-  "   - flame:           Creates a flame plot from a matrix created with the \"comp\" tool.  Typically this\n" \
-  "                      is used to compare two kmer hashes produced by different NGS reads.\n" \
-  "   - asm:             Creates a histogram using a matrix created with the \"comp\" tool.  Typically\n" \
-  "                      this is used to compare a jellyfish hash produced from a read set to a jellyfish\n" \
-  "                      hash produced from an assembly. The plot shows the amount of distinct kmers absent\n" \
-  "                      in the assembly, those that are found once, and those found more (up to 10\n" \
-  "                      duplications plotted)\n" \
-  "   - sect:            Creates a kmer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
-  "                      coverage from the \"sect\" tool\n\n" \
-  "Options (default value in (), *required):\n" \
-  "     --usage          Usage\n" \
-  "     --help           This message\n" \
-
-    const char * help() const
-    {
-        return sect_args_HELP;
-    }
-
-#define sect_args_HIDDEN "Hidden options:"
-    const char * hidden() const
-    {
-        return sect_args_HIDDEN;
-    }
-
-    bool validMode(char* mode_str)
-    {
-        return (strcmp(mode_str, "flame") == 0 ||
-                strcmp(mode_str, "asm") == 0 ||
-                strcmp(mode_str, "sect") == 0) ?
-                    true : false;
-    }
-
-
-    void parse(int argc, char *argv[])
-    {
-        int c;
-
-        static struct option long_options[] =
+        // Constructor that parses command line options
+        PlotArgs(int argc, char* argv[])
         {
-            {"help",            no_argument,        0, 'h'},
-            {"usage",           no_argument,        0, 'u'},
-            {0, 0, 0, 0}
-        };
+            parse(argc, argv);
+        }
 
-        static const char *short_options = "uh";
+        string getMode() {
+            return mode_arg;
+        }
 
-        if (argc <= 1)
+        int getModeArgC() {
+            return mode_argc;
+        }
+
+        char** getModeArgV() {
+            return mode_argv;
+        }
+
+    #define seqcvg_args_USAGE "Usage: kat plot <mode>\n"
+        const char * usage() const
+        {
+            return seqcvg_args_USAGE;
+        }
+
+        void error(const char *msg)
         {
             cerr << endl
+                 << "Error: " << msg << endl << endl
                  << usage() << endl
-                 << help() << endl;
+                 << "Use --help for more information" << endl;
             exit(1);
         }
-        else if (validMode(argv[1])) {
 
 
-            mode_arg = argv[1];
-            mode_argc = argc - 1;
-            mode_argv = argv + 1;
+    #define sect_args_HELP "Create Kmer Plots\n\n" \
+      "First argument should be the plot mode you wish to use:\n\n" \
+      "   - flame:           Creates a flame plot from a matrix created with the \"comp\" tool.  Typically this\n" \
+      "                      is used to compare two kmer hashes produced by different NGS reads.\n" \
+      "   - asm:             Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
+      "                      this is used to compare a jellyfish hash produced from a read set to a jellyfish\n" \
+      "                      hash produced from an assembly. The plot shows the amount of distinct kmers absent\n" \
+      "                      in the assembly, those that are found once, and those found more (up to 10\n" \
+      "                      duplications plotted)\n" \
+      "   - sect:            Creates a kmer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
+      "                      coverage from the \"sect\" tool\n\n" \
+      "   - spectra:         Creates a kmer spctra plot for a set of kmer histograms produced either by jellyfish-\n" \
+      "                      histo or kat-histo.\n" \
+      "Options (default value in (), *required):\n" \
+      "     --usage          Usage\n" \
+      "     --help           This message\n" \
+
+        const char * help() const
+        {
+            return sect_args_HELP;
         }
-        else {
 
-            while (true)
+    #define sect_args_HIDDEN "Hidden options:"
+        const char * hidden() const
+        {
+            return sect_args_HIDDEN;
+        }
+
+        bool validMode(char* mode_str)
+        {
+            return (strcmp(mode_str, "flame") == 0 ||
+                    strcmp(mode_str, "asm") == 0 ||
+                    strcmp(mode_str, "sect") == 0 ||
+                    strcmp(mode_str, "spectra") == 0) ?
+                        true : false;
+        }
+
+
+        void parse(int argc, char *argv[])
+        {
+            int c;
+
+            static struct option long_options[] =
             {
-                /* getopt_long stores the option index here. */
-                int index = -1;
+                {"help",            no_argument,        0, 'h'},
+                {"usage",           no_argument,        0, 'u'},
+                {0, 0, 0, 0}
+            };
 
-                c = getopt_long (argc, argv, short_options, long_options, &index);
+            static const char *short_options = "uh";
 
-                /* Detect the end of the options. */
-                if (c == -1)
-                    break;
-
-                switch (c)
-                {
-                case ':':
-                    cerr << "Missing required argument for "
-                              << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                              << endl;
-                    exit(1);
-                case 'h':
-                    cout << usage() << endl
-                         << help() << endl;
-                    exit(0);
-                case 'u':
-                    cout << usage() << endl
-                         << "Use --help for more information." << endl << endl;
-                    exit(0);
-                case '?':
-                    cerr << "Use --usage or --help for some help" << endl << endl;
-                    exit(1);
-                }
+            if (argc <= 1)
+            {
+                cerr << endl
+                     << usage() << endl
+                     << help() << endl;
+                exit(1);
             }
+            else if (validMode(argv[1])) {
 
-            error("Invalid command line arguments passed to \"kat plot\"\n\n");
-            exit(1);
+
+                mode_arg = argv[1];
+                mode_argc = argc - 1;
+                mode_argv = argv + 1;
+            }
+            else {
+
+                while (true)
+                {
+                    /* getopt_long stores the option index here. */
+                    int index = -1;
+
+                    c = getopt_long (argc, argv, short_options, long_options, &index);
+
+                    /* Detect the end of the options. */
+                    if (c == -1)
+                        break;
+
+                    switch (c)
+                    {
+                    case ':':
+                        cerr << "Missing required argument for "
+                                  << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
+                                  << endl;
+                        exit(1);
+                    case 'h':
+                        cout << usage() << endl
+                             << help() << endl;
+                        exit(0);
+                    case 'u':
+                        cout << usage() << endl
+                             << "Use --help for more information." << endl << endl;
+                        exit(0);
+                    case '?':
+                        cerr << "Use --usage or --help for some help" << endl << endl;
+                        exit(1);
+                    }
+                }
+
+                error("Invalid command line arguments passed to \"kat plot\"\n\n");
+                exit(1);
+            }
         }
-    }
-};
+    };
+}

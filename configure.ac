@@ -1,4 +1,4 @@
-AC_INIT([Kmer Analysis Toolkit (KAT)], [0.2.1], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
+AC_INIT([Kmer Analysis Toolkit (KAT)], [0.3.0], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
 AM_INIT_AUTOMAKE([1.11 -Wall no-define])
 
 AC_LANG_CPLUSPLUS

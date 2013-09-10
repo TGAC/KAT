@@ -17,5 +17,8 @@
 
 #pragma once
 
-int flamePlotStart(int argc, char *argv[]);
+namespace kat
+{
+    int flamePlotStart(int argc, char *argv[]);
+}
 

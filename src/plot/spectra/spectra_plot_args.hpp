@@ -21,70 +21,83 @@
 #include <string.h>
 #include <iostream>
 #include <stdint.h>
+#include <vector>
 
 using std::string;
 using std::cerr;
 using std::cout;
 
+const string DEFAULT_OUTPUT_TYPE = "png";
+
+#define DEFAULT_OUTPUT_FILE_PREFIX "kat-kmer-spectra"
+#define DEFAULT_TITLE "K-mer Spectra"
+#define DEFAULT_X_LABEL "K-mer Multiplicity"
+#define DEFAULT_Y_LABEL "Distinct K-mers"
+
+const uint32_t DEFAULT_X_MIN = 0;
+const uint32_t DEFAULT_Y_MIN = 0;
+const uint32_t DEFAULT_X_MAX = 10000;
+const uint32_t DEFAULT_Y_MAX = 1000000;
+const bool DEFAULT_X_LOGSCALE = false;
+const bool DEFAULT_Y_LOGSCALE = false;
+const uint16_t DEFAULT_WIDTH = 1024;
+const uint16_t DEFAULT_HEIGHT = 1024;
+
+using std::vector;
+using std::string;
+using std::cout;
+using std::cerr;
+using std::endl;
+
 namespace kat
 {
-    const string DEFAULT_OUTPUT_TYPE = "png";
-
-    #define DEFAULT_TITLE "Sequence Coverage Plot"
-    #define DEFAULT_X_LABEL "Position (nt)"
-    #define DEFAULT_Y_LABEL "Kmer Coverage"
-
-    const uint32_t DEFAULT_Y_MAX = -1;
-    const uint16_t DEFAULT_WIDTH = 1024;
-    const uint16_t DEFAULT_HEIGHT = 1024;
-
-
-    using std::cout;
-    using std::cerr;
-    using std::endl;
-
-    class SectPlotArgs
+    class SpectraPlotArgs
     {
     public:
-        string  sect_file_arg;
+        vector<string> histo_paths;
         string  output_type;
         string  output_arg;
         string  title;
         string  x_label;
         string  y_label;
+        uint32_t x_min;
+        uint32_t y_min;
+        uint32_t x_max;
         uint32_t y_max;
+        bool x_logscale;
+        bool y_logscale;
         uint16_t width;
         uint16_t height;
-        uint32_t fasta_index;
-        string fasta_header;
         bool verbose;
 
         // Default constructor
-        SectPlotArgs() :
-            sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
+        SpectraPlotArgs() :
+            histo_paths(vector<string>()), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
+            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+            x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
+            x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE),
             width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            fasta_index(0), fasta_header(""),
             verbose(false)
         {
         }
 
         // Constructor that parses command line options
-        SectPlotArgs(int argc, char* argv[]) :
-            sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
+        SpectraPlotArgs(int argc, char* argv[]) :
+            histo_paths(vector<string>()), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
+            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+            x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
+            x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE),
             width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            fasta_index(0), fasta_header(""),
             verbose(false)
         {
             parse(argc, argv);
         }
 
 
-    #define sect_plot_args_USAGE "Usage: kat plot sect [options] -o <output_file_path> sect_output_file\n"
+    #define spectra_plot_args_USAGE "Usage: kat plot spectra [options] -o <output_file_path> [list of space separated histo files]\n"
         const char * usage() const
         {
-            return sect_plot_args_USAGE;
+            return spectra_plot_args_USAGE;
         }
 
         void error(const char *msg)
@@ -97,33 +110,36 @@ namespace kat
         }
 
 
-    #define sect_plot_args_HELP "Create Sequence Coverage Plot\n\n" \
-      "  Shows kmer coverage level across an sequence.\n\n" \
+    #define spectra_plot_args_HELP "Create K-mer Spectra Plot\n\n" \
+      "  Shows K-mer spectras from kat-histo or jellyfish-histo output.\n\n" \
       "Options (default value in (), *required):\n" \
       " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
       "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
-      " -o, --output         Output file (<sect_file>.<output_type>)\n" \
+      " -o, --output         Output file (" DEFAULT_OUTPUT_FILE_PREFIX ".png)\n" \
       " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
       " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
       " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
-      " -y  --y_max          Maximum value for the y-axis (Auto calculate max coverage in data)\n" \
+      " -r  --x_min          Minimum value for the x-axis (0)\n" \
+      " -s  --y_min          Minimum value for the y-axis (0)\n" \
+      " -x  --x_max          Maximum value for the x-axis (1000)\n" \
+      " -y  --y_max          Maximum value for the y-axis (Auto calculate max y in data)\n" \
+      " -l  --x_logscale     X-axis is logscale.  This overrides the x_min and x_max limits. (false)\n" \
+      " -m  --y_logscale     Y-axis is logscale.  This overrides the y_min and y_max limits. (false)\n" \
       " -w, --width          Width of canvas (1024)\n" \
       " -h, --height         Height of canvas (1024)\n" \
-      " -n, --index          Index of fasta entry to plot.  First entry is 1. (0)\n" \
-      " -d, --header         Fasta header of fasta entry to plot.  Has priority over \'--index\'.\n" \
       " -v, --verbose        Outputs additional information to stderr\n" \
       "     --usage          Usage\n" \
       "     --help           This message\n" \
 
         const char * help() const
         {
-            return sect_plot_args_HELP;
+            return spectra_plot_args_HELP;
         }
 
-    #define sect_plot_args_HIDDEN "Hidden options:"
+    #define spectra_plot_args_HIDDEN "Hidden options:"
         const char * hidden() const
         {
-            return sect_plot_args_HIDDEN;
+            return spectra_plot_args_HIDDEN;
         }
 
 
@@ -141,7 +157,12 @@ namespace kat
                 {"title",           required_argument,  0, 't'},
                 {"x_label",         required_argument,  0, 'i'},
                 {"y_label",         required_argument,  0, 'j'},
+                {"x_min",           required_argument,  0, 'r'},
+                {"y_min",           required_argument,  0, 's'},
+                {"x_max",           required_argument,  0, 'x'},
                 {"y_max",           required_argument,  0, 'y'},
+                {"x_logscale",      no_argument,        0, 'l'},
+                {"y_logscale",      no_argument,        0, 'm'},
                 {"width",           required_argument,  0, 'w'},
                 {"height",          required_argument,  0, 'h'},
                 {"index",           required_argument,  0, 'n'},
@@ -151,7 +172,7 @@ namespace kat
                 {0, 0, 0, 0}
             };
 
-            static const char *short_options = "o:p:t:i:j:y:w:h:n:d:vuh";
+            static const char *short_options = "o:p:t:i:j:r:s:x:y:lmw:h:n:d:vuh";
 
             if (argc <= 1)
             {
@@ -200,20 +221,29 @@ namespace kat
                 case 'j':
                     y_label = string(optarg);
                     break;
+                case 'r':
+                    x_min = atoi(optarg);
+                    break;
+                case 's':
+                    y_min = atoi(optarg);
+                    break;
+                case 'x':
+                    x_max = atoi(optarg);
+                    break;
                 case 'y':
                     y_max = atoi(optarg);
+                    break;
+                case 'l':
+                    x_logscale = true;
+                    break;
+                case 'm':
+                    y_logscale = true;
                     break;
                 case 'w':
                     width = atoi(optarg);
                     break;
                 case 'h':
                     height = atoi(optarg);
-                    break;
-                case 'n':
-                    fasta_index = atoi(optarg);
-                    break;
-                case 'd':
-                    fasta_header = optarg;
                     break;
                 }
             }
@@ -232,28 +262,27 @@ namespace kat
                 exit(0);
             }
 
-            // Parse arguments
-            if(argc - optind != 1)
-                error("Requires exactly 1 argument.");
+            int remaining_args = argc - optind;
 
-            sect_file_arg = string(argv[optind++]);
+            // Parse arguments
+            if(remaining_args < 1)
+                error("Requires at least 1 argument.");
+
+
+            // Add all remaining arguments to file list
+            for(uint8_t i = 0; i < remaining_args; i++)
+            {
+                histo_paths.push_back(string(argv[optind++]));
+            }
         }
 
         // Work out the output path to use (either user specified or auto generated)
         string determineOutputPath()
         {
             std::ostringstream output_str;
-            output_str << sect_file_arg << "." << output_type;
+            output_str << DEFAULT_OUTPUT_FILE_PREFIX << "." << output_type;
             return output_arg.empty() ? output_str.str() : output_arg;
         }
-
-        string autoTitle(string& header)
-        {
-            std::ostringstream output_str;
-            output_str << DEFAULT_TITLE << ": " << sect_file_arg << " - " << header;
-            return title.compare(DEFAULT_TITLE) == 0 ? output_str.str() : title;
-        }
-
 
 
         void print()
@@ -263,15 +292,18 @@ namespace kat
 
             cerr << "Output type: " << output_type.c_str() << endl;
             cerr << "Output file specified: " << output_arg.c_str() << endl;
-            cerr << "SECT input file specified: " << sect_file_arg.c_str() << endl;
+            //cerr << "SECT input file specified: " << sect_file_arg.c_str() << endl;
             cerr << "Plot title: " << title << endl;
             cerr << "X Label: " << x_label << endl;
             cerr << "Y Label: " << y_label << endl;
+            cerr << "X Min: " << x_min << endl;
+            cerr << "Y Min: " << y_min << endl;
+            cerr << "X Max: " << x_max << endl;
             cerr << "Y Max: " << y_max << endl;
+            cerr << "X Logscale: " << x_logscale << endl;
+            cerr << "Y Logscale: " << y_logscale << endl;
             cerr << "Width: " << width << endl;
             cerr << "Height: " << height << endl;
-            cerr << "Fasta index to plot: " << fasta_index << endl;
-            cerr << "Fasta header to plot: " << fasta_header << endl;
 
             cerr << endl;
         }

@@ -35,9 +35,10 @@ using std::string;
 using std::ifstream;
 using std::istringstream;
 
+using kat::FlamePlotArgs;
 
 // Start point
-int flamePlotStart(int argc, char *argv[])
+int kat::flamePlotStart(int argc, char *argv[])
 {
     // Parse args
     FlamePlotArgs args(argc, argv);
