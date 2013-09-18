@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -81,9 +81,9 @@ namespace kat
         }
 
 
-    #define sect_args_HELP "Estimates coverage for sequences in a fasta file using jellyfish kmer counts. " \
-      "Kmers containing any Ns derived from sequences in the fasta files will have 0 coverage. " \
-      "Output from this tool will consist of a file in fasta format containing kmer coverage counts for each kmer of each fasta entry. " \
+    #define sect_args_HELP "Estimates coverage for sequences in a fasta file using jellyfish K-mer counts. " \
+      "K-mers containing any Ns derived from sequences in the fasta files will have 0 coverage. " \
+      "Output from this tool will consist of a file in fasta format containing K-mer coverage counts for each K-mer of each fasta entry. " \
       "In addition, a space separated table file containing the mean coverage score and GC % of each sequence is produced.  The row order is identical to the original fasta file.\n\n" \
       "Options (default value in (), *required):\n" \
       " -f, --fasta=string          *Fasta file contains sequences that should have coverage estimated.\n" \
@@ -93,7 +93,7 @@ namespace kat
       " -l, --cvg_logscale          Compresses cvg scores into logscale for determining the cvg bins within the contamination matrix.\n" \
       "                             Otherwise compresses cvg scores by a factor of 0.1 into the available bins.\n" \
       " -t, --threads=uint16        The number of threads to use (1).\n" \
-      " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains kmers produced for both strands.\n" \
+      " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both strands.\n" \
       "                             If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.\n" \
       "     --usage                 Usage\n" \
       "     --help                  This message\n" \

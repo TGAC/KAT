@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -87,11 +87,11 @@ namespace kat
         }
 
 
-    #define sect_args_HELP "Compares sets of jellyfish kmer counts.  Normally, this will be two sets of kmers, although " \
-      "when comparing kmers from assemblies, it is possible to add a 3rd set of kmers which describe the ends of each assembly " \
+    #define sect_args_HELP "Compares sets of jellyfish K-mer counts.  Normally, this will be two sets of K-mers, although " \
+      "when comparing K-mers from assemblies, it is possible to add a 3rd set of K-mers which describe the ends of each assembly " \
       "sequence to determine issues at end of sequences that may have prevented the assembler joining sequences together.\n\n" \
-      "If comparing kmers from reads to kmers from an assembly, the larger (most likely the read) kmer hash should be provided " \
-      "first, then the assembly kmer hash second.  Finally, if comparing kmers at the ends of sequences this should be supplied last.\n\n" \
+      "If comparing K-mers from reads to K-mers from an assembly, the larger (most likely the read) K-mer hash should be provided " \
+      "first, then the assembly K-mer hash second.  Finally, if comparing K-mers at the ends of sequences this should be supplied last.\n\n" \
       "Options (default value in (), *required):\n" \
       " -o, --output_prefix=string  Path prefix for files produced by this program (" DEFAULT_OUTPUT_PREFIX ")\n" \
       " -x, --d1_scale=double       Scaling factor for the first dataset  - float multiplier (1.0).  Max value: 1.0\n" \
@@ -99,7 +99,7 @@ namespace kat
       " -i, --d1_bins=uint16        Number of bins for the first dataset.  i.e. number of rows in the matrix (1001)\n" \
       " -j, --d2_bins-uint16        Number of bins for the second dataset. i.e. number of columns in the matrix (1001)\n" \
       " -t, --threads=uint16        The number of threads to use (1)\n" \
-      " -C, --both_strands          IMPORTANT: Whether the jellyfish hashes contains kmers produced for both strands.\n" \
+      " -C, --both_strands          IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both strands.\n" \
       "                             If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.\n" \
       "                             Note that all hashes must be built with either both strands or with single strands.  Using a mix will also produce unpredictable results.\n" \
       " -v, --verbose               Outputs additional information to stderr (false)\n" \
@@ -224,7 +224,7 @@ namespace kat
                 cerr << "Found " << remaining_args << " remaining arguments on the command line." << endl;
 
             if(remaining_args < 2 || remaining_args > 3)
-                error("Requires 2 or 3 arguments describing paths to jellyfish kmer counts.");
+                error("Requires 2 or 3 arguments describing paths to jellyfish K-mer counts.");
 
             db1_path = argv[optind++];
             db2_path = argv[optind++];

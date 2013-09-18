@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -80,13 +80,13 @@ namespace kat
         }
 
 
-    #define kat_args_HELP "The Kmer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish kmer hashes\n\n" \
+    #define kat_args_HELP "The K-mer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish K-mer hashes\n\n" \
       "First argument should be the tool/mode you wish to use:\n\n" \
-      "   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using kmers from a jellyfish hash\n" \
-      "   - comp:  Kmer comparison tool.  Creates a matrix of shared kmers between two jellyfish hashes.\n" \
-      "   - gcp:   Kmer GC Processor.  Creates a matrix of the number of kmers found given a GC count and a kmer count.\n" \
+      "   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using K-mers from a jellyfish hash\n" \
+      "   - comp:  K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
+      "   - gcp:   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.\n" \
       "   - histo: Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy plotting.\n" \
-      "   - plot:  Plotting tool.  Creates useful plots to visualise kmer distributions.  Requires gnuplot \n\n" \
+      "   - plot:  Plotting tool.  Creates useful plots to visualise K-mer distributions.  Requires gnuplot \n\n" \
       "Options:\n" \
       "     --usage                              Usage\n" \
       "     --help                               This message\n" \
@@ -106,7 +106,7 @@ namespace kat
         void print_version(std::ostream &os = std::cout) const
         {
     #ifndef PACKAGE_NAME
-    #define PACKAGE_NAME "Kmer Analysis Toolkit (KAT)"
+    #define PACKAGE_NAME "K-mer Analysis Toolkit (KAT)"
     #endif
 
     #ifndef PACKAGE_VERSION

@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -75,18 +75,18 @@ namespace kat
         }
 
 
-    #define sect_args_HELP "Create Kmer Plots\n\n" \
+    #define sect_args_HELP "Create K-mer Plots\n\n" \
       "First argument should be the plot mode you wish to use:\n\n" \
       "   - flame:           Creates a flame plot from a matrix created with the \"comp\" tool.  Typically this\n" \
-      "                      is used to compare two kmer hashes produced by different NGS reads.\n" \
+      "                      is used to compare two K-mer hashes produced by different NGS reads.\n" \
       "   - asm:             Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
       "                      this is used to compare a jellyfish hash produced from a read set to a jellyfish\n" \
-      "                      hash produced from an assembly. The plot shows the amount of distinct kmers absent\n" \
+      "                      hash produced from an assembly. The plot shows the amount of distinct K-mers absent\n" \
       "                      in the assembly, those that are found once, and those found more (up to 10\n" \
       "                      duplications plotted)\n" \
-      "   - sect:            Creates a kmer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
+      "   - sect:            Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
       "                      coverage from the \"sect\" tool\n\n" \
-      "   - spectra:         Creates a kmer spctra plot for a set of kmer histograms produced either by jellyfish-\n" \
+      "   - spectra:         Creates a K-mer spctra plot for a set of K-mer histograms produced either by jellyfish-\n" \
       "                      histo or kat-histo.\n" \
       "Options (default value in (), *required):\n" \
       "     --usage          Usage\n" \

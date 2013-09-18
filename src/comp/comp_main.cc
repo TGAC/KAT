@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -91,14 +91,14 @@ int kat::compStart(int argc, char *argv[])
         mixed_mx_out_stream.close();
     }
 
-    // Send kmer statistics to file
+    // Send K-mer statistics to file
     std::ostringstream stats_out_path;
     stats_out_path << args.output_prefix << ".stats";
     ofstream_default stats_out_stream(stats_out_path.str().c_str(), cout);
     comp.printCounters(stats_out_stream);
     stats_out_stream.close();
 
-    // Send kmer statistics to stdout as well
+    // Send K-mer statistics to stdout as well
     comp.printCounters(cout);
 
 

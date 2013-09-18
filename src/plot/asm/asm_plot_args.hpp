@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@ namespace kat
 {
 
     #define DEFAULT_TITLE "Assembly duplication histogram"
-    #define DEFAULT_X_LABEL "Kmer Multiplicity"
-    #define DEFAULT_Y_LABEL "Distinct Kmer Count"
+    #define DEFAULT_X_LABEL "K-mer Multiplicity"
+    #define DEFAULT_Y_LABEL "Distinct K-mer Count"
 
     #define DEFAULT_X_MAX 1000
     #define DEFAULT_Y_MAX 1000000
@@ -114,8 +114,8 @@ namespace kat
         }
 
 
-    #define asm_plot_args_HELP "Create Assembly Kmer Histograms\n\n" \
-      "  Shows kmer duplication levels within an assembly.\n\n" \
+    #define asm_plot_args_HELP "Create Assembly K-mer Histograms\n\n" \
+      "  Shows K-mer duplication levels within an assembly.\n\n" \
       "Options (default value in (), *required):\n" \
       " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
       "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
@@ -127,7 +127,7 @@ namespace kat
       " -y  --y_max          Maximum value for the y-axis (10000000)\n" \
       " -w, --width          Width of canvas (1024)\n" \
       " -h, --height         Height of canvas (1024)\n" \
-      " -a, --ignore_absent  Ignore kmers in reads but absent from the assembly\n" \
+      " -a, --ignore_absent  Ignore K-mers in reads but absent from the assembly\n" \
       " -m, --max_dup        Maximum duplication level to show in plots (5)\n" \
       " -c, --columns        Comma separated string listing columns to show in plot.  If used, this overrides \"--ignore_absent\" and \"--columns\"\n" \
       " -v, --verbose        Outputs additional information to stderr\n" \
@@ -286,7 +286,7 @@ namespace kat
                 cerr << "Output file specified: " << output_arg->c_str() << endl;
 
             if (mx_arg != NULL)
-                cerr << "Kmer Matrix input file specified: " << mx_arg->c_str() << endl;
+                cerr << "K-mer Matrix input file specified: " << mx_arg->c_str() << endl;
 
             if (title)
                 cerr << "Plot title: " << title << endl;
@@ -316,7 +316,7 @@ namespace kat
                 cerr << "Columns to plot: " << columns->c_str() << endl;
 
             if (ignore_absent)
-                cerr << "Ignore absent kmers: " << ignore_absent << endl;
+                cerr << "Ignore absent K-mers: " << ignore_absent << endl;
 
 
             cerr << endl;

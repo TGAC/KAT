@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ using std::cout;
 
 const string DEFAULT_OUTPUT_TYPE = "png";
 
-#define DEFAULT_OUTPUT_FILE_PREFIX "kat-kmer-spectra"
+#define DEFAULT_OUTPUT_FILE_PREFIX "kat-spectra"
 #define DEFAULT_TITLE "K-mer Spectra"
 #define DEFAULT_X_LABEL "K-mer Multiplicity"
 #define DEFAULT_Y_LABEL "Distinct K-mers"

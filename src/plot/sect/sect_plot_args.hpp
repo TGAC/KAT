@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ namespace kat
 
     #define DEFAULT_TITLE "Sequence Coverage Plot"
     #define DEFAULT_X_LABEL "Position (nt)"
-    #define DEFAULT_Y_LABEL "Kmer Coverage"
+    #define DEFAULT_Y_LABEL "K-mer Coverage"
 
     const uint32_t DEFAULT_Y_MAX = -1;
     const uint16_t DEFAULT_WIDTH = 1024;
@@ -98,7 +98,7 @@ namespace kat
 
 
     #define sect_plot_args_HELP "Create Sequence Coverage Plot\n\n" \
-      "  Shows kmer coverage level across an sequence.\n\n" \
+      "  Shows K-mer coverage level across an sequence.\n\n" \
       "Options (default value in (), *required):\n" \
       " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
       "                      please ensure your gnuplot installation can export pdf files. (png)\n" \

@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -98,9 +98,9 @@ namespace kat
         }
 
 
-    #define flame_plot_args_HELP "Create Kmer Flame Plots\n\n" \
+    #define flame_plot_args_HELP "Create K-mer Flame Plots\n\n" \
       "  Creates a flame plot from a matrix created with the \"comp\" tool.  Typically this\n" \
-      "  is used to compare two kmer hashes produced by different NGS reads.\n\n" \
+      "  is used to compare two K-mer hashes produced by different NGS reads.\n\n" \
       "Options (default value in (), *required):\n" \
       " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
       "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
@@ -268,7 +268,7 @@ namespace kat
                 cerr << "Output file specified: " << *output_path << endl;
 
             if (mx_arg != NULL)
-                cerr << "Kmer Matrix input file specified: " << *mx_arg << endl;
+                cerr << "K-mer Matrix input file specified: " << *mx_arg << endl;
 
             if (!title.empty())
                 cerr << "Plot title: " << title << endl;

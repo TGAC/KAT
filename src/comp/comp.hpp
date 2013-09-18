@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -124,7 +124,7 @@ namespace kat
 
         void printCounts(ostream &out)
         {
-            out << "Kmer statistics for: " << endl;
+            out << "K-mer statistics for: " << endl;
             out << " - Hash 1: " << hash1_path << endl;
             out << " - Hash 2: " << hash2_path << endl;
 
@@ -133,7 +133,7 @@ namespace kat
 
             out << endl;
 
-            out << "Total kmers in: " << endl;
+            out << "Total K-mers in: " << endl;
             out << " - Hash 1: " << hash1_total << endl;
             out << " - Hash 2: " << hash2_total << endl;
 
@@ -142,7 +142,7 @@ namespace kat
 
             out << endl;
 
-            out << "Distinct kmers in:" << endl;
+            out << "Distinct K-mers in:" << endl;
             out << " - Hash 1: " << hash1_distinct << endl;
             out << " - Hash 2: " << hash2_distinct << endl;
             if (hash3_total > 0)
@@ -150,19 +150,19 @@ namespace kat
 
             out << endl;
 
-            out << "Total kmers only found in:" << endl;
+            out << "Total K-mers only found in:" << endl;
             out << " - Hash 1: " << hash1_only_total << endl;
             out << " - Hash 2: " << hash2_only_total << endl;
             out << endl;
 
-            out << "Distinct kmers only found in:" << endl;
+            out << "Distinct K-mers only found in:" << endl;
             out << " - Hash 1: " << hash1_only_distinct << endl;
             out << " - Hash 2: " << hash2_only_distinct << endl << endl;
 
-            out << "Shared kmers:" << endl;
+            out << "Shared K-mers:" << endl;
             out << " - Total shared found in hash 1: " << shared_hash1_total << endl;
             out << " - Total shared found in hash 2: " << shared_hash2_total << endl;
-            out << " - Distinct shared kmers: " << shared_distinct << endl << endl;
+            out << " - Distinct shared K-mers: " << shared_distinct << endl << endl;
         }
     };
 
@@ -210,7 +210,7 @@ namespace kat
             hash2 = NULL;
             hash3 = NULL;
 
-            // Create the final kmer counter matricies
+            // Create the final K-mer counter matricies
             main_matrix = new ThreadedSparseMatrix<uint64_t>(args->d1_bins, args->d2_bins, args->threads);
 
             // Initialise extra matricies for hash3 (only allocates space if required)
@@ -280,16 +280,16 @@ namespace kat
                     hash3->set_canonical(true);
             }
 
-            // Check kmer lengths are the same for both hashes.  We can't continue if they are not.
+            // Check K-mer lengths are the same for both hashes.  We can't continue if they are not.
             if (hash1->get_mer_len() != hash2->get_mer_len())
             {
-                cerr << "Cannot process hashes that were created with different kmer lengths.  "
+                cerr << "Cannot process hashes that were created with different K-mer lengths.  "
                      << "Hash1: " << hash1->get_mer_len() << ".  Hash2: " << hash2->get_mer_len() << "." << endl;
                 throw;
             }
             else if(hash3 && (hash3->get_mer_len() != hash1->get_mer_len()))
             {
-                cerr << "Cannot process hashes that were created with different kmer lengths.  "
+                cerr << "Cannot process hashes that were created with different K-mer lengths.  "
                      << "Hash1: " << hash1->get_mer_len() << ".  Hash3: " << hash3->get_mer_len() << "." << endl;
                 throw;
             }
@@ -327,13 +327,13 @@ namespace kat
             // Go through this thread's slice for hash1
             while (hash1Iterator.next())
             {
-                // Get the current kmer count for hash1
+                // Get the current K-mer count for hash1
                 uint64_t hash1_count = hash1Iterator.get_val();
 
-                // Get the count for this kmer in hash2 (assuming it exists... 0 if not)
+                // Get the count for this K-mer in hash2 (assuming it exists... 0 if not)
                 uint64_t hash2_count = (*hash2)[hash1Iterator.get_key()];
 
-                // Get the count for this kmer in hash3 (assuming it exists... 0 if not)
+                // Get the count for this K-mer in hash3 (assuming it exists... 0 if not)
                 uint64_t hash3_count = hash3 ? (*hash3)[hash1Iterator.get_key()] : 0;
 
                 // Increment hash1's unique counters
@@ -347,7 +347,7 @@ namespace kat
                 uint64_t scaled_hash2_count = scaleCounter(hash2_count, args->d2_scale);
                 uint64_t scaled_hash3_count = scaleCounter(hash3_count, args->d2_scale);
 
-                // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
+                // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
                 if (scaled_hash1_count >= args->d1_bins) scaled_hash1_count = args->d1_bins - 1;
                 if (scaled_hash2_count >= args->d2_bins) scaled_hash2_count = args->d2_bins - 1;
                 if (scaled_hash3_count >= args->d2_bins) scaled_hash3_count = args->d2_bins - 1;
@@ -375,22 +375,22 @@ namespace kat
             // Iterate through this thread's slice of hash2
             while (hash2Iterator.next())
             {
-                // Get the current kmer count for hash2
+                // Get the current K-mer count for hash2
                 uint64_t hash2_count = hash2Iterator.get_val();
 
-                // Get the count for this kmer in hash1 (assuming it exists... 0 if not)
+                // Get the count for this K-mer in hash1 (assuming it exists... 0 if not)
                 uint64_t hash1_count = (*hash1)[hash2Iterator.get_key()];
 
                 // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
                 comp_counters->updateHash2Counters(hash1_count, hash2_count);
 
-                // Only bother updating thread matrix with kmers not found in hash1 (we've already done the rest)
+                // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
                 if (!hash1_count)
                 {
                     // Scale counters to make the matrix look pretty
                     uint64_t scaled_hash2_count = scaleCounter(hash2_count, args->d2_scale);
 
-                    // Modifies hash counts so that kmer counts larger than MATRIX_SIZE are dumped in the last slot
+                    // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
                     if (scaled_hash2_count >= args->d2_bins) scaled_hash2_count = args->d2_bins - 1;
 
                     // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
@@ -407,7 +407,7 @@ namespace kat
                 // Iterate through this thread's slice of hash2
                 while (hash3Iterator.next())
                 {
-                    // Get the current kmer count for hash2
+                    // Get the current K-mer count for hash2
                     uint64_t hash3_count = hash3Iterator.get_val();
 
                     // Increment hash3's unique counters (don't bother with shared counters... we've already done this)
@@ -435,15 +435,15 @@ namespace kat
        }
 
 
-        // Print kmer comparison matrix
+        // Print K-mer comparison matrix
         void printMainMatrix(ostream &out)
         {
             SparseMatrix<uint64_t>* mx = main_matrix->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "Kmer comparison plot" << endl;
-            out << mme::KEY_X_LABEL << "Kmer multiplicity for: " << args->db1_path << endl;
-            out << mme::KEY_Y_LABEL << "Kmer multiplicity for: " << args->db2_path << endl;
-            out << mme::KEY_Z_LABEL << "Distinct Kmers per bin" << endl;
+            out << mme::KEY_TITLE << "K-mer comparison plot" << endl;
+            out << mme::KEY_X_LABEL << "K-mer multiplicity for: " << args->db1_path << endl;
+            out << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << args->db2_path << endl;
+            out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
             out << mme::KEY_NB_COLUMNS << mx->height() << endl;
             out << mme::KEY_NB_ROWS << mx->width() << endl;
             out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
@@ -452,34 +452,34 @@ namespace kat
             mx->printMatrix(out);
         }
 
-        // Print kmer comparison matrix
+        // Print K-mer comparison matrix
         void printEndsMatrix(ostream &out)
         {
-            out << "# Each row represents kmer multiplicity for: " << args->db1_path << endl;
-            out << "# Each column represents kmer multiplicity for sequence ends: " << args->db3_path << endl;
+            out << "# Each row represents K-mer multiplicity for: " << args->db1_path << endl;
+            out << "# Each column represents K-mer multiplicity for sequence ends: " << args->db3_path << endl;
 
             ends_matrix->getFinalMatrix()->printMatrix(out);
         }
 
-        // Print kmer comparison matrix
+        // Print K-mer comparison matrix
         void printMiddleMatrix(ostream &out)
         {
-            out << "# Each row represents kmer multiplicity for: " << args->db1_path << endl;
-            out << "# Each column represents kmer multiplicity for sequence middles: " << args->db2_path << endl;
+            out << "# Each row represents K-mer multiplicity for: " << args->db1_path << endl;
+            out << "# Each column represents K-mer multiplicity for sequence middles: " << args->db2_path << endl;
 
             middle_matrix->getFinalMatrix()->printMatrix(out);
         }
 
-        // Print kmer comparison matrix
+        // Print K-mer comparison matrix
         void printMixedMatrix(ostream &out)
         {
-            out << "# Each row represents kmer multiplicity for hash file 1: " << args->db1_path << endl;
-            out << "# Each column represents kmer multiplicity for mixed: " << args->db2_path << " and " << args->db3_path << endl;
+            out << "# Each row represents K-mer multiplicity for hash file 1: " << args->db1_path << endl;
+            out << "# Each column represents K-mer multiplicity for mixed: " << args->db2_path << " and " << args->db3_path << endl;
 
             mixed_matrix->getFinalMatrix()->printMatrix(out);
         }
 
-        // Print kmer statistics
+        // Print K-mer statistics
         void printCounters(ostream &out)
         {
            final_comp_counters->printCounts(out);

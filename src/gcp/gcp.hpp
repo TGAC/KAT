@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ namespace kat
 
             // Process batch with worker threads
             // Process each sequence is processed in a different thread.
-            // In each thread lookup each kmer in the hash
+            // In each thread lookup each K-mer in the hash
             exec_join(args->threads_arg);
 
             // Merge the contamination matrix
@@ -146,15 +146,15 @@ namespace kat
             out << " - Threads: " << args->threads_arg << endl;
         }
 
-        // Print kmer comparison matrix
+        // Print K-mer comparison matrix
         void printMainMatrix(ostream &out)
         {
             SparseMatrix<uint64_t>* mx = gcp_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "Kmer coverage vs GC count plot for: " << args->db_arg << endl;
-            out << mme::KEY_X_LABEL << "Kmer multiplicity" << endl;
+            out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << args->db_arg << endl;
+            out << mme::KEY_X_LABEL << "K-mer multiplicity" << endl;
             out << mme::KEY_Y_LABEL << "GC count" << endl;
-            out << mme::KEY_Z_LABEL << "Distinct Kmers per bin" << endl;
+            out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
             out << mme::KEY_NB_COLUMNS << mx->height() << endl;
             out << mme::KEY_NB_ROWS << mx->width() << endl;
             out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;

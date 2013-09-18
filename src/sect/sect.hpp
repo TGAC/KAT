@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -72,8 +72,8 @@ namespace kat
         // Variables that are refreshed for each batch
         StringSet<CharString>           names;
         StringSet<Dna5String>           seqs;
-        vector<vector<uint64_t>*>       *counts;    // Kmer counts for each kmer window in sequence (in same order as seqs and names; built by this class)
-        vector<float>                   *coverages; // Overall coverage calculated for each sequence from the kmer windows.
+        vector<vector<uint64_t>*>       *counts;    // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
+        vector<float>                   *coverages; // Overall coverage calculated for each sequence from the K-mer windows.
         vector<float>                   *gcs;       // GC% for each sequence
         vector<uint32_t>                *lengths;   // Length in nucleotides for each sequence
 
@@ -150,7 +150,7 @@ namespace kat
             if (args->verbose)
                 *out_stream << endl;
 
-            // Sequence kmer counts output stream
+            // Sequence K-mer counts output stream
             std::ostringstream count_path;
             count_path << args->output_prefix << "_counts.cvg";
             ofstream_default count_path_stream(count_path.str().c_str(), cout);
@@ -179,7 +179,7 @@ namespace kat
 
                 // Process batch with worker threads
                 // Process each sequence is processed in a different thread.
-                // In each thread lookup each kmer in the hash
+                // In each thread lookup each K-mer in the hash
                 exec_join(args->threads_arg);
 
                 // Output findings for this batch
@@ -366,14 +366,14 @@ namespace kat
             }
         }
 
-        // Print kmer comparison matrix
+        // Print K-mer comparison matrix
         void printContaminationMatrix(std::ostream &out, const char* seqFile)
         {
             SparseMatrix<uint64_t>* mx = contamination_mx->getFinalMatrix();
 
             out << mme::KEY_TITLE << "Contamination Plot for " << args->fasta_arg << " and " << args->db_arg << endl;
             out << mme::KEY_X_LABEL << "GC%" << endl;
-            out << mme::KEY_Y_LABEL << "Average Kmer Coverage" << endl;
+            out << mme::KEY_Y_LABEL << "Average K-mer Coverage" << endl;
             out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;
             out << mme::KEY_NB_COLUMNS << args->gc_bins << endl;
             out << mme::KEY_NB_ROWS << args->cvg_bins << endl;
@@ -432,7 +432,7 @@ namespace kat
             if (seqLength < kmer)
             {
                 cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
-                     << seqLength << " and kmer length is " << kmer << ". Setting sequence coverage to 0." << endl;
+                     << seqLength << " and K-mer length is " << kmer << ". Setting sequence coverage to 0." << endl;
             }
             else
             {

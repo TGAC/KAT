@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -120,8 +120,8 @@ int kat::asmPlotStart(int argc, char *argv[])
 
         if (args.verbose)
         {
-            cerr << "Request plot fo absent kmers" << endl
-                 << level_count << " levels of present kmers requested for plotting" << endl << endl;
+            cerr << "Request plot fo absent K-mers" << endl
+                 << level_count << " levels of present K-mers requested for plotting" << endl << endl;
         }
 
         // Initialise gnuplot

@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ namespace kat
     " -i, --increment=uint64      Increment value for buckets (1)\n" \
     " -t, --threads=uint32        Number of threads (1)\n" \
     " -f, --full                  Full histo. Don't skip count 0. (false)\n" \
-    " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains kmers produced for both strands.\n" \
+    " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both strands.\n" \
     "                             If this is not set to the same value as was produced during jellyfish counting then output from histo will be unpredicatable.\n" \
     " -o, --output=string         Output file\n" \
     " -v, --verbose               Outputs additional information to stderr (false)\n" \

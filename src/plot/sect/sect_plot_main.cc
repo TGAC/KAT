@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -192,7 +192,7 @@ int kat::sectPlotStart(int argc, char *argv[])
         string title = args.autoTitle(header);
 
         if (args.verbose)
-            cerr << "Acquired kmer counts" << endl;
+            cerr << "Acquired K-mer counts" << endl;
 
         // Initialise gnuplot
         Gnuplot sect_plot = Gnuplot("lines");

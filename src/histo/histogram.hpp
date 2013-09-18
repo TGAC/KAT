@@ -1,5 +1,5 @@
 //  ********************************************************************
-//  This file is part of KAT - the Kmer Analysis Toolkit.
+//  This file is part of KAT - the K-mer Analysis Toolkit.
 //
 //  KAT is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ namespace kat
         void print(std::ostream &out, bool full)
         {
             // Output header
-            out << mme::KEY_TITLE << "Kmer spectra for: " << args->db_path << endl;
+            out << mme::KEY_TITLE << "K-mer spectra for: " << args->db_path << endl;
             out << mme::KEY_X_LABEL << "K" << hash->get_mer_len() << " multiplicity: " << args->db_path << endl;
             out << mme::KEY_Y_LABEL << "Number of distinct K" << hash->get_mer_len() << " mers" << endl;
             out << mme::MX_META_END << endl;
