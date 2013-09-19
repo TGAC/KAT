@@ -34,7 +34,8 @@ HEADERS += \
     src/histo/histogram.hpp \
     src/plot/spectra/spectra_plot_main.hpp \
     src/plot/spectra/spectra_plot_args.hpp \
-    src/inc/string/str_utils.hpp
+    src/inc/str_utils.hpp \
+    src/inc/common_args.hpp
 
 SOURCES += \
     src/comp/comp_main.cc \

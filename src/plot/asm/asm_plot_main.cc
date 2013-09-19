@@ -43,7 +43,7 @@ string createLineStyleStr(uint16_t i, const char* colour)
     return line_style_str.str();
 }
 
-string createSinglePlotString(const char* data_file, uint16_t idx)
+string createSinglePlotString(const string data_file, uint16_t idx)
 {
     uint16_t col = idx+1;
 
@@ -76,7 +76,7 @@ vector<uint16_t>* getUserDefinedCols(AsmPlotArgs* args)
     vector<uint16_t>* col_defs = new vector<uint16_t>();
 
     string delimiter = ",";
-    string s(args->columns->c_str());
+    string s(args->columns);
 
     size_t pos = 0;
     string token;
@@ -109,7 +109,7 @@ int kat::asmPlotStart(int argc, char *argv[])
 
 
 
-    vector<uint16_t>* plot_cols = !args.columns ? getStandardCols(&args) : getUserDefinedCols(&args);
+    vector<uint16_t>* plot_cols = args.columns.empty() ? getStandardCols(&args) : getUserDefinedCols(&args);
 
     if (!plot_cols->empty())
     {
@@ -132,7 +132,7 @@ int kat::asmPlotStart(int argc, char *argv[])
         string output_path = args.determineOutputPath();
 
 
-        asm_plot.configurePlot(*(args.output_type), output_path, args.width, args.height);
+        asm_plot.configurePlot(args.output_type, output_path, args.width, args.height);
 
         asm_plot.set_title(args.title);
         asm_plot.set_xlabel(args.x_label);
@@ -148,7 +148,7 @@ int kat::asmPlotStart(int argc, char *argv[])
 
         if (request_absent)
         {
-            plot_str << createSinglePlotString(args.mx_arg->c_str(), 0) << " lt rgb \"black\"";
+            plot_str << createSinglePlotString(args.mx_arg, 0) << " lt rgb \"black\"";
             first = false;
         }
 
@@ -163,7 +163,7 @@ int kat::asmPlotStart(int argc, char *argv[])
             double col_frac = 1.0 - ((double)i / (double)(level_count - 1));
             uint16_t index = request_absent ? i+1 : i;
 
-            plot_str << createSinglePlotString(args.mx_arg->c_str(), (*plot_cols)[index]) << " lt palette frac " << std::fixed << col_frac;
+            plot_str << createSinglePlotString(args.mx_arg, (*plot_cols)[index]) << " lt palette frac " << std::fixed << col_frac;
         }
 
         asm_plot.cmd("set palette rgb 33,13,10");

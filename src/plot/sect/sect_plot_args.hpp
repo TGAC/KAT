@@ -30,18 +30,20 @@ namespace kat
 {
     const string DEFAULT_OUTPUT_TYPE = "png";
 
-    #define DEFAULT_TITLE "Sequence Coverage Plot"
-    #define DEFAULT_X_LABEL "Position (nt)"
-    #define DEFAULT_Y_LABEL "K-mer Coverage"
+    const string DEFAULT_TITLE      = "Sequence Coverage Plot";
+    const string DEFAULT_X_LABEL    = "Position (nt)";
+    const string DEFAULT_Y_LABEL    = "K-mer Coverage";
 
-    const uint32_t DEFAULT_Y_MAX = -1;
-    const uint16_t DEFAULT_WIDTH = 1024;
-    const uint16_t DEFAULT_HEIGHT = 1024;
+    const uint32_t DEFAULT_Y_MAX    = 1000;
+    const uint16_t DEFAULT_WIDTH    = 1024;
+    const uint16_t DEFAULT_HEIGHT   = 1024;
 
+    const uint32_t DEFAULT_FASTA_INDEX = 0;
 
     using std::cout;
     using std::cerr;
     using std::endl;
+    using std::ostringstream;
 
     class SectPlotArgs
     {
@@ -64,7 +66,7 @@ namespace kat
             sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
             x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
             width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            fasta_index(0), fasta_header(""),
+            fasta_index(DEFAULT_FASTA_INDEX), fasta_header(""),
             verbose(false)
         {
         }
@@ -74,17 +76,16 @@ namespace kat
             sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
             x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
             width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            fasta_index(0), fasta_header(""),
+            fasta_index(DEFAULT_FASTA_INDEX), fasta_header(""),
             verbose(false)
         {
             parse(argc, argv);
         }
 
 
-    #define sect_plot_args_USAGE "Usage: kat plot sect [options] -o <output_file_path> sect_output_file\n"
         const char * usage() const
         {
-            return sect_plot_args_USAGE;
+            return "Usage: kat plot sect [options] -o <output_file_path> sect_profile_file\n";
         }
 
         void error(const char *msg)
@@ -97,33 +98,34 @@ namespace kat
         }
 
 
-    #define sect_plot_args_HELP "Create Sequence Coverage Plot\n\n" \
-      "  Shows K-mer coverage level across an sequence.\n\n" \
-      "Options (default value in (), *required):\n" \
-      " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
-      "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
-      " -o, --output         Output file (<sect_file>.<output_type>)\n" \
-      " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
-      " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
-      " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
-      " -y  --y_max          Maximum value for the y-axis (Auto calculate max coverage in data)\n" \
-      " -w, --width          Width of canvas (1024)\n" \
-      " -h, --height         Height of canvas (1024)\n" \
-      " -n, --index          Index of fasta entry to plot.  First entry is 1. (0)\n" \
-      " -d, --header         Fasta header of fasta entry to plot.  Has priority over \'--index\'.\n" \
-      " -v, --verbose        Outputs additional information to stderr\n" \
-      "     --usage          Usage\n" \
-      "     --help           This message\n" \
-
-        const char * help() const
+        const string help() const
         {
-            return sect_plot_args_HELP;
+            ostringstream help;
+
+            help << "Create Sequence Coverage Plot" << endl << endl
+                 << "  Shows K-mer coverage level across an sequence." << endl << endl
+                 << "Options (default value in (), *required):" << endl
+                 << " -p, --output_type=string    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected" << endl
+                 << "                             please ensure your gnuplot installation can export pdf files. (\"" << DEFAULT_OUTPUT_TYPE << "\")" << endl
+                 << " -o, --output=string         Output file (<sect_profile_file>." << DEFAULT_OUTPUT_TYPE << "\")" << endl
+                 << " -t, --title=string          Title for plot (\"" << DEFAULT_TITLE << "\")" << endl
+                 << " -i, --x_label=string        Label for the x-axis (\"" << DEFAULT_X_LABEL << "\")" << endl
+                 << " -j, --y_label=string        Label for the y-axis (\"" << DEFAULT_Y_LABEL << "\")" << endl
+                 << " -y  --y_max=uint32          Maximum value for the y-axis (" << DEFAULT_Y_MAX << ", or value from matrix metadata if present)" << endl
+                 << " -w, --width=uint16          Width of canvas (" << DEFAULT_WIDTH << ")" << endl
+                 << " -h, --height=uint16         Height of canvas (" << DEFAULT_HEIGHT << ")" << endl
+                 << " -n, --index=uint32          Index of fasta entry to plot.  First entry is 1. (" << DEFAULT_FASTA_INDEX << ")" << endl
+                 << " -d, --header=string         Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over \'--index\'." << endl
+                 << " -v, --verbose               Outputs additional information to stderr" << endl
+                 << "     --usage                 Usage" << endl
+                 << "     --help                  This message" << endl;
+
+            return help.str().c_str();
         }
 
-    #define sect_plot_args_HIDDEN "Hidden options:"
         const char * hidden() const
         {
-            return sect_plot_args_HIDDEN;
+            return "Hidden options:";
         }
 
 

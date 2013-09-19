@@ -20,7 +20,8 @@ kat_SOURCES = \
 		inc/matrix/threaded_sparse_matrix.hpp \
 		inc/matrix/matrix_metadata_extractor.hpp \
                 inc/matrix/matrix_metadata_extractor.cc \
-		inc/string/str_utils.hpp \
+                inc/str_utils.hpp \
+                inc/common_args.hpp \
                 sect/sect_main.cc \
 		sect/sect.hpp \
 		sect/sect_args.hpp \

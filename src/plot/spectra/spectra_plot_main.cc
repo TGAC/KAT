@@ -28,7 +28,7 @@
 #include <iterator>
 
 #include <gnuplot/gnuplot_i.hpp>
-#include <string/str_utils.hpp>
+#include <str_utils.hpp>
 
 #include "spectra_plot_args.hpp"
 #include "spectra_plot_main.hpp"

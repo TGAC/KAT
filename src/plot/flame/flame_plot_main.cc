@@ -49,21 +49,21 @@ int kat::flamePlotStart(int argc, char *argv[])
 
 
     // Get plotting properties, either from file, or user.  User args have precedence.
-    uint16_t x_range = args.x_max != DEFAULT_X_MAX ? args.x_max : mme::getNumeric(*args.mx_arg, mme::KEY_NB_COLUMNS);
-    uint16_t y_range = args.y_max != DEFAULT_Y_MAX ? args.y_max : mme::getNumeric(*args.mx_arg, mme::KEY_NB_ROWS);
-    uint32_t z_cap = args.z_cap != DEFAULT_Z_CAP ? args.z_cap : mme::getNumeric(*args.mx_arg, mme::KEY_MAX_VAL);
+    uint16_t x_range = args.x_max != DEFAULT_X_MAX ? args.x_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_COLUMNS);
+    uint16_t y_range = args.y_max != DEFAULT_Y_MAX ? args.y_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_ROWS);
+    uint32_t z_cap = args.z_max != DEFAULT_Z_MAX ? args.z_max : mme::getNumeric(args.mx_arg, mme::KEY_MAX_VAL) / 10;        // Scale down from the max value to saturate the hot spots
 
-    string x_label = args.x_label.compare(DEFAULT_X_LABEL) != 0 ? args.x_label : mme::getString(*args.mx_arg, mme::KEY_X_LABEL);
-    string y_label = args.y_label.compare(DEFAULT_Y_LABEL) != 0 ? args.y_label : mme::getString(*args.mx_arg, mme::KEY_Y_LABEL);
-    string z_label = args.z_label.compare(DEFAULT_Z_LABEL) != 0 ? args.z_label : mme::getString(*args.mx_arg, mme::KEY_Z_LABEL);
+    string x_label = args.x_label.compare(DEFAULT_X_LABEL) != 0 ? args.x_label : mme::getString(args.mx_arg, mme::KEY_X_LABEL);
+    string y_label = args.y_label.compare(DEFAULT_Y_LABEL) != 0 ? args.y_label : mme::getString(args.mx_arg, mme::KEY_Y_LABEL);
+    string z_label = args.z_label.compare(DEFAULT_Z_LABEL) != 0 ? args.z_label : mme::getString(args.mx_arg, mme::KEY_Z_LABEL);
 
-    string title = args.title.compare(DEFAULT_TITLE) != 0 ? args.title : mme::getString(*args.mx_arg, mme::KEY_TITLE);
+    string title = args.title.compare(DEFAULT_TITLE) != 0 ? args.title : mme::getString(args.mx_arg, mme::KEY_TITLE);
 
 
     // If neither the user or the data file contain any ideas of what values to use then use defaults
     x_range = x_range == -1 ? 1001 : x_range;
     y_range = y_range == -1 ? 1001 : y_range;
-    z_cap = z_cap == -1 ? 10000 : z_cap / 2;    // Saturate the hot spots a bit to show more detail around the edges
+    z_cap = z_cap == -1 ? 10000 : z_cap;    // Saturate the hot spots a bit to show more detail around the edges
 
     x_label = x_label.empty() ? DEFAULT_X_LABEL : x_label;
     y_label = y_label.empty() ? DEFAULT_Y_LABEL : y_label;
@@ -92,7 +92,7 @@ int kat::flamePlotStart(int argc, char *argv[])
     // Start defining the plot
     Gnuplot flame("lines");
 
-    flame.configurePlot(*(args.output_type), output_path, args.width, args.height);
+    flame.configurePlot(args.output_type, output_path, args.width, args.height);
 
     flame.set_title(title);
     flame.set_xlabel(x_label);
@@ -117,7 +117,7 @@ int kat::flamePlotStart(int argc, char *argv[])
     flame.cmd(rangestr.str());
 
     std::ostringstream plotstr;
-    plotstr << "plot '" << args.mx_arg->c_str() << "' matrix with image";
+    plotstr << "plot '" << args.mx_arg.c_str() << "' matrix with image";
 
     flame.cmd(plotstr.str());
 

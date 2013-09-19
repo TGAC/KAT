@@ -120,16 +120,16 @@ namespace kat
 
             static struct option long_options[] =
             {
-                {"verbose", no_argument,       &verbose_flag, 'v'},
-                {"fasta",   required_argument, 0, 'f'},
-                {"output_prefix",  required_argument, 0, 'o'},
-                {"gc_bins", required_argument, 0, 'x'},
-                {"cvg_bins", required_argument, 0, 'y'},
-                {"cvg_logscale", no_argument,  &cvg_logscale_flag, 'l'},
-                {"threads", required_argument, 0, 't'},
-                {"both_strands", required_argument, 0, 'C'},
-                {"help",  no_argument,         &help_flag, 'h'},
-                {"usage", no_argument,         &usage_flag, 'u'},
+                {"verbose",         no_argument,        &verbose_flag, 'v'},
+                {"fasta",           required_argument,  0, 'f'},
+                {"output_prefix",   required_argument,  0, 'o'},
+                {"gc_bins",         required_argument,  0, 'x'},
+                {"cvg_bins",        required_argument,  0, 'y'},
+                {"cvg_logscale",    no_argument,        &cvg_logscale_flag, 'l'},
+                {"threads",         required_argument,  0, 't'},
+                {"both_strands",    required_argument,  0, 'C'},
+                {"help",            no_argument,        &help_flag, 'h'},
+                {"usage",           no_argument,        &usage_flag, 'u'},
                 {0, 0, 0, 0}
             };
 
@@ -194,6 +194,9 @@ namespace kat
                     break;
                 case 'C':
                     both_strands = true;
+                    break;
+                case 'l':
+                    cvg_logscale = true;
                     break;
                 }
             }

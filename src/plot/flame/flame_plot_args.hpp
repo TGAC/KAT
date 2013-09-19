@@ -29,57 +29,52 @@ using std::endl;
 
 namespace kat
 {
+    const string DEFAULT_OUTPUT_TYPE = "png";
+
     const string DEFAULT_TITLE      = "Title";
     const string DEFAULT_X_LABEL    = "X";
     const string DEFAULT_Y_LABEL    = "Y";
     const string DEFAULT_Z_LABEL    = "Z";
-    const int64_t DEFAULT_Z_CAP     = -1;
     const uint16_t DEFAULT_WIDTH    = 1024;
     const uint16_t DEFAULT_HEIGHT   = 1024;
-    const int32_t DEFAULT_X_MAX     = -1;
-    const int32_t DEFAULT_Y_MAX     = -1;
+    const int32_t DEFAULT_X_MAX     = 1000;
+    const int32_t DEFAULT_Y_MAX     = 1000;
+    const int64_t DEFAULT_Z_MAX     = 10000;
 
 
     class FlamePlotArgs
     {
     public:
-        string*     mx_arg;
-        string*     output_type;
-        string*     output_path;
+        string      mx_arg;
+        string      output_type;
+        string      output_path;
         string      title;
         string      x_label;
         string      y_label;
         string      z_label;
         int16_t     x_max;
         int16_t     y_max;
+        int64_t     z_max;
         uint16_t    width;
         uint16_t    height;
-        int64_t     z_cap;
         bool        verbose;
 
         // Default constructor
         FlamePlotArgs() :
-            mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), z_label(DEFAULT_Z_LABEL),
-            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
-        {
-            output_type = new string("png");
-        }
+            mx_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_path(""), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), z_label(DEFAULT_Z_LABEL),
+            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), verbose(false)
+        {}
 
         // Constructor that parses command line options
         FlamePlotArgs(int argc, char* argv[]) :
-            mx_arg(NULL), output_type(NULL), output_path(NULL), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), z_label(DEFAULT_Z_LABEL),
-            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), z_cap(DEFAULT_Z_CAP), verbose(false)
+            mx_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_path(""), title(DEFAULT_TITLE), x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), z_label(DEFAULT_Z_LABEL),
+            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX), width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT), verbose(false)
         {
-            output_type = new string("png");
             parse(argc, argv);
         }
 
         ~FlamePlotArgs()
-        {
-            delete mx_arg;
-            delete output_type;
-            delete output_path;
-        }
+        {}
 
 
     #define flame_plot_args_USAGE "Usage: kat plot flame [options] -o <output_file_path> matrix_path\n"
@@ -99,21 +94,24 @@ namespace kat
 
 
     #define flame_plot_args_HELP "Create K-mer Flame Plots\n\n" \
-      "  Creates a flame plot from a matrix created with the \"comp\" tool.  Typically this\n" \
-      "  is used to compare two K-mer hashes produced by different NGS reads.\n\n" \
+      "  Creates a scatter plot, where the \"heat\" in each point represents the number of\n" \
+      "  distinct K-mers at that point.  Typically this is used to visualise a matrix produced\n" \
+      "  by the \"kat comp\" tool to compare multiplicities from two K-mer hashes produced by\n" \
+      "  different NGS reads, or to visualise the GC vs K-mer multiplicity matricies produced\n" \
+      "  by the \"kat gcp\" tool.\n\n" \
       "Options (default value in (), *required):\n" \
       " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
       "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
       " -o, --output         Output file (<matrix_path>.<output_type>)\n" \
-      " -t, --title          Title for plot\n" \
-      " -i, --x_label        Label for the x-axis\n" \
-      " -j, --y_label        Label for the y-axis\n" \
-      " -k, --z_label        Label for the z-axis\n" \
-      " -x, --x_max          Maximum value for the x-axis\n" \
-      " -y  --y_max          Maximum value for the y-axis\n" \
+      " -t, --title          Title for plot (\"Title\", or value from matrix metadata if present)\n" \
+      " -i, --x_label        Label for the x-axis (\"X\", or value from matrix metadata if present)\n" \
+      " -j, --y_label        Label for the y-axis (\"Y\", or value from matrix metadata if present)\n" \
+      " -k, --z_label        Label for the z-axis (\"Z\", or value from matrix metadata if present)\n" \
+      " -x, --x_max          Maximum value for the x-axis (1000, or value from matrix metadata if present)\n" \
+      " -y  --y_max          Maximum value for the y-axis (1000, or value from matrix metadata if present)\n" \
+      " -z, --z_max          Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000, or value from matrix metadata if present)\n" \
       " -w, --width          Width of canvas (1024)\n" \
       " -h, --height         Height of canvas (1024)\n" \
-      " -z, --z_cap          Cap for matrix values.  Values greater than this cap will be displayed at maximum intensity, i.e. white. (10000)\n" \
       " -v, --verbose        Outputs additional information to stderr\n" \
       "     --usage          Usage\n" \
       "     --help           This message\n"
@@ -147,9 +145,9 @@ namespace kat
                 {"z_label",         required_argument,  0, 'k'},
                 {"x_max",           required_argument,  0, 'x'},
                 {"y_max",           required_argument,  0, 'y'},
+                {"z_max",           required_argument,  0, 'z'},
                 {"width",           required_argument,  0, 'w'},
                 {"height",          required_argument,  0, 'h'},
-                {"z_cap",           required_argument,  0, 'z'},
                 {"help",            no_argument,        &help_flag, 1},
                 {"usage",           no_argument,        &usage_flag, 1},
                 {0, 0, 0, 0}
@@ -191,11 +189,10 @@ namespace kat
                     verbose = true;
                     break;
                 case 'o':
-                    output_path = new string(optarg);
+                    output_path = string(optarg);
                     break;
                 case 'p':
-                    delete output_type;
-                    output_type = new string(optarg);
+                    output_type = string(optarg);
                     break;
                 case 't':
                     title = string(optarg);
@@ -215,15 +212,15 @@ namespace kat
                 case 'y':
                     y_max = atoi(optarg);
                     break;
+                case 'z':
+                    z_max = atoi(optarg);
+                    break;
                 case 'w':
                     width = atoi(optarg);
                     break;
                 case 'h':
                     height = atoi(optarg);
-                    break;
-                case 'z':
-                    z_cap = atoi(optarg);
-                    break;
+                    break;                
                 }
             }
 
@@ -244,15 +241,16 @@ namespace kat
             // Parse arguments
             if(argc - optind != 1)
                 error("Requires exactly 1 argument.");
-            mx_arg = new string(argv[optind++]);
+
+            mx_arg = string(argv[optind++]);
         }
 
         // Work out the output path to use (either user specified or auto generated)
         string determineOutputPath()
         {
             std::ostringstream output_str;
-            output_str << *mx_arg << "." << *output_type;
-            return output_path == NULL ? output_str.str() : *output_path;
+            output_str << mx_arg << "." << output_type;
+            return output_path.empty() ? output_str.str() : output_path;
         }
 
 
@@ -261,41 +259,18 @@ namespace kat
             if (verbose)
                 cerr << "Verbose flag set\n";
 
-            if (output_type != NULL)
-                cerr << "Output type: " << *output_type << endl;
-
-            if (output_path != NULL)
-                cerr << "Output file specified: " << *output_path << endl;
-
-            if (mx_arg != NULL)
-                cerr << "K-mer Matrix input file specified: " << *mx_arg << endl;
-
-            if (!title.empty())
-                cerr << "Plot title: " << title << endl;
-
-            if (!x_label.empty())
-                cerr << "X Label: " << x_label << endl;
-
-            if (!y_label.empty())
-                cerr << "Y Label: " << y_label << endl;
-
-            if (!z_label.empty())
-                cerr << "Z Label: " << z_label << endl;
-
-            if (x_max)
-                cerr << "X Max: " << x_max << endl;
-
-            if (y_max)
-                cerr << "Y Max: " << y_max << endl;
-
-            if (width)
-                cerr << "Width: " << width << endl;
-
-            if (height)
-                cerr << "Height: " << height << endl;
-
-            if (z_cap)
-                cerr << "Z cap: " << z_cap << endl;
+            cerr << "Output type: " << output_type.c_str() << endl;
+            cerr << "Output file specified: " << output_path.c_str() << endl;
+            cerr << "K-mer matrix input file specified: " << mx_arg.c_str() << endl;
+            cerr << "Plot title: " << title << endl;
+            cerr << "X Label: " << x_label << endl;
+            cerr << "Y Label: " << y_label << endl;
+            cerr << "Z Label: " << z_label << endl;
+            cerr << "X Max: " << x_max << endl;
+            cerr << "Y Max: " << y_max << endl;
+            cerr << "Z Max: " << z_max << endl;
+            cerr << "Width: " << width << endl;
+            cerr << "Height: " << height << endl;
 
             cerr << endl;
         }

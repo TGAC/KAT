@@ -23,135 +23,81 @@
 #include <stdint.h>
 #include <vector>
 
-using std::string;
-using std::cerr;
-using std::cout;
-
-const string DEFAULT_OUTPUT_TYPE = "png";
-
-#define DEFAULT_OUTPUT_FILE_PREFIX "kat-spectra"
-#define DEFAULT_TITLE "K-mer Spectra"
-#define DEFAULT_X_LABEL "K-mer Multiplicity"
-#define DEFAULT_Y_LABEL "Distinct K-mers"
-
-const uint32_t DEFAULT_X_MIN = 0;
-const uint32_t DEFAULT_Y_MIN = 0;
-const uint32_t DEFAULT_X_MAX = 10000;
-const uint32_t DEFAULT_Y_MAX = 1000000;
-const bool DEFAULT_X_LOGSCALE = false;
-const bool DEFAULT_Y_LOGSCALE = false;
-const uint16_t DEFAULT_WIDTH = 1024;
-const uint16_t DEFAULT_HEIGHT = 1024;
+#include <common_args.hpp>
 
 using std::vector;
 using std::string;
 using std::cout;
 using std::cerr;
 using std::endl;
+using std::ostringstream;
 
 namespace kat
 {
-    class SpectraPlotArgs
+    const string DEFAULT_OUTPUT_TYPE = "png";
+    const string DEFAULT_OUTPUT_FILE_PREFIX = "kat-spectra";
+    const string DEFAULT_TITLE              = "K-mer Spectra";
+    const string DEFAULT_X_LABEL            = "K-mer Multiplicity";
+    const string DEFAULT_Y_LABEL            = "Distinct K-mers";
+
+    const uint32_t DEFAULT_X_MIN = 0;
+    const uint32_t DEFAULT_Y_MIN = 0;
+    const uint32_t DEFAULT_X_MAX = 10000;
+    const uint32_t DEFAULT_Y_MAX = 1000000;
+    const bool DEFAULT_X_LOGSCALE = false;
+    const bool DEFAULT_Y_LOGSCALE = false;
+    const uint16_t DEFAULT_WIDTH = 1024;
+    const uint16_t DEFAULT_HEIGHT = 1024;
+
+    const uint16_t MIN_ARGS = 1;
+
+    class SpectraPlotArgs : public BaseArgs
     {
-    public:
-        vector<string> histo_paths;
-        string  output_type;
-        string  output_arg;
-        string  title;
-        string  x_label;
-        string  y_label;
-        uint32_t x_min;
-        uint32_t y_min;
-        uint32_t x_max;
-        uint32_t y_max;
-        bool x_logscale;
-        bool y_logscale;
-        uint16_t width;
-        uint16_t height;
-        bool verbose;
+    protected:
 
-        // Default constructor
-        SpectraPlotArgs() :
-            histo_paths(vector<string>()), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
-            x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
-            x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE),
-            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            verbose(false)
+        // These methods override base class virtual methods
+
+        const char* usage() const
         {
+            return "Usage: kat plot spectra [options] -o <output_file_path> histo_file [histo_file ...]*";
         }
 
-        // Constructor that parses command line options
-        SpectraPlotArgs(int argc, char* argv[]) :
-            histo_paths(vector<string>()), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
-            x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
-            x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE),
-            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            verbose(false)
+        const char* shortDescription() const
         {
-            parse(argc, argv);
+            return "Create K-mer Spectra Plot";
         }
 
-
-    #define spectra_plot_args_USAGE "Usage: kat plot spectra [options] -o <output_file_path> [list of space separated histo files]\n"
-        const char * usage() const
+        const char* longDescription() const
         {
-            return spectra_plot_args_USAGE;
+            return "  Shows K-mer spectras from kat-histo or jellyfish-histo output.";
         }
 
-        void error(const char *msg)
+        const string optionsList() const
         {
-            cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl
-                 << "Use --help for more information" << endl;
-            exit(1);
+            ostringstream help_str;
+
+            help_str << " -p, --output_type=string    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected" << endl
+                 << "                             please ensure your gnuplot installation can export pdf files. (\"" << DEFAULT_OUTPUT_TYPE << "\")" << endl
+                 << " -o, --output=string         Output file (\"" << DEFAULT_OUTPUT_FILE_PREFIX << "." << DEFAULT_OUTPUT_TYPE << "\")" << endl
+                 << " -t, --title=string          Title for plot (\"" << DEFAULT_TITLE << "\")" << endl
+                 << " -i, --x_label=string        Label for the x-axis (\"" << DEFAULT_X_LABEL << "\")" << endl
+                 << " -j, --y_label=string        Label for the y-axis (\"" << DEFAULT_Y_LABEL << "\")" << endl
+                 << " -r  --x_min=uint32          Minimum value for the x-axis (" << DEFAULT_X_MIN << ")" << endl
+                 << " -s  --y_min=uint32          Minimum value for the y-axis (" << DEFAULT_Y_MIN << ")" << endl
+                 << " -x  --x_max=uint32          Maximum value for the x-axis (" << DEFAULT_X_MAX << ")" << endl
+                 << " -y  --y_max=uint32          Maximum value for the y-axis (Auto calculate \'--y_max\' from data)" << endl
+                 << " -l  --x_logscale            X-axis is logscale.  This overrides the x_min and x_max limits." << endl
+                 << " -m  --y_logscale            Y-axis is logscale.  This overrides the y_min and y_max limits." << endl
+                 << " -w, --width=uint16          Width of canvas (" << DEFAULT_WIDTH << ")" << endl
+                 << " -h, --height=uint16         Height of canvas (" << DEFAULT_HEIGHT << ")";
+
+            return help_str.str();
         }
 
-
-    #define spectra_plot_args_HELP "Create K-mer Spectra Plot\n\n" \
-      "  Shows K-mer spectras from kat-histo or jellyfish-histo output.\n\n" \
-      "Options (default value in (), *required):\n" \
-      " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
-      "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
-      " -o, --output         Output file (" DEFAULT_OUTPUT_FILE_PREFIX ".png)\n" \
-      " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
-      " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
-      " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
-      " -r  --x_min          Minimum value for the x-axis (0)\n" \
-      " -s  --y_min          Minimum value for the y-axis (0)\n" \
-      " -x  --x_max          Maximum value for the x-axis (1000)\n" \
-      " -y  --y_max          Maximum value for the y-axis (Auto calculate max y in data)\n" \
-      " -l  --x_logscale     X-axis is logscale.  This overrides the x_min and x_max limits. (false)\n" \
-      " -m  --y_logscale     Y-axis is logscale.  This overrides the y_min and y_max limits. (false)\n" \
-      " -w, --width          Width of canvas (1024)\n" \
-      " -h, --height         Height of canvas (1024)\n" \
-      " -v, --verbose        Outputs additional information to stderr\n" \
-      "     --usage          Usage\n" \
-      "     --help           This message\n" \
-
-        const char * help() const
+        vector<option>* longOptions()
         {
-            return spectra_plot_args_HELP;
-        }
-
-    #define spectra_plot_args_HIDDEN "Hidden options:"
-        const char * hidden() const
-        {
-            return spectra_plot_args_HIDDEN;
-        }
-
-
-        void parse(int argc, char *argv[])
-        {
-            int c;
-            int help_flag = 0;
-            int usage_flag = 0;
-
-            static struct option long_options[] =
+            static struct option long_options_array[] =
             {
-                {"verbose",         no_argument,        0, 'v'},
                 {"output_type",     required_argument,  0, 'p'},
                 {"output",          required_argument,  0, 'o'},
                 {"title",           required_argument,  0, 't'},
@@ -166,115 +112,140 @@ namespace kat
                 {"width",           required_argument,  0, 'w'},
                 {"height",          required_argument,  0, 'h'},
                 {"index",           required_argument,  0, 'n'},
-                {"header",          required_argument,  0, 'd'},
-                {"help",            no_argument,        &help_flag, 1},
-                {"usage",           no_argument,        &usage_flag, 1},
-                {0, 0, 0, 0}
+                {"header",          required_argument,  0, 'd'}
             };
 
-            static const char *short_options = "o:p:t:i:j:r:s:x:y:lmw:h:n:d:vuh";
+            vector<option>* long_options = new vector<option>();
 
-            if (argc <= 1)
+            for(uint8_t i = 0; i < 15; i++)
             {
-                cerr << endl
-                     << usage() << endl
-                     << help() << endl;
-                exit(1);
+                long_options->push_back(long_options_array[i]);
             }
 
-            while (true)
+            return long_options;
+        }
+
+        const char* shortOptions() const
+        {
+            return "o:p:t:i:j:r:s:x:y:lmw:h:n:d:";
+        }
+
+        void setOption(int c, char* option_arg) {
+
+            switch(c)
             {
-                /* getopt_long stores the option index here. */
-                int index = -1;
-
-                c = getopt_long (argc, argv, short_options, long_options, &index);
-
-                /* Detect the end of the options. */
-                if (c == -1)
-                    break;
-
-                switch (c)
-                {
-                case ':':
-                    cerr << "Missing required argument for "
-                              << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                              << endl;
-                    exit(1);
-                case '?':
-                    cerr << "Use --usage or --help for some help" << endl << endl;
-                    exit(1);
-                case 'v':
-                    verbose = true;
-                    break;
-                case 'o':
-                    output_arg = string(optarg);
-                    break;
-                case 'p':
-                    output_type = string(optarg);
-                    break;
-                case 't':
-                    title = string(optarg);
-                    break;
-                case 'i':
-                    x_label = string(optarg);
-                    break;
-                case 'j':
-                    y_label = string(optarg);
-                    break;
-                case 'r':
-                    x_min = atoi(optarg);
-                    break;
-                case 's':
-                    y_min = atoi(optarg);
-                    break;
-                case 'x':
-                    x_max = atoi(optarg);
-                    break;
-                case 'y':
-                    y_max = atoi(optarg);
-                    break;
-                case 'l':
-                    x_logscale = true;
-                    break;
-                case 'm':
-                    y_logscale = true;
-                    break;
-                case 'w':
-                    width = atoi(optarg);
-                    break;
-                case 'h':
-                    height = atoi(optarg);
-                    break;
-                }
-            }
-
-            if (help_flag)
-            {
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            }
-
-            if (usage_flag)
-            {
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
-            }
-
-            int remaining_args = argc - optind;
-
-            // Parse arguments
-            if(remaining_args < 1)
-                error("Requires at least 1 argument.");
-
-
-            // Add all remaining arguments to file list
-            for(uint8_t i = 0; i < remaining_args; i++)
-            {
-                histo_paths.push_back(string(argv[optind++]));
+            case 'o':
+                output_arg = string(option_arg);
+                break;
+            case 'p':
+                output_type = string(option_arg);
+                break;
+            case 't':
+                title = string(option_arg);
+                break;
+            case 'i':
+                x_label = string(option_arg);
+                break;
+            case 'j':
+                y_label = string(option_arg);
+                break;
+            case 'r':
+                x_min = atoi(option_arg);
+                break;
+            case 's':
+                y_min = atoi(option_arg);
+                break;
+            case 'x':
+                x_max = atoi(option_arg);
+                break;
+            case 'y':
+                y_max = atoi(option_arg);
+                break;
+            case 'l':
+                x_logscale = true;
+                break;
+            case 'm':
+                y_logscale = true;
+                break;
+            case 'w':
+                width = atoi(option_arg);
+                break;
+            case 'h':
+                height = atoi(option_arg);
+                break;
             }
         }
+
+
+        void processRemainingArgs(const vector<string>& remaining_args)
+        {
+            histo_paths = remaining_args;
+        }
+
+
+
+        const char* currentStatus() const
+        {
+            ostringstream status;
+
+            status << "Output type: " << output_type.c_str() << endl;
+            status << "Output file specified: " << output_arg.c_str() << endl;
+            status << "Plot title: " << title << endl;
+            status << "X Label: " << x_label << endl;
+            status << "Y Label: " << y_label << endl;
+            status << "X Min: " << x_min << endl;
+            status << "Y Min: " << y_min << endl;
+            status << "X Max: " << x_max << endl;
+            status << "Y Max: " << y_max << endl;
+            status << "X Logscale: " << x_logscale << endl;
+            status << "Y Logscale: " << y_logscale << endl;
+            status << "Width: " << width << endl;
+            status << "Height: " << height << endl;
+
+            return status.str().c_str();
+        }
+
+    public:
+
+        vector<string> histo_paths;
+        string  output_type;
+        string  output_arg;
+        string  title;
+        string  x_label;
+        string  y_label;
+        uint32_t x_min;
+        uint32_t y_min;
+        uint32_t x_max;
+        uint32_t y_max;
+        bool x_logscale;
+        bool y_logscale;
+        uint16_t width;
+        uint16_t height;
+
+        // Default constructor
+        SpectraPlotArgs() :
+            BaseArgs(MIN_ARGS), histo_paths(vector<string>()), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
+            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+            x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
+            x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE),
+            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT)
+        {
+        }
+
+        // Constructor that parses command line options
+        SpectraPlotArgs(int argc, char* argv[]) :
+            BaseArgs(MIN_ARGS), histo_paths(vector<string>()), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
+            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
+            x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
+            x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE),
+            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT)
+        {
+            parse(argc, argv);
+        }
+
+        ~SpectraPlotArgs()
+        {}
+
 
         // Work out the output path to use (either user specified or auto generated)
         string determineOutputPath()
@@ -284,28 +255,5 @@ namespace kat
             return output_arg.empty() ? output_str.str() : output_arg;
         }
 
-
-        void print()
-        {
-            if (verbose)
-                cerr << "Verbose flag set" << endl;
-
-            cerr << "Output type: " << output_type.c_str() << endl;
-            cerr << "Output file specified: " << output_arg.c_str() << endl;
-            //cerr << "SECT input file specified: " << sect_file_arg.c_str() << endl;
-            cerr << "Plot title: " << title << endl;
-            cerr << "X Label: " << x_label << endl;
-            cerr << "Y Label: " << y_label << endl;
-            cerr << "X Min: " << x_min << endl;
-            cerr << "Y Min: " << y_min << endl;
-            cerr << "X Max: " << x_max << endl;
-            cerr << "Y Max: " << y_max << endl;
-            cerr << "X Logscale: " << x_logscale << endl;
-            cerr << "Y Logscale: " << y_logscale << endl;
-            cerr << "Width: " << width << endl;
-            cerr << "Height: " << height << endl;
-
-            cerr << endl;
-        }
     };
 }

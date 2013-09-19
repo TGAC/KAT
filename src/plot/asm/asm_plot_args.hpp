@@ -28,18 +28,17 @@ using std::cout;
 
 namespace kat
 {
+    const string    DEFAULT_OUTPUT_TYPE = "png";
 
-    #define DEFAULT_TITLE "Assembly duplication histogram"
-    #define DEFAULT_X_LABEL "K-mer Multiplicity"
-    #define DEFAULT_Y_LABEL "Distinct K-mer Count"
+    const string    DEFAULT_TITLE       = "Assembly duplication histogram";
+    const string    DEFAULT_X_LABEL     = "K-mer Multiplicity";
+    const string    DEFAULT_Y_LABEL     = "Distinct K-mer Count";
+    const uint16_t  DEFAULT_WIDTH       = 1024;
+    const uint16_t  DEFAULT_HEIGHT      = 1024;
+    const int32_t   DEFAULT_X_MAX       = 1000;
+    const int32_t   DEFAULT_Y_MAX       = 1000000;
 
-    #define DEFAULT_X_MAX 1000
-    #define DEFAULT_Y_MAX 1000000
-
-    #define DEFAULT_WIDTH 1024
-    #define DEFAULT_HEIGHT 1024
-
-    #define DEFAULT_DUPLICATION 5
+    const uint16_t  DEFAULT_DUPLICATION = 5;
 
     using std::cout;
     using std::cerr;
@@ -48,57 +47,48 @@ namespace kat
     class AsmPlotArgs
     {
     public:
-        string*  mx_arg;
-        string*  output_type;
-        string*  output_arg;
-        const char*  title;
-        const char*  x_label;
-        const char*  y_label;
-        uint16_t x_max;
-        uint64_t y_max;
-        uint16_t width;
-        uint16_t height;
-        bool ignore_absent;
-        uint16_t max_duplication;
-        string* columns;
-        bool verbose;
+        string      mx_arg;
+        string      output_type;
+        string      output_arg;
+        string      title;
+        string      x_label;
+        string      y_label;
+        uint16_t    x_max;
+        uint64_t    y_max;
+        uint16_t    width;
+        uint16_t    height;
+        bool        ignore_absent;
+        uint16_t    max_duplication;
+        string      columns;
+        bool        verbose;
 
         // Default constructor
         AsmPlotArgs() :
-            mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE),
+            mx_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
             x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
             x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
             width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
             ignore_absent(false), max_duplication(DEFAULT_DUPLICATION),
-            verbose(false)
-        {
-            output_type = new string("png");
-            columns = NULL;
-        }
+            columns(""), verbose(false)
+        {}
 
         // Constructor that parses command line options
         AsmPlotArgs(int argc, char* argv[]) :
-            mx_arg(NULL), output_type(NULL), output_arg(NULL), title(DEFAULT_TITLE),
+            mx_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
             x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
             x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
             width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
             ignore_absent(false), max_duplication(DEFAULT_DUPLICATION),
-            verbose(false)
+            columns(""), verbose(false)
         {
-            output_type = new string("png");
-            columns = NULL;
             parse(argc, argv);
         }
 
         ~AsmPlotArgs()
-        {
-            delete mx_arg;
-            delete output_type;
-            delete output_arg;
-        }
+        {}
 
 
-    #define asm_plot_args_USAGE "Usage: kat plot flame [options] -o <output_file_path> matrix_path\n"
+    #define asm_plot_args_USAGE "Usage: kat plot asm [options] -o <output_file_path> matrix_path\n"
         const char * usage() const
         {
             return asm_plot_args_USAGE;
@@ -120,9 +110,9 @@ namespace kat
       " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
       "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
       " -o, --output         Output file (<matrix_path>.<output_type>)\n" \
-      " -t, --title          Title for plot (" DEFAULT_TITLE ")\n" \
-      " -i, --x_label        Label for the x-axis (" DEFAULT_X_LABEL ")\n" \
-      " -j, --y_label        Label for the y-axis (" DEFAULT_Y_LABEL ")\n" \
+      " -t, --title          Title for plot (\"Assembly duplication histogram\")\n" \
+      " -i, --x_label        Label for the x-axis (\"K-mer Multiplicity\")\n" \
+      " -j, --y_label        Label for the y-axis (\"Distinct K-mer Count\")\n" \
       " -x  --x_max          Maximum value for the x-axis (1000)\n" \
       " -y  --y_max          Maximum value for the y-axis (10000000)\n" \
       " -w, --width          Width of canvas (1024)\n" \
@@ -205,11 +195,10 @@ namespace kat
                     verbose = true;
                     break;
                 case 'o':
-                    output_arg = new string(optarg);
+                    output_arg = string(optarg);
                     break;
                 case 'p':
-                    delete output_type;
-                    output_type = new string(optarg);
+                    output_type = string(optarg);
                     break;
                 case 't':
                     title = optarg;
@@ -239,7 +228,7 @@ namespace kat
                     max_duplication = atoi(optarg);
                     break;
                 case 'c':
-                    columns = new string(optarg);
+                    columns = string(optarg);
                     break;
                 }
             }
@@ -262,15 +251,15 @@ namespace kat
             if(argc - optind != 1)
                 error("Requires exactly 1 argument.");
 
-            mx_arg = new string(argv[optind++]);
+            mx_arg = string(argv[optind++]);
         }
 
         // Work out the output path to use (either user specified or auto generated)
         string determineOutputPath()
         {
             std::ostringstream output_str;
-            output_str << *mx_arg << "." << *output_type;
-            return output_arg == NULL ? output_str.str() : *output_arg;
+            output_str << mx_arg << "." << output_type;
+            return output_arg.empty() ? output_str.str() : output_arg;
         }
 
 
@@ -279,43 +268,30 @@ namespace kat
             if (verbose)
                 cerr << "Verbose flag set" << endl;
 
-            if (output_type != NULL)
-                cerr << "Output type: " << output_type->c_str() << endl;
+                cerr << "Output type: " << output_type << endl;
 
-            if (output_arg != NULL)
-                cerr << "Output file specified: " << output_arg->c_str() << endl;
+                cerr << "Output file specified: " << output_arg << endl;
 
-            if (mx_arg != NULL)
-                cerr << "K-mer Matrix input file specified: " << mx_arg->c_str() << endl;
+                cerr << "K-mer Matrix input file specified: " << mx_arg << endl;
 
-            if (title)
                 cerr << "Plot title: " << title << endl;
 
-            if (x_label)
                 cerr << "X Label: " << x_label << endl;
 
-            if (y_label)
                 cerr << "Y Label: " << y_label << endl;
 
-            if (x_max)
                 cerr << "X Max: " << x_max << endl;
 
-            if (y_max)
                 cerr << "Y Max: " << y_max << endl;
 
-            if (width)
                 cerr << "Width: " << width << endl;
 
-            if (height)
                 cerr << "Height: " << height << endl;
 
-            if (max_duplication)
                 cerr << "Max duplication level to plot: " << max_duplication << endl;
 
-            if (columns)
-                cerr << "Columns to plot: " << columns->c_str() << endl;
+                cerr << "Columns to plot: " << columns << endl;
 
-            if (ignore_absent)
                 cerr << "Ignore absent K-mers: " << ignore_absent << endl;
 
 
