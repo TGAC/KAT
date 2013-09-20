@@ -50,7 +50,7 @@ int kat::histoStart(int argc, char *argv[])
         args.print();
 
     // Setup output channel
-    ofstream_default out(args.output, std::cout);
+    ofstream_default out(args.output.c_str(), std::cout);
     if(!out.good())
         die << "Error opening output file '" << args.output << "'" << err::no;
 

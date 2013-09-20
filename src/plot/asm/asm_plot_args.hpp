@@ -22,65 +22,161 @@
 #include <iostream>
 #include <stdint.h>
 
+#include "../common_plot_args.hpp"
+
 using std::string;
 using std::cerr;
 using std::cout;
 
 namespace kat
 {
-    const string    DEFAULT_OUTPUT_TYPE = "png";
 
-    const string    DEFAULT_TITLE       = "Assembly duplication histogram";
-    const string    DEFAULT_X_LABEL     = "K-mer Multiplicity";
-    const string    DEFAULT_Y_LABEL     = "Distinct K-mer Count";
-    const uint16_t  DEFAULT_WIDTH       = 1024;
-    const uint16_t  DEFAULT_HEIGHT      = 1024;
-    const int32_t   DEFAULT_X_MAX       = 1000;
-    const int32_t   DEFAULT_Y_MAX       = 1000000;
+    const int32_t   DEFAULT_X_MAX           = 1000;
+    const int32_t   DEFAULT_Y_MAX           = 1000000;
+    const uint16_t  DEFAULT_DUPLICATION     = 5;
+    const bool      DEFAULT_IGNORE_ABSENT   = false;
 
-    const uint16_t  DEFAULT_DUPLICATION = 5;
+    const uint16_t MIN_ARGS = 1;
 
-    using std::cout;
-    using std::cerr;
-    using std::endl;
 
-    class AsmPlotArgs
+    class AsmPlotArgs : public BasePlotArgs
     {
+    protected:
+
+        // ***********************************************
+        // These methods override BaseArgs virtual methods
+
+        const char* usage() const
+        {
+            return "Usage: kat plot asm [options] <matrix_file>\n";
+        }
+
+        const char* shortDescription() const
+        {
+            return "Creates a stacked histogram showing level of duplication in an assembly";
+        }
+
+        const char* longDescription() const
+        {
+            return  "  Shows K-mer duplication levels within an assembly by comparing K-mers fround in sequenced reads, to K-mers found in an assembly of those reads.\n" \
+                    "  Uses matrix output from the \"kat comp\" tool";
+        }
+
+        const string optionsDescription() const
+        {
+            ostringstream help_str;
+
+            help_str << BasePlotArgs::optionsDescription() << endl
+                     << " -x  --x_max=uint16          Maximum value for the x-axis (1000)" << endl
+                     << " -y  --y_max=uint64          Maximum value for the y-axis (10000000)" << endl
+                     << " -a, --ignore_absent         Ignore K-mers in reads but absent from the assembly" << endl
+                     << " -m, --max_dup=uint16        Maximum duplication level to show in plots (5)" << endl
+                     << " -c, --columns=string        Comma separated string listing columns to show in plot.  If used," << endl
+                     << "                             this overrides \"--ignore_absent\" and \"--columns\"";
+
+            return help_str.str();
+        }
+
+        vector<option>* longOptions()
+        {
+            static struct option long_options_array[] =
+            {
+                {"x_max",           required_argument,  0, 'x'},
+                {"y_max",           required_argument,  0, 'y'},
+                {"ignore_absent",   no_argument,        0, 'a'},
+                {"max_dup",         required_argument,  0, 'm'},
+                {"columns",         required_argument,  0, 'c'},
+            };
+
+            vector<option>* long_options = BasePlotArgs::longOptions();
+
+            for(uint8_t i = 0; i < 5; i++)
+            {
+                long_options->push_back(long_options_array[i]);
+            }
+
+            return long_options;
+        }
+
+        string shortOptions()
+        {
+            return BasePlotArgs::shortOptions() + "x:y:a:m:c";
+        }
+
+        void setOption(int c, char* option_arg) {
+
+            BasePlotArgs::setOption(c, option_arg);
+
+            switch(c)
+            {
+            case 'x':
+                x_max = atoi(optarg);
+                break;
+            case 'y':
+                y_max = atol(optarg);
+                break;
+            case 'a':
+                ignore_absent = true;
+                break;
+            case 'm':
+                max_duplication = atoi(optarg);
+                break;
+            case 'c':
+                columns = string(optarg);
+                break;
+            }
+        }
+
+
+        void processRemainingArgs(const vector<string>& remaining_args)
+        {
+            mx_arg = remaining_args[0];
+        }
+
+
+
+        const char* currentStatus() const
+        {
+            ostringstream status;
+
+            status  << BasePlotArgs::currentStatus()
+                    << "X Max: " << x_max << endl
+                    << "Y Max: " << y_max << endl
+                    << "Max duplication level to plot: " << max_duplication << endl
+                    << "Columns to plot: " << columns << endl
+                    << "Ignore absent K-mers: " << ignore_absent << endl;
+
+            return status.str().c_str();
+        }
     public:
         string      mx_arg;
-        string      output_type;
-        string      output_arg;
-        string      title;
-        string      x_label;
-        string      y_label;
         uint16_t    x_max;
         uint64_t    y_max;
-        uint16_t    width;
-        uint16_t    height;
         bool        ignore_absent;
         uint16_t    max_duplication;
         string      columns;
-        bool        verbose;
 
         // Default constructor
-        AsmPlotArgs() :
-            mx_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
-            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
-            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            ignore_absent(false), max_duplication(DEFAULT_DUPLICATION),
-            columns(""), verbose(false)
-        {}
+        AsmPlotArgs() : BasePlotArgs(MIN_ARGS),
+            mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), columns("")
+        {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
+        }
 
         // Constructor that parses command line options
-        AsmPlotArgs(int argc, char* argv[]) :
-            mx_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL),
-            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
-            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            ignore_absent(false), max_duplication(DEFAULT_DUPLICATION),
-            columns(""), verbose(false)
+        AsmPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
+            mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), columns("")
         {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
+
             parse(argc, argv);
         }
 
@@ -88,214 +184,15 @@ namespace kat
         {}
 
 
-    #define asm_plot_args_USAGE "Usage: kat plot asm [options] -o <output_file_path> matrix_path\n"
-        const char * usage() const
-        {
-            return asm_plot_args_USAGE;
-        }
+        // ***************************************************
+        // These methods override BasePlotArgs virtual methods
 
-        void error(const char *msg)
-        {
-            cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl
-                 << "Use --help for more information" << endl;
-            exit(1);
-        }
+        const string defaultOutputPrefix() const    { return "kat-plot-asm"; }
+        const string defaultTitle() const           { return "Assembly duplication histogram"; }
+        const string defaultXLabel() const          { return "K-mer Multiplicity"; }
+        const string defaultYLabel() const          { return "Distinct K-mer Count"; }
+        const uint16_t defaultWidth() const         { return 1024; }
+        const uint16_t defaultHeight() const        { return 1024; }
 
-
-    #define asm_plot_args_HELP "Create Assembly K-mer Histograms\n\n" \
-      "  Shows K-mer duplication levels within an assembly.\n\n" \
-      "Options (default value in (), *required):\n" \
-      " -p, --output_type    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected\n" \
-      "                      please ensure your gnuplot installation can export pdf files. (png)\n" \
-      " -o, --output         Output file (<matrix_path>.<output_type>)\n" \
-      " -t, --title          Title for plot (\"Assembly duplication histogram\")\n" \
-      " -i, --x_label        Label for the x-axis (\"K-mer Multiplicity\")\n" \
-      " -j, --y_label        Label for the y-axis (\"Distinct K-mer Count\")\n" \
-      " -x  --x_max          Maximum value for the x-axis (1000)\n" \
-      " -y  --y_max          Maximum value for the y-axis (10000000)\n" \
-      " -w, --width          Width of canvas (1024)\n" \
-      " -h, --height         Height of canvas (1024)\n" \
-      " -a, --ignore_absent  Ignore K-mers in reads but absent from the assembly\n" \
-      " -m, --max_dup        Maximum duplication level to show in plots (5)\n" \
-      " -c, --columns        Comma separated string listing columns to show in plot.  If used, this overrides \"--ignore_absent\" and \"--columns\"\n" \
-      " -v, --verbose        Outputs additional information to stderr\n" \
-      "     --usage          Usage\n" \
-      "     --help           This message\n" \
-
-        const char * help() const
-        {
-            return asm_plot_args_HELP;
-        }
-
-    #define asm_plot_args_HIDDEN "Hidden options:"
-        const char * hidden() const
-        {
-            return asm_plot_args_HIDDEN;
-        }
-
-
-        void parse(int argc, char *argv[])
-        {
-            int c;
-            int help_flag = 0;
-            int usage_flag = 0;
-
-            static struct option long_options[] =
-            {
-                {"verbose",         no_argument,        0, 'v'},
-                {"output_type",     required_argument,  0, 'p'},
-                {"output",          required_argument,  0, 'o'},
-                {"title",           required_argument,  0, 't'},
-                {"x_label",         required_argument,  0, 'i'},
-                {"y_label",         required_argument,  0, 'j'},
-                {"x_max",           required_argument,  0, 'x'},
-                {"y_max",           required_argument,  0, 'y'},
-                {"ignore_absent",   no_argument,        0, 'a'},
-                {"max_dup",         required_argument,  0, 'm'},
-                {"columns",         required_argument,  0, 'c'},
-                {"help",            no_argument,        &help_flag, 1},
-                {"usage",           no_argument,        &usage_flag, 1},
-                {0, 0, 0, 0}
-            };
-
-            static const char *short_options = "o:p:t:i:j:x:y:w:h:m:c:avuh";
-
-            if (argc <= 1)
-            {
-                cerr << endl
-                     << usage() << endl
-                     << help() << endl;
-                exit(1);
-            }
-
-            while (true)
-            {
-                /* getopt_long stores the option index here. */
-                int index = -1;
-
-                c = getopt_long (argc, argv, short_options, long_options, &index);
-
-                /* Detect the end of the options. */
-                if (c == -1)
-                    break;
-
-                switch (c)
-                {
-                case ':':
-                    cerr << "Missing required argument for "
-                              << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                              << endl;
-                    exit(1);
-                case '?':
-                    cerr << "Use --usage or --help for some help" << endl << endl;
-                    exit(1);
-                case 'v':
-                    verbose = true;
-                    break;
-                case 'o':
-                    output_arg = string(optarg);
-                    break;
-                case 'p':
-                    output_type = string(optarg);
-                    break;
-                case 't':
-                    title = optarg;
-                    break;
-                case 'i':
-                    x_label = optarg;
-                    break;
-                case 'j':
-                    y_label = optarg;
-                    break;
-                case 'x':
-                    x_max = atoi(optarg);
-                    break;
-                case 'y':
-                    y_max = atol(optarg);
-                    break;
-                case 'w':
-                    width = atoi(optarg);
-                    break;
-                case 'h':
-                    height = atoi(optarg);
-                    break;
-                case 'a':
-                    ignore_absent = true;
-                    break;
-                case 'm':
-                    max_duplication = atoi(optarg);
-                    break;
-                case 'c':
-                    columns = string(optarg);
-                    break;
-                }
-            }
-
-            if (help_flag)
-            {
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            }
-
-            if (usage_flag)
-            {
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
-            }
-
-            // Parse arguments
-            if(argc - optind != 1)
-                error("Requires exactly 1 argument.");
-
-            mx_arg = string(argv[optind++]);
-        }
-
-        // Work out the output path to use (either user specified or auto generated)
-        string determineOutputPath()
-        {
-            std::ostringstream output_str;
-            output_str << mx_arg << "." << output_type;
-            return output_arg.empty() ? output_str.str() : output_arg;
-        }
-
-
-        void print()
-        {
-            if (verbose)
-                cerr << "Verbose flag set" << endl;
-
-                cerr << "Output type: " << output_type << endl;
-
-                cerr << "Output file specified: " << output_arg << endl;
-
-                cerr << "K-mer Matrix input file specified: " << mx_arg << endl;
-
-                cerr << "Plot title: " << title << endl;
-
-                cerr << "X Label: " << x_label << endl;
-
-                cerr << "Y Label: " << y_label << endl;
-
-                cerr << "X Max: " << x_max << endl;
-
-                cerr << "Y Max: " << y_max << endl;
-
-                cerr << "Width: " << width << endl;
-
-                cerr << "Height: " << height << endl;
-
-                cerr << "Max duplication level to plot: " << max_duplication << endl;
-
-                cerr << "Columns to plot: " << columns << endl;
-
-                cerr << "Ignore absent K-mers: " << ignore_absent << endl;
-
-
-            cerr << endl;
-        }
     };
 }

@@ -41,6 +41,7 @@ kat_SOURCES = \
                 plot/plot_main.cc \
 		plot/plot_args.hpp \
 		plot/plot_main.hpp \
+                plot/common_plot_args.hpp \
                 plot/flame/flame_plot_main.cc \
 		plot/flame/flame_plot_args.hpp \
 		plot/flame/flame_plot_main.hpp \

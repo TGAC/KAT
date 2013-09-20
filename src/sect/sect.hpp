@@ -134,14 +134,14 @@ namespace kat
                 hash->set_canonical(true);
 
             // Open file, create RecordReader and check all is well
-            std::fstream in(args->fasta_arg, std::ios::in);
+            std::fstream in(args->seq_file.c_str(), std::ios::in);
             seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
 
             // Create the AutoSeqStreamFormat object and guess the file format.
             seqan::AutoSeqStreamFormat formatTag;
             if (!guessStreamFormat(reader, formatTag))
             {
-                std::cerr << "ERROR: Could not detect file format for: " << args->fasta_arg << endl;
+                std::cerr << "ERROR: Could not detect file format for: " << args->seq_file << endl;
                 return;
             }
 
@@ -207,7 +207,7 @@ namespace kat
             std::ostringstream contamination_mx_path;
             contamination_mx_path << args->output_prefix << "_contamination.mx";
             ofstream_default contamination_mx_stream(contamination_mx_path.str().c_str(), cout);
-            printContaminationMatrix(contamination_mx_stream, args->fasta_arg);
+            printContaminationMatrix(contamination_mx_stream, args->seq_file.c_str());
             contamination_mx_stream.close();
 
             // If there was a problem reading the data notify the user, otherwise output
@@ -235,7 +235,7 @@ namespace kat
         void printVars(std::ostream &out)
         {
             out << "SECT parameters:" << endl;
-            out << " - Sequence File Path: " << args->fasta_arg << endl;
+            out << " - Sequence File Path: " << args->seq_file << endl;
             out << " - Hash File Path: " << args->db_arg << endl;
             out << " - Hash: " << (hash ? "loaded" : "not loaded") << endl;
             out << " - Threads: " << args->threads_arg << endl;
@@ -371,7 +371,7 @@ namespace kat
         {
             SparseMatrix<uint64_t>* mx = contamination_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "Contamination Plot for " << args->fasta_arg << " and " << args->db_arg << endl;
+            out << mme::KEY_TITLE << "Contamination Plot for " << args->seq_file << " and " << args->db_arg << endl;
             out << mme::KEY_X_LABEL << "GC%" << endl;
             out << mme::KEY_Y_LABEL << "Average K-mer Coverage" << endl;
             out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;

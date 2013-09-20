@@ -53,11 +53,11 @@ int kat::flamePlotStart(int argc, char *argv[])
     uint16_t y_range = args.y_max != DEFAULT_Y_MAX ? args.y_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_ROWS);
     uint32_t z_cap = args.z_max != DEFAULT_Z_MAX ? args.z_max : mme::getNumeric(args.mx_arg, mme::KEY_MAX_VAL) / 10;        // Scale down from the max value to saturate the hot spots
 
-    string x_label = args.x_label.compare(DEFAULT_X_LABEL) != 0 ? args.x_label : mme::getString(args.mx_arg, mme::KEY_X_LABEL);
-    string y_label = args.y_label.compare(DEFAULT_Y_LABEL) != 0 ? args.y_label : mme::getString(args.mx_arg, mme::KEY_Y_LABEL);
+    string x_label = args.x_label.compare(args.defaultXLabel()) != 0 ? args.x_label : mme::getString(args.mx_arg, mme::KEY_X_LABEL);
+    string y_label = args.y_label.compare(args.defaultYLabel()) != 0 ? args.y_label : mme::getString(args.mx_arg, mme::KEY_Y_LABEL);
     string z_label = args.z_label.compare(DEFAULT_Z_LABEL) != 0 ? args.z_label : mme::getString(args.mx_arg, mme::KEY_Z_LABEL);
 
-    string title = args.title.compare(DEFAULT_TITLE) != 0 ? args.title : mme::getString(args.mx_arg, mme::KEY_TITLE);
+    string title = args.title.compare(args.defaultTitle()) != 0 ? args.title : mme::getString(args.mx_arg, mme::KEY_TITLE);
 
 
     // If neither the user or the data file contain any ideas of what values to use then use defaults
@@ -65,11 +65,11 @@ int kat::flamePlotStart(int argc, char *argv[])
     y_range = y_range == -1 ? 1001 : y_range;
     z_cap = z_cap == -1 ? 10000 : z_cap;    // Saturate the hot spots a bit to show more detail around the edges
 
-    x_label = x_label.empty() ? DEFAULT_X_LABEL : x_label;
-    y_label = y_label.empty() ? DEFAULT_Y_LABEL : y_label;
+    x_label = x_label.empty() ? args.defaultXLabel() : x_label;
+    y_label = y_label.empty() ? args.defaultYLabel() : y_label;
     z_label = z_label.empty() ? DEFAULT_Z_LABEL : z_label;
 
-    title = title.empty() ? DEFAULT_TITLE : title;
+    title = title.empty() ? args.defaultTitle() : title;
 
     // Work out the output path to use (either user specified or auto generated)
     string output_path = args.determineOutputPath();

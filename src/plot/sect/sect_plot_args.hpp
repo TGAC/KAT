@@ -22,260 +22,172 @@
 #include <iostream>
 #include <stdint.h>
 
+#include "../common_plot_args.hpp"
+
 using std::string;
 using std::cerr;
 using std::cout;
+using std::ostringstream;
 
 namespace kat
 {
-    const string DEFAULT_OUTPUT_TYPE = "png";
-
-    const string DEFAULT_TITLE      = "Sequence Coverage Plot";
-    const string DEFAULT_X_LABEL    = "Position (nt)";
-    const string DEFAULT_Y_LABEL    = "K-mer Coverage";
-
     const uint32_t DEFAULT_Y_MAX    = 1000;
-    const uint16_t DEFAULT_WIDTH    = 1024;
-    const uint16_t DEFAULT_HEIGHT   = 1024;
-
     const uint32_t DEFAULT_FASTA_INDEX = 0;
 
-    using std::cout;
-    using std::cerr;
-    using std::endl;
-    using std::ostringstream;
+    const uint16_t MIN_ARGS = 1;
 
-    class SectPlotArgs
+
+    class SectPlotArgs : public BasePlotArgs
     {
+
+        // ***********************************************
+        // These methods override BaseArgs virtual methods
+
+        const char* usage() const
+        {
+            return "Usage: kat plot sect [options] <sect_profile_file>\n";
+        }
+
+        const char* shortDescription() const
+        {
+            return "Create Sequence Coverage Plot";
+        }
+
+        const char* longDescription() const
+        {
+            return "  Shows K-mer coverage level across an sequence.";
+        }
+
+        const string optionsDescription() const
+        {
+            ostringstream help_str;
+
+            help_str << BasePlotArgs::optionsDescription() << endl
+                     << " -y  --y_max=uint32          Maximum value for the y-axis (" << DEFAULT_Y_MAX << ", or value from matrix metadata if present)" << endl
+                     << " -n, --index=uint32          Index of fasta entry to plot.  First entry is 1. (" << DEFAULT_FASTA_INDEX << ")" << endl
+                     << " -d, --header=string         Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over \'--index\'.";
+
+            return help_str.str();
+        }
+
+        vector<option>* longOptions()
+        {
+            static struct option long_options_array[] =
+            {
+                {"y_max",           required_argument,  0, 'y'},
+                {"index",           required_argument,  0, 'n'},
+                {"header",          required_argument,  0, 'd'}
+            };
+
+            vector<option>* long_options = BasePlotArgs::longOptions();
+
+            for(uint8_t i = 0; i < 3; i++)
+            {
+                long_options->push_back(long_options_array[i]);
+            }
+
+            return long_options;
+        }
+
+        string shortOptions()
+        {
+            return BasePlotArgs::shortOptions() + "y:n:d:";
+        }
+
+        void setOption(int c, char* option_arg) {
+
+            BasePlotArgs::setOption(c, option_arg);
+
+            switch(c)
+            {
+            case 'y':
+                y_max = atoi(option_arg);
+                break;
+            case 'n':
+                fasta_index = atoi(option_arg);
+                break;
+            case 'd':
+                fasta_header = option_arg;
+                break;
+            }
+        }
+
+
+        void processRemainingArgs(const vector<string>& remaining_args)
+        {
+            sect_file_arg = remaining_args[0];
+        }
+
+
+
+        const char* currentStatus() const
+        {
+            ostringstream status;
+
+            status  << BasePlotArgs::currentStatus()
+                    << "Y Max: " << y_max << endl
+                    << "Fasta index to plot: " << fasta_index << endl
+                    << "Fasta header to plot: " << fasta_header << endl;
+
+            return status.str().c_str();
+        }
+
     public:
-        string  sect_file_arg;
-        string  output_type;
-        string  output_arg;
-        string  title;
-        string  x_label;
-        string  y_label;
-        uint32_t y_max;
-        uint16_t width;
-        uint16_t height;
-        uint32_t fasta_index;
-        string fasta_header;
-        bool verbose;
+        string      sect_file_arg;
+        uint32_t    y_max;
+        uint32_t    fasta_index;
+        string      fasta_header;
 
         // Default constructor
         SectPlotArgs() :
-            sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
-            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            fasta_index(DEFAULT_FASTA_INDEX), fasta_header(""),
-            verbose(false)
+            BasePlotArgs(MIN_ARGS), sect_file_arg(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
         {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
         }
 
         // Constructor that parses command line options
         SectPlotArgs(int argc, char* argv[]) :
-            sect_file_arg(""), output_type(DEFAULT_OUTPUT_TYPE), output_arg(""), title(DEFAULT_TITLE),
-            x_label(DEFAULT_X_LABEL), y_label(DEFAULT_Y_LABEL), y_max(DEFAULT_Y_MAX),
-            width(DEFAULT_WIDTH), height(DEFAULT_HEIGHT),
-            fasta_index(DEFAULT_FASTA_INDEX), fasta_header(""),
-            verbose(false)
+            BasePlotArgs(MIN_ARGS), sect_file_arg(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
         {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
+
             parse(argc, argv);
         }
 
 
-        const char * usage() const
-        {
-            return "Usage: kat plot sect [options] -o <output_file_path> sect_profile_file\n";
-        }
-
-        void error(const char *msg)
-        {
-            cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl
-                 << "Use --help for more information" << endl;
-            exit(1);
-        }
-
-
-        const string help() const
-        {
-            ostringstream help;
-
-            help << "Create Sequence Coverage Plot" << endl << endl
-                 << "  Shows K-mer coverage level across an sequence." << endl << endl
-                 << "Options (default value in (), *required):" << endl
-                 << " -p, --output_type=string    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected" << endl
-                 << "                             please ensure your gnuplot installation can export pdf files. (\"" << DEFAULT_OUTPUT_TYPE << "\")" << endl
-                 << " -o, --output=string         Output file (<sect_profile_file>." << DEFAULT_OUTPUT_TYPE << "\")" << endl
-                 << " -t, --title=string          Title for plot (\"" << DEFAULT_TITLE << "\")" << endl
-                 << " -i, --x_label=string        Label for the x-axis (\"" << DEFAULT_X_LABEL << "\")" << endl
-                 << " -j, --y_label=string        Label for the y-axis (\"" << DEFAULT_Y_LABEL << "\")" << endl
-                 << " -y  --y_max=uint32          Maximum value for the y-axis (" << DEFAULT_Y_MAX << ", or value from matrix metadata if present)" << endl
-                 << " -w, --width=uint16          Width of canvas (" << DEFAULT_WIDTH << ")" << endl
-                 << " -h, --height=uint16         Height of canvas (" << DEFAULT_HEIGHT << ")" << endl
-                 << " -n, --index=uint32          Index of fasta entry to plot.  First entry is 1. (" << DEFAULT_FASTA_INDEX << ")" << endl
-                 << " -d, --header=string         Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over \'--index\'." << endl
-                 << " -v, --verbose               Outputs additional information to stderr" << endl
-                 << "     --usage                 Usage" << endl
-                 << "     --help                  This message" << endl;
-
-            return help.str().c_str();
-        }
-
-        const char * hidden() const
-        {
-            return "Hidden options:";
-        }
-
-
-        void parse(int argc, char *argv[])
-        {
-            int c;
-            int help_flag = 0;
-            int usage_flag = 0;
-
-            static struct option long_options[] =
-            {
-                {"verbose",         no_argument,        0, 'v'},
-                {"output_type",     required_argument,  0, 'p'},
-                {"output",          required_argument,  0, 'o'},
-                {"title",           required_argument,  0, 't'},
-                {"x_label",         required_argument,  0, 'i'},
-                {"y_label",         required_argument,  0, 'j'},
-                {"y_max",           required_argument,  0, 'y'},
-                {"width",           required_argument,  0, 'w'},
-                {"height",          required_argument,  0, 'h'},
-                {"index",           required_argument,  0, 'n'},
-                {"header",          required_argument,  0, 'd'},
-                {"help",            no_argument,        &help_flag, 1},
-                {"usage",           no_argument,        &usage_flag, 1},
-                {0, 0, 0, 0}
-            };
-
-            static const char *short_options = "o:p:t:i:j:y:w:h:n:d:vuh";
-
-            if (argc <= 1)
-            {
-                cerr << endl
-                     << usage() << endl
-                     << help() << endl;
-                exit(1);
-            }
-
-            while (true)
-            {
-                /* getopt_long stores the option index here. */
-                int index = -1;
-
-                c = getopt_long (argc, argv, short_options, long_options, &index);
-
-                /* Detect the end of the options. */
-                if (c == -1)
-                    break;
-
-                switch (c)
-                {
-                case ':':
-                    cerr << "Missing required argument for "
-                              << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                              << endl;
-                    exit(1);
-                case '?':
-                    cerr << "Use --usage or --help for some help" << endl << endl;
-                    exit(1);
-                case 'v':
-                    verbose = true;
-                    break;
-                case 'o':
-                    output_arg = string(optarg);
-                    break;
-                case 'p':
-                    output_type = string(optarg);
-                    break;
-                case 't':
-                    title = string(optarg);
-                    break;
-                case 'i':
-                    x_label = string(optarg);
-                    break;
-                case 'j':
-                    y_label = string(optarg);
-                    break;
-                case 'y':
-                    y_max = atoi(optarg);
-                    break;
-                case 'w':
-                    width = atoi(optarg);
-                    break;
-                case 'h':
-                    height = atoi(optarg);
-                    break;
-                case 'n':
-                    fasta_index = atoi(optarg);
-                    break;
-                case 'd':
-                    fasta_header = optarg;
-                    break;
-                }
-            }
-
-            if (help_flag)
-            {
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            }
-
-            if (usage_flag)
-            {
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
-            }
-
-            // Parse arguments
-            if(argc - optind != 1)
-                error("Requires exactly 1 argument.");
-
-            sect_file_arg = string(argv[optind++]);
-        }
-
-        // Work out the output path to use (either user specified or auto generated)
-        string determineOutputPath()
-        {
-            std::ostringstream output_str;
-            output_str << sect_file_arg << "." << output_type;
-            return output_arg.empty() ? output_str.str() : output_arg;
-        }
-
         string autoTitle(string& header)
         {
             std::ostringstream output_str;
-            output_str << DEFAULT_TITLE << ": " << sect_file_arg << " - " << header;
-            return title.compare(DEFAULT_TITLE) == 0 ? output_str.str() : title;
+            output_str << defaultTitle() << ": " << sect_file_arg << " - " << header;
+            return title.compare(defaultTitle()) == 0 ? output_str.str() : title;
         }
 
 
+        ~SectPlotArgs()
+        {}
 
-        void print()
-        {
-            if (verbose)
-                cerr << "Verbose flag set" << endl;
 
-            cerr << "Output type: " << output_type.c_str() << endl;
-            cerr << "Output file specified: " << output_arg.c_str() << endl;
-            cerr << "SECT input file specified: " << sect_file_arg.c_str() << endl;
-            cerr << "Plot title: " << title << endl;
-            cerr << "X Label: " << x_label << endl;
-            cerr << "Y Label: " << y_label << endl;
-            cerr << "Y Max: " << y_max << endl;
-            cerr << "Width: " << width << endl;
-            cerr << "Height: " << height << endl;
-            cerr << "Fasta index to plot: " << fasta_index << endl;
-            cerr << "Fasta header to plot: " << fasta_header << endl;
 
-            cerr << endl;
-        }
+        // ***************************************************
+        // These methods override BasePlotArgs virtual methods
+
+        const string defaultOutputPrefix() const    { return "kat-plot-sect"; }
+        const string defaultTitle() const           { return "Sequence Coverage Plot"; }
+        const string defaultXLabel() const          { return "Position (nt)"; }
+        const string defaultYLabel() const          { return "K-mer Coverage"; }
+        const uint16_t defaultWidth() const         { return 1024; }
+        const uint16_t defaultHeight() const        { return 1024; }
+
+
+
     };
+
 }

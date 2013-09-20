@@ -67,7 +67,7 @@ int kat::compStart(int argc, char *argv[])
     main_mx_out_stream.close();
 
     // Output ends matricies if required
-    if (args.db3_path)
+    if (!(args.db3_path.empty()))
     {
         // Ends matrix
         std::ostringstream ends_mx_out_path;

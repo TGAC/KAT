@@ -24,14 +24,16 @@
 #include <vector>
 
 
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::ostringstream;
+using std::vector;
+using std::string;
+
+
 namespace kat
 {
-    using std::cout;
-    using std::cerr;
-    using std::endl;
-    using std::ostringstream;
-    using std::vector;
-
     const bool DEFAULT_VERBOSE = false;
 
     /**
@@ -67,10 +69,10 @@ namespace kat
         virtual const char * longDescription() const = 0;
 
         /**
-         * @brief longDescription Program specific help for the available options
+         * @brief optionsDescription Program specific help for the available options
          * @return
          */
-        virtual const string optionsList() const = 0;
+        virtual const string optionsDescription() const = 0;
 
         /**
          * @brief longOptions Long options specific to this program
@@ -82,7 +84,7 @@ namespace kat
          * @brief shortOptions Short options specific to this program
          * @return
          */
-        virtual const char* shortOptions() const = 0;
+        virtual string shortOptions() = 0;
 
         /**
          * @brief setOption Sets this particular option
@@ -125,7 +127,7 @@ namespace kat
         /**
          * @brief ~BaseArgs Virtual destructor makes this class abstract
          */
-        virtual ~BaseArgs() = 0;
+        virtual ~BaseArgs() {}
 
 
         /**
@@ -154,7 +156,7 @@ namespace kat
             help_str << shortDescription() << endl << endl
                  << longDescription() << endl << endl
                  << "Options (default value in (), *required):" << endl
-                 << optionsList() << endl
+                 << optionsDescription() << endl
                  << " -v, --verbose               Outputs additional information to stderr" << endl
                  << "     --usage                 Usage" << endl
                  << "     --help                  This message" << endl;
@@ -283,6 +285,4 @@ namespace kat
             cerr << currentStatus() << endl;
         }
     };
-
-    BaseArgs::~BaseArgs() {}
 }

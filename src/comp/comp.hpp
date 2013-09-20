@@ -203,7 +203,7 @@ namespace kat
             // Setup handles to load hashes
             jfh1 = new JellyfishHelper(args->db1_path);
             jfh2 = new JellyfishHelper(args->db2_path);
-            jfh3 = args->db3_path ? new JellyfishHelper(args->db3_path) : NULL;
+            jfh3 = !(args->db3_path.empty()) ? new JellyfishHelper(args->db3_path) : NULL;
 
             // Ensure all hashes are null at this stage (we'll load them later)
             hash1 = NULL;
@@ -214,7 +214,7 @@ namespace kat
             main_matrix = new ThreadedSparseMatrix<uint64_t>(args->d1_bins, args->d2_bins, args->threads);
 
             // Initialise extra matricies for hash3 (only allocates space if required)
-            if (args->db3_path)
+            if (!(args->db3_path.empty()))
             {
                 if (args->verbose)
                     cerr << " - Setting up matricies for hash 3" << endl;
@@ -231,12 +231,12 @@ namespace kat
             }
 
             // Create the final comp counters
-            final_comp_counters = new CompCounters(args->db1_path, args->db2_path, args->db3_path);
+            final_comp_counters = new CompCounters(args->db1_path.c_str(), args->db2_path.c_str(), args->db3_path.c_str());
 
             // Create the comp counters for each thread
             thread_comp_counters = new CompCounters*[args->threads];
             for(int i = 0; i < args->threads; i++) {
-                thread_comp_counters[i] = new CompCounters(args->db1_path, args->db2_path, args->db3_path);
+                thread_comp_counters[i] = new CompCounters(args->db1_path.c_str(), args->db2_path.c_str(), args->db3_path.c_str());
             }
 
             if (args->verbose)

@@ -21,11 +21,16 @@
 #include <stdlib.h>
 #include <iostream>
 #include <stdint.h>
+#include <vector>
+
+#include <common_args.hpp>
 
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::string;
+using std::vector;
+using std::ostringstream;
 
 namespace kat
 {
@@ -35,88 +40,59 @@ namespace kat
     const uint32_t  DEFAULT_HISTO_THREADS      = 1;
     const bool      DEFAULT_HISTO_FULL         = false;
     const bool      DEFAULT_HISTO_BOTH_STRANDS = false;
-    const char*     DEFAULT_HISTO_OUTPUT       = "";
-    const bool      DEFAULT_HISTO_VERBOSE      = false;
+    const char*     DEFAULT_HISTO_OUTPUT       = "kat.histo";
+
+    const uint16_t  HISTO_MIN_ARGS = 1;
 
 
-    class HistoArgs
+    class HistoArgs : public BaseArgs
     {
-    public:
-        uint64_t        low;
-        uint64_t        high;
-        uint64_t        increment;
-        uint32_t        threads;
-        bool            full;
-        bool            both_strands;
-        const char*     output;
-        bool            verbose;
-        const char*     db_path;
+    protected:
 
-        HistoArgs() :
-            low(DEFAULT_HISTO_LOW),
-            high(DEFAULT_HISTO_HIGH),
-            increment(DEFAULT_HISTO_INC),
-            threads(DEFAULT_HISTO_THREADS),
-            full(DEFAULT_HISTO_FULL),
-            both_strands(DEFAULT_HISTO_BOTH_STRANDS),
-            output(DEFAULT_HISTO_OUTPUT),
-            verbose(DEFAULT_HISTO_VERBOSE)
-        { }
+        // ***********************************************
+        // These methods override BaseArgs virtual methods
 
-        HistoArgs(int argc, char* argv[]) :
-            low(DEFAULT_HISTO_LOW),
-            high(DEFAULT_HISTO_HIGH),
-            increment(DEFAULT_HISTO_INC),
-            threads(DEFAULT_HISTO_THREADS),
-            full(DEFAULT_HISTO_FULL),
-            both_strands(DEFAULT_HISTO_BOTH_STRANDS),
-            output(DEFAULT_HISTO_OUTPUT),
-            verbose(DEFAULT_HISTO_VERBOSE)
-        { parse(argc, argv); }
-
-
-#define histo_args_USAGE "Usage: kat histo [options] db:path"
-        const char * usage() const { return histo_args_USAGE; }
-
-        void error(const char *msg)
+        const char* usage() const
         {
-            cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl
-                 << "Use --help for more information" << endl << endl;
-            exit(1);
+            return "Usage: kat histo [options] <jellyfish_hash_file>\n";
         }
 
-#define histo_args_HELP "Create an histogram of k-mer occurrences\n\nCreate an histogram with the number of k-mers having a given\n" \
-    "count. In bucket 'i' are tallied the k-mers which have a count 'c'\n" \
-    "satisfying 'low+i*inc <= c < low+(i+1)*inc'. Buckets in the output are\n" \
-    "labeled by the low end point (low+i*inc).\n" \
-    "\n" \
-    "The last bucket in the output behaves as a catchall: it tallies all\n" \
-    "k-mers with a count greater or equal to the low end point of this\n" \
-    "bucket.\n\n" \
-    "Options (default value in (), *required):\n" \
-    " -l, --low=uint64            Low count value of histogram (1)\n" \
-    " -h, --high=uint64           High count value of histogram (10000)\n" \
-    " -i, --increment=uint64      Increment value for buckets (1)\n" \
-    " -t, --threads=uint32        Number of threads (1)\n" \
-    " -f, --full                  Full histo. Don't skip count 0. (false)\n" \
-    " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both strands.\n" \
-    "                             If this is not set to the same value as was produced during jellyfish counting then output from histo will be unpredicatable.\n" \
-    " -o, --output=string         Output file\n" \
-    " -v, --verbose               Outputs additional information to stderr (false)\n" \
-    "     --usage                 Usage\n" \
-    "     --help                  This message\n"
-
-        const char * help() const { return histo_args_HELP; }
-
-        void parse(int argc, char* argv[])
+        const char* shortDescription() const
         {
-            int c;
-            int help_flag = 0;
-            int usage_flag = 0;
+            return "Create an histogram of k-mer occurrences in a sequence file";
+        }
 
-            static struct option long_options[] =
+        const char* longDescription() const
+        {
+            return  "  Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers\n" \
+                    "  which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)*inc'. Buckets in the output are labeled by\n" \
+                    "  the low end point (low+i*inc).\n\n" \
+                    "  The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal\n" \
+                    "  to the low end point of this bucket.\n\n" \
+                    "  This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that\n" \
+                    "  the output contains metadata that make the histogram easier for the user to plot.";
+        }
+
+        const string optionsDescription() const
+        {
+            ostringstream help_str;
+
+            help_str << " -o, --output=path           Output file. (\"" << DEFAULT_HISTO_OUTPUT << "\")" << endl
+                     << " -l, --low=uint64            Low count value of histogram (" << DEFAULT_HISTO_LOW << ")" << endl
+                     << " -h, --high=uint64           High count value of histogram (" << DEFAULT_HISTO_HIGH << ")" << endl
+                     << " -i, --increment=uint64      Increment value for buckets (" << DEFAULT_HISTO_INC << ")" << endl
+                     << " -t, --threads=uint32        Number of threads (" << DEFAULT_HISTO_THREADS << ")" << endl
+                     << " -f, --full                  Full histo. Don't skip count 0. (" << DEFAULT_HISTO_FULL << ")" << endl
+                     << " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both" << endl
+                     << "                             strands. If this is not set to the same value as was produced during jellyfish" << endl
+                     << "                             counting then output from histo will be unpredicatable (" << DEFAULT_HISTO_BOTH_STRANDS << ")." << endl;
+
+            return help_str.str();
+        }
+
+        vector<option>* longOptions()
+        {
+            static struct option long_options_array[] =
             {
                 {"low",           required_argument,  0, 'l'},
                 {"high",          required_argument,  0, 'h'},
@@ -124,88 +100,104 @@ namespace kat
                 {"threads",       required_argument,  0, 't'},
                 {"full",          no_argument,        0, 'f'},
                 {"output",        required_argument,  0, 'o'},
-                {"both_strands",  required_argument,  0, 'C'},
-                {"verbose",       no_argument,        0, 'v'},
-                {"help",          no_argument,        &help_flag, 1},
-                {"usage",         no_argument,        &usage_flag, 1},
-                {0, 0, 0, 0}
+                {"both_strands",  no_argument,        0, 'C'}
             };
-            static const char *short_options = "l:h:i:t:fo:vC";
 
-            while(true)
+            vector<option>* long_options = new vector<option>();
+
+            for(uint8_t i = 0; i < 7; i++)
             {
-                /* getopt_long stores the option index here. */
-                int index = -1;
-
-                c = getopt_long (argc, argv, short_options, long_options, &index);
-
-                /* Detect the end of the options. */
-                if (c == -1)
-                    break;
-
-                switch (c)
-                {
-                case ':':
-                    cerr << "Missing required argument for "
-                              << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                              << endl;
-                    exit(1);
-                case '?':
-                    cerr << "Use --usage or --help for some help" << endl << endl;
-                    exit(1);
-                case 'l':
-                    low = atoi(optarg);
-                    break;
-                case 'h':
-                    high = atoi(optarg);
-                    break;
-                case 'i':
-                    increment = atoi(optarg);
-                    break;
-                case 't':
-                    threads = atoi(optarg);
-                    break;
-                case 'f':
-                    full = true;
-                    break;
-                case 'o':
-                    output = optarg;
-                    break;
-                case 'v':
-                    verbose = true;
-                    break;
-                case 'C':
-                    both_strands = true;
-                    break;
-                }
+                long_options->push_back(long_options_array[i]);
             }
 
-            if (help_flag)
-            {
-                cout << usage() << endl
-                     << help() << endl;
-                exit(0);
-            }
-
-            if (usage_flag)
-            {
-                cout << usage() << endl
-                     << "Use --help for more information." << endl << endl;
-                exit(0);
-            }
-
-
-            // Parse arguments
-            int remaining_args = argc - optind;
-
-            if (verbose)
-                cerr << "Found " << remaining_args << " remaining arguments on the command line." << endl;
-
-            if(remaining_args != 1)
-                error("Requires exactly 1 argument.");
-
-            db_path = argv[optind++];
+            return long_options;
         }
+
+        string shortOptions()
+        {
+            return "l:h:i:t:fo:C";
+        }
+
+        void setOption(int c, char* option_arg) {
+
+            switch(c)
+            {
+            case 'l':
+                low = atoi(optarg);
+                break;
+            case 'h':
+                high = atoi(optarg);
+                break;
+            case 'i':
+                increment = atoi(optarg);
+                break;
+            case 't':
+                threads = atoi(optarg);
+                break;
+            case 'f':
+                full = true;
+                break;
+            case 'o':
+                output = optarg;
+                break;
+            case 'C':
+                both_strands = true;
+                break;
+            }
+        }
+
+        void processRemainingArgs(const vector<string>& remaining_args)
+        {
+            db_path = remaining_args[0];
+        }
+
+        const char* currentStatus() const
+        {
+            ostringstream status;
+
+            status  << "low: " << low << endl
+                    << "high: " << high << endl
+                    << "increment: " << increment << endl
+                    << "threads: " << threads << endl
+                    << "full: " << full << endl
+                    << "output: " << output << endl
+                    << "db_path: " << db_path << endl
+                    << "both_strands: " << both_strands << endl;
+
+            return status.str().c_str();
+        }
+
+    public:
+
+        uint64_t        low;
+        uint64_t        high;
+        uint64_t        increment;
+        uint32_t        threads;
+        bool            full;
+        bool            both_strands;
+        string          output;
+        string          db_path;
+
+        HistoArgs() : BaseArgs(HISTO_MIN_ARGS),
+            low(DEFAULT_HISTO_LOW),
+            high(DEFAULT_HISTO_HIGH),
+            increment(DEFAULT_HISTO_INC),
+            threads(DEFAULT_HISTO_THREADS),
+            full(DEFAULT_HISTO_FULL),
+            both_strands(DEFAULT_HISTO_BOTH_STRANDS),
+            output(DEFAULT_HISTO_OUTPUT)
+        { }
+
+        HistoArgs(int argc, char* argv[]) : BaseArgs(HISTO_MIN_ARGS),
+            low(DEFAULT_HISTO_LOW),
+            high(DEFAULT_HISTO_HIGH),
+            increment(DEFAULT_HISTO_INC),
+            threads(DEFAULT_HISTO_THREADS),
+            full(DEFAULT_HISTO_FULL),
+            both_strands(DEFAULT_HISTO_BOTH_STRANDS),
+            output(DEFAULT_HISTO_OUTPUT)
+        { parse(argc, argv); }
+
 
         uint64_t calcBase()
         {
@@ -216,21 +208,6 @@ namespace kat
         {
             return high + increment;
         }
-
-
-        void print()
-        {
-            cerr << "low: " << low << "\n";
-            cerr << "high: " << high << "\n";
-            cerr << "increment: " << increment << "\n";
-            cerr << "threads: " << threads << "\n";
-            cerr << "full: " << full << "\n";
-            cerr << "output: " << output << "\n";
-            cerr << "verbose: " << verbose << "\n";
-            cerr << "db_path: " << db_path << "\n";
-            cerr << "both_strands: " << both_strands << endl;
-        }
-    private:
     };
 }
 
