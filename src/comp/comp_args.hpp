@@ -56,18 +56,18 @@ namespace kat
 
         const char* shortDescription() const
         {
-            return "Compares sets of jellyfish K-mer counts.";
+            return "Compares jellyfish K-mer count hashes.";
         }
 
         const char* longDescription() const
         {
-            return  "  The most common use case for this tool is to compare two jellyfish K-mer hashes, although, when comparing\n" \
-                    "  K-mers from assemblies, it is possible to add a 3rd set of K-mers which describe the ends of each\n" \
-                    "  assembly sequence to determine issues at end of sequences that may have prevented the assembler joining\n" \
-                    "  sequences together.\n\n"
+            return  "  The most common use case for this tool is to compare two jellyfish K-mer hashes.  The typical use case\n" \
+                    "  for this tool is to compare K-mers from two jellyfish hashes both representing K-mer counts for reads.\n" \
+                    "  However, it is also common to compare K-mers generated from reads to those generated from an assembly.\n\n" \
                     "  If comparing K-mers from reads to K-mers from an assembly, the larger (most likely the read) K-mer hash\n" \
-                    "  should be provided first, then the assembly K-mer hash second.  Finally, if comparing K-mers at the ends\n" \
-                    "  of sequences this should be supplied last.";
+                    "  should be provided first, then the assembly K-mer hash second.\n\n" \
+                    "  The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on\n" \
+                    "  that set.  The manual contains more details on specific use cases.";
         }
 
         const string optionsDescription() const

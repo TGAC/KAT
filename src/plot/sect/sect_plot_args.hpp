@@ -39,6 +39,21 @@ namespace kat
 
     class SectPlotArgs : public BasePlotArgs
     {
+    private:
+        bool y_max_mod;
+
+        void init()
+        {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
+
+            y_max_mod = false;
+        }
+
+    protected:
 
         // ***********************************************
         // These methods override BaseArgs virtual methods
@@ -102,6 +117,7 @@ namespace kat
             {
             case 'y':
                 y_max = atoi(option_arg);
+                y_max_mod = true;
                 break;
             case 'n':
                 fasta_index = atoi(option_arg);
@@ -142,22 +158,14 @@ namespace kat
         SectPlotArgs() :
             BasePlotArgs(MIN_ARGS), sect_file_arg(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
         {
-            title = defaultTitle();
-            x_label = defaultXLabel();
-            y_label = defaultYLabel();
-            width = defaultWidth();
-            height = defaultHeight();
+            init();
         }
 
         // Constructor that parses command line options
         SectPlotArgs(int argc, char* argv[]) :
             BasePlotArgs(MIN_ARGS), sect_file_arg(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
         {
-            title = defaultTitle();
-            x_label = defaultXLabel();
-            y_label = defaultYLabel();
-            width = defaultWidth();
-            height = defaultHeight();
+            init();
 
             parse(argc, argv);
         }

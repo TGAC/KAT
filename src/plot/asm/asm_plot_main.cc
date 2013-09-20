@@ -106,9 +106,6 @@ int kat::asmPlotStart(int argc, char *argv[])
     if (args.verbose)
         args.print();
 
-
-
-
     vector<uint16_t>* plot_cols = args.columns.empty() ? getStandardCols(&args) : getUserDefinedCols(&args);
 
     if (!plot_cols->empty())
@@ -116,7 +113,6 @@ int kat::asmPlotStart(int argc, char *argv[])
         // Determine configuration
         bool request_absent = (*plot_cols)[0] == 0 ? true : false;
         uint16_t level_count = request_absent ? plot_cols->size() - 1 : plot_cols->size();
-
 
         if (args.verbose)
         {

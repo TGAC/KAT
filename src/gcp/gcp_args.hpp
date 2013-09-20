@@ -34,7 +34,7 @@ using std::ostringstream;
 
 namespace kat
 {
-    const string    DEFAULT_OUTPUT_PREFIX   = "./kat-gcp";
+    const string    DEFAULT_OUTPUT_PREFIX   = "kat-gcp";
     const uint16_t  DEFAULT_THREADS         = 1;
     const bool      DEFAULT_BOTH_STRANDS    = false;
 

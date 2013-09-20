@@ -39,6 +39,12 @@ namespace kat
 
     class BasePlotArgs : public BaseArgs
     {
+    private:
+        bool    title_mod;
+        bool    x_label_mod;
+        bool    y_label_mod;
+
+
     protected:
 
         // These methods override BaseArgs virtual methods
@@ -102,9 +108,11 @@ namespace kat
                 break;
             case 'i':
                 x_label = string(option_arg);
+                x_label_mod = true;
                 break;
             case 'j':
                 y_label = string(option_arg);
+                y_label_mod = true;
                 break;
             case 'w':
                 width = atoi(option_arg);
@@ -145,7 +153,11 @@ namespace kat
          * @param min_args
          */
         BasePlotArgs(uint16_t min_args) : BaseArgs(min_args), output_type(DEFAULT_OUTPUT_TYPE), output_arg("")
-        {}
+        {
+            title_mod = false;
+            x_label_mod = false;
+            y_label_mod = false;
+        }
 
         /**
          * @brief ~BasePlotArgs Virtual destructor makes this class abstract
@@ -175,6 +187,11 @@ namespace kat
             output_str << defaultOutputPrefix() << "." << output_type;
             return output_arg.empty() ? output_str.str() : output_arg;
         }
+
+
+        const bool titleModified()    { return title_mod; }
+        const bool xLabelModified()   { return x_label_mod; }
+        const bool yLabelModified()   { return y_label_mod; }
 
     };
 }

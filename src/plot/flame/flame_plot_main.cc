@@ -49,21 +49,21 @@ int kat::flamePlotStart(int argc, char *argv[])
 
 
     // Get plotting properties, either from file, or user.  User args have precedence.
-    uint16_t x_range = args.x_max != DEFAULT_X_MAX ? args.x_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_COLUMNS);
-    uint16_t y_range = args.y_max != DEFAULT_Y_MAX ? args.y_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_ROWS);
-    uint32_t z_cap = args.z_max != DEFAULT_Z_MAX ? args.z_max : mme::getNumeric(args.mx_arg, mme::KEY_MAX_VAL) / 10;        // Scale down from the max value to saturate the hot spots
+    uint16_t x_range = args.xMaxModified() ? args.x_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_COLUMNS);
+    uint16_t y_range = args.yMaxModified() ? args.y_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_ROWS);
+    uint32_t z_range = args.zMaxModified() ? args.z_max : mme::getNumeric(args.mx_arg, mme::KEY_MAX_VAL) / 1000;        // Scale down from the max value to saturate the hot spots
 
-    string x_label = args.x_label.compare(args.defaultXLabel()) != 0 ? args.x_label : mme::getString(args.mx_arg, mme::KEY_X_LABEL);
-    string y_label = args.y_label.compare(args.defaultYLabel()) != 0 ? args.y_label : mme::getString(args.mx_arg, mme::KEY_Y_LABEL);
-    string z_label = args.z_label.compare(DEFAULT_Z_LABEL) != 0 ? args.z_label : mme::getString(args.mx_arg, mme::KEY_Z_LABEL);
+    string x_label = args.xLabelModified() ? args.x_label : mme::getString(args.mx_arg, mme::KEY_X_LABEL);
+    string y_label = args.yLabelModified() ? args.y_label : mme::getString(args.mx_arg, mme::KEY_Y_LABEL);
+    string z_label = args.zLabelModified() ? args.z_label : mme::getString(args.mx_arg, mme::KEY_Z_LABEL);
 
-    string title = args.title.compare(args.defaultTitle()) != 0 ? args.title : mme::getString(args.mx_arg, mme::KEY_TITLE);
+    string title = args.titleModified() ? args.title : mme::getString(args.mx_arg, mme::KEY_TITLE);
 
 
     // If neither the user or the data file contain any ideas of what values to use then use defaults
-    x_range = x_range == -1 ? 1001 : x_range;
-    y_range = y_range == -1 ? 1001 : y_range;
-    z_cap = z_cap == -1 ? 10000 : z_cap;    // Saturate the hot spots a bit to show more detail around the edges
+    x_range = x_range < 0 ? DEFAULT_X_MAX : x_range;
+    y_range = y_range < 0 ? DEFAULT_Y_MAX : y_range;
+    z_range = z_range < 0 ? DEFAULT_Z_MAX : z_range;    // Saturate the hot spots a bit to show more detail around the edges
 
     x_label = x_label.empty() ? args.defaultXLabel() : x_label;
     y_label = y_label.empty() ? args.defaultYLabel() : y_label;
@@ -81,7 +81,7 @@ int kat::flamePlotStart(int argc, char *argv[])
         cerr << "Output Path: " << output_path << endl;
         cerr << "X Range: " << x_range << endl;
         cerr << "Y Range: " << y_range << endl;
-        cerr << "Z cap: " << z_cap << endl;
+        cerr << "Z Range: " << z_range << endl;
         cerr << "X Label: " << x_label << endl;
         cerr << "Y Label: " << y_label << endl;
         cerr << "Z Label: " << z_label << endl;
@@ -113,7 +113,7 @@ int kat::flamePlotStart(int argc, char *argv[])
     flame.cmd("set size ratio 1");
 
     std::ostringstream rangestr;
-    rangestr << "set cbrange [0:" << z_cap << "]";
+    rangestr << "set cbrange [0:" << z_range << "]";
     flame.cmd(rangestr.str());
 
     std::ostringstream plotstr;

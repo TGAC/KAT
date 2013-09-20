@@ -65,8 +65,8 @@ namespace kat
         const char* longDescription() const
         {
             return  "  Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers\n" \
-                    "  which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)*inc'. Buckets in the output are labeled by\n" \
-                    "  the low end point (low+i*inc).\n\n" \
+                    "  which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by\n" \
+                    "  the low end point (low+i).\n\n" \
                     "  The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal\n" \
                     "  to the low end point of this bucket.\n\n" \
                     "  This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that\n" \
@@ -80,12 +80,11 @@ namespace kat
             help_str << " -o, --output=path           Output file. (\"" << DEFAULT_HISTO_OUTPUT << "\")" << endl
                      << " -l, --low=uint64            Low count value of histogram (" << DEFAULT_HISTO_LOW << ")" << endl
                      << " -h, --high=uint64           High count value of histogram (" << DEFAULT_HISTO_HIGH << ")" << endl
-                     << " -i, --increment=uint64      Increment value for buckets (" << DEFAULT_HISTO_INC << ")" << endl
                      << " -t, --threads=uint32        Number of threads (" << DEFAULT_HISTO_THREADS << ")" << endl
                      << " -f, --full                  Full histo. Don't skip count 0. (" << DEFAULT_HISTO_FULL << ")" << endl
                      << " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both" << endl
                      << "                             strands. If this is not set to the same value as was produced during jellyfish" << endl
-                     << "                             counting then output from histo will be unpredicatable (" << DEFAULT_HISTO_BOTH_STRANDS << ")." << endl;
+                     << "                             counting then output from histo will be unpredicatable (" << DEFAULT_HISTO_BOTH_STRANDS << ").";
 
             return help_str.str();
         }
@@ -96,7 +95,6 @@ namespace kat
             {
                 {"low",           required_argument,  0, 'l'},
                 {"high",          required_argument,  0, 'h'},
-                {"increment",     required_argument,  0, 'i'},
                 {"threads",       required_argument,  0, 't'},
                 {"full",          no_argument,        0, 'f'},
                 {"output",        required_argument,  0, 'o'},
@@ -115,7 +113,7 @@ namespace kat
 
         string shortOptions()
         {
-            return "l:h:i:t:fo:C";
+            return "l:h:t:fo:C";
         }
 
         void setOption(int c, char* option_arg) {
@@ -127,9 +125,6 @@ namespace kat
                 break;
             case 'h':
                 high = atoi(optarg);
-                break;
-            case 'i':
-                increment = atoi(optarg);
                 break;
             case 't':
                 threads = atoi(optarg);
@@ -157,7 +152,6 @@ namespace kat
 
             status  << "low: " << low << endl
                     << "high: " << high << endl
-                    << "increment: " << increment << endl
                     << "threads: " << threads << endl
                     << "full: " << full << endl
                     << "output: " << output << endl
@@ -171,7 +165,6 @@ namespace kat
 
         uint64_t        low;
         uint64_t        high;
-        uint64_t        increment;
         uint32_t        threads;
         bool            full;
         bool            both_strands;
@@ -181,7 +174,6 @@ namespace kat
         HistoArgs() : BaseArgs(HISTO_MIN_ARGS),
             low(DEFAULT_HISTO_LOW),
             high(DEFAULT_HISTO_HIGH),
-            increment(DEFAULT_HISTO_INC),
             threads(DEFAULT_HISTO_THREADS),
             full(DEFAULT_HISTO_FULL),
             both_strands(DEFAULT_HISTO_BOTH_STRANDS),
@@ -191,7 +183,6 @@ namespace kat
         HistoArgs(int argc, char* argv[]) : BaseArgs(HISTO_MIN_ARGS),
             low(DEFAULT_HISTO_LOW),
             high(DEFAULT_HISTO_HIGH),
-            increment(DEFAULT_HISTO_INC),
             threads(DEFAULT_HISTO_THREADS),
             full(DEFAULT_HISTO_FULL),
             both_strands(DEFAULT_HISTO_BOTH_STRANDS),
@@ -201,12 +192,12 @@ namespace kat
 
         uint64_t calcBase()
         {
-            return low > DEFAULT_HISTO_LOW ? (increment >= low ? DEFAULT_HISTO_LOW : low - increment) : DEFAULT_HISTO_LOW;
+            return low > DEFAULT_HISTO_LOW ? (1 >= low ? DEFAULT_HISTO_LOW : low - 1) : DEFAULT_HISTO_LOW;
         }
 
         uint64_t calcCeil()
         {
-            return high + increment;
+            return high + 1;
         }
     };
 }

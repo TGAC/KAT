@@ -72,8 +72,7 @@ namespace kat
             // Calculate other vars required for this run
             base = args->calcBase();
             ceil = args->calcCeil();
-            inc = args->increment;
-            nb_buckets = (ceil + inc - base) / inc;
+            nb_buckets = ceil + 1 - base;
             nb_slices = args->threads * 100;
 
             data = new uint64_t[args->threads * nb_buckets];
@@ -161,8 +160,7 @@ namespace kat
                 for(uint_t j = 0; j < args->threads; j++)
                     count += data[j * nb_buckets + i];
 
-                if(count > 0 || full)
-                    out << col << " " << count << "\n";
+                out << col << " " << count << "\n";
             }
         }
     };

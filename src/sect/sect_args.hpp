@@ -56,7 +56,7 @@ namespace kat
 
         const char* shortDescription() const
         {
-            return "Estimates coverage for sequences in a fasta file using jellyfish K-mer counts.";
+            return "Estimates coverage levels for a collection of sequences using jellyfish K-mer counts.";
         }
 
         const char* longDescription() const
@@ -64,7 +64,7 @@ namespace kat
             return  "  K-mers containing any Ns derived from sequences in the sequence file will have 0 coverage.\n\n" \
                     "  Output from this tool will consist of a file in fasta format containing K-mer coverage counts for\n" \
                     "  each K-mer of each fasta entry. In addition, a space separated table file containing the mean\n" \
-                    "  coverage score and GC % of each sequence is produced.  The row order is identical to the original\n" \
+                    "  coverage score and GC% of each sequence is produced.  The row order is identical to the original\n" \
                     "  sequence file.";
         }
 

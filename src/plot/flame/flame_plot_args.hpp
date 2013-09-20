@@ -40,6 +40,27 @@ namespace kat
 
     class FlamePlotArgs : public BasePlotArgs
     {
+    private:
+        bool        z_label_mod;
+        bool        x_max_mod;
+        bool        y_max_mod;
+        bool        z_max_mod;
+
+        void init()
+        {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
+
+            z_label_mod = false;
+            x_max_mod = false;
+            y_max_mod = false;
+            z_max_mod = false;
+        }
+
+    protected:
 
         // ***********************************************
         // These methods override BaseArgs virtual methods
@@ -113,12 +134,15 @@ namespace kat
                 break;
             case 'x':
                 x_max = atoi(optarg);
+                x_max_mod = true;
                 break;
             case 'y':
                 y_max = atoi(optarg);
+                y_max_mod = true;
                 break;
             case 'z':
                 z_max = atoi(optarg);
+                z_max_mod = true;
                 break;
             }
         }
@@ -144,6 +168,8 @@ namespace kat
             return status.str().c_str();
         }
 
+
+
     public:
         string      mx_arg;
         string      z_label;
@@ -152,25 +178,19 @@ namespace kat
         int64_t     z_max;
 
         // Default constructor
-        FlamePlotArgs() :
-            BasePlotArgs(MIN_ARGS), mx_arg(""), z_label(DEFAULT_Z_LABEL), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX)
+        FlamePlotArgs() : BasePlotArgs(MIN_ARGS),
+            mx_arg(""), z_label(DEFAULT_Z_LABEL),
+            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX)
         {
-            title = defaultTitle();
-            x_label = defaultXLabel();
-            y_label = defaultYLabel();
-            width = defaultWidth();
-            height = defaultHeight();
+            init();
         }
 
         // Constructor that parses command line options
-        FlamePlotArgs(int argc, char* argv[]) :
-            BasePlotArgs(MIN_ARGS), mx_arg(""), z_label(DEFAULT_Z_LABEL), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX)
+        FlamePlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
+            mx_arg(""), z_label(DEFAULT_Z_LABEL),
+            x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX)
         {
-            title = defaultTitle();
-            x_label = defaultXLabel();
-            y_label = defaultYLabel();
-            width = defaultWidth();
-            height = defaultHeight();
+            init();
 
             parse(argc, argv);
         }
@@ -188,5 +208,11 @@ namespace kat
         const uint16_t defaultWidth() const         { return 1024; }
         const uint16_t defaultHeight() const        { return 1024; }
 
+
+
+        const bool zLabelModified()     {return z_label_mod;}
+        const bool xMaxModified()       {return x_max_mod;}
+        const bool yMaxModified()       {return y_max_mod;}
+        const bool zMaxModified()       {return z_max_mod;}
     };
 }
