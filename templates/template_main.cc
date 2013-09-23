@@ -27,7 +27,7 @@
 
 
 // Start point
-int templateStart(int argc, char *argv[])
+int kat::templateStart(int argc, char *argv[])
 {
     // Parse args (MODIFY FOR YOUR TOOL)
     TemplateArgs args(argc, argv);

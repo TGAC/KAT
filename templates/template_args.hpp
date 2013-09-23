@@ -26,162 +26,117 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-
-// Add any constants here
-#define DEFAULT_TEMPLATE_CONST 10
-
-// Change class name to whatever is appropriate
-class TemplateArgs
+namespace kat
 {
-public:
-    // Add class variables here (or in a private section with accessors here if you want to do it properly)    
-    bool verbose;
+    // TOOL CONSTANTS GO HERE
 
-    // Default constructor (add default settings here)
-    TemplateArgs() :
-	verbose(false)
-    {}
+    // Must specify the minimum number of arguments to the too here (modify as required)
+    const uint16_t MIN_ARGS = 1;
 
-    // Constructor that parses command line options
-    TemplateArgs(int argc, char* argv[]) :
-	verbose(false)
+    // Change class name to whatever is appropriate
+    class TemplateArgs : public BaseArgs
     {
-        parse(argc, argv);
-    }
+    private:
+        // TODO add any private content here
 
+    protected:
 
+        // ***********************************************
+        // These methods override BaseArgs virtual methods
 
-// Modify usage string to your requirements
-#define seqcvg_args_USAGE "Usage: kat <template> <mandatory args>\n"
-    const char * usage() const
-    {
-        return seqcvg_args_USAGE;
-    }
-
-    void error(const char *msg)
-    {
-        cerr << endl
-             << "Error: " << msg << endl << endl
-             << usage() << endl
-             << "Use --help for more information" << endl << endl;
-        exit(1);
-    }
-
-// Modify help string to your requirements
-#define sect_args_HELP "Template Help\n\n" \
-  "Options (default value in (), *required):\n" \
-  " <ADD ARGS HERE>" \
-  " -v, --verbose        Outputs additional information to stderr\n" \
-  "     --usage          Usage\n" \
-  "     --help           This message\n" \
-
-    const char * help() const
-    {
-        return sect_args_HELP;
-    }
-
-#define sect_args_HIDDEN "Hidden options:"
-    const char * hidden() const
-    {
-        return sect_args_HIDDEN;
-    }
-
-
-    void parse(int argc, char *argv[])
-    {
-        int c;
-        int help_flag = 0;
-        int usage_flag = 0;
-
-        static struct option long_options[] =
+        const char* usage() const
         {
-            // ADD ADDITIONAL LONG OPTIONS HERE
-            {"verbose",         no_argument,        0, 'v'},
-            {"help",            no_argument,        &help_flag, 1},
-            {"usage",           no_argument,        &usage_flag, 1},
-            {0, 0, 0, 0}
-        };
-
-        // ADD ADDITIONAL SHORT OPTIONS HERE
-        static const char *short_options = "vuh";
-
-        if (argc <= 1)
-        {
-            cerr << endl
-                 << usage() << endl
-                 << help() << endl;
-            exit(1);
+            return "Usage: kat TEMPLATETOOL \n";
         }
 
-
-        while (true)
+        const char* shortDescription() const
         {
-            /* getopt_long stores the option index here. */
-            int index = -1;
+            return "Short description";
+        }
 
-            c = getopt_long (argc, argv, short_options, long_options, &index);
+        const char* longDescription() const
+        {
+            return  "  Template long description";
+        }
 
-            /* Detect the end of the options. */
-            if (c == -1)
-                break;
+        const string optionsDescription() const
+        {
+            ostringstream help_str;
 
-            switch (c)
+            // TODO add option descriptions here.  Replace this option with your own.
+            help_str << " -o, --option=string         Put any custom option descriptions here";
+
+            return help_str.str();
+        }
+
+        vector<option>* longOptions()
+        {
+            static struct option long_options_array[] =
             {
-            case ':':
-                cerr << "Missing required argument for "
-                          << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                          << endl;
-                exit(1);
-            case '?':
-                cerr << "Use --usage or --help for some help" << endl << endl;
-                exit(1);
-            case 'v':
-                verbose = true;
+                //TODO long options here
+                {"option",       required_argument,  0, 'o'}
+            };
+
+            vector<option>* long_options = new vector<option>();
+
+            //TODO Modify the limit on this loop as appropriate
+            for(uint8_t i = 0; i < 1; i++)
+            {
+                long_options->push_back(long_options_array[i]);
+            }
+
+            return long_options;
+        }
+
+        string shortOptions()
+        {
+            //TODO short options here
+            return "o:";
+        }
+
+        void setOption(int c, char* option_arg) {
+
+            // TODO set class variable here
+            switch(c)
+            {
+            case 'o':
+                option = string(option_arg);
                 break;
-            
-            // ADD OPTION HANDLING CODE HERE (i.e. set class variables)
             }
         }
 
-        if (help_flag)
+        void processRemainingArgs(const vector<string>& remaining_args)
         {
-            cout << usage() << endl
-                 << help() << endl;
-            exit(0);
+            //TODO This is ok if you have only a single required argument, although you may want to modify "prog_arg" to
+            // something more appropriate.
+            prog_arg = remaining_args[0];
         }
 
-        if (usage_flag)
+        const char* currentStatus() const
         {
-            cout << usage() << endl
-                 << "Use --help for more information." << endl << endl;
-            exit(0);
+            ostringstream status;
+
+            // TODO modify as appropriate
+            status << "Option: " << option << endl
+                   << "Program Argument: " << prog_arg << endl;
+
+            return status.str().c_str();
         }
 
+    public:
+        // Add class variables here (or in a private section with accessors here if you want to do it properly)
+        string option;
+        string prog_arg;
 
-        // Parse arguments
-        int remaining_args = argc - optind;
+        // Default constructor (add default settings here)
+        TemplateArgs()
+        {}
 
-        if (verbose)
-            cerr << "Found " << remaining_args << " remaining arguments on the command line." << endl;
-
-        // VALIDATION CHECK FOR REMAINING ARGS HERE
-        //if(remaining_args < 2 || remaining_args > 3)
-        //    error("Requires 2 or 3 arguments describing paths to jellyfish kmer counts.");
-
-
-        // SET REMAINING ARGS HERE
-    }
-
-    void print()
-    {
-        if (verbose)
-            cerr << "Verbose flag set" << endl;
-
-        // Add any set options here for printing to stderr
-
-        cerr << endl;
-    }
-
-private:
-};
+        // Constructor that parses command line options
+        TemplateArgs(int argc, char* argv[])
+        {
+            parse(argc, argv);
+        }
+    };
+}
 

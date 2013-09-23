@@ -17,5 +17,8 @@
 
 #pragma once
 
-// MODIFY FOR YOUR TOOL AS APPROPRIATE
-int templateStart(int argc, char *argv[]);
+namespace kat
+{
+    // MODIFY FOR YOUR TOOL AS APPROPRIATE
+    int templateStart(int argc, char *argv[]);
+}
