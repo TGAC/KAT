@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include "sparse_matrix.hpp"
 
 template <class T>
@@ -40,7 +42,7 @@ public:
         threaded_matricies = new SparseMatrix<uint64_t>*[threads];
 
         for(int i = 0; i < threads; i++) {
-            threaded_matricies[i] = new SparseMatrix<uint_t>(width, height);
+            threaded_matricies[i] = new SparseMatrix<uint64_t>(width, height);
         }
     }
 

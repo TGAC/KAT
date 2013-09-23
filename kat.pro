@@ -49,7 +49,6 @@ SOURCES += \
     templates/template_main.cc \
     src/gcp/gcp_main.cc \
     src/inc/matrix/matrix_metadata_extractor.cc \
-    tests/check_sect.cc \
     tests/check_comp.cc \
     src/plot/spectra/spectra_plot_main.cc \
     src/plot/density/density_plot_main.cc \
@@ -60,4 +59,5 @@ SOURCES += \
 OTHER_FILES += \
     src/Makefile.am \
     Makefile.am \
-    tests/Makefile.am
+    tests/Makefile.am \
+    configure.ac

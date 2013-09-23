@@ -1,10 +1,13 @@
+AUTOMAKE_OPTIONS = subdir-objects
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-TESTS = check_sect check_comp
-check_PROGRAMS = check_sect check_comp
+# additional include paths necessary to compile the C++ library
+AM_CXXFLAGS = @JELLYFISH_CFLAGS@ -I$(top_srcdir)/src @AM_CXXFLAGS@
+AM_LDFLAGS = @JELLYFISH_LIBS@ -all-static -pthread
+AM_CPPFLAGS = -Wall -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
 
-LDADD = -lboost_unit_test_framework
+TESTS = check_comp
+check_PROGRAMS = check_comp
 
-check_sect_SOURCES = check_sect.cc ../src/sect/sect.hpp
-
-check_comp_SOURCES = check_comp.cc ../src/comp/comp.hpp
+check_comp_SOURCES = check_comp.cc
 

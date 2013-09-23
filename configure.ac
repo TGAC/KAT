@@ -91,7 +91,7 @@ AC_ARG_WITH(doxygen,
 
 if test "${boost_dir}" != ":"; then
     CPPFLAGS="$CPPFLAGS -I${boost_dir}/include"
-#    LIBS="$LIBS ${boost_dir}/lib/libboost_unit_test_framework.so"
+    LIBS="$LIBS ${boost_dir}/lib/libboost_unit_test_framework.so"
 fi
 
 if test "${seqan_dir}" != ":"; then
