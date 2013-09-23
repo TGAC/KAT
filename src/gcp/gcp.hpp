@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <iostream>
+#include <math.h>
 
 #include <jellyfish/hash.hpp>
 #include <jellyfish/counter.hpp>
@@ -34,8 +35,6 @@ using std::ostream;
 
 namespace kat
 {
-    uint16_t MAX_COUNT = 1000;
-
     template<typename hash_t>
     class Gcp : public thread_exec
     {
@@ -94,8 +93,8 @@ namespace kat
             if (args->both_strands)
                 hash->set_canonical(true);
 
-            // Create matrix of appropriate size
-            gcp_mx = new ThreadedSparseMatrix<uint64_t>(hash->get_mer_len(), MAX_COUNT + 1, args->threads_arg);
+            // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
+            gcp_mx = new ThreadedSparseMatrix<uint64_t>(hash->get_mer_len(), args->cvg_bins + 1, args->threads_arg);
 
             // Process batch with worker threads
             // Process each sequence is processed in a different thread.
@@ -128,11 +127,13 @@ namespace kat
                             g_or_c++;
                     }
 
+                    // Apply scaling factor
+                    uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double)kmer_count * args->cvg_scale);
 
-                    if(it.get_val() > MAX_COUNT)
-                        mx->inc(g_or_c, MAX_COUNT, 1);
+                    if(cvg_pos > args->cvg_bins)
+                        mx->inc(g_or_c, args->cvg_bins, 1);
                     else
-                        mx->inc(g_or_c, kmer_count, 1);
+                        mx->inc(g_or_c, cvg_pos, 1);
                 }
             }
         }

@@ -28,7 +28,8 @@
 #include "gcp_args.hpp"
 #include "gcp_main.hpp"
 
-//using std::cerr;
+using std::cout;
+using std::cerr;
 
 using kat::GcpArgs;
 using kat::Gcp;

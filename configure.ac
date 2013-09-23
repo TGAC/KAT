@@ -1,6 +1,7 @@
 AC_INIT([Kmer Analysis Toolkit (KAT)], [0.3.1], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
 AM_INIT_AUTOMAKE([1.11 -Wall no-define])
 
+AC_CONFIG_MACRO_DIR([m4])
 AC_LANG_CPLUSPLUS
 
 # store current user given compiler flags to avoid default setup via AC_PROG_CXX
@@ -64,15 +65,12 @@ DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg])
 
 # Allow users to specify custom directories for jellyfish, boost and seqan
 
-jellyfish_dir=":"
 seqan_dir=":"
 boost_dir=":"
 doxygen_dir=":"
 
 
-AC_ARG_WITH(jellyfish,
-        [  --with-jellyfish=LIB_DIR jellyfish root directory is here. ],
-        [ jellyfish_dir=$withval], [ jellyfish_dir=":"])
+PKG_CHECK_MODULES([JELLYFISH], [jellyfish-1.1 >= 1.1.10])
 
 AC_ARG_WITH(seqan,
         [  --with-seqan=LIB_DIR    seqan root directory is here. ],
@@ -90,11 +88,6 @@ AC_ARG_WITH(doxygen,
 
 
 # Modify environment variables as appropriate
-
-if test "$jellyfish_dir" != ":"; then
-    CPPFLAGS="$CPPFLAGS -I${jellyfish_dir}/include/jellyfish-1.1.10"
-    LIBS="$LIBS ${jellyfish_dir}/lib/libjellyfish-1.1.a"
-fi
 
 if test "${boost_dir}" != ":"; then
     CPPFLAGS="$CPPFLAGS -I${boost_dir}/include"
@@ -114,22 +107,12 @@ fi
 # if the tests fail it's not the end of the world, and doxygen is only required
 # for generating source code documentation.
 
-# We should check for the jellyfish library as well as the header but this is difficult because jellyfish is very
-# c++ and does have any conventional C functions exposed.
-
-AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
-         echo "Jellyfish-1.1 is required to compile and run KAT.  Please make sure jellyfish is installed on your system."
-         echo "If jellyfish is installed but not currently available on the PATH; CPPFLAGS; and LIBS flags, then please "
-         echo "re-run ./configure with the \"--with-jellyfish\" argument to specify the root directory of your jellyfish"
-         echo "installation."
-         exit -1],
-         [])
 
 AC_CHECK_HEADER([seqan/sequence.h], [], [
          echo "Seqan is required to compile and run KAT.  Please make sure seqan is installed on your system."
-         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment variable"
-         echo "then please re-run ./configure with the \"--with-seqan\" argument to specify the root directory of your"
-         echo "seqan installation"
+         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment"
+         echo "variable then please re-run \"./configure\" with the \"--with-seqan\" argument to specify the root"
+         echo "directory of your seqan installation"
          exit -1],
          [])
 
@@ -137,6 +120,8 @@ AC_CHECK_HEADER([seqan/sequence.h], [], [
 
 # distribute the changed variables among the Makefiles
 
+AC_SUBST([JELLYFISH_CFLAGS])
+AC_SUBST([JELLYFISH_LIBS])
 AC_SUBST([LIBS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_LDFLAGS])

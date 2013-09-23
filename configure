@@ -629,6 +629,9 @@ AM_LDFLAGS
 AM_CXXFLAGS
 EGREP
 GREP
+JELLYFISH_LIBS
+JELLYFISH_CFLAGS
+PKG_CONFIG
 DOXYGEN_PAPER_SIZE
 DX_COND_latex_FALSE
 DX_COND_latex_TRUE
@@ -775,7 +778,6 @@ enable_doxygen_chi
 enable_doxygen_html
 enable_doxygen_ps
 enable_doxygen_pdf
-with_jellyfish
 with_seqan
 with_boost
 with_doxygen
@@ -790,7 +792,10 @@ LIBS
 CPPFLAGS
 CCC
 CXXCPP
-DOXYGEN_PAPER_SIZE'
+DOXYGEN_PAPER_SIZE
+PKG_CONFIG
+JELLYFISH_CFLAGS
+JELLYFISH_LIBS'
 
 
 # Initialize some variables set by options.
@@ -1427,7 +1432,6 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-jellyfish=LIB_DIR jellyfish root directory is here.
   --with-seqan=LIB_DIR    seqan root directory is here.
   --with-boost=LIB_DIR    boost root directory is here... (boost is only required for running unit tests)
   --with-doxygen=LIB_DIR  doxygen root directory is here... (doxygen is only required for generating source code documentation)
@@ -1443,6 +1447,11 @@ Some influential environment variables:
   CXXCPP      C++ preprocessor
   DOXYGEN_PAPER_SIZE
               a4wide (default), a4, letter, legal or executive
+  PKG_CONFIG  path to pkg-config utility
+  JELLYFISH_CFLAGS
+              C compiler flags for JELLYFISH, overriding pkg-config
+  JELLYFISH_LIBS
+              linker flags for JELLYFISH, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -2662,6 +2671,7 @@ mkdir_p='$(MKDIR_P)'
 AMTAR='$${TAR-tar}'
 
 am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
+
 
 
 
@@ -5884,20 +5894,213 @@ esac
 
 # Allow users to specify custom directories for jellyfish, boost and seqan
 
-jellyfish_dir=":"
 seqan_dir=":"
 boost_dir=":"
 doxygen_dir=":"
 
 
 
-# Check whether --with-jellyfish was given.
-if test "${with_jellyfish+set}" = set; then :
-  withval=$with_jellyfish;  jellyfish_dir=$withval
+
+if test "x$ac_cv_env_PKG_CONFIG_set" != "xset"; then
+	if test -n "$ac_tool_prefix"; then
+  # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
+set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
 else
-   jellyfish_dir=":"
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PKG_CONFIG" >&5
+$as_echo "$PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 fi
 
+
+fi
+if test -z "$ac_cv_path_PKG_CONFIG"; then
+  ac_pt_PKG_CONFIG=$PKG_CONFIG
+  # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_ac_pt_PKG_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $ac_pt_PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_ac_pt_PKG_CONFIG="$ac_pt_PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
+if test -n "$ac_pt_PKG_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_pt_PKG_CONFIG" >&5
+$as_echo "$ac_pt_PKG_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+  if test "x$ac_pt_PKG_CONFIG" = x; then
+    PKG_CONFIG=""
+  else
+    case $cross_compiling:$ac_tool_warned in
+yes:)
+{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using cross tools not prefixed with host triplet" >&5
+$as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
+ac_tool_warned=yes ;;
+esac
+    PKG_CONFIG=$ac_pt_PKG_CONFIG
+  fi
+else
+  PKG_CONFIG="$ac_cv_path_PKG_CONFIG"
+fi
+
+fi
+if test -n "$PKG_CONFIG"; then
+	_pkg_min_version=0.9.0
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking pkg-config is at least version $_pkg_min_version" >&5
+$as_echo_n "checking pkg-config is at least version $_pkg_min_version... " >&6; }
+	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	else
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		PKG_CONFIG=""
+	fi
+
+fi
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JELLYFISH" >&5
+$as_echo_n "checking for JELLYFISH... " >&6; }
+
+if test -n "$JELLYFISH_CFLAGS"; then
+    pkg_cv_JELLYFISH_CFLAGS="$JELLYFISH_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"jellyfish-1.1 >= 1.1.10\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "jellyfish-1.1 >= 1.1.10") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_JELLYFISH_CFLAGS=`$PKG_CONFIG --cflags "jellyfish-1.1 >= 1.1.10" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$JELLYFISH_LIBS"; then
+    pkg_cv_JELLYFISH_LIBS="$JELLYFISH_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"jellyfish-1.1 >= 1.1.10\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "jellyfish-1.1 >= 1.1.10") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_JELLYFISH_LIBS=`$PKG_CONFIG --libs "jellyfish-1.1 >= 1.1.10" 2>/dev/null`
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        JELLYFISH_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "jellyfish-1.1 >= 1.1.10" 2>&1`
+        else
+	        JELLYFISH_PKG_ERRORS=`$PKG_CONFIG --print-errors "jellyfish-1.1 >= 1.1.10" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$JELLYFISH_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (jellyfish-1.1 >= 1.1.10) were not met:
+
+$JELLYFISH_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables JELLYFISH_CFLAGS
+and JELLYFISH_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+" "$LINENO" 5
+elif test $pkg_failed = untried; then
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables JELLYFISH_CFLAGS
+and JELLYFISH_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	JELLYFISH_CFLAGS=$pkg_cv_JELLYFISH_CFLAGS
+	JELLYFISH_LIBS=$pkg_cv_JELLYFISH_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	:
+fi
 
 
 # Check whether --with-seqan was given.
@@ -5931,11 +6134,6 @@ fi
 
 # Modify environment variables as appropriate
 
-if test "$jellyfish_dir" != ":"; then
-    CPPFLAGS="$CPPFLAGS -I${jellyfish_dir}/include/jellyfish-1.1.10"
-    LIBS="$LIBS ${jellyfish_dir}/lib/libjellyfish-1.1.a"
-fi
-
 if test "${boost_dir}" != ":"; then
     CPPFLAGS="$CPPFLAGS -I${boost_dir}/include"
 #    LIBS="$LIBS ${boost_dir}/lib/libboost_unit_test_framework.so"
@@ -5954,8 +6152,6 @@ fi
 # if the tests fail it's not the end of the world, and doxygen is only required
 # for generating source code documentation.
 
-# We should check for the jellyfish library as well as the header but this is difficult because jellyfish is very
-# c++ and does have any conventional C functions exposed.
 
 
 
@@ -6218,29 +6414,15 @@ fi
 done
 
 
-ac_fn_cxx_check_header_mongrel "$LINENO" "jellyfish/hash.hpp" "ac_cv_header_jellyfish_hash_hpp" "$ac_includes_default"
-if test "x$ac_cv_header_jellyfish_hash_hpp" = xyes; then :
-
-else
-
-         echo "Jellyfish-1.1 is required to compile and run KAT.  Please make sure jellyfish is installed on your system."
-         echo "If jellyfish is installed but not currently available on the PATH; CPPFLAGS; and LIBS flags, then please "
-         echo "re-run ./configure with the \"--with-jellyfish\" argument to specify the root directory of your jellyfish"
-         echo "installation."
-         exit -1
-fi
-
-
-
 ac_fn_cxx_check_header_mongrel "$LINENO" "seqan/sequence.h" "ac_cv_header_seqan_sequence_h" "$ac_includes_default"
 if test "x$ac_cv_header_seqan_sequence_h" = xyes; then :
 
 else
 
          echo "Seqan is required to compile and run KAT.  Please make sure seqan is installed on your system."
-         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment variable"
-         echo "then please re-run ./configure with the \"--with-seqan\" argument to specify the root directory of your"
-         echo "seqan installation"
+         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment"
+         echo "variable then please re-run \"./configure\" with the \"--with-seqan\" argument to specify the root"
+         echo "directory of your seqan installation"
          exit -1
 fi
 
@@ -6249,6 +6431,8 @@ fi
 
 
 # distribute the changed variables among the Makefiles
+
+
 
 
 
