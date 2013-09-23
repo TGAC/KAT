@@ -22,6 +22,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
+#include <sstream>
 
 
 using std::cout;
@@ -44,6 +45,17 @@ namespace kat
     private:
         uint16_t min_args;
         vector<string> remaining_args;
+
+        void noArgsError()
+        {
+            const char* suffix = min_args > 1 ? "s" : "";
+
+            std::ostringstream error_msg;
+            error_msg << "Requires at least " << min_args << " argument" << suffix << ".";
+
+            // Will die here
+            error(error_msg.str().c_str());
+        }
 
     protected:
 
@@ -140,7 +152,7 @@ namespace kat
             cerr << endl
                  << "Error: " << msg << endl << endl
                  << usage() << endl
-                 << "Use --help for more information" << endl;
+                 << "Use --help for more information" << endl << endl;
             exit(1);
         }
 
@@ -149,17 +161,17 @@ namespace kat
          * @brief help A help message describing the syntax for all the programs options and arguments
          * @return
          */
-        const string help() const
+        const string help()
         {
-            ostringstream help_str;
+            std::ostringstream help_str;
 
             help_str << shortDescription() << endl << endl
-                 << longDescription() << endl << endl
-                 << "Options (default value in (), *required):" << endl
-                 << optionsDescription() << endl
-                 << " -v, --verbose               Outputs additional information to stderr" << endl
-                 << "     --usage                 Usage" << endl
-                 << "     --help                  This message" << endl;
+                     << longDescription() << endl << endl
+                     << "Options (default value in (), *required):" << endl
+                     << optionsDescription() << endl
+                     << " -v, --verbose               Outputs additional information to stderr" << endl
+                     << "     --usage                 Usage" << endl
+                     << "     --help                  This message" << endl;
 
             return help_str.str();
         }
@@ -170,6 +182,13 @@ namespace kat
             int c;
             int help_flag = 0;
             int usage_flag = 0;
+
+            // Check that something is on the command line
+            if (argc <= 1)
+            {
+                // Will terminate here
+                noArgsError();
+            }
 
             static struct option long_common_options[] =
             {
@@ -190,18 +209,9 @@ namespace kat
             option* long_options_array = &(*long_options)[0];
 
             // Create short options
-            ostringstream short_options_str;
+            std::ostringstream short_options_str;
             short_options_str << shortOptions() << "vuh";
             static const char *short_options = short_options_str.str().c_str();
-
-            // Check that something is on the command line
-            if (argc <= 1)
-            {
-                cerr << endl
-                     << usage() << endl
-                     << help() << endl;
-                exit(1);
-            }
 
             // Loop through the options
             while (true)
@@ -236,6 +246,9 @@ namespace kat
             // If the help flag was set print usage and help then exit
             if (help_flag)
             {
+                // Clean up
+                delete long_options;
+
                 cout << usage() << endl
                      << help() << endl;
                 exit(0);
@@ -244,6 +257,9 @@ namespace kat
             // If the usage flag was set print usage then exit
             if (usage_flag)
             {
+                // Clean up
+                delete long_options;
+
                 cout << usage() << endl
                      << "Use --help for more information." << endl << endl;
                 exit(0);
@@ -255,13 +271,11 @@ namespace kat
             // Check we still have the required number left, if not error then exit
             if(nb_remaining_args < min_args)
             {
-                const char* suffix = min_args > 1 ? "s" : "";
+                // Clean up
+                delete long_options;
 
-                ostringstream error_msg;
-                error_msg << "Requires at least " << min_args << " argument" << suffix << ".";
-
-                // Will die here
-                error(error_msg.str().c_str());
+                // Will terminate here
+                noArgsError();
             }
 
             // Add all remaining arguments to file list

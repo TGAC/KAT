@@ -19,6 +19,6 @@
 
 namespace kat
 {
-    int asmPlotStart(int argc, char *argv[]);
+    int profilePlotStart(int argc, char *argv[]);
 }
 

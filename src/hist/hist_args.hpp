@@ -45,7 +45,7 @@ namespace kat
     const uint16_t  HISTO_MIN_ARGS = 1;
 
 
-    class HistoArgs : public BaseArgs
+    class HistArgs : public BaseArgs
     {
     protected:
 
@@ -54,7 +54,7 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat histo [options] <jellyfish_hash_file>\n";
+            return "Usage: kat hist [options] <jellyfish_hash>\n";
         }
 
         const char* shortDescription() const
@@ -65,12 +65,12 @@ namespace kat
         const char* longDescription() const
         {
             return  "  Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers\n" \
-                    "  which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by\n" \
-                    "  the low end point (low+i).\n\n" \
-                    "  The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal\n" \
-                    "  to the low end point of this bucket.\n\n" \
-                    "  This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that\n" \
-                    "  the output contains metadata that make the histogram easier for the user to plot.";
+                    "  which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by the\n" \
+                    "  low end point (low+i).\n\n" \
+                    "  The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal to\n" \
+                    "  the low end point of this bucket.\n\n" \
+                    "  This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that the\n" \
+                    "  output contains metadata that make the histogram easier for the user to plot.";
         }
 
         const string optionsDescription() const
@@ -103,7 +103,7 @@ namespace kat
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 7; i++)
+            for(uint8_t i = 0; i < 6; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -171,7 +171,7 @@ namespace kat
         string          output;
         string          db_path;
 
-        HistoArgs() : BaseArgs(HISTO_MIN_ARGS),
+        HistArgs() : BaseArgs(HISTO_MIN_ARGS),
             low(DEFAULT_HISTO_LOW),
             high(DEFAULT_HISTO_HIGH),
             threads(DEFAULT_HISTO_THREADS),
@@ -180,7 +180,7 @@ namespace kat
             output(DEFAULT_HISTO_OUTPUT)
         { }
 
-        HistoArgs(int argc, char* argv[]) : BaseArgs(HISTO_MIN_ARGS),
+        HistArgs(int argc, char* argv[]) : BaseArgs(HISTO_MIN_ARGS),
             low(DEFAULT_HISTO_LOW),
             high(DEFAULT_HISTO_HIGH),
             threads(DEFAULT_HISTO_THREADS),
@@ -189,6 +189,7 @@ namespace kat
             output(DEFAULT_HISTO_OUTPUT)
         { parse(argc, argv); }
 
+        ~HistArgs() {}
 
         uint64_t calcBase()
         {

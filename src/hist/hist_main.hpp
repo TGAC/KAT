@@ -19,6 +19,5 @@
 
 namespace kat
 {
-    int spectraPlotStart(int argc, char *argv[]);
+    int histStart(int argc, char *argv[]);
 }
-

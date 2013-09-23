@@ -38,7 +38,7 @@ namespace kat
 
     const uint16_t MIN_ARGS = 1;
 
-    class FlamePlotArgs : public BasePlotArgs
+    class DensityPlotArgs : public BasePlotArgs
     {
     private:
         bool        z_label_mod;
@@ -67,21 +67,20 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat plot flame [options] <matrix_file>\n";
+            return "Usage: kat plot density [options] <matrix_file>\n";
         }
 
         const char* shortDescription() const
         {
-            return "Create K-mer Flame Plots";
+            return "Create K-mer Density Plots";
         }
 
         const char* longDescription() const
         {
-            return  "  Creates a scatter plot, where the \"heat\" in each point represents the number of\n" \
-                    "  distinct K-mers at that point.  Typically this is used to visualise a matrix produced\n" \
-                    "  by the \"kat comp\" tool to compare multiplicities from two K-mer hashes produced by\n" \
-                    "  different NGS reads, or to visualise the GC vs K-mer multiplicity matricies produced\n" \
-                    "  by the \"kat gcp\" tool.";
+            return  "  Creates a scatter plot, where the density or \"heat\" at each point represents the number of distinct K-mers\n" \
+                    "  at that point.  Typically this is used to visualise a matrix produced by the \"kat comp\" tool to compare\n" \
+                    "  multiplicities from two K-mer hashes produced by different NGS reads, or to visualise the GC vs K-mer\n" \
+                    "  multiplicity matricies produced by the \"kat gcp\" tool.";
         }
 
         const string optionsDescription() const
@@ -178,7 +177,7 @@ namespace kat
         int64_t     z_max;
 
         // Default constructor
-        FlamePlotArgs() : BasePlotArgs(MIN_ARGS),
+        DensityPlotArgs() : BasePlotArgs(MIN_ARGS),
             mx_arg(""), z_label(DEFAULT_Z_LABEL),
             x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX)
         {
@@ -186,7 +185,7 @@ namespace kat
         }
 
         // Constructor that parses command line options
-        FlamePlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
+        DensityPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
             mx_arg(""), z_label(DEFAULT_Z_LABEL),
             x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), z_max(DEFAULT_Z_MAX)
         {
@@ -195,13 +194,13 @@ namespace kat
             parse(argc, argv);
         }
 
-        ~FlamePlotArgs()
+        ~DensityPlotArgs()
         {}
 
         // ***************************************************
         // These methods override BasePlotArgs virtual methods
 
-        const string defaultOutputPrefix() const    { return "kat-plot-flame"; }
+        const string defaultOutputPrefix() const    { return "kat-plot-density"; }
         const string defaultTitle() const           { return "Flame Plot"; }
         const string defaultXLabel() const          { return "X"; }
         const string defaultYLabel() const          { return "Y"; }

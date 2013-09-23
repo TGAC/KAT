@@ -51,7 +51,7 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat gcp <jellyfish_hash_file>\n";
+            return "Usage: kat gcp <jellyfish_hash>\n";
         }
 
         const char* shortDescription() const
@@ -61,11 +61,10 @@ namespace kat
 
         const char* longDescription() const
         {
-            return  "  This tool takes a single jellyfish hash as input and then count the GC nucleotides for each distinct\n" \
-                    "  K-mer in the hash.  For each GC count and K-mer coverage level, the number of distinct K-mers are\n" \
-                    "  counted and stored in a matrix.  This matrix can be used to analyse biological content within the\n" \
-                    "  hash.  For example, it can be used to distinguish legitimate content from contamination, or\n" \
-                    "  unexpected content.";
+            return  "  This tool takes a single jellyfish hash as input and then count the GC nucleotides for each distinct K-mer\n" \
+                    "  in the hash.  For each GC count and K-mer coverage level, the number of distinct K-mers are counted and\n" \
+                    "  stored in a matrix.  This matrix can be used to analyse biological content within the hash.  For example,\n" \
+                    "  it can be used to distinguish legitimate content from contamination, or unexpected content.";
         }
 
         const string optionsDescription() const

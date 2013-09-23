@@ -19,14 +19,17 @@
 #include <config.h>
 #endif
 
+#include <string.h>
 #include <iostream>
 
 #include "kat_args.hpp"
 #include "sect/sect_main.hpp"
 #include "comp/comp_main.hpp"
 #include "gcp/gcp_main.hpp"
-#include "histo/histo_main.hpp"
+#include "hist/hist_main.hpp"
 #include "plot/plot_main.hpp"
+
+using std::string;
 
 using kat::KatArgs;
 
@@ -39,24 +42,27 @@ int main(int argc, char *argv[])
     // Parse args
     KatArgs args(argc, argv);
 
+    // Shortcut to mode
+    string mode = args.getMode();
+
     // Pass remaining args to relevant child tool
-    if (args.getMode().compare("sect") == 0)
+    if (mode.compare(kat::KAT_SECT_ID) == 0)
     {
         kat::sectStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("comp") == 0)
+    else if (mode.compare(kat::KAT_COMP_ID) == 0)
     {
         kat::compStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("gcp") == 0)
+    else if (mode.compare(kat::KAT_GCP_ID) == 0)
     {
         kat::gcpStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("histo") == 0)
+    else if (mode.compare(kat::KAT_HIST_ID) == 0)
     {
-        kat::histoStart(args.getModeArgC(), args.getModeArgV());
+        kat::histStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("plot") == 0)
+    else if (mode.compare(kat::KAT_PLOT_ID) == 0)
     {
         kat::plotStart(args.getModeArgC(), args.getModeArgV());
     }

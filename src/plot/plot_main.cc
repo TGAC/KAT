@@ -21,10 +21,10 @@
 
 #include <string.h>
 
-#include "flame/flame_plot_main.hpp"
-#include "asm/asm_plot_main.hpp"
-#include "sect/sect_plot_main.hpp"
-#include "spectra/spectra_plot_main.hpp"
+#include "density/density_plot_main.hpp"
+#include "profile/profile_plot_main.hpp"
+#include "spectra-cn/spectra_cn_plot_main.hpp"
+#include "spectra-hist/spectra_hist_plot_main.hpp"
 
 #include "plot_args.hpp"
 #include "plot_main.hpp"
@@ -39,22 +39,25 @@ int kat::plotStart(int argc, char *argv[])
     // Parse args
     PlotArgs args(argc, argv);
 
+    // Shortcut to mode
+    string mode = args.getMode();
+
     // Pass remaining args to relevant child tool
-    if (args.getMode().compare("flame") == 0)
+    if (mode.compare(KAT_PLOT_DENSITY_ID) == 0)
     {
-        kat::flamePlotStart(args.getModeArgC(), args.getModeArgV());
+        kat::densityPlotStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("asm") == 0)
+    else if (mode.compare(KAT_PLOT_PROFILE_ID) == 0)
     {
-        kat::asmPlotStart(args.getModeArgC(), args.getModeArgV());
+        kat::profilePlotStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("sect") == 0)
+    else if (mode.compare(KAT_PLOT_SPECTRA_CN_ID) == 0)
     {
-        kat::sectPlotStart(args.getModeArgC(), args.getModeArgV());
+        kat::spectraCnPlotStart(args.getModeArgC(), args.getModeArgV());
     }
-    else if (args.getMode().compare("spectra") == 0)
+    else if (mode.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0)
     {
-        kat::spectraPlotStart(args.getModeArgC(), args.getModeArgV());
+        kat::spectraHistPlotStart(args.getModeArgC(), args.getModeArgV());
     }
 
     return 0;

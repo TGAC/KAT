@@ -30,8 +30,8 @@
 #include <gnuplot/gnuplot_i.hpp>
 #include <str_utils.hpp>
 
-#include "spectra_plot_args.hpp"
-#include "spectra_plot_main.hpp"
+#include "spectra_hist_plot_args.hpp"
+#include "spectra_hist_plot_main.hpp"
 
 using std::string;
 using std::stringstream;
@@ -40,15 +40,15 @@ using std::ostringstream;
 using std::ifstream;
 using std::vector;
 
-using kat::SpectraPlotArgs;
+using kat::SpectraHistPlotArgs;
 
 
 
 // Start point
-int kat::spectraPlotStart(int argc, char *argv[])
+int kat::spectraHistPlotStart(int argc, char *argv[])
 {
     // Parse args
-    SpectraPlotArgs args(argc, argv);
+    SpectraHistPlotArgs args(argc, argv);
 
     // Print command line args to stderr if requested
     if (args.verbose)
@@ -56,31 +56,31 @@ int kat::spectraPlotStart(int argc, char *argv[])
 
 
     // Initialise gnuplot
-    Gnuplot spectra_plot = Gnuplot("lines");
+    Gnuplot spectra_hist_plot = Gnuplot("lines");
 
     // Work out the output path to use (either user specified or auto generated)
     string output_path = args.determineOutputPath();
 
-    spectra_plot.configurePlot(args.output_type, output_path, args.width, args.height);
+    spectra_hist_plot.configurePlot(args.output_type, output_path, args.width, args.height);
 
-    spectra_plot.set_title(args.title);
-    spectra_plot.set_xlabel(args.x_label);
-    spectra_plot.set_ylabel(args.y_label);
-    spectra_plot.set_xrange(args.x_logscale ? 1 : args.x_min, args.x_logscale ? DEFAULT_X_MAX : args.x_max);
-    spectra_plot.set_yrange(args.y_logscale ? 1 : args.y_min, args.y_max);
+    spectra_hist_plot.set_title(args.title);
+    spectra_hist_plot.set_xlabel(args.x_label);
+    spectra_hist_plot.set_ylabel(args.y_label);
+    spectra_hist_plot.set_xrange(args.x_logscale ? 1 : args.x_min, args.x_logscale ? DEFAULT_X_MAX : args.x_max);
+    spectra_hist_plot.set_yrange(args.y_logscale ? 1 : args.y_min, args.y_max);
 
     if (args.x_logscale)
-        spectra_plot.set_xlogscale();
+        spectra_hist_plot.set_xlogscale();
     if (args.y_logscale)
-        spectra_plot.set_ylogscale();
+        spectra_hist_plot.set_ylogscale();
 
-    spectra_plot.cmd("set size ratio 1");
-    spectra_plot.cmd("set key font \",8\"");
-    spectra_plot.cmd("set tics font \", 8\"");
-    spectra_plot.cmd("set palette rgb 33,13,10");
-    spectra_plot.cmd("unset colorbox");
+    spectra_hist_plot.cmd("set size ratio 1");
+    spectra_hist_plot.cmd("set key font \",8\"");
+    spectra_hist_plot.cmd("set tics font \", 8\"");
+    spectra_hist_plot.cmd("set palette rgb 33,13,10");
+    spectra_hist_plot.cmd("unset colorbox");
 
-    spectra_plot.cmd("set style data linespoints");
+    spectra_hist_plot.cmd("set style data linespoints");
 
     ostringstream plot_str;
     ostringstream data_str;
@@ -128,7 +128,7 @@ int kat::spectraPlotStart(int argc, char *argv[])
 
     plot_str << "plot " << data_str.str() ;
 
-    spectra_plot.cmd(plot_str.str());
+    spectra_hist_plot.cmd(plot_str.str());
 
     if (args.verbose)
         cerr << "Plotted data: " << plot_str.str() << endl;

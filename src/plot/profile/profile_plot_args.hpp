@@ -37,7 +37,7 @@ namespace kat
     const uint16_t MIN_ARGS = 1;
 
 
-    class SectPlotArgs : public BasePlotArgs
+    class ProfilePlotArgs : public BasePlotArgs
     {
     private:
         bool y_max_mod;
@@ -60,7 +60,7 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat plot sect [options] <sect_profile_file>\n";
+            return "Usage: kat plot profile [options] <sect_profile_file>\n";
         }
 
         const char* shortDescription() const
@@ -80,7 +80,8 @@ namespace kat
             help_str << BasePlotArgs::optionsDescription() << endl
                      << " -y  --y_max=uint32          Maximum value for the y-axis (" << DEFAULT_Y_MAX << ", or value from matrix metadata if present)" << endl
                      << " -n, --index=uint32          Index of fasta entry to plot.  First entry is 1. (" << DEFAULT_FASTA_INDEX << ")" << endl
-                     << " -d, --header=string         Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over \'--index\'.";
+                     << " -d, --header=string         Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over" << endl
+                     << "                             \'--index\'.";
 
             return help_str.str();
         }
@@ -131,7 +132,7 @@ namespace kat
 
         void processRemainingArgs(const vector<string>& remaining_args)
         {
-            sect_file_arg = remaining_args[0];
+            sect_profile = remaining_args[0];
         }
 
 
@@ -149,21 +150,21 @@ namespace kat
         }
 
     public:
-        string      sect_file_arg;
+        string      sect_profile;
         uint32_t    y_max;
         uint32_t    fasta_index;
         string      fasta_header;
 
         // Default constructor
-        SectPlotArgs() :
-            BasePlotArgs(MIN_ARGS), sect_file_arg(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
+        ProfilePlotArgs() :
+            BasePlotArgs(MIN_ARGS), sect_profile(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
         {
             init();
         }
 
         // Constructor that parses command line options
-        SectPlotArgs(int argc, char* argv[]) :
-            BasePlotArgs(MIN_ARGS), sect_file_arg(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
+        ProfilePlotArgs(int argc, char* argv[]) :
+            BasePlotArgs(MIN_ARGS), sect_profile(""), y_max(DEFAULT_Y_MAX), fasta_index(DEFAULT_FASTA_INDEX), fasta_header("")
         {
             init();
 
@@ -174,12 +175,12 @@ namespace kat
         string autoTitle(string& header)
         {
             std::ostringstream output_str;
-            output_str << defaultTitle() << ": " << sect_file_arg << " - " << header;
+            output_str << defaultTitle() << ": " << sect_profile << " - " << header;
             return title.compare(defaultTitle()) == 0 ? output_str.str() : title;
         }
 
 
-        ~SectPlotArgs()
+        ~ProfilePlotArgs()
         {}
 
 
@@ -187,7 +188,7 @@ namespace kat
         // ***************************************************
         // These methods override BasePlotArgs virtual methods
 
-        const string defaultOutputPrefix() const    { return "kat-plot-sect"; }
+        const string defaultOutputPrefix() const    { return "kat-plot-profile"; }
         const string defaultTitle() const           { return "Sequence Coverage Plot"; }
         const string defaultXLabel() const          { return "Position (nt)"; }
         const string defaultYLabel() const          { return "K-mer Coverage"; }

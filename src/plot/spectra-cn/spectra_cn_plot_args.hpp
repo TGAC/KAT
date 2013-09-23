@@ -39,7 +39,7 @@ namespace kat
     const uint16_t MIN_ARGS = 1;
 
 
-    class AsmPlotArgs : public BasePlotArgs
+    class SpectraCnPlotArgs : public BasePlotArgs
     {
     protected:
 
@@ -48,18 +48,19 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat plot asm [options] <matrix_file>\n";
+            return "Usage: kat plot spectra-cn [options] <matrix_file>\n";
         }
 
         const char* shortDescription() const
         {
-            return "Creates a stacked histogram showing level of duplication in an assembly";
+            return "Creates a stacked histogram showing the level of duplication in an assembly.";
         }
 
         const char* longDescription() const
         {
-            return  "  Shows K-mer duplication levels within an assembly by comparing K-mers fround in sequenced reads, to K-mers found in an assembly of those reads.\n" \
-                    "  Uses matrix output from the \"kat comp\" tool";
+            return  "  Shows K-mer duplication levels, which correspond to copy number variation within an assembly by comparing\n" \
+                    "  K-mers found in sequenced reads, to K-mers found in an assembly of those reads. Uses matrix output from the\n" \
+                    "  \"kat comp\" tool.";
         }
 
         const string optionsDescription() const
@@ -71,8 +72,8 @@ namespace kat
                      << " -y  --y_max=uint64          Maximum value for the y-axis (10000000)" << endl
                      << " -a, --ignore_absent         Ignore K-mers in reads but absent from the assembly" << endl
                      << " -m, --max_dup=uint16        Maximum duplication level to show in plots (5)" << endl
-                     << " -c, --columns=string        Comma separated string listing columns to show in plot.  If used," << endl
-                     << "                             this overrides \"--ignore_absent\" and \"--columns\"";
+                     << " -c, --columns=string        Comma separated string listing columns to show in plot.  If used, this" << endl
+                     << "                             overrides \"--ignore_absent\" and \"--columns\"";
 
             return help_str.str();
         }
@@ -148,6 +149,8 @@ namespace kat
 
             return status.str().c_str();
         }
+
+
     public:
         string      mx_arg;
         uint16_t    x_max;
@@ -157,7 +160,7 @@ namespace kat
         string      columns;
 
         // Default constructor
-        AsmPlotArgs() : BasePlotArgs(MIN_ARGS),
+        SpectraCnPlotArgs() : BasePlotArgs(MIN_ARGS),
             mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), columns("")
         {
             title = defaultTitle();
@@ -168,7 +171,7 @@ namespace kat
         }
 
         // Constructor that parses command line options
-        AsmPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
+        SpectraCnPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
             mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), columns("")
         {
             title = defaultTitle();
@@ -180,7 +183,7 @@ namespace kat
             parse(argc, argv);
         }
 
-        ~AsmPlotArgs()
+        ~SpectraCnPlotArgs()
         {}
 
 

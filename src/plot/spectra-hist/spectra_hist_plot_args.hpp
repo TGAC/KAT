@@ -43,8 +43,19 @@ namespace kat
 
     const uint16_t MIN_ARGS = 1;
 
-    class SpectraPlotArgs : public BasePlotArgs
+    class SpectraHistPlotArgs : public BasePlotArgs
     {
+    private:
+
+        void init()
+        {
+            title = defaultTitle();
+            x_label = defaultXLabel();
+            y_label = defaultYLabel();
+            width = defaultWidth();
+            height = defaultHeight();
+        }
+
     protected:
 
 
@@ -53,17 +64,19 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat plot spectra [options] <histo_file> [<histo_file> ...]*";
+            return "Usage: kat plot spectra-hist [options] <histo_file> [<histo_file> ...]*";
         }
 
         const char* shortDescription() const
         {
-            return "Create K-mer Spectra Plot";
+            return "Creates K-mer Spectra Plot from one or more histograms.";
         }
 
         const char* longDescription() const
         {
-            return "  Shows K-mer spectras from kat-histo or jellyfish-histo output.";
+            return "  Produces K-mer spectras from \"kat hist\" or \"jellyfish histo\" output.  This tool is designed to plot line\n" \
+                   "  graphs of one or more histograms.  The idea is to be able to compare total K-mer counts between different\n" \
+                   "  datasets.";
         }
 
         const string optionsDescription() const
@@ -169,33 +182,26 @@ namespace kat
         bool y_logscale;
 
         // Default constructor
-        SpectraPlotArgs() :
-            BasePlotArgs(MIN_ARGS), histo_paths(vector<string>()),
+        SpectraHistPlotArgs() : BasePlotArgs(MIN_ARGS),
+            histo_paths(vector<string>()),
             x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
             x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE)
         {
-            title = defaultTitle();
-            x_label = defaultXLabel();
-            y_label = defaultYLabel();
-            width = defaultWidth();
-            height = defaultHeight();
+            init();
         }
 
         // Constructor that parses command line options
-        SpectraPlotArgs(int argc, char* argv[]) :
-            BasePlotArgs(MIN_ARGS), histo_paths(vector<string>()),
+        SpectraHistPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
+            histo_paths(vector<string>()),
             x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
             x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE)
         {
-            title = defaultTitle();
-            x_label = defaultXLabel();
-            y_label = defaultYLabel();
-            width = defaultWidth();
-            height = defaultHeight();
+            init();
+
             parse(argc, argv);
         }
 
-        ~SpectraPlotArgs()
+        ~SpectraHistPlotArgs()
         {}
 
         // ***************************************************

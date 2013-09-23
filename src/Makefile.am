@@ -34,26 +34,26 @@ kat_SOURCES = \
 		gcp/gcp.hpp \
 		gcp/gcp_args.hpp \
 		gcp/gcp_main.hpp \
-		histo/histo_main.cc \
-		histo/histogram.hpp \
-		histo/histo_args.hpp \
-		histo/histo_main.hpp \
+		hist/hist_main.cc \
+		hist/histogram.hpp \
+		hist/hist_args.hpp \
+		hist/hist_main.hpp \
                 plot/plot_main.cc \
 		plot/plot_args.hpp \
 		plot/plot_main.hpp \
                 plot/common_plot_args.hpp \
-                plot/flame/flame_plot_main.cc \
-		plot/flame/flame_plot_args.hpp \
-		plot/flame/flame_plot_main.hpp \
-                plot/asm/asm_plot_main.cc \
-		plot/asm/asm_plot_args.hpp \
-		plot/asm/asm_plot_main.hpp \
-                plot/sect/sect_plot_main.cc \
-                plot/sect/sect_plot_main.hpp \
-		plot/sect/sect_plot_args.hpp \
-		plot/spectra/spectra_plot_main.cc \
-		plot/spectra/spectra_plot_args.hpp \
-		plot/spectra/spectra_plot_main.hpp \
+                plot/density/density_plot_main.cc \
+		plot/density/density_plot_args.hpp \
+		plot/density/density_plot_main.hpp \
+                plot/spectra-cn/spectra_cn_plot_main.cc \
+		plot/spectra-cn/spectra_cn_plot_args.hpp \
+		plot/spectra-cn/spectra_cn_plot_main.hpp \
+                plot/profile/profile_plot_main.cc \
+                plot/profile/profile_plot_main.hpp \
+		plot/profile/profile_plot_args.hpp \
+		plot/spectra-hist/spectra_hist_plot_main.cc \
+		plot/spectra-hist/spectra_hist_plot_args.hpp \
+		plot/spectra-hist/spectra_hist_plot_main.hpp \
                 kat.cc \
 		kat_args.hpp
 

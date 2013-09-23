@@ -32,7 +32,7 @@
 #include <jellyfish/thread_exec.hpp>
 #include <jellyfish/jellyfish_helper.hpp>
 
-#include "histo_args.hpp"
+#include "hist_args.hpp"
 
 namespace kat
 {
@@ -42,7 +42,7 @@ namespace kat
     {
     private:
         // Arguments from user
-        HistoArgs *args;
+        HistArgs *args;
 
         // Jellyfish mapped file hash vars
         JellyfishHelper         *jfh;
@@ -54,7 +54,7 @@ namespace kat
         counter_t       slice_id;
 
     public:
-        Histogram(HistoArgs* _args) : args(_args)
+        Histogram(HistArgs* _args) : args(_args)
         {
             // Some validation first
             if(args->high < args->low)

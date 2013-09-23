@@ -17,36 +17,8 @@
 
 #pragma once
 
-#include <stdint.h>
-#include <sstream>
-#include <string>
-#include <vector>
-
-using std::string;
-using std::istringstream;
-using std::vector;
-
 namespace kat
 {
-    static uint32_t strToInt(string s)
-    {
-        istringstream str_val(s);
-        uint32_t int_val;
-        str_val >> int_val;
-        return int_val;
-    }
-
-    // This is horribly inefficient, and annoying to use! :(  Fix later
-    static void split(const string& txt, vector<uint32_t> &strs, const char ch)
-    {
-        strs.clear();
-        istringstream iss(txt);
-        do
-        {
-            string sub;
-            iss >> sub;
-            uint32_t intVal = strToInt(sub);
-            strs.push_back(intVal);
-        } while (iss);
-    }
+    int spectraCnPlotStart(int argc, char *argv[]);
 }
+

@@ -19,6 +19,6 @@
 
 namespace kat
 {
-    int flamePlotStart(int argc, char *argv[]);
+    int densityPlotStart(int argc, char *argv[]);
 }
 

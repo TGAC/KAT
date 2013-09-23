@@ -21,6 +21,11 @@
 #include <string.h>
 #include <iostream>
 #include <stdlib.h>
+#include <vector>
+
+#include <common_args.hpp>
+
+#include "plot_main.hpp"
 
 using std::string;
 using std::cerr;
@@ -29,22 +34,66 @@ using std::endl;
 
 namespace kat
 {
-    class PlotArgs
+    const string KAT_PLOT_DENSITY_ID        = "density";
+    const string KAT_PLOT_PROFILE_ID        = "profile";
+    const string KAT_PLOT_SPECTRA_CN_ID     = "spectra-cn";
+    const string KAT_PLOT_SPECTRA_HIST_ID   = "spectra-hist";
+
+    const uint16_t MIN_ARGS = 0;
+
+    class PlotArgs : public BaseArgs
     {
     private:
         string  mode_arg;
         int     mode_argc;
-        char**   mode_argv;
+        char**  mode_argv;
+
+    protected:
+
+        // ***********************************************
+        // These methods override BaseArgs virtual methods
+
+        const char* usage() const               { return "Usage: kat plot <mode>\n"; }
+        const char* shortDescription() const    { return "Create K-mer Plots"; }
+        const char* longDescription() const
+        {
+            return  "First argument should be the plot mode you wish to use:\n\n" \
+                    "  - density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
+                    "                     used to compare two K-mer hashes produced by different NGS reads.\n" \
+                    "  - profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
+                    "                     coverage from the \"sect\" tool\n" \
+                    "  - spectra-cn:      Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
+                    "                     this is used to compare a jellyfish hash produced from a read set to a jellyfish hash\n" \
+                    "                     produced from an assembly. The plot shows the amount of distinct K-mers absent, as well\n" \
+                    "                     as the copy number variation present within the assembly.\n" \
+                    "  - spectra-hist:    Creates a K-mer spctra plot for a set of K-mer histograms produced either by jellyfish-\n" \
+                    "                     histo or kat-histo.";
+        }
+
+        const string optionsDescription() const    { return ""; }
+
+        vector<option>* longOptions()
+        {
+            vector<option>* long_options = new vector<option>();
+
+            return long_options;
+        }
+
+        string shortOptions()                   { return ""; }
+        void setOption(int c, char* option_arg) {}
+        void processRemainingArgs(const vector<string>& remaining_args) {}
+        const char* currentStatus() const       { return ""; }
+
     public:
 
         // Default constructor
-        PlotArgs()
+        PlotArgs() : BaseArgs(MIN_ARGS)
         {}
 
         // Constructor that parses command line options
-        PlotArgs(int argc, char* argv[])
+        PlotArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS)
         {
-            parse(argc, argv);
+            customParse(argc, argv);
         }
 
         string getMode() {
@@ -59,82 +108,23 @@ namespace kat
             return mode_argv;
         }
 
-    #define seqcvg_args_USAGE "Usage: kat plot <mode>\n"
-        const char * usage() const
+        bool validMode(string mode_str)
         {
-            return seqcvg_args_USAGE;
-        }
-
-        void error(const char *msg)
-        {
-            cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl
-                 << "Use --help for more information" << endl;
-            exit(1);
-        }
-
-
-    #define sect_args_HELP "Create K-mer Plots\n\n" \
-      "First argument should be the plot mode you wish to use:\n\n" \
-      "   - flame:           Creates a flame plot from a matrix created with the \"comp\" tool.  Typically this\n" \
-      "                      is used to compare two K-mer hashes produced by different NGS reads.\n" \
-      "   - asm:             Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
-      "                      this is used to compare a jellyfish hash produced from a read set to a jellyfish\n" \
-      "                      hash produced from an assembly. The plot shows the amount of distinct K-mers absent\n" \
-      "                      in the assembly, those that are found once, and those found more (up to 10\n" \
-      "                      duplications plotted)\n" \
-      "   - sect:            Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
-      "                      coverage from the \"sect\" tool\n\n" \
-      "   - spectra:         Creates a K-mer spctra plot for a set of K-mer histograms produced either by jellyfish-\n" \
-      "                      histo or kat-histo.\n" \
-      "Options (default value in (), *required):\n" \
-      "     --usage          Usage\n" \
-      "     --help           This message\n" \
-
-        const char * help() const
-        {
-            return sect_args_HELP;
-        }
-
-    #define sect_args_HIDDEN "Hidden options:"
-        const char * hidden() const
-        {
-            return sect_args_HIDDEN;
-        }
-
-        bool validMode(char* mode_str)
-        {
-            return (strcmp(mode_str, "flame") == 0 ||
-                    strcmp(mode_str, "asm") == 0 ||
-                    strcmp(mode_str, "sect") == 0 ||
-                    strcmp(mode_str, "spectra") == 0) ?
+            return (mode_str.compare(KAT_PLOT_DENSITY_ID) == 0 ||
+                    mode_str.compare(KAT_PLOT_PROFILE_ID) == 0 ||
+                    mode_str.compare(KAT_PLOT_SPECTRA_CN_ID) == 0 ||
+                    mode_str.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0) ?
                         true : false;
         }
 
 
-        void parse(int argc, char *argv[])
+        void customParse(int argc, char *argv[])
         {
-            int c;
-
-            static struct option long_options[] =
-            {
-                {"help",            no_argument,        0, 'h'},
-                {"usage",           no_argument,        0, 'u'},
-                {0, 0, 0, 0}
-            };
-
-            static const char *short_options = "uh";
-
             if (argc <= 1)
             {
-                cerr << endl
-                     << usage() << endl
-                     << help() << endl;
-                exit(1);
+                error("No plot mode specified");
             }
-            else if (validMode(argv[1])) {
-
+            else if (validMode(string(argv[1]))) {
 
                 mode_arg = argv[1];
                 mode_argc = argc - 1;
@@ -142,39 +132,10 @@ namespace kat
             }
             else {
 
-                while (true)
-                {
-                    /* getopt_long stores the option index here. */
-                    int index = -1;
+                // Let BaseArgs have a go, but make sure we fail after
+                parse(argc, argv);
 
-                    c = getopt_long (argc, argv, short_options, long_options, &index);
-
-                    /* Detect the end of the options. */
-                    if (c == -1)
-                        break;
-
-                    switch (c)
-                    {
-                    case ':':
-                        cerr << "Missing required argument for "
-                                  << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                                  << endl;
-                        exit(1);
-                    case 'h':
-                        cout << usage() << endl
-                             << help() << endl;
-                        exit(0);
-                    case 'u':
-                        cout << usage() << endl
-                             << "Use --help for more information." << endl << endl;
-                        exit(0);
-                    case '?':
-                        cerr << "Use --usage or --help for some help" << endl << endl;
-                        exit(1);
-                    }
-                }
-
-                error("Invalid command line arguments passed to \"kat plot\"\n\n");
+                error("Invalid command line arguments passed to \"kat plot\"");
                 exit(1);
             }
         }

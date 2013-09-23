@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <iostream>
 
+#include <common_args.hpp>
+
 using std::string;
 using std::cerr;
 using std::cout;
@@ -29,24 +31,85 @@ using std::endl;
 
 namespace kat
 {
-    class KatArgs
+    const string KAT_SECT_ID  = "sect";
+    const string KAT_COMP_ID  = "comp";
+    const string KAT_GCP_ID   = "gcp";
+    const string KAT_HIST_ID  = "hist";
+    const string KAT_PLOT_ID  = "plot";
+
+    const uint16_t MIN_ARGS = 0;
+
+    class KatArgs : public BaseArgs
     {
     private:
         string  mode_arg;
         int     mode_argc;
-        char**   mode_argv;
+        char**  mode_argv;
+
+    protected:
+
+        // ***********************************************
+        // These methods override BaseArgs virtual methods
+
+        const char* usage() const               { return "Usage: kat <mode>\n"; }
+        const char* shortDescription() const    { return "The K-mer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish K-mer hashes."; }
+        const char* longDescription() const
+        {
+            return  "First argument should be the tool/mode you wish to use:\n\n" \
+                    "   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using\n" \
+                    "            K-mers from a jellyfish hash.\n" \
+                    "   - comp:  K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
+                    "   - gcp:   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
+                    "            count.\n" \
+                    "   - histo: Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy\n" \
+                    "            plotting.\n" \
+                    "   - plot:  Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
+                    "            Requires gnuplot.";
+        }
+
+        const string optionsDescription() const    { return " -V, --version               Version"; }
+
+        vector<option>* longOptions()
+        {
+            static struct option long_options_array[] =
+            {
+                {"version", no_argument,       0, 'V'}
+            };
+
+
+            vector<option>* long_options = new vector<option>();
+
+            long_options->push_back(long_options_array[0]);
+
+            return long_options;
+        }
+
+        string shortOptions()                   { return "V"; }
+
+        void setOption(int c, char* option_arg)
+        {
+            switch (c)
+            {
+            case 'V':
+                printVersion();
+                exit(0);
+            }
+        }
+
+        void processRemainingArgs(const vector<string>& remaining_args) {}
+        const char* currentStatus() const       { return ""; }
 
     public:
 
 
         // Default constructor
-        KatArgs()
+        KatArgs() : BaseArgs(MIN_ARGS)
         {}
 
         // Constructor that parses command line options
-        KatArgs(int argc, char* argv[])
+        KatArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS)
         {
-            parse(argc, argv);
+            customParse(argc, argv);
         }
 
         string getMode() {
@@ -62,91 +125,35 @@ namespace kat
         }
 
 
-
-
-    #define kat_args_USAGE "Usage: kat <mode>\n"
-        const char * usage() const
-        {
-            return kat_args_USAGE;
-        }
-
-        void error(const char *msg)
-        {
-            cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl
-                 << "Use --help for more information" << endl;
-            exit(1);
-        }
-
-
-    #define kat_args_HELP "The K-mer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish K-mer hashes\n\n" \
-      "First argument should be the tool/mode you wish to use:\n\n" \
-      "   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using K-mers from a jellyfish hash\n" \
-      "   - comp:  K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
-      "   - gcp:   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.\n" \
-      "   - histo: Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy plotting.\n" \
-      "   - plot:  Plotting tool.  Creates useful plots to visualise K-mer distributions.  Requires gnuplot \n\n" \
-      "Options:\n" \
-      "     --usage                              Usage\n" \
-      "     --help                               This message\n" \
-      " -V, --version                            Version\n"
-
-        const char * help() const
-        {
-            return kat_args_HELP;
-        }
-
-    #define kat_args_HIDDEN "Hidden options:"
-        const char * hidden() const
-        {
-            return kat_args_HIDDEN;
-        }
-
-        void print_version(std::ostream &os = std::cout) const
+        void printVersion(std::ostream &os = std::cout) const
         {
     #ifndef PACKAGE_NAME
     #define PACKAGE_NAME "K-mer Analysis Toolkit (KAT)"
     #endif
 
     #ifndef PACKAGE_VERSION
-    #define PACKAGE_VERSION "0.3.0"
+    #define PACKAGE_VERSION "0.3.1"
     #endif
             os << PACKAGE_NAME << " V" << PACKAGE_VERSION << "\n";
         }
 
-        bool validMode(char* mode_str)
+        bool validMode(string mode_str)
         {
-            return (strcmp(mode_str, "sect") == 0 ||
-                    strcmp(mode_str, "comp") == 0 ||
-                    strcmp(mode_str, "gcp") == 0 ||
-                    strcmp(mode_str, "histo") == 0 ||
-                    strcmp(mode_str, "plot") == 0) ?
+            return (mode_str.compare(KAT_SECT_ID) == 0 ||
+                    mode_str.compare(KAT_COMP_ID) == 0 ||
+                    mode_str.compare(KAT_GCP_ID) == 0 ||
+                    mode_str.compare(KAT_HIST_ID) == 0 ||
+                    mode_str.compare(KAT_PLOT_ID) == 0) ?
                         true : false;
         }
 
-        void parse(int argc, char *argv[])
+        void customParse(int argc, char *argv[])
         {
-            int c;
-
-            static struct option long_options[] =
+            if (argc <= 1)
             {
-                {"help",  no_argument,         0, 'h'},
-                {"usage", no_argument,         0, 'u'},
-                {"version", no_argument,       0, 'V'},
-                {0, 0, 0, 0}
-            };
-
-            static const char *short_options = "Vuh";
-
-
-            if (argc <= 1) {
-                cerr << endl
-                     << usage() << endl
-                     << help() << endl;
-                exit(1);
+                error("No mode specified");
             }
-            else if (validMode(argv[1])) {
+            else if (validMode(string(argv[1]))) {
 
                 mode_arg = argv[1];
                 mode_argc = argc - 1;
@@ -154,43 +161,10 @@ namespace kat
             }
             else {
 
-                while (true)
-                {
-                    /* getopt_long stores the option index here. */
-                    int index = -1;
+                // Let BaseArgs have a go, but make sure we fail after
+                parse(argc, argv);
 
-                    c = getopt_long (argc, argv, short_options, long_options, &index);
-
-                    /* Detect the end of the options. */
-                    if (c == -1)
-                        break;
-
-                    switch (c)
-                    {
-                    case ':':
-                        cerr << "Missing required argument for "
-                                  << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options[index].name))
-                                  << endl;
-                        exit(1);
-                    case 'h':
-                        cout << usage() << endl
-                             << help() << endl;
-                        exit(0);
-                    case 'u':
-                        cout << usage() << endl
-                             << "Use --help for more information." << endl << endl;
-                        exit(0);
-                    case 'V':
-                        print_version();
-                        exit(0);
-                    case '?':
-                        cerr << "Use --usage or --help for some help" << endl << endl;
-                        exit(1);
-
-                    }
-                }
-
-                error("Invalid command line arguments passed to \"kat\"\n\n");
+                error("Invalid command line arguments passed to \"kat plot\"");
                 exit(1);
             }
         }

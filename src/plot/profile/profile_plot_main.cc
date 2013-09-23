@@ -30,8 +30,8 @@
 #include <gnuplot/gnuplot_i.hpp>
 #include <str_utils.hpp>
 
-#include "sect_plot_args.hpp"
-#include "sect_plot_main.hpp"
+#include "profile_plot_args.hpp"
+#include "profile_plot_main.hpp"
 
 using std::string;
 using std::stringstream;
@@ -40,7 +40,7 @@ using std::ostringstream;
 using std::vector;
 using std::endl;
 
-using kat::SectPlotArgs;
+using kat::ProfilePlotArgs;
 
 namespace kat
 {
@@ -152,10 +152,10 @@ namespace kat
 
 
 // Start point
-int kat::sectPlotStart(int argc, char *argv[])
+int kat::profilePlotStart(int argc, char *argv[])
 {
     // Parse args
-    SectPlotArgs args(argc, argv);
+    ProfilePlotArgs args(argc, argv);
 
     // Print command line args to stderr if requested
     if (args.verbose)
@@ -167,11 +167,11 @@ int kat::sectPlotStart(int argc, char *argv[])
     if (!args.fasta_header.empty())
     {
         header.assign(args.fasta_header);
-        getEntryFromFasta(args.sect_file_arg, header, coverages);
+        getEntryFromFasta(args.sect_profile, header, coverages);
     }
     else if (args.fasta_index > 0)
     {
-        getEntryFromFasta(args.sect_file_arg, args.fasta_index, header, coverages);
+        getEntryFromFasta(args.sect_profile, args.fasta_index, header, coverages);
     }
 
     if (coverages.length() == 0)
@@ -195,20 +195,20 @@ int kat::sectPlotStart(int argc, char *argv[])
             cerr << "Acquired K-mer counts" << endl;
 
         // Initialise gnuplot
-        Gnuplot sect_plot = Gnuplot("lines");
+        Gnuplot profile_plot = Gnuplot("lines");
 
         // Work out the output path to use (either user specified or auto generated)
         string output_path = args.determineOutputPath();
 
-        sect_plot.configurePlot(args.output_type, output_path, args.width, args.height);
+        profile_plot.configurePlot(args.output_type, output_path, args.width, args.height);
 
-        sect_plot.set_title(title);
-        sect_plot.set_xlabel(args.x_label);
-        sect_plot.set_ylabel(args.y_label);
-        sect_plot.set_xrange(0, cvs.size());
-        sect_plot.set_yrange(0, maxCvgVal);
+        profile_plot.set_title(title);
+        profile_plot.set_xlabel(args.x_label);
+        profile_plot.set_ylabel(args.y_label);
+        profile_plot.set_xrange(0, cvs.size());
+        profile_plot.set_yrange(0, maxCvgVal);
 
-        sect_plot.cmd("set style data linespoints");
+        profile_plot.cmd("set style data linespoints");
 
         std::ostringstream data_str;
 
@@ -222,7 +222,7 @@ int kat::sectPlotStart(int argc, char *argv[])
 
         plot_str << "plot '-'\n" << data_str.str() << "e\n";
 
-        sect_plot.cmd(plot_str.str());
+        profile_plot.cmd(plot_str.str());
 
         if (args.verbose)
             cerr << "Plotted data: " << plot_str.str() << endl;

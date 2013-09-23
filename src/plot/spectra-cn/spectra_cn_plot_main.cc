@@ -27,14 +27,14 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 
-#include "asm_plot_args.hpp"
-#include "asm_plot_main.hpp"
+#include "spectra_cn_plot_args.hpp"
+#include "spectra_cn_plot_main.hpp"
 
 using std::string;
 using std::ostringstream;
 using std::vector;
 
-using kat::AsmPlotArgs;
+using kat::SpectraCnPlotArgs;
 
 string createLineStyleStr(uint16_t i, const char* colour)
 {
@@ -53,7 +53,7 @@ string createSinglePlotString(const string data_file, uint16_t idx)
 }
 
 
-vector<uint16_t>* getStandardCols(AsmPlotArgs* args)
+vector<uint16_t>* getStandardCols(SpectraCnPlotArgs* args)
 {
     vector<uint16_t>* col_defs = new vector<uint16_t>();
 
@@ -71,7 +71,7 @@ vector<uint16_t>* getStandardCols(AsmPlotArgs* args)
 }
 
 
-vector<uint16_t>* getUserDefinedCols(AsmPlotArgs* args)
+vector<uint16_t>* getUserDefinedCols(SpectraCnPlotArgs* args)
 {
     vector<uint16_t>* col_defs = new vector<uint16_t>();
 
@@ -97,10 +97,10 @@ vector<uint16_t>* getUserDefinedCols(AsmPlotArgs* args)
 
 
 // Start point
-int kat::asmPlotStart(int argc, char *argv[])
+int kat::spectraCnPlotStart(int argc, char *argv[])
 {
     // Parse args
-    AsmPlotArgs args(argc, argv);
+    SpectraCnPlotArgs args(argc, argv);
 
     // Print command line args to stderr if requested
     if (args.verbose)
@@ -121,18 +121,18 @@ int kat::asmPlotStart(int argc, char *argv[])
         }
 
         // Initialise gnuplot
-        Gnuplot asm_plot("lines");
+        Gnuplot spectra_cn_plot("lines");
 
 
         // Work out the output path to use (either user specified or auto generated)
         string output_path = args.determineOutputPath();
 
 
-        asm_plot.configurePlot(args.output_type, output_path, args.width, args.height);
+        spectra_cn_plot.configurePlot(args.output_type, output_path, args.width, args.height);
 
-        asm_plot.set_title(args.title);
-        asm_plot.set_xlabel(args.x_label);
-        asm_plot.set_ylabel(args.y_label);
+        spectra_cn_plot.set_title(args.title);
+        spectra_cn_plot.set_xlabel(args.x_label);
+        spectra_cn_plot.set_ylabel(args.y_label);
 
 
         // Get plot strings
@@ -162,19 +162,19 @@ int kat::asmPlotStart(int argc, char *argv[])
             plot_str << createSinglePlotString(args.mx_arg, (*plot_cols)[index]) << " lt palette frac " << std::fixed << col_frac;
         }
 
-        asm_plot.cmd("set palette rgb 33,13,10");
-        asm_plot.cmd("unset colorbox");
+        spectra_cn_plot.cmd("set palette rgb 33,13,10");
+        spectra_cn_plot.cmd("unset colorbox");
 
-        asm_plot.cmd("set style fill solid 1 noborder");
-        asm_plot.cmd("set style histogram rowstacked");
-        asm_plot.cmd("set style data histograms");
+        spectra_cn_plot.cmd("set style fill solid 1 noborder");
+        spectra_cn_plot.cmd("set style histogram rowstacked");
+        spectra_cn_plot.cmd("set style data histograms");
 
-        asm_plot.set_xrange(0, args.x_max);
-        asm_plot.set_yrange(0, args.y_max);
+        spectra_cn_plot.set_xrange(0, args.x_max);
+        spectra_cn_plot.set_yrange(0, args.y_max);
 
         ostringstream plot_cmd;
         plot_cmd << "plot " << plot_str.str();
-        asm_plot.cmd(plot_cmd.str());
+        spectra_cn_plot.cmd(plot_cmd.str());
 
         if (args.verbose)
             cerr << "Gnuplot command: " << plot_cmd.str() << endl;

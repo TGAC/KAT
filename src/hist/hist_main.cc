@@ -28,22 +28,22 @@
 #include <jellyfish/compacted_hash.hpp>
 
 #include "histogram.hpp"
-#include "histo_args.hpp"
-#include "histo_main.hpp"
+#include "hist_args.hpp"
+#include "hist_main.hpp"
 
 using std::vector;
 using std::string;
 using std::cout;
 using std::cerr;
 
-using kat::HistoArgs;
+using kat::HistArgs;
 using kat::Histogram;
 
 // Start point
-int kat::histoStart(int argc, char *argv[])
+int kat::histStart(int argc, char *argv[])
 {
     // Parse args
-    HistoArgs args(argc, argv);
+    HistArgs args(argc, argv);
 
     // Print command line args to stderr if requested
     if (args.verbose)

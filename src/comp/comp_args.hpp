@@ -51,7 +51,7 @@ namespace kat
 
         const char* usage() const
         {
-            return "Usage: kat comp [options] <jellyfish_hash1_file> <jellyfish_hash2_file> [<jellyfish_hash3_file>]\n";
+            return "Usage: kat comp [options] <jellyfish_hash_1> <jellyfish_hash_2> [<jellyfish_hash_3>]\n";
         }
 
         const char* shortDescription() const
@@ -61,13 +61,13 @@ namespace kat
 
         const char* longDescription() const
         {
-            return  "  The most common use case for this tool is to compare two jellyfish K-mer hashes.  The typical use case\n" \
-                    "  for this tool is to compare K-mers from two jellyfish hashes both representing K-mer counts for reads.\n" \
-                    "  However, it is also common to compare K-mers generated from reads to those generated from an assembly.\n\n" \
+            return  "  The most common use case for this tool is to compare two jellyfish K-mer hashes.  The typical use case for\n" \
+                    "  this tool is to compare K-mers from two jellyfish hashes both representing K-mer counts for reads.  However,\n" \
+                    "  it is also common to compare K-mers generated from reads to those generated from an assembly.\n\n" \
                     "  If comparing K-mers from reads to K-mers from an assembly, the larger (most likely the read) K-mer hash\n" \
                     "  should be provided first, then the assembly K-mer hash second.\n\n" \
-                    "  The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on\n" \
-                    "  that set.  The manual contains more details on specific use cases.";
+                    "  The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on that\n" \
+                    "  set.  The manual contains more details on specific use cases.";
         }
 
         const string optionsDescription() const
