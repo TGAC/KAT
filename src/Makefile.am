@@ -52,6 +52,9 @@ kat_SOURCES = \
 		plot/spectra-hist/spectra_hist_plot_main.cc \
 		plot/spectra-hist/spectra_hist_plot_args.hpp \
 		plot/spectra-hist/spectra_hist_plot_main.hpp \
+		plot/spectra-mx/spectra_mx_plot_main.cc \
+		plot/spectra-mx/spectra_mx_plot_args.hpp \
+		plot/spectra-mx/spectra_mx_plot_main.hpp \
                 kat.cc \
 		kat_args.hpp
 

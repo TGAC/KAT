@@ -39,8 +39,8 @@ namespace kat
     const bool DEFAULT_VENN = false;
     const uint32_t DEFAULT_X_MIN = 0;
     const uint32_t DEFAULT_Y_MIN = 0;
-    const uint32_t DEFAULT_X_MAX = 10000;
-    const uint32_t DEFAULT_Y_MAX = 1000000;
+    const uint32_t DEFAULT_X_MAX = 1000;
+    const uint64_t DEFAULT_Y_MAX = 1000000;
     const bool DEFAULT_X_LOGSCALE = false;
     const bool DEFAULT_Y_LOGSCALE = false;
 
@@ -50,6 +50,9 @@ namespace kat
     {
     private:
 
+        bool        x_max_mod;
+        bool        y_max_mod;
+
         void init()
         {
             title = defaultTitle();
@@ -57,6 +60,9 @@ namespace kat
             y_label = defaultYLabel();
             width = defaultWidth();
             height = defaultHeight();
+
+            x_max_mod = false;
+            y_max_mod = false;
         }
 
     protected:
@@ -162,9 +168,11 @@ namespace kat
                 break;
             case 'x':
                 x_max = atoi(option_arg);
+                x_max_mod = true;
                 break;
             case 'y':
                 y_max = atoi(option_arg);
+                y_max_mod = true;
                 break;
             case 'l':
                 x_logscale = true;
@@ -208,7 +216,7 @@ namespace kat
         uint32_t    x_min;
         uint32_t    y_min;
         uint32_t    x_max;
-        uint32_t    y_max;
+        uint64_t    y_max;
         bool        x_logscale;
         bool        y_logscale;
 
@@ -247,5 +255,7 @@ namespace kat
         const uint16_t defaultWidth() const         { return 1024; }
         const uint16_t defaultHeight() const        { return 1024; }
 
+        const bool xMaxModified()       {return x_max_mod;}
+        const bool yMaxModified()       {return y_max_mod;}
     };
 }

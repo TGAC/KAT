@@ -172,8 +172,16 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
     }
 
     // Modify variables as appropriate
-    string title = args.titleModified() ? args.title : mme::getString(args.mx_path, mme::KEY_TITLE);
+    string auto_title_x = mme::getString(args.mx_path, mme::KEY_X_LABEL);
+    string auto_title_y = mme::getString(args.mx_path, mme::KEY_Y_LABEL);
+    ostringstream auto_title_str;
+    auto_title_str << auto_title_x << " vs " << auto_title_y;
+
+    string title = args.titleModified() ? args.title : auto_title_str.str();
     title = title.empty() ? args.defaultTitle() : title;
+
+    uint16_t x_range = args.xMaxModified() ? args.x_max : mme::getNumeric(args.mx_path, mme::KEY_NB_COLUMNS);
+    uint64_t y_range = args.yMaxModified() ? args.y_max : DEFAULT_Y_MAX;
 
 
     // Initialise gnuplot
@@ -187,8 +195,8 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
     spectra_mx_plot.set_title(title);
     spectra_mx_plot.set_xlabel(args.x_label);
     spectra_mx_plot.set_ylabel(args.y_label);
-    spectra_mx_plot.set_xrange(args.x_logscale ? 1 : args.x_min, args.x_logscale ? DEFAULT_X_MAX : args.x_max);
-    spectra_mx_plot.set_yrange(args.y_logscale ? 1 : args.y_min, args.y_max);
+    spectra_mx_plot.set_xrange(args.x_logscale ? 1 : args.x_min, x_range);
+    spectra_mx_plot.set_yrange(args.y_logscale ? 1 : args.y_min, y_range);
 
     if (args.x_logscale)
         spectra_mx_plot.set_xlogscale();
@@ -197,6 +205,9 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
 
     spectra_mx_plot.cmd("set size ratio 1");
     spectra_mx_plot.cmd("set key font \",8\"");
+    spectra_mx_plot.cmd("set xlabel offset \"0,1\" font \",10\"");
+    spectra_mx_plot.cmd("set ylabel offset \"4,0\" font \",10\"");
+    spectra_mx_plot.cmd("set title font \",10\"");
     spectra_mx_plot.cmd("set tics font \", 8\"");
     spectra_mx_plot.cmd("set palette rgb 33,13,10");
     spectra_mx_plot.cmd("unset colorbox");
