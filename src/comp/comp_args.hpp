@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <common_args.hpp>
+#include <str_utils.hpp>
 
 using std::cout;
 using std::cerr;
@@ -61,13 +62,15 @@ namespace kat
 
         const char* longDescription() const
         {
-            return  "  The most common use case for this tool is to compare two jellyfish K-mer hashes.  The typical use case for\n" \
-                    "  this tool is to compare K-mers from two jellyfish hashes both representing K-mer counts for reads.  However,\n" \
-                    "  it is also common to compare K-mers generated from reads to those generated from an assembly.\n\n" \
-                    "  If comparing K-mers from reads to K-mers from an assembly, the larger (most likely the read) K-mer hash\n" \
-                    "  should be provided first, then the assembly K-mer hash second.\n\n" \
-                    "  The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on that\n" \
-                    "  set.  The manual contains more details on specific use cases.";
+            string long_desc = "The most common use case for this tool is to compare two jellyfish K-mer hashes.  The typical use case for " \
+                               "this tool is to compare K-mers from two jellyfish hashes both representing K-mer counts for reads.  However, " \
+                               "it is also common to compare K-mers generated from reads to those generated from an assembly. </br> " \
+                               "If comparing K-mers from reads to K-mers from an assembly, the larger (most likely the read) K-mer hash " \
+                               "should be provided first, then the assembly K-mer hash second. </br> " \
+                               "The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on that " \
+                               "set.  The manual contains more details on specific use cases.";
+
+            return lineBreakString(long_desc, 78, "  ").c_str();
         }
 
         const string optionsDescription() const

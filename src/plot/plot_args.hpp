@@ -38,6 +38,7 @@ namespace kat
     const string KAT_PLOT_PROFILE_ID        = "profile";
     const string KAT_PLOT_SPECTRA_CN_ID     = "spectra-cn";
     const string KAT_PLOT_SPECTRA_HIST_ID   = "spectra-hist";
+    const string KAT_PLOT_SPECTRA_MX_ID   = "spectra-mx";
 
     const uint16_t MIN_ARGS = 0;
 
@@ -57,7 +58,7 @@ namespace kat
         const char* shortDescription() const    { return "Create K-mer Plots"; }
         const char* longDescription() const
         {
-            return  "First argument should be the plot mode you wish to use:\n\n" \
+            return  "First argument should be the plot mode you wish to use: </br> " \
                     "  - density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
                     "                     used to compare two K-mer hashes produced by different NGS reads.\n" \
                     "  - profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
@@ -66,8 +67,10 @@ namespace kat
                     "                     this is used to compare a jellyfish hash produced from a read set to a jellyfish hash\n" \
                     "                     produced from an assembly. The plot shows the amount of distinct K-mers absent, as well\n" \
                     "                     as the copy number variation present within the assembly.\n" \
-                    "  - spectra-hist:    Creates a K-mer spctra plot for a set of K-mer histograms produced either by jellyfish-\n" \
-                    "                     histo or kat-histo.";
+                    "  - spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either by jellyfish-\n" \
+                    "                     histo or kat-histo.\n" \
+                    "  - spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived from\n" \
+                    "                     selected rows or columns in a matrix produced by the \"comp\".";
         }
 
         const string optionsDescription() const    { return ""; }
@@ -113,7 +116,8 @@ namespace kat
             return (mode_str.compare(KAT_PLOT_DENSITY_ID) == 0 ||
                     mode_str.compare(KAT_PLOT_PROFILE_ID) == 0 ||
                     mode_str.compare(KAT_PLOT_SPECTRA_CN_ID) == 0 ||
-                    mode_str.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0) ?
+                    mode_str.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0 ||
+                    mode_str.compare(KAT_PLOT_SPECTRA_MX_ID) == 0) ?
                         true : false;
         }
 

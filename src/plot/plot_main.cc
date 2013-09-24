@@ -25,6 +25,7 @@
 #include "profile/profile_plot_main.hpp"
 #include "spectra-cn/spectra_cn_plot_main.hpp"
 #include "spectra-hist/spectra_hist_plot_main.hpp"
+#include "spectra-mx/spectra_mx_plot_main.hpp"
 
 #include "plot_args.hpp"
 #include "plot_main.hpp"
@@ -58,6 +59,10 @@ int kat::plotStart(int argc, char *argv[])
     else if (mode.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0)
     {
         kat::spectraHistPlotStart(args.getModeArgC(), args.getModeArgV());
+    }
+    else if (mode.compare(KAT_PLOT_SPECTRA_MX_ID) == 0)
+    {
+        kat::spectraMxPlotStart(args.getModeArgC(), args.getModeArgV());
     }
 
     return 0;

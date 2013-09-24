@@ -184,8 +184,7 @@ int kat::profilePlotStart(int argc, char *argv[])
             cerr << "Found requested sequence : " << header << endl << coverages << endl << endl;
 
         // Split coverages
-        vector<uint32_t> cvs;
-        kat::split(coverages, cvs, ' ');
+        vector<uint32_t> cvs = kat::splitUInt32(coverages, ' ');
 
         uint32_t maxCvgVal = args.y_max != kat::DEFAULT_Y_MAX ? args.y_max : (*(std::max_element(cvs.begin(), cvs.end())) + 1);
 

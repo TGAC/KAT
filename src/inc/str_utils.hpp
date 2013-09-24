@@ -21,14 +21,22 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <iostream>
 
 using std::string;
+using std::stringstream;
 using std::istringstream;
+using std::ostringstream;
 using std::vector;
+using std::endl;
 
 namespace kat
 {
-    static uint32_t strToInt(string s)
+    // TODO Should write some templates for these methods
+    // Note that none of these methods are particularly efficient so don't use them
+    // for lots of data.
+
+    static uint32_t strToInt32(string s)
     {
         istringstream str_val(s);
         uint32_t int_val;
@@ -36,17 +44,95 @@ namespace kat
         return int_val;
     }
 
-    // This is horribly inefficient, and annoying to use! :(  Fix later
-    static void split(const string& txt, vector<uint32_t> &strs, const char ch)
+    static uint64_t strToInt64(string s)
     {
-        strs.clear();
-        istringstream iss(txt);
-        do
-        {
-            string sub;
-            iss >> sub;
-            uint32_t intVal = strToInt(sub);
-            strs.push_back(intVal);
-        } while (iss);
+        istringstream str_val(s);
+        uint64_t int_val;
+        str_val >> int_val;
+        return int_val;
+    }
+
+
+    static vector<uint32_t> &splitUInt32(const string& s, const char delim, vector<uint32_t> &elems)
+    {
+        stringstream ss(s);
+        string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(strToInt32(item));
+        }
+        return elems;
+    }
+
+    static vector<uint32_t> splitUInt32(const string &s, char delim) {
+        vector<uint32_t> elems;
+        splitUInt32(s, delim, elems);
+        return elems;
+    }
+
+    static vector<uint64_t> &splitUInt64(const string& s, const char delim, vector<uint64_t> &elems)
+    {
+        stringstream ss(s);
+        string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(strToInt64(item));
+        }
+        return elems;
+    }
+
+    static vector<uint64_t> splitUInt64(const string &s, char delim) {
+        vector<uint64_t> elems;
+        splitUInt64(s, delim, elems);
+        return elems;
+    }
+
+
+    static vector<string> &splitString(const string &s, const char delim, vector<string> &elems) {
+        stringstream ss(s);
+        string item;
+        while (std::getline(ss, item, delim)) {
+            elems.push_back(item);
+        }
+        return elems;
+    }
+
+
+    static vector<string> splitString(const string &s, char delim) {
+        vector<string> elems;
+        splitString(s, delim, elems);
+        return elems;
+    }
+
+
+    static string lineBreakString(string &s, const uint16_t line_length, const string line_prefix)
+    {
+        stringstream ss(s);
+        string word;
+        ostringstream out_str;
+
+        out_str << line_prefix;
+
+        uint16_t char_count = 0;
+        while (std::getline(ss, word, ' ')) {
+
+            if (word.compare("</br>") == 0)
+            {
+                out_str << endl << endl << line_prefix;
+                char_count = 0;
+            }
+            else
+            {
+                char_count += word.length();
+
+                if (char_count > line_length)
+                {
+                    out_str << endl << line_prefix;
+                    char_count = word.length();
+                }
+
+                out_str << word << " ";
+            }
+        }
+
+        return out_str.str();
     }
 }

@@ -23,6 +23,7 @@
 #include <vector>
 
 #include <common_args.hpp>
+#include <str_utils.hpp>
 
 using std::cout;
 using std::cerr;
@@ -61,10 +62,12 @@ namespace kat
 
         const char* longDescription() const
         {
-            return  "  K-mers containing any Ns derived from sequences in the sequence file will have 0 coverage.\n\n" \
-                    "  Output from this tool will consist of a file in fasta format containing K-mer coverage counts for each\n" \
-                    "  K-mer of each fasta entry. In addition, a space separated table file containing the mean coverage score\n" \
-                    "  and GC% of each sequence is produced.  The row order is identical to the original sequence file.";
+            string long_desc =  "K-mers containing any Ns derived from sequences in the sequence file will have 0 coverage. </br> " \
+                                "Output from this tool will consist of a file in fasta format containing K-mer coverage counts for each " \
+                                "K-mer of each fasta entry. In addition, a space separated table file containing the mean coverage score " \
+                                "and GC% of each sequence is produced.  The row order is identical to the original sequence file.";
+
+            return lineBreakString(long_desc, 78, "  ").c_str();
         }
 
         const string optionsDescription() const

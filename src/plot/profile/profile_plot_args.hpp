@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 #include "../common_plot_args.hpp"
+#include <str_utils.hpp>
 
 using std::string;
 using std::cerr;
@@ -65,7 +66,7 @@ namespace kat
 
         const char* shortDescription() const
         {
-            return "Create Sequence Coverage Plot";
+            return "Create Sequence Coverage Plot.";
         }
 
         const char* longDescription() const

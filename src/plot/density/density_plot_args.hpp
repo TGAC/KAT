@@ -23,6 +23,7 @@
 #include <iostream>
 
 #include "../common_plot_args.hpp"
+#include <str_utils.hpp>
 
 using std::string;
 using std::cerr;
@@ -72,15 +73,17 @@ namespace kat
 
         const char* shortDescription() const
         {
-            return "Create K-mer Density Plots";
+            return "Create K-mer Density Plots.";
         }
 
         const char* longDescription() const
         {
-            return  "  Creates a scatter plot, where the density or \"heat\" at each point represents the number of distinct K-mers\n" \
-                    "  at that point.  Typically this is used to visualise a matrix produced by the \"kat comp\" tool to compare\n" \
-                    "  multiplicities from two K-mer hashes produced by different NGS reads, or to visualise the GC vs K-mer\n" \
-                    "  multiplicity matricies produced by the \"kat gcp\" tool.";
+            string long_desc = "Creates a scatter plot, where the density or \"heat\" at each point represents the number of distinct K-mers " \
+                               "at that point.  Typically this is used to visualise a matrix produced by the \"kat comp\" tool to compare " \
+                               "multiplicities from two K-mer hashes produced by different NGS reads, or to visualise the GC vs K-mer " \
+                               "multiplicity matricies produced by the \"kat gcp\" tool.";
+
+            return lineBreakString(long_desc, 78, "  ").c_str();
         }
 
         const string optionsDescription() const

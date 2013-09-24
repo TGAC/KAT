@@ -111,8 +111,7 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
             // Only do something if the start of the line isn't a #
             if (line[0] != '#')
             {
-                vector<uint32_t> parts;
-                kat::split(line, parts, ' ');
+                vector<uint32_t> parts = kat::splitUInt32(line, ' ');
 
                 uint32_t kmer_multiplicity = parts[0];
                 uint32_t distinct_kmers = parts[1];

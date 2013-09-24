@@ -21,20 +21,67 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <fstream>
+#include <string>
 
+#include <str_utils.hpp>
+
+using std::cout;
 using std::endl;
+using std::ostream;
+using std::ifstream;
+using std::string;
+using std::vector;
+using std::map;
 
 template <class T>
 class SparseMatrix
 {
 public:
-    typedef std::map<size_t, std::map<size_t , T> > mat_t;
+    typedef map<size_t, map<size_t , T> > mat_t;
     typedef typename mat_t::iterator row_iter;
-    typedef std::map<size_t, T> col_t;
+    typedef map<size_t, T> col_t;
     typedef typename col_t::iterator col_iter;
 
     SparseMatrix(size_t i){ m=i; n=i; }
     SparseMatrix(size_t i, size_t j){ m=i; n=j; }
+
+    /**
+     * @brief SparseMatrix Loads a sparse matrix from file.  NOTE, matrix must contain uint64_t!!
+     * @param file_path path to the file containing the sparse matrix
+     */
+    SparseMatrix(string file_path)
+    {
+        ifstream infile;
+        infile.open(file_path.c_str());
+
+        string line("");
+
+        uint32_t i = 0;
+        while(!infile.eof())
+        {
+            getline(infile, line);
+
+            // Only do something if the start of the line isn't a #
+            if (!line.empty() && line[0] != '#')
+            {
+                vector<uint64_t> parts = kat::splitUInt64(line, ' ');
+
+                n = parts.size();
+
+                for(uint32_t j = 0; j < parts.size(); j++)
+                {
+                    mat[i][j] = parts[j];
+                }
+
+                i++;
+            }
+        }
+
+        infile.close();
+
+        m = i;
+    }
 
     inline
     T& operator()(size_t i, size_t j)
@@ -106,14 +153,49 @@ public:
         col_iter jj;
         for(ii=this->mat.begin(); ii!=this->mat.end(); ii++){
             for( jj=(*ii).second.begin(); jj!=(*ii).second.end(); jj++){
-                std::cout << (*ii).first << ' ';
-                std::cout << (*jj).first << ' ';
-                std::cout << (*jj).second << std::endl;
+                cout << (*ii).first << ' ';
+                cout << (*jj).first << ' ';
+                cout << (*jj).second << endl;
             }
-        } std::cout << std::endl;
+        }
+        cout << endl;
     }
 
-    void printMatrix(std::ostream &out)
+
+    T sumColumn(size_t col_idx)
+    {
+        return sumColumn(col_idx, 0, this->width() -1);
+    }
+
+    T sumColumn(size_t col_idx, size_t start, size_t end)
+    {
+        T sum = 0;
+        for(size_t i = start; i <= end; i++)
+        {
+            sum += mat[col_idx][i];
+        }
+
+        return sum;
+    }
+
+
+    T sumRow(size_t row_idx)
+    {
+        return sumRow(row_idx, 0, this->height() - 1);
+    }
+
+    T sumRow(size_t row_idx, size_t start, size_t end)
+    {
+        T sum = 0;
+        for(size_t i = start; i <= end; i++)
+        {
+            sum += mat[i][row_idx];
+        }
+
+        return sum;
+    }
+
+    void printMatrix(ostream &out)
     {
         for(int i = 0; i < m; i++)
         {

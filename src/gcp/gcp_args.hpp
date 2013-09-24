@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <common_args.hpp>
+#include <str_utils.hpp>
 
 using std::cout;
 using std::cerr;
@@ -58,15 +59,17 @@ namespace kat
 
         const char* shortDescription() const
         {
-            return "Compares GC content and K-mer coverage within a single jellyfish hash";
+            return "Compares GC content and K-mer coverage within a single jellyfish hash.";
         }
 
         const char* longDescription() const
         {
-            return  "  This tool takes a single jellyfish hash as input and then counts the GC nucleotides for each distinct K-mer\n" \
-                    "  in the hash.  For each GC count and K-mer coverage level, the number of distinct K-mers are counted and\n" \
-                    "  stored in a matrix.  This matrix can be used to analyse biological content within the hash.  For example,\n" \
-                    "  it can be used to distinguish legitimate content from contamination, or unexpected content.";
+            string long_desc = "This tool takes a single jellyfish hash as input and then counts the GC nucleotides for each distinct K-mer " \
+                               "in the hash.  For each GC count and K-mer coverage level, the number of distinct K-mers are counted and " \
+                               "stored in a matrix.  This matrix can be used to analyse biological content within the hash.  For example, " \
+                               "it can be used to distinguish legitimate content from contamination, or unexpected content.";
+
+            return lineBreakString(long_desc, 78, "  ").c_str();
         }
 
         const string optionsDescription() const

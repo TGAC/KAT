@@ -36,7 +36,9 @@ HEADERS += \
     src/plot/spectra-hist/spectra_hist_plot_args.hpp \
     src/hist/histogram.hpp \
     src/hist/hist_main.hpp \
-    src/hist/hist_args.hpp
+    src/hist/hist_args.hpp \
+    src/plot/spectra-mx/spectra_mx_plot_main.hpp \
+    src/plot/spectra-mx/spectra_mx_plot_args.hpp
 
 SOURCES += \
     src/comp/comp_main.cc \
@@ -54,7 +56,8 @@ SOURCES += \
     src/plot/density/density_plot_main.cc \
     src/plot/spectra-cn/spectra_cn_plot_main.cc \
     src/plot/spectra-hist/spectra_hist_plot_main.cc \
-    src/hist/hist_main.cc
+    src/hist/hist_main.cc \
+    src/plot/spectra-mx/spectra_mx_plot_main.cc
 
 OTHER_FILES += \
     src/Makefile.am \

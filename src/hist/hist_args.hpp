@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <common_args.hpp>
+#include <str_utils.hpp>
 
 using std::cout;
 using std::cerr;
@@ -59,18 +60,20 @@ namespace kat
 
         const char* shortDescription() const
         {
-            return "Create an histogram of k-mer occurrences in a sequence file";
+            return "Create an histogram of k-mer occurrences in a sequence file.";
         }
 
         const char* longDescription() const
         {
-            return  "  Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers\n" \
-                    "  which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by the\n" \
-                    "  low end point (low+i).\n\n" \
-                    "  The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal to\n" \
-                    "  the low end point of this bucket.\n\n" \
-                    "  This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that the\n" \
-                    "  output contains metadata that make the histogram easier for the user to plot.";
+            string long_desc = "Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers " \
+                               "which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by the " \
+                               "low end point (low+i). </br> " \
+                               "The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal to " \
+                               "the low end point of this bucket. </br> " \
+                               "This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that the " \
+                               "output contains metadata that make the histogram easier for the user to plot.";
+
+            return lineBreakString(long_desc, 78, "  ").c_str();
         }
 
         const string optionsDescription() const

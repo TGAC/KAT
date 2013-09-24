@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 #include "../common_plot_args.hpp"
+#include <str_utils.hpp>
 
 using std::string;
 using std::cerr;
@@ -58,9 +59,11 @@ namespace kat
 
         const char* longDescription() const
         {
-            return  "  Shows K-mer duplication levels, which correspond to copy number variation within an assembly by comparing\n" \
-                    "  K-mers found in sequenced reads, to K-mers found in an assembly of those reads. Uses matrix output from the\n" \
-                    "  \"kat comp\" tool.";
+            string long_desc =  "Shows K-mer duplication levels, which correspond to copy number variation within an assembly by comparing " \
+                                "K-mers found in sequenced reads, to K-mers found in an assembly of those reads. Uses matrix output from the " \
+                                "\"kat comp\" tool.";
+
+            return lineBreakString(long_desc, 78, "  ").c_str();
         }
 
         const string optionsDescription() const
