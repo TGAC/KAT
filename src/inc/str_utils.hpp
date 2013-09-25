@@ -105,7 +105,7 @@ namespace kat
 
     static string lineBreakString(string &s, const uint16_t line_length, const string line_prefix)
     {
-        stringstream ss(s);
+        istringstream ss(s);
         string word;
         ostringstream out_str;
 

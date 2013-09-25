@@ -50,24 +50,24 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat sect [options] -s <sequence_file> <jellyfish_hash>\n";
+            return "Usage: kat sect [options] -s <sequence_file> <jellyfish_hash>";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Estimates coverage levels for a collection of sequences using jellyfish K-mer counts.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
-            string long_desc =  "K-mers containing any Ns derived from sequences in the sequence file will have 0 coverage. </br> " \
-                                "Output from this tool will consist of a file in fasta format containing K-mer coverage counts for each " \
-                                "K-mer of each fasta entry. In addition, a space separated table file containing the mean coverage score " \
-                                "and GC% of each sequence is produced.  The row order is identical to the original sequence file.";
+            string long_desc =  "This tool will produce a fasta style file containing K-mer coverage counts mapped across each " \
+                                "sequence.  In addition, a space separated table file containing the mean coverage score and GC " \
+                                "of each sequence is produced.  The row order is identical to the original sequence file. </br> " \
+                                "Note: K-mers containing any Ns derived from sequences in the sequence file not be included.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -151,7 +151,7 @@ namespace kat
             db_arg = remaining_args[0];
         }
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 
@@ -192,5 +192,6 @@ namespace kat
             parse(argc, argv);
         }
 
+        ~SectArgs() {}
     };
 }

@@ -54,11 +54,11 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const               { return "Usage: kat plot <mode>\n"; }
-        const char* shortDescription() const    { return "Create K-mer Plots"; }
-        const char* longDescription() const
+        const string usage() const               { return "Usage: kat plot <mode>"; }
+        const string shortDescription() const    { return "Create K-mer Plots"; }
+        const string longDescription() const
         {
-            return  "First argument should be the plot mode you wish to use: </br> " \
+            return  "First argument should be the plot mode you wish to use:\n" \
                     "  - density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
                     "                     used to compare two K-mer hashes produced by different NGS reads.\n" \
                     "  - profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
@@ -85,7 +85,7 @@ namespace kat
         string shortOptions()                   { return ""; }
         void setOption(int c, char* option_arg) {}
         void processRemainingArgs(const vector<string>& remaining_args) {}
-        const char* currentStatus() const       { return ""; }
+        const string currentStatus() const       { return ""; }
 
     public:
 

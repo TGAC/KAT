@@ -47,23 +47,23 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat plot spectra-cn [options] <matrix_file>\n";
+            return "Usage: kat plot spectra-cn [options] <matrix_file>";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Creates a stacked histogram showing the level of duplication in an assembly.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             string long_desc =  "Shows K-mer duplication levels, which correspond to copy number variation within an assembly by comparing " \
                                 "K-mers found in sequenced reads, to K-mers found in an assembly of those reads. Uses matrix output from the " \
                                 "\"kat comp\" tool.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -139,7 +139,7 @@ namespace kat
 
 
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 

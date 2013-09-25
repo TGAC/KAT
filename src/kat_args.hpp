@@ -51,9 +51,9 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const               { return "Usage: kat <mode>\n"; }
-        const char* shortDescription() const    { return "The K-mer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish K-mer hashes."; }
-        const char* longDescription() const
+        const string usage() const               { return "Usage: kat <mode>"; }
+        const string shortDescription() const    { return "The K-mer Analysis Toolkist (KAT) contains a number of tools that analyse jellyfish K-mer hashes."; }
+        const string longDescription() const
         {
             return  "First argument should be the tool/mode you wish to use:\n\n" \
                     "   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using\n" \
@@ -97,7 +97,7 @@ namespace kat
         }
 
         void processRemainingArgs(const vector<string>& remaining_args) {}
-        const char* currentStatus() const       { return ""; }
+        const string currentStatus() const       { return ""; }
 
     public:
 

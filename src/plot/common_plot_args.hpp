@@ -123,7 +123,7 @@ namespace kat
             }
         }
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 
@@ -135,7 +135,7 @@ namespace kat
             status << "Width: " << width << endl;
             status << "Height: " << height << endl;
 
-            return status.str().c_str();
+            return status.str();
         }
 
     public:

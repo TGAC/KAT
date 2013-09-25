@@ -66,24 +66,24 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat plot density [options] <matrix_file>\n";
+            return "Usage: kat plot density [options] <matrix_file>";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Create K-mer Density Plots.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             string long_desc = "Creates a scatter plot, where the density or \"heat\" at each point represents the number of distinct K-mers " \
                                "at that point.  Typically this is used to visualise a matrix produced by the \"kat comp\" tool to compare " \
                                "multiplicities from two K-mer hashes produced by different NGS reads, or to visualise the GC vs K-mer " \
                                "multiplicity matricies produced by the \"kat gcp\" tool.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -157,7 +157,7 @@ namespace kat
 
 
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 

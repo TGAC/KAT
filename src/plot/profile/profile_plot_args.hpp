@@ -59,17 +59,17 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat plot profile [options] <sect_profile_file>\n";
+            return "Usage: kat plot profile [options] <sect_profile_file>";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Create Sequence Coverage Plot.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             return "  Shows K-mer coverage level across an sequence.";
         }
@@ -138,7 +138,7 @@ namespace kat
 
 
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 

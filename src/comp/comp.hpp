@@ -418,6 +418,15 @@ namespace kat
 
 
 
+        // Threaded matrix data
+        SparseMatrix<uint64_t>* getMainMatrix()      { return main_matrix != NULL   ? main_matrix->getFinalMatrix()     : NULL; }
+        SparseMatrix<uint64_t>* getEndsMatrix()      { return ends_matrix != NULL   ? ends_matrix->getFinalMatrix()     : NULL; }
+        SparseMatrix<uint64_t>* getMiddleMatrix()    { return middle_matrix != NULL ? middle_matrix->getFinalMatrix()   : NULL; }
+        SparseMatrix<uint64_t>* getMixedMatrix()     { return mixed_matrix != NULL  ? mixed_matrix->getFinalMatrix()    : NULL; }
+
+        // Final data (created by merging thread results)
+        CompCounters* getCompCounters()              { return final_comp_counters; }
+
         // Print Comp setup
         void printVars(ostream &out)
         {

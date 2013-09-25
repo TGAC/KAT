@@ -3932,7 +3932,7 @@ if test x"$debugit" = x"yes"; then
 
 $as_echo "#define DEBUG /**/" >>confdefs.h
 
-    AM_CXXFLAGS="$AM_CXXFLAGS -g -Wall -Werror -Wno-uninitialized -O0"
+    AM_CXXFLAGS="$AM_CXXFLAGS -g -Wno-uninitialized -O0"
 else
 
 $as_echo "#define NDEBUG /**/" >>confdefs.h

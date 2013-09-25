@@ -50,17 +50,17 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat comp [options] <jellyfish_hash_1> <jellyfish_hash_2> [<jellyfish_hash_3>]\n";
+            return "Usage: kat comp [options] <jellyfish_hash_1> <jellyfish_hash_2> [<jellyfish_hash_3>]";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Compares jellyfish K-mer count hashes.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             string long_desc = "The most common use case for this tool is to compare two jellyfish K-mer hashes.  The typical use case for " \
                                "this tool is to compare K-mers from two jellyfish hashes both representing K-mer counts for reads.  However, " \
@@ -70,7 +70,7 @@ namespace kat
                                "The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on that " \
                                "set.  The manual contains more details on specific use cases.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -162,7 +162,7 @@ namespace kat
                 db3_path = remaining_args[2];
         }
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 

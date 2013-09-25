@@ -53,17 +53,17 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat hist [options] <jellyfish_hash>\n";
+            return "Usage: kat hist [options] <jellyfish_hash>";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Create an histogram of k-mer occurrences in a sequence file.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             string long_desc = "Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers " \
                                "which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by the " \
@@ -73,7 +73,7 @@ namespace kat
                                "This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary difference being that the " \
                                "output contains metadata that make the histogram easier for the user to plot.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -149,7 +149,7 @@ namespace kat
             db_path = remaining_args[0];
         }
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 

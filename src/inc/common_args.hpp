@@ -66,19 +66,19 @@ namespace kat
          * @brief usage A usage string that briefly describes how to use this program
          * @return
          */
-        virtual const char * usage() const = 0;
+        virtual const string usage() const = 0;
 
         /**
          * @brief shortDescription A very brief description of the tool
          * @return
          */
-        virtual const char * shortDescription() const = 0;
+        virtual const string shortDescription() const = 0;
 
         /**
          * @brief longDescription A longer description of the tool
          * @return
          */
-        virtual const char * longDescription() const = 0;
+        virtual const string longDescription() const = 0;
 
         /**
          * @brief optionsDescription Program specific help for the available options
@@ -117,7 +117,7 @@ namespace kat
         /**
          * @brief printValues Print any program specific values
          */
-        virtual const char* currentStatus() const = 0;
+        virtual const string currentStatus() const = 0;
 
 
     public:
@@ -151,7 +151,7 @@ namespace kat
         {
             cerr << endl
                  << "Error: " << msg << endl << endl
-                 << usage() << endl
+                 << usage() << endl << endl
                  << "Use --help for more information" << endl << endl;
             exit(1);
         }
@@ -249,7 +249,8 @@ namespace kat
                 // Clean up
                 delete long_options;
 
-                cout << usage() << endl
+                cout << endl
+                     << usage() << endl << endl
                      << help() << endl;
                 exit(0);
             }
@@ -260,7 +261,8 @@ namespace kat
                 // Clean up
                 delete long_options;
 
-                cout << usage() << endl
+                cout << endl
+                     << usage() << endl << endl
                      << "Use --help for more information." << endl << endl;
                 exit(0);
             }

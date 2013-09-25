@@ -96,7 +96,7 @@ string getDataFromList(string mx_path, string list)
 }
 
 
-string getVennData(string mx_path)
+string getIntersectionData(string mx_path, uint16_t exc_cutoff)
 {
     // Ready buffer for data
     ostringstream data_str;
@@ -120,16 +120,17 @@ string getVennData(string mx_path)
     // Dataset 1 Exclusive content
     for(uint16_t j = 0; j < mx.width(); j++)
     {
-        data_str << j << " " << mx.get(0,j) << endl;
+        uint64_t sum = mx.sumColumn(j, 0, exc_cutoff - 1);
+        data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
     cerr << "Dataset 1 Exclusive content collected" << endl;
 
 
     // Dataset 1 Shared content
-    for(uint16_t j = 1; j < mx.width(); j++)
+    for(uint16_t j = exc_cutoff; j < mx.width(); j++)
     {
-        uint64_t sum = mx.sumColumn(j, 1, mx.height() - 1);
+        uint64_t sum = mx.sumColumn(j, exc_cutoff, mx.height() - 1);
         data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
@@ -138,16 +139,17 @@ string getVennData(string mx_path)
     // Dataset 2 Exclusive content
     for(uint16_t j = 0; j < mx.height(); j++)
     {
-        data_str << j << " " << mx.get(j,0) << endl;
+        uint64_t sum = mx.sumRow(j, 0, exc_cutoff - 1);
+        data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
     cerr << "Dataset 2 Exclusive content collected" << endl;
 
 
     // Dataset 2 Shared content
-    for(uint16_t j = 1; j < mx.height(); j++)
+    for(uint16_t j = exc_cutoff; j < mx.height(); j++)
     {
-        uint64_t sum = mx.sumRow(j, 1, mx.width() - 1);
+        uint64_t sum = mx.sumRow(j, exc_cutoff, mx.width() - 1);
         data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
@@ -228,12 +230,12 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
         if (args.verbose)
             cerr << "done." << endl;
     }
-    else if (args.venn)
+    else if (args.intersection_mode)
     {
         if (args.verbose)
-            cerr << "Extracting Venn data from matrix... ";
+            cerr << "Extracting Intersection data from matrix... ";
 
-        data = getVennData(args.mx_path);
+        data = getIntersectionData(args.mx_path, args.exc_cutoff);
 
         if (args.verbose)
             cerr << "done." << endl;

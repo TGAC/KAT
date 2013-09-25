@@ -115,9 +115,9 @@ public:
     {
         T maxVal = 0;
 
-        for(int i = 0; i < m; i++)
+        for(size_t i = 0; i < m; i++)
         {
-            for(int j = 0; j < n; j++)
+            for(size_t j = 0; j < n; j++)
             {
                 maxVal = maxVal < mat[i][j] ? mat[i][j] : maxVal;
             }
@@ -197,11 +197,11 @@ public:
 
     void printMatrix(ostream &out)
     {
-        for(int i = 0; i < m; i++)
+        for(size_t i = 0; i < m; i++)
         {
             out << mat[i][0];
 
-            for(int j = 1; j < n; j++)
+            for(size_t j = 1; j < n; j++)
             {
                 out << " " << mat[i][j];
             }

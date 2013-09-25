@@ -16,6 +16,7 @@
 //  *******************************************************************
 
 
+#include <comp/comp_args.hpp>
 #include <comp/comp.hpp>
 #define BOOST_TEST_MODULE Comp
 #include <boost/test/included/unit_test.hpp>
@@ -24,7 +25,17 @@
 
 BOOST_AUTO_TEST_CASE( comp )
 {
-    //my_class test_object( "qwerty" );
+    CompArgs args;
 
-    //BOOST_CHECK( true );
+    args.db1_path = "resources/comp_test_1.jf17_0";
+    args.db2_path = "resources/comp_test_2.jf17_0";
+    args.both_strands = true;
+
+    Comp comp = Comp(&args);
+
+    comp.do_it();
+
+    SparseMatrix<uint64_t>* results = comp.getMainMatrix();
+
+    BOOST_CHECK( true );
 }

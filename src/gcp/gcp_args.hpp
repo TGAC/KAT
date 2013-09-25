@@ -52,24 +52,24 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
-            return "Usage: kat gcp <jellyfish_hash>\n";
+            return "Usage: kat gcp <jellyfish_hash>";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Compares GC content and K-mer coverage within a single jellyfish hash.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             string long_desc = "This tool takes a single jellyfish hash as input and then counts the GC nucleotides for each distinct K-mer " \
                                "in the hash.  For each GC count and K-mer coverage level, the number of distinct K-mers are counted and " \
                                "stored in a matrix.  This matrix can be used to analyse biological content within the hash.  For example, " \
                                "it can be used to distinguish legitimate content from contamination, or unexpected content.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -142,7 +142,7 @@ namespace kat
             db_arg = remaining_args[0];
         }
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 

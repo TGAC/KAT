@@ -63,23 +63,23 @@ namespace kat
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const char* usage() const
+        const string usage() const
         {
             return "Usage: kat plot spectra-hist [options] <histo_file> [<histo_file> ...]*";
         }
 
-        const char* shortDescription() const
+        const string shortDescription() const
         {
             return "Creates K-mer Spectra Plot from one or more histograms.";
         }
 
-        const char* longDescription() const
+        const string longDescription() const
         {
             string long_desc = "Produces K-mer spectras from \"kat hist\" or \"jellyfish histo\" output.  This tool is designed to plot line " \
                    "graphs of one or more histograms.  The idea is to be able to compare total K-mer counts between different " \
                    "datasets.";
 
-            return lineBreakString(long_desc, 78, "  ").c_str();
+            return lineBreakString(long_desc, 78, "  ");
         }
 
         const string optionsDescription() const
@@ -159,7 +159,7 @@ namespace kat
 
 
 
-        const char* currentStatus() const
+        const string currentStatus() const
         {
             ostringstream status;
 
