@@ -113,7 +113,7 @@ namespace kat
             return "o:t:C";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             switch(c)
             {
@@ -121,15 +121,15 @@ namespace kat
                 output_prefix = string(option_arg);
                 break;
             case 't':
-                threads_arg = atoi(option_arg);
+                threads_arg = strToInt16(option_arg);
                 break;
             case 's':
-                cvg_scale = atof(option_arg);
+                cvg_scale = strToDouble(option_arg);
                 if (cvg_scale > 1.0)
                     cvg_scale = 1.0;
                 break;
             case 'b':
-                cvg_bins = atoi(option_arg);
+                cvg_bins = strToInt16(option_arg);
                 break;
             case 'C':
                 both_strands = true;

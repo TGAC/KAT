@@ -152,7 +152,7 @@ namespace kat
             return BasePlotArgs::shortOptions() + "nl:r:s:x:y:lm";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             BasePlotArgs::setOption(c, option_arg);
 
@@ -165,20 +165,20 @@ namespace kat
                 list = string(option_arg);
                 break;
             case 'e':
-                exc_cutoff = atoi(option_arg);
+                exc_cutoff = strToInt16(option_arg);
                 break;
             case 'r':
-                x_min = atoi(option_arg);
+                x_min = strToInt32(option_arg);
                 break;
             case 's':
-                y_min = atoi(option_arg);
+                y_min = strToInt32(option_arg);
                 break;
             case 'x':
-                x_max = atoi(option_arg);
+                x_max = strToInt32(option_arg);
                 x_max_mod = true;
                 break;
             case 'y':
-                y_max = atoi(option_arg);
+                y_max = strToInt64(option_arg);
                 y_max_mod = true;
                 break;
             case 'l':

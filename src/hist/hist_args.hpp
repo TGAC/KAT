@@ -38,7 +38,7 @@ namespace kat
     const uint64_t  DEFAULT_HISTO_LOW          = 1;
     const uint64_t  DEFAULT_HISTO_HIGH         = 10000;
     const uint64_t  DEFAULT_HISTO_INC          = 1;
-    const uint32_t  DEFAULT_HISTO_THREADS      = 1;
+    const uint16_t  DEFAULT_HISTO_THREADS      = 1;
     const bool      DEFAULT_HISTO_FULL         = false;
     const bool      DEFAULT_HISTO_BOTH_STRANDS = false;
     const char*     DEFAULT_HISTO_OUTPUT       = "kat.histo";
@@ -83,8 +83,7 @@ namespace kat
             help_str << " -o, --output=path           Output file. (\"" << DEFAULT_HISTO_OUTPUT << "\")" << endl
                      << " -l, --low=uint64            Low count value of histogram (" << DEFAULT_HISTO_LOW << ")" << endl
                      << " -h, --high=uint64           High count value of histogram (" << DEFAULT_HISTO_HIGH << ")" << endl
-                     << " -t, --threads=uint32        Number of threads (" << DEFAULT_HISTO_THREADS << ")" << endl
-                     << " -f, --full                  Full histo. Don't skip count 0. (" << DEFAULT_HISTO_FULL << ")" << endl
+                     << " -t, --threads=uint16        Number of threads (" << DEFAULT_HISTO_THREADS << ")" << endl
                      << " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both" << endl
                      << "                             strands. If this is not set to the same value as was produced during jellyfish" << endl
                      << "                             counting then output from histo will be unpredicatable (" << DEFAULT_HISTO_BOTH_STRANDS << ").";
@@ -99,14 +98,13 @@ namespace kat
                 {"low",           required_argument,  0, 'l'},
                 {"high",          required_argument,  0, 'h'},
                 {"threads",       required_argument,  0, 't'},
-                {"full",          no_argument,        0, 'f'},
                 {"output",        required_argument,  0, 'o'},
                 {"both_strands",  no_argument,        0, 'C'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 6; i++)
+            for(uint8_t i = 0; i < 5; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -116,27 +114,24 @@ namespace kat
 
         string shortOptions()
         {
-            return "l:h:t:fo:C";
+            return "l:h:t:o:C";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             switch(c)
             {
             case 'l':
-                low = atoi(optarg);
+                low = strToInt64(optarg);
                 break;
             case 'h':
-                high = atoi(optarg);
+                high = strToInt64(optarg);
                 break;
             case 't':
-                threads = atoi(optarg);
-                break;
-            case 'f':
-                full = true;
+                threads = strToInt16(optarg);
                 break;
             case 'o':
-                output = optarg;
+                output = string(optarg);
                 break;
             case 'C':
                 both_strands = true;
@@ -156,7 +151,6 @@ namespace kat
             status  << "low: " << low << endl
                     << "high: " << high << endl
                     << "threads: " << threads << endl
-                    << "full: " << full << endl
                     << "output: " << output << endl
                     << "db_path: " << db_path << endl
                     << "both_strands: " << both_strands << endl;
@@ -168,8 +162,7 @@ namespace kat
 
         uint64_t        low;
         uint64_t        high;
-        uint32_t        threads;
-        bool            full;
+        uint16_t        threads;
         bool            both_strands;
         string          output;
         string          db_path;
@@ -178,7 +171,6 @@ namespace kat
             low(DEFAULT_HISTO_LOW),
             high(DEFAULT_HISTO_HIGH),
             threads(DEFAULT_HISTO_THREADS),
-            full(DEFAULT_HISTO_FULL),
             both_strands(DEFAULT_HISTO_BOTH_STRANDS),
             output(DEFAULT_HISTO_OUTPUT)
         { }
@@ -187,7 +179,6 @@ namespace kat
             low(DEFAULT_HISTO_LOW),
             high(DEFAULT_HISTO_HIGH),
             threads(DEFAULT_HISTO_THREADS),
-            full(DEFAULT_HISTO_FULL),
             both_strands(DEFAULT_HISTO_BOTH_STRANDS),
             output(DEFAULT_HISTO_OUTPUT)
         { parse(argc, argv); }

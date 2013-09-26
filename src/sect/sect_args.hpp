@@ -115,10 +115,10 @@ namespace kat
 
         string shortOptions()
         {
-            return "o:t:C";
+            return "s:o:x:y:lt:C";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             switch(c)
             {
@@ -129,13 +129,13 @@ namespace kat
                 output_prefix = string(option_arg);
                 break;
             case 't':
-                threads_arg = atoi(option_arg);
+                threads_arg = strToInt16(option_arg);
                 break;
             case 'x':
-                gc_bins = atoi(option_arg);
+                gc_bins = strToInt16(option_arg);
                 break;
             case 'y':
-                cvg_bins = atoi(option_arg);
+                cvg_bins = strToInt16(option_arg);
                 break;
             case 'C':
                 both_strands = true;
@@ -148,7 +148,7 @@ namespace kat
 
         void processRemainingArgs(const vector<string>& remaining_args)
         {
-            db_arg = remaining_args[0];
+            jellyfish_hash = remaining_args[0];
         }
 
         const string currentStatus() const
@@ -160,7 +160,7 @@ namespace kat
                    << "Number of coverage bins for matrix: " << cvg_bins << endl
                    << "Compress coverage scores to logscale: " << cvg_logscale << endl
                    << "Threads requested: " << threads_arg << endl
-                   << "Jellyfish hash: " << db_arg << endl
+                   << "Jellyfish hash: " << jellyfish_hash << endl
                    << "Output prefix: " << output_prefix << endl
                    << "Jellyfish hash double stranded: " << both_strands << endl;
 
@@ -169,8 +169,7 @@ namespace kat
 
     public:
         string      seq_file;
-        string      db_arg;
-        string      input_type;
+        string      jellyfish_hash;
         string      output_prefix;
         uint16_t    gc_bins;
         uint16_t    cvg_bins;
@@ -180,13 +179,13 @@ namespace kat
 
         // Default constructor
         SectArgs() : BaseArgs(MIN_ARGS),
-            output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
+            seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
             cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS)
         {}
 
         // Constructor that parses command line options
         SectArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS),
-            output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
+            seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
             cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS)
         {
             parse(argc, argv);

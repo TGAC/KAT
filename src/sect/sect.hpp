@@ -86,7 +86,7 @@ namespace kat
             remaining(BATCH_SIZE % (bucket_size < 1 ? 1 : args->threads_arg))
         {
             // Setup handle to jellyfish hash
-            jfh = new JellyfishHelper(args->db_arg);
+            jfh = new JellyfishHelper(args->jellyfish_hash);
 
             // Setup space for storing output
             offset = 0;
@@ -236,7 +236,7 @@ namespace kat
         {
             out << "SECT parameters:" << endl;
             out << " - Sequence File Path: " << args->seq_file << endl;
-            out << " - Hash File Path: " << args->db_arg << endl;
+            out << " - Hash File Path: " << args->jellyfish_hash << endl;
             out << " - Hash: " << (hash ? "loaded" : "not loaded") << endl;
             out << " - Threads: " << args->threads_arg << endl;
             out << " - Bucket size: " << bucket_size << endl;
@@ -371,7 +371,7 @@ namespace kat
         {
             SparseMatrix<uint64_t>* mx = contamination_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "Contamination Plot for " << args->seq_file << " and " << args->db_arg << endl;
+            out << mme::KEY_TITLE << "Contamination Plot for " << args->seq_file << " and " << args->jellyfish_hash << endl;
             out << mme::KEY_X_LABEL << "GC%" << endl;
             out << mme::KEY_Y_LABEL << "Average K-mer Coverage" << endl;
             out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;

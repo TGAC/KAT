@@ -36,6 +36,14 @@ namespace kat
     // Note that none of these methods are particularly efficient so don't use them
     // for lots of data.
 
+    static uint16_t strToInt16(string s)
+    {
+        istringstream str_val(s);
+        uint16_t int_val;
+        str_val >> int_val;
+        return int_val;
+    }
+
     static uint32_t strToInt32(string s)
     {
         istringstream str_val(s);
@@ -50,6 +58,14 @@ namespace kat
         uint64_t int_val;
         str_val >> int_val;
         return int_val;
+    }
+
+    static double strToDouble(string s)
+    {
+        istringstream str_val(s);
+        double double_val;
+        str_val >> double_val;
+        return double_val;
     }
 
 

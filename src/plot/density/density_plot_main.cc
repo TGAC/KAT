@@ -26,6 +26,7 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 
+#include <matrix/sparse_matrix.hpp>
 #include <matrix/matrix_metadata_extractor.hpp>
 
 #include "density_plot_args.hpp"
@@ -34,8 +35,10 @@
 using std::string;
 using std::ifstream;
 using std::istringstream;
+using std::ostringstream;
 
 using kat::DensityPlotArgs;
+
 
 // Start point
 int kat::densityPlotStart(int argc, char *argv[])
@@ -116,10 +119,20 @@ int kat::densityPlotStart(int argc, char *argv[])
     rangestr << "set cbrange [0:" << z_range << "]";
     density.cmd(rangestr.str());
 
+    // Transpose the matrix and store in ostream
+    ostringstream data;
+    SparseMatrix<uint64_t> mx = SparseMatrix<uint64_t>(args.mx_arg);
+    mx.printMatrix(data, true);
+
+    // Plot the transposed matrix as image
     std::ostringstream plotstr;
-    plotstr << "plot '" << args.mx_arg.c_str() << "' matrix with image";
+    plotstr << "plot '-' matrix with image" << endl
+            << data.str()
+            << "e" << endl
+            << "e" << endl;
 
     density.cmd(plotstr.str());
 
     return 0;
 }
+

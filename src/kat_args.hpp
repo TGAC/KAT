@@ -61,7 +61,7 @@ namespace kat
                     "   - comp:  K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
                     "   - gcp:   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
                     "            count.\n" \
-                    "   - histo: Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy\n" \
+                    "   - hist:  Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy\n" \
                     "            plotting.\n" \
                     "   - plot:  Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
                     "            Requires gnuplot.";
@@ -86,7 +86,7 @@ namespace kat
 
         string shortOptions()                   { return "V"; }
 
-        void setOption(int c, char* option_arg)
+        void setOption(int c, string& option_arg)
         {
             switch (c)
             {

@@ -83,7 +83,7 @@ namespace kat
         }
 
         string shortOptions()                   { return ""; }
-        void setOption(int c, char* option_arg) {}
+        void setOption(int c, string& option_arg) {}
         void processRemainingArgs(const vector<string>& remaining_args) {}
         const string currentStatus() const       { return ""; }
 

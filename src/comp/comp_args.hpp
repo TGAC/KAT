@@ -121,7 +121,7 @@ namespace kat
             return "o:x:y:i:j:t:C";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             switch(c)
             {
@@ -129,23 +129,23 @@ namespace kat
                 output_prefix = string(option_arg);
                 break;
             case 't':
-                threads = atoi(option_arg);
+                threads = strToInt16(option_arg);
                 break;
             case 'x':
-                d1_scale = atof(option_arg);
+                d1_scale = strToDouble(option_arg);
                 if (d1_scale > 1.0)
                     d1_scale = 1.0;
                 break;
             case 'y':
-                d2_scale = atof(option_arg);
+                d2_scale = strToDouble(option_arg);
                 if (d2_scale > 1.0)
                     d2_scale = 1.0;
                 break;
             case 'i':
-                d1_bins = atoi(option_arg);
+                d1_bins = strToInt16(option_arg);
                 break;
             case 'j':
-                d2_bins = atoi(option_arg);
+                d2_bins = strToInt16(option_arg);
                 break;
             case 'C':
                 both_strands = true;

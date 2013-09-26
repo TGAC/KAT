@@ -144,7 +144,7 @@ namespace kat
         }
 
 
-        void print(std::ostream &out, bool full)
+        void print(std::ostream &out)
         {
             // Output header
             out << mme::KEY_TITLE << "K-mer spectra for: " << args->db_path << endl;

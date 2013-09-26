@@ -107,23 +107,23 @@ namespace kat
             return BasePlotArgs::shortOptions() + "x:y:a:m:c";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             BasePlotArgs::setOption(c, option_arg);
 
             switch(c)
             {
             case 'x':
-                x_max = atoi(optarg);
+                x_max = strToInt16(optarg);
                 break;
             case 'y':
-                y_max = atol(optarg);
+                y_max = strToInt64(optarg);
                 break;
             case 'a':
                 ignore_absent = true;
                 break;
             case 'm':
-                max_duplication = atoi(optarg);
+                max_duplication = strToInt16(optarg);
                 break;
             case 'c':
                 columns = string(optarg);

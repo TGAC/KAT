@@ -111,18 +111,18 @@ namespace kat
             return BasePlotArgs::shortOptions() + "y:n:d:";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             BasePlotArgs::setOption(c, option_arg);
 
             switch(c)
             {
             case 'y':
-                y_max = atoi(option_arg);
+                y_max = strToInt32(option_arg);
                 y_max_mod = true;
                 break;
             case 'n':
-                fasta_index = atoi(option_arg);
+                fasta_index = strToInt32(option_arg);
                 break;
             case 'd':
                 fasta_header = option_arg;

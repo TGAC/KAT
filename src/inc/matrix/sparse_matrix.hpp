@@ -197,16 +197,38 @@ public:
 
     void printMatrix(ostream &out)
     {
-        for(size_t i = 0; i < m; i++)
+        printMatrix(out, false);
+    }
+
+    void printMatrix(ostream &out, bool transpose)
+    {
+        if (transpose)
         {
-            out << mat[i][0];
+            // Transpose matrix
+            for(size_t i = 0; i < n; i++) {
 
-            for(size_t j = 1; j < n; j++)
-            {
-                out << " " << mat[i][j];
+                out << mat[0][i];
+
+                for(size_t j = 0; j < m; j++) {
+                    out << " " << mat[j][i];
+                }
+
+                out << endl;
             }
+        }
+        else
+        {
+            for(size_t i = 0; i < m; i++)
+            {
+                out << mat[i][0];
 
-            out << endl;
+                for(size_t j = 1; j < n; j++)
+                {
+                    out << " " << mat[i][j];
+                }
+
+                out << endl;
+            }
         }
     }
     

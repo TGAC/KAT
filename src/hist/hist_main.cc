@@ -65,7 +65,7 @@ int kat::histStart(int argc, char *argv[])
     histo.do_it();
 
     // Output the results
-    histo.print(out, args.full);
+    histo.print(out);
 
     // Close the output channel
     out.close();

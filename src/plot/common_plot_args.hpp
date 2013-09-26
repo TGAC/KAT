@@ -24,6 +24,7 @@
 #include <vector>
 
 #include <common_args.hpp>
+#include <str_utils.hpp>
 
 using std::vector;
 using std::string;
@@ -93,7 +94,7 @@ namespace kat
             return "o:p:t:i:j:w:h:";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             switch(c)
             {
@@ -115,10 +116,10 @@ namespace kat
                 y_label_mod = true;
                 break;
             case 'w':
-                width = atoi(option_arg);
+                width = strToInt16(option_arg);
                 break;
             case 'h':
-                height = atoi(option_arg);
+                height = strToInt16(option_arg);
                 break;
             }
         }

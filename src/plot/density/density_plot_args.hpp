@@ -125,25 +125,25 @@ namespace kat
             return BasePlotArgs::shortOptions() + "k:x:y:z:";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             BasePlotArgs::setOption(c, option_arg);
 
             switch(c)
             {
             case 'k':
-                z_label = string(optarg);
+                z_label = optarg;
                 break;
             case 'x':
-                x_max = atoi(optarg);
+                x_max = strToInt16(optarg);
                 x_max_mod = true;
                 break;
             case 'y':
-                y_max = atoi(optarg);
+                y_max = strToInt16(optarg);
                 y_max_mod = true;
                 break;
             case 'z':
-                z_max = atoi(optarg);
+                z_max = strToInt64(optarg);
                 z_max_mod = true;
                 break;
             }

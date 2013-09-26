@@ -124,23 +124,23 @@ namespace kat
             return BasePlotArgs::shortOptions() + "r:s:x:y:lm";
         }
 
-        void setOption(int c, char* option_arg) {
+        void setOption(int c, string& option_arg) {
 
             BasePlotArgs::setOption(c, option_arg);
 
             switch(c)
             {
             case 'r':
-                x_min = atoi(option_arg);
+                x_min = strToInt32(option_arg);
                 break;
             case 's':
-                y_min = atoi(option_arg);
+                y_min = strToInt32(option_arg);
                 break;
             case 'x':
-                x_max = atoi(option_arg);
+                x_max = strToInt32(option_arg);
                 break;
             case 'y':
-                y_max = atoi(option_arg);
+                y_max = strToInt32(option_arg);
                 break;
             case 'l':
                 x_logscale = true;

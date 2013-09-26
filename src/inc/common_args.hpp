@@ -24,7 +24,6 @@
 #include <vector>
 #include <sstream>
 
-
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -103,7 +102,7 @@ namespace kat
          * @param c short option identifier
          * @param option_arg The argument associated with this option
          */
-        virtual void setOption(int c, char* option_arg) = 0;
+        virtual void setOption(int c, string& option_arg) = 0;
 
         /**
          * @brief processRemainingArgs The inheriting class should implement this method so that
@@ -192,8 +191,8 @@ namespace kat
 
             static struct option long_common_options[] =
             {
-                {"verbose",         no_argument,        0,          'v'},
-                {"help",            no_argument,        &help_flag, 1},
+                {"verbose",         no_argument,        0,           'v'},
+                {"help",            no_argument,        &help_flag,  1},
                 {"usage",           no_argument,        &usage_flag, 1},
                 {0, 0, 0, 0}
             };
@@ -209,9 +208,10 @@ namespace kat
             option* long_options_array = &(*long_options)[0];
 
             // Create short options
-            std::ostringstream short_options_str;
+            ostringstream short_options_str;
             short_options_str << shortOptions() << "vuh";
-            static const char *short_options = short_options_str.str().c_str();
+            char short_options[strlen(short_options_str.str().c_str())];
+            strcpy(short_options, short_options_str.str().c_str());
 
             // Loop through the options
             while (true)
@@ -225,11 +225,13 @@ namespace kat
                 if (c == -1)
                     break;
 
+                bool base_arg_found = false;
+
                 switch (c)
                 {
                 case ':':
                     cerr << "Missing required argument for "
-                              << (index == -1 ? std::string(1, (char)optopt) : std::string(long_options_array[index].name))
+                              << (index == -1 ? string(1, (char)optopt) : string(long_options_array[index].name))
                               << endl;
                     exit(1);
                 case '?':
@@ -237,10 +239,15 @@ namespace kat
                     exit(1);
                 case 'v':
                     verbose = true;
+                    base_arg_found = true;
                     break;
                 }
 
-                setOption(c, optarg);
+                if (!base_arg_found)
+                {
+                    string option_arg = optarg == NULL ? "" : string(optarg);
+                    setOption(c, option_arg);
+                }
             }
 
             // If the help flag was set print usage and help then exit
