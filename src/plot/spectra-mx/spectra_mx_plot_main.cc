@@ -208,7 +208,7 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
     spectra_mx_plot.cmd("set size ratio 1");
     spectra_mx_plot.cmd("set key font \",8\"");
     spectra_mx_plot.cmd("set xlabel offset \"0,1\" font \",10\"");
-    spectra_mx_plot.cmd("set ylabel offset \"4,0\" font \",10\"");
+    spectra_mx_plot.cmd("set ylabel offset \"2,0\" font \",10\"");
     spectra_mx_plot.cmd("set title font \",10\"");
     spectra_mx_plot.cmd("set tics font \", 8\"");
     spectra_mx_plot.cmd("set palette rgb 33,13,10");

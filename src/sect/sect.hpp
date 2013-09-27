@@ -378,6 +378,7 @@ namespace kat
             out << mme::KEY_NB_COLUMNS << args->gc_bins << endl;
             out << mme::KEY_NB_ROWS << args->cvg_bins << endl;
             out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
+            out << mme::KEY_TRANSPOSE << "0" << endl;
             out << mme::MX_META_END << endl;
 
             contamination_mx->getFinalMatrix()->printMatrix(out);

@@ -456,6 +456,7 @@ namespace kat
             out << mme::KEY_NB_COLUMNS << mx->height() << endl;
             out << mme::KEY_NB_ROWS << mx->width() << endl;
             out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
+            out << mme::KEY_TRANSPOSE << "1" << endl;
             out << mme::MX_META_END << endl;
 
             mx->printMatrix(out);

@@ -32,6 +32,7 @@ namespace mme
     const string KEY_Z_LABEL    = "# ZLabel:";
     const string KEY_TITLE      = "# Title:";
     const string KEY_MAX_VAL    = "# MaxVal:";
+    const string KEY_TRANSPOSE  = "# Transpose:";
     const string MX_META_END    = "###";
 
     void trim(string& str);

@@ -62,6 +62,8 @@ int kat::densityPlotStart(int argc, char *argv[])
 
     string title = args.titleModified() ? args.title : mme::getString(args.mx_arg, mme::KEY_TITLE);
 
+    bool transpose = mme::getNumeric(args.mx_arg, mme::KEY_TRANSPOSE) == 0 ? false : true;
+
 
     // If neither the user or the data file contain any ideas of what values to use then use defaults
     x_range = x_range < 0 ? DEFAULT_X_MAX : x_range;
@@ -122,7 +124,7 @@ int kat::densityPlotStart(int argc, char *argv[])
     // Transpose the matrix and store in ostream
     ostringstream data;
     SparseMatrix<uint64_t> mx = SparseMatrix<uint64_t>(args.mx_arg);
-    mx.printMatrix(data, true);
+    mx.printMatrix(data, transpose);
 
     // Plot the transposed matrix as image
     std::ostringstream plotstr;
