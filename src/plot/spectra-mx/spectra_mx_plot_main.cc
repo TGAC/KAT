@@ -118,7 +118,7 @@ string getIntersectionData(string mx_path, uint16_t exc_cutoff)
     // Acquire data
 
     // Dataset 1 Exclusive content
-    for(uint16_t j = 0; j < mx.width(); j++)
+    for(uint16_t j = exc_cutoff; j < mx.width(); j++)
     {
         uint64_t sum = mx.sumColumn(j, 0, exc_cutoff - 1);
         data_str << j << " " << sum << endl;
@@ -137,7 +137,7 @@ string getIntersectionData(string mx_path, uint16_t exc_cutoff)
     cerr << "Dataset 1 Shared content calculated" << endl;
 
     // Dataset 2 Exclusive content
-    for(uint16_t j = 0; j < mx.height(); j++)
+    for(uint16_t j = exc_cutoff; j < mx.height(); j++)
     {
         uint64_t sum = mx.sumRow(j, 0, exc_cutoff - 1);
         data_str << j << " " << sum << endl;
@@ -223,7 +223,7 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
     if (!args.list.empty())
     {
         if (args.verbose)
-            cerr << "Extracting requested data from matrix..." << endl;
+            cerr << "Extracting requested data from matrix... " << endl;
 
         data = getDataFromList(args.mx_path, args.list);
 
