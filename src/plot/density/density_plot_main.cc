@@ -29,6 +29,8 @@
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/matrix_metadata_extractor.hpp>
 
+#include <file_utils.hpp>
+
 #include "density_plot_args.hpp"
 #include "density_plot_main.hpp"
 
@@ -50,6 +52,12 @@ int kat::densityPlotStart(int argc, char *argv[])
     if (args.verbose)
         args.print();
 
+    // Check input file exists
+    if (!fileExists(args.mx_arg))
+    {
+        cerr << endl << "Could not find matrix file at: " << args.mx_arg << "; please check the path and try again." << endl << endl;
+        return 1;
+    }
 
     // Get plotting properties, either from file, or user.  User args have precedence.
     uint16_t x_range = args.xMaxModified() ? args.x_max : mme::getNumeric(args.mx_arg, mme::KEY_NB_COLUMNS);

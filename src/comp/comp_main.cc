@@ -27,6 +27,8 @@
 
 #include <jellyfish/compacted_hash.hpp>
 
+#include <file_utils.hpp>
+
 #include "comp.hpp"
 #include "comp_args.hpp"
 #include "comp_main.hpp"
@@ -48,6 +50,27 @@ int kat::compStart(int argc, char *argv[])
     // Print command line args to stderr if requested
     if (args.verbose)
         args.print();
+
+    // Check input file exists
+    if (!fileExists(args.db1_path))
+    {
+        cerr << endl << "Could not find first jellyfish hash file at: " << args.db1_path << "; please check the path and try again." << endl << endl;
+        return 1;
+    }
+
+    // Check input file exists
+    if (!fileExists(args.db2_path))
+    {
+        cerr << endl << "Could not find second jellyfish hash file at: " << args.db2_path << "; please check the path and try again." << endl << endl;
+        return 1;
+    }
+
+    // Check input file exists
+    if (!args.db3_path.empty() && !fileExists(args.db3_path))
+    {
+        cerr << endl << "Could not find third jellyfish hash file at: " << args.db3_path << "; please check the path and try again." << endl << endl;
+        return 1;
+    }
 
     // Create the sequence coverage object
     Comp<hash_query_t> comp(&args);

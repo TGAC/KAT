@@ -38,7 +38,8 @@ HEADERS += \
     src/hist/hist_main.hpp \
     src/hist/hist_args.hpp \
     src/plot/spectra-mx/spectra_mx_plot_main.hpp \
-    src/plot/spectra-mx/spectra_mx_plot_args.hpp
+    src/plot/spectra-mx/spectra_mx_plot_args.hpp \
+    src/inc/file_utils.hpp
 
 SOURCES += \
     src/comp/comp_main.cc \

@@ -24,6 +24,8 @@
 
 #include <jellyfish/mer_counting.hpp>
 
+#include <file_utils.hpp>
+
 #include "gcp.hpp"
 #include "gcp_args.hpp"
 #include "gcp_main.hpp"
@@ -39,6 +41,13 @@ int kat::gcpStart(int argc, char *argv[])
 {
     // Parse args
     GcpArgs args(argc, argv);
+
+    // Check input file exists
+    if (!fileExists(args.db_arg))
+    {
+        cerr << endl << "Could not find jellyfish hash file at: " << args.db_arg << "; please check the path and try again." << endl << endl;
+        return 1;
+    }
 
     // Print command line args to stderr if requested
     if (args.verbose)

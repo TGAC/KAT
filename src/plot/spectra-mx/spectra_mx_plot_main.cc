@@ -28,7 +28,10 @@
 #include <iterator>
 
 #include <gnuplot/gnuplot_i.hpp>
+
 #include <str_utils.hpp>
+#include <file_utils.hpp>
+
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/matrix_metadata_extractor.hpp>
 
@@ -172,6 +175,14 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
         cerr << "Arguments passed from command line are: " << endl;
         args.print();
     }
+
+    // Check input file exists
+    if (!fileExists(args.mx_path))
+    {
+        cerr << endl << "Could not find matrix file at: " << args.mx_path << "; please check the path and try again." << endl << endl;
+        return 2;
+    }
+
 
     // Modify variables as appropriate
     string auto_title_x = mme::getString(args.mx_path, mme::KEY_X_LABEL);

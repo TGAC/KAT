@@ -19,6 +19,7 @@ kat_SOURCES = \
 		inc/matrix/matrix_metadata_extractor.hpp \
                 inc/matrix/matrix_metadata_extractor.cc \
                 inc/str_utils.hpp \
+                inc/file_utils.hpp \
                 inc/common_args.hpp \
                 sect/sect_main.cc \
 		sect/sect.hpp \
