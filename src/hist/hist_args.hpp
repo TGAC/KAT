@@ -35,13 +35,11 @@ using std::ostringstream;
 
 namespace kat
 {
-    const uint64_t  DEFAULT_HISTO_LOW          = 1;
-    const uint64_t  DEFAULT_HISTO_HIGH         = 10000;
-    const uint64_t  DEFAULT_HISTO_INC          = 1;
-    const uint16_t  DEFAULT_HISTO_THREADS      = 1;
-    const bool      DEFAULT_HISTO_FULL         = false;
-    const bool      DEFAULT_HISTO_BOTH_STRANDS = false;
-    const char*     DEFAULT_HISTO_OUTPUT       = "kat.histo";
+    const uint64_t  DEFAULT_HIST_LOW          = 1;
+    const uint64_t  DEFAULT_HIST_HIGH         = 10000;
+    const uint64_t  DEFAULT_HIST_INC          = 1;
+    const uint16_t  DEFAULT_HIST_THREADS      = 1;
+    const char*     DEFAULT_HIST_OUTPUT       = "kat.hist";
 
     const uint16_t  HISTO_MIN_ARGS = 1;
 
@@ -80,13 +78,10 @@ namespace kat
         {
             ostringstream help_str;
 
-            help_str << " -o, --output=path           Output file. (\"" << DEFAULT_HISTO_OUTPUT << "\")" << endl
-                     << " -l, --low=uint64            Low count value of histogram (" << DEFAULT_HISTO_LOW << ")" << endl
-                     << " -h, --high=uint64           High count value of histogram (" << DEFAULT_HISTO_HIGH << ")" << endl
-                     << " -t, --threads=uint16        Number of threads (" << DEFAULT_HISTO_THREADS << ")" << endl
-                     << " -C, --both_strands          IMPORTANT: Whether the jellyfish hash contains K-mers produced for both" << endl
-                     << "                             strands. If this is not set to the same value as was produced during jellyfish" << endl
-                     << "                             counting then output from histo will be unpredicatable (" << DEFAULT_HISTO_BOTH_STRANDS << ").";
+            help_str << " -o, --output=path           Output file. (\"" << DEFAULT_HIST_OUTPUT << "\")" << endl
+                     << " -l, --low=uint64            Low count value of histogram (" << DEFAULT_HIST_LOW << ")" << endl
+                     << " -h, --high=uint64           High count value of histogram (" << DEFAULT_HIST_HIGH << ")" << endl
+                     << " -t, --threads=uint16        Number of threads (" << DEFAULT_HIST_THREADS << ")";
 
             return help_str.str();
         }
@@ -99,12 +94,11 @@ namespace kat
                 {"high",          required_argument,  0, 'h'},
                 {"threads",       required_argument,  0, 't'},
                 {"output",        required_argument,  0, 'o'},
-                {"both_strands",  no_argument,        0, 'C'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 5; i++)
+            for(uint8_t i = 0; i < 4; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -114,7 +108,7 @@ namespace kat
 
         string shortOptions()
         {
-            return "l:h:t:o:C";
+            return "l:h:t:o:";
         }
 
         void setOption(int c, string& option_arg) {
@@ -133,9 +127,6 @@ namespace kat
             case 'o':
                 output = string(optarg);
                 break;
-            case 'C':
-                both_strands = true;
-                break;
             }
         }
 
@@ -152,8 +143,7 @@ namespace kat
                     << "high: " << high << endl
                     << "threads: " << threads << endl
                     << "output: " << output << endl
-                    << "db_path: " << db_path << endl
-                    << "both_strands: " << both_strands << endl;
+                    << "db_path: " << db_path << endl;
 
             return status.str().c_str();
         }
@@ -163,31 +153,28 @@ namespace kat
         uint64_t        low;
         uint64_t        high;
         uint16_t        threads;
-        bool            both_strands;
         string          output;
         string          db_path;
 
         HistArgs() : BaseArgs(HISTO_MIN_ARGS),
-            low(DEFAULT_HISTO_LOW),
-            high(DEFAULT_HISTO_HIGH),
-            threads(DEFAULT_HISTO_THREADS),
-            both_strands(DEFAULT_HISTO_BOTH_STRANDS),
-            output(DEFAULT_HISTO_OUTPUT)
+            low(DEFAULT_HIST_LOW),
+            high(DEFAULT_HIST_HIGH),
+            threads(DEFAULT_HIST_THREADS),
+            output(DEFAULT_HIST_OUTPUT)
         { }
 
         HistArgs(int argc, char* argv[]) : BaseArgs(HISTO_MIN_ARGS),
-            low(DEFAULT_HISTO_LOW),
-            high(DEFAULT_HISTO_HIGH),
-            threads(DEFAULT_HISTO_THREADS),
-            both_strands(DEFAULT_HISTO_BOTH_STRANDS),
-            output(DEFAULT_HISTO_OUTPUT)
+            low(DEFAULT_HIST_LOW),
+            high(DEFAULT_HIST_HIGH),
+            threads(DEFAULT_HIST_THREADS),
+            output(DEFAULT_HIST_OUTPUT)
         { parse(argc, argv); }
 
         ~HistArgs() {}
 
         uint64_t calcBase()
         {
-            return low > DEFAULT_HISTO_LOW ? (1 >= low ? DEFAULT_HISTO_LOW : low - 1) : DEFAULT_HISTO_LOW;
+            return low > DEFAULT_HIST_LOW ? (1 >= low ? DEFAULT_HIST_LOW : low - 1) : DEFAULT_HIST_LOW;
         }
 
         uint64_t calcCeil()

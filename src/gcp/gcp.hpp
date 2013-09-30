@@ -87,12 +87,6 @@ namespace kat
             // Load the jellyfish hash for sequential access
             hash = jfh->loadHash(true, out_stream);
 
-            // Whether to treat this hash as double stranded or not.
-            // Ideally it would be nice to determine this directly from the hash but I'm
-            // not sure how to do that at the moment... it might not be possible
-            if (args->both_strands)
-                hash->set_canonical(true);
-
             // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
             gcp_mx = new ThreadedSparseMatrix<uint64_t>(hash->get_mer_len(), args->cvg_bins + 1, args->threads_arg);
 

@@ -65,6 +65,9 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
         }
     }
 
+    if (args.verbose)
+        cerr << "Input validated." << endl << "Setting up plot...";
+
     // Initialise gnuplot
     Gnuplot spectra_hist_plot = Gnuplot("lines");
 
@@ -92,12 +95,15 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
 
     spectra_hist_plot.cmd("set style data linespoints");
 
+    if (args.verbose)
+        cerr << "done." << endl << "Setting up " << args.histo_paths.size() << " datasets...";
+
     ostringstream plot_str;
     ostringstream data_str;
 
 
     // Need to change colors and labels
-    for(uint8_t i = 0; i < args.histo_paths.size(); i++)
+    for(size_t i = 0; i < args.histo_paths.size(); i++)
     {
         data_str << "'-' using 1:2 with linespoints ps 0.25 linetype 1 linecolor " << i+1 << " title '" << args.histo_paths[i] << "'";
         if (i != args.histo_paths.size() - 1)
@@ -108,39 +114,51 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
 
     data_str << "\n";
 
-    for(uint8_t i = 0; i < args.histo_paths.size(); i++)
+    if (args.verbose)
+        cerr << "done." << endl << "Acquiring data...";
+
+    for(size_t i = 0; i < args.histo_paths.size(); i++)
     {
         ifstream infile;
         infile.open(args.histo_paths[i].c_str());
 
-        string line("");
-        while(!infile.eof())
+        string line;
+        while(infile.good() && !infile.eof())
         {
             getline(infile, line);
 
-            // Only do something if the start of the line isn't a #
-            if (line[0] != '#')
+            // Only do something if the start of the line looks like a number
+            if (line[0] >= '0' && line[0] <= '9')
             {
-                vector<uint32_t> parts = kat::splitUInt32(line, ' ');
+                vector<uint64_t> parts = kat::splitUInt64(line, ' ');
 
-                uint32_t kmer_multiplicity = parts[0];
-                uint32_t distinct_kmers = parts[1];
+                uint64_t kmer_multiplicity = parts[0];
+                uint64_t distinct_kmers = parts[1];
 
                 data_str << kmer_multiplicity << " " << distinct_kmers << "\n";
-            }
+            }            
         }
 
         infile.close();
 
         data_str << "e\n";
+
+        if (args.verbose)
+            cerr << i << " ";
     }
 
     plot_str << "plot " << data_str.str() ;
 
+    if (args.verbose)
+        cerr << "done." << endl << "Plotting...";
+
     spectra_hist_plot.cmd(plot_str.str());
 
     if (args.verbose)
-        cerr << "Plotted data: " << plot_str.str() << endl;
+        cerr << "done." << endl;
+
+    //if (args.verbose)
+    //    cerr << plot_str.str() << endl;
 
     return 0;
 }

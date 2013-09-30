@@ -154,7 +154,10 @@ namespace kat
 
         void processRemainingArgs(const vector<string>& remaining_args)
         {
-            histo_paths = remaining_args;
+            for(uint16_t i = 0; i < remaining_args.size(); i++)
+            {
+                histo_paths.push_back(string(remaining_args[i]));
+            }
         }
 
 

@@ -29,6 +29,12 @@ namespace kat
     static bool fileExists(const string& filename)
     {
         ifstream ifile(filename.c_str());
-        return ifile;
+
+        bool result = ifile;
+
+        if (ifile)
+            ifile.close();
+
+        return result;
     }
 }

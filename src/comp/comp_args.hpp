@@ -39,7 +39,6 @@ namespace kat
     const string    DEFAULT_OUTPUT_PREFIX   = "kat-comp";
     const uint16_t  DEFAULT_D1_BINS         = 1001;
     const uint16_t  DEFAULT_D2_BINS         = 1001;
-    const bool      DEFAULT_BOTH_STRANDS    = false;
 
     const uint16_t COMP_MIN_ARGS = 2;
 
@@ -83,12 +82,7 @@ namespace kat
                      << " -i, --d1_bins=uint16        Number of bins for the first dataset.  i.e. number of rows in the matrix (" << DEFAULT_D1_BINS << ")." << endl
                      << " -j, --d2_bins=uint16        Number of bins for the second dataset. i.e. number of columns in the matrix" << endl
                      << "                             (" << DEFAULT_D2_BINS << ")." << endl
-                     << " -t, --threads=uint16        The number of threads to use (" << DEFAULT_THREADS << ")\n" \
-                     << " -C, --both_strands          IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both" << endl
-                     << "                             strands.  If this is not set to the same value as was produced during jellyfish" << endl
-                     << "                             counting then output from sect will be unpredicatable. Please note that all" << endl
-                     << "                             hashes must be built with either both strands or with single strands.  Using" << endl
-                     << "                             a mix will also produce unpredictable results (" << DEFAULT_BOTH_STRANDS << ").";
+                     << " -t, --threads=uint16        The number of threads to use (" << DEFAULT_THREADS << ")";
 
             return help_str.str();
         }
@@ -103,12 +97,11 @@ namespace kat
                 {"d1_bins",         required_argument,  0, 'i'},
                 {"d2_bins",         required_argument,  0, 'j'},
                 {"threads",         required_argument,  0, 't'},
-                {"both_strands",    no_argument,        0, 'C'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 7; i++)
+            for(uint8_t i = 0; i < 6; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -118,7 +111,7 @@ namespace kat
 
         string shortOptions()
         {
-            return "o:x:y:i:j:t:C";
+            return "o:x:y:i:j:t:";
         }
 
         void setOption(int c, string& option_arg) {
@@ -147,9 +140,6 @@ namespace kat
             case 'j':
                 d2_bins = strToInt16(option_arg);
                 break;
-            case 'C':
-                both_strands = true;
-                break;
             }
         }
 
@@ -174,8 +164,7 @@ namespace kat
                    << "Jellyfish hash 1: " << db1_path << endl
                    << "Jellyfish hash 2: " << db2_path << endl
                    << "Jellyfish hash 3: " << db3_path << endl
-                   << "Output file path prefix: " << output_prefix << endl
-                   << "Jellyfish hash double stranded: " << both_strands << endl;
+                   << "Output file path prefix: " << output_prefix << endl;
 
             return status.str().c_str();
         }
@@ -190,20 +179,19 @@ namespace kat
         uint16_t    d1_bins;
         uint16_t    d2_bins;
         uint16_t    threads;
-        bool        both_strands;
 
         // Default constructor
         CompArgs() : BaseArgs(COMP_MIN_ARGS),
             output_prefix(DEFAULT_OUTPUT_PREFIX), d1_scale(DEFAULT_D1_SCALE), d2_scale(DEFAULT_D2_SCALE),
             d1_bins(DEFAULT_D1_BINS), d2_bins(DEFAULT_D2_BINS),
-            threads(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS)
+            threads(DEFAULT_THREADS)
         {}
 
         // Constructor that parses command line options
         CompArgs(int argc, char* argv[]) : BaseArgs(COMP_MIN_ARGS),
             output_prefix(DEFAULT_OUTPUT_PREFIX), d1_scale(DEFAULT_D1_SCALE), d2_scale(DEFAULT_D2_SCALE),
             d1_bins(DEFAULT_D1_BINS), d2_bins(DEFAULT_D2_BINS),
-            threads(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS)
+            threads(DEFAULT_THREADS)
         {
             parse(argc, argv);
         }

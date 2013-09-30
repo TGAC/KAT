@@ -269,17 +269,6 @@ namespace kat
             if (jfh3)
                 hash3 = jfh3->loadHash(false, out_stream);
 
-            // Whether to treat this hash as double stranded or not.
-            // Ideally it would be nice to determine this directly from the hash but I'm
-            // not sure how to do that at the moment... it might not be possible
-            if (args->both_strands)
-            {
-                hash1->set_canonical(true);
-                hash2->set_canonical(true);
-                if (hash3)
-                    hash3->set_canonical(true);
-            }
-
             // Check K-mer lengths are the same for both hashes.  We can't continue if they are not.
             if (hash1->get_mer_len() != hash2->get_mer_len())
             {
