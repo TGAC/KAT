@@ -26,6 +26,7 @@
 #include <vector>
 
 #include <gnuplot/gnuplot_i.hpp>
+#include <file_utils.hpp>
 
 #include "spectra_cn_plot_args.hpp"
 #include "spectra_cn_plot_main.hpp"
@@ -105,6 +106,13 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
     // Print command line args to stderr if requested
     if (args.verbose)
         args.print();
+
+    // Check input file exists
+    if (!fileExists(args.mx_arg))
+    {
+        cerr << endl << "Could not find matrix file at: " << args.mx_arg << "; please check the path and try again." << endl << endl;
+        return 1;
+    }
 
     vector<uint16_t>* plot_cols = args.columns.empty() ? getStandardCols(&args) : getUserDefinedCols(&args);
 

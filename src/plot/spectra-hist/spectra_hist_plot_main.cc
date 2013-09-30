@@ -29,6 +29,7 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 #include <str_utils.hpp>
+#include <file_utils.hpp>
 
 #include "spectra_hist_plot_args.hpp"
 #include "spectra_hist_plot_main.hpp"
@@ -54,6 +55,15 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
     if (args.verbose)
         args.print();
 
+    // Check input files exists
+    for(uint16_t i = 0; i < args.histo_paths.size(); i++)
+    {
+        if (!fileExists(args.histo_paths[i]))
+        {
+            cerr << endl << "Could not find the histogram file at index " << i << ": " << args.histo_paths[i] << "; please check the path and try again." << endl << endl;
+            return 1;
+        }
+    }
 
     // Initialise gnuplot
     Gnuplot spectra_hist_plot = Gnuplot("lines");
