@@ -99,7 +99,7 @@ string getDataFromList(string mx_path, string list)
 }
 
 
-string getIntersectionData(string mx_path, uint16_t exc_cutoff)
+string getIntersectionData(string mx_path, uint16_t exc_cutoff_d1, uint16_t exc_cutoff_d2)
 {
     // Ready buffer for data
     ostringstream data_str;
@@ -121,9 +121,9 @@ string getIntersectionData(string mx_path, uint16_t exc_cutoff)
     // Acquire data
 
     // Dataset 1 Exclusive content
-    for(uint16_t j = exc_cutoff; j < mx.width(); j++)
+    for(uint16_t j = exc_cutoff_d1; j < mx.width(); j++)
     {
-        uint64_t sum = mx.sumColumn(j, 0, exc_cutoff - 1);
+        uint64_t sum = mx.sumColumn(j, 0, exc_cutoff_d2 - 1);
         data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
@@ -131,18 +131,18 @@ string getIntersectionData(string mx_path, uint16_t exc_cutoff)
 
 
     // Dataset 1 Shared content
-    for(uint16_t j = exc_cutoff; j < mx.width(); j++)
+    for(uint16_t j = exc_cutoff_d1; j < mx.width(); j++)
     {
-        uint64_t sum = mx.sumColumn(j, exc_cutoff, mx.height() - 1);
+        uint64_t sum = mx.sumColumn(j, exc_cutoff_d2, mx.height() - 1);
         data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
     cerr << "Dataset 1 Shared content calculated" << endl;
 
     // Dataset 2 Exclusive content
-    for(uint16_t j = exc_cutoff; j < mx.height(); j++)
+    for(uint16_t j = exc_cutoff_d2; j < mx.height(); j++)
     {
-        uint64_t sum = mx.sumRow(j, 0, exc_cutoff - 1);
+        uint64_t sum = mx.sumRow(j, 0, exc_cutoff_d1 - 1);
         data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
@@ -150,9 +150,9 @@ string getIntersectionData(string mx_path, uint16_t exc_cutoff)
 
 
     // Dataset 2 Shared content
-    for(uint16_t j = exc_cutoff; j < mx.height(); j++)
+    for(uint16_t j = exc_cutoff_d2; j < mx.height(); j++)
     {
-        uint64_t sum = mx.sumRow(j, exc_cutoff, mx.width() - 1);
+        uint64_t sum = mx.sumRow(j, exc_cutoff_d1, mx.width() - 1);
         data_str << j << " " << sum << endl;
     }
     data_str << "e\n";
@@ -246,14 +246,15 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
         if (args.verbose)
             cerr << "Extracting Intersection data from matrix... ";
 
-        data = getIntersectionData(args.mx_path, args.exc_cutoff);
+        data = getIntersectionData(args.mx_path, args.exc_cutoff_d1, args.exc_cutoff_d2);
 
         if (args.verbose)
             cerr << "done." << endl;
     }
     else
     {
-        cerr << "Error: not data to process.  You did not select a list of content from the matrix (\"--list\"), or alternatively select venn mode (\"--venn\")";
+        cerr << endl << "Error: not sure how to process matrix.  You did not select a list of content from the matrix (\"--list\"),"
+                << " or alternatively select intersection mode (\"--intersection\")" << endl << endl;
         return 1;
     }
 

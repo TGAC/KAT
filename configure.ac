@@ -1,4 +1,4 @@
-AC_INIT([Kmer Analysis Toolkit (KAT)], [1.0.0], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
+AC_INIT([Kmer Analysis Toolkit (KAT)], [0.3.5], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
 AM_INIT_AUTOMAKE([1.11 -Wall no-define])
 
 AC_CONFIG_MACRO_DIR([m4])

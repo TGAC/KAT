@@ -37,7 +37,8 @@ using std::ostringstream;
 namespace kat
 {
     const bool DEFAULT_INTERSECTION = false;
-    const uint16_t DEFAULT_EXC_CUTOFF = 1;
+    const uint16_t DEFAULT_EXC_CUTOFF_D1 = 1;
+    const uint16_t DEFAULT_EXC_CUTOFF_D2 = 1;
     const uint32_t DEFAULT_X_MIN = 0;
     const uint32_t DEFAULT_Y_MIN = 0;
     const uint32_t DEFAULT_X_MAX = 1000;
@@ -110,8 +111,10 @@ namespace kat
                      << "                             content found in the matrix (" << DEFAULT_INTERSECTION << ")." << endl
                      << " -t  --list                  The list of columns or rows to select from the matrix.  Note that this" << endl
                      << "                             option will override \"--intersection\" if that was also selected." << endl
-                     << " -e  --exc_cutoff=uint16     If in \"--intersection\" mode, this enables you to alter the level" << endl
-                     << "                             at which content is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF << ")." << endl
+                     << " -e  --exc_cutoff_d1=uint16  If in \"--intersection\" mode, this enables you to alter the level" << endl
+                     << "                             at which content for dataset 1 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D1 << ")." << endl
+                     << " -f  --exc_cutoff_d2=uint16  If in \"--intersection\" mode, this enables you to alter the level" << endl
+                     << "                             at which content for dataset 2 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D2 << ")." << endl
                      << " -r  --x_min=uint32          Minimum value for the x-axis (" << DEFAULT_X_MIN << ")" << endl
                      << " -s  --y_min=uint32          Minimum value for the y-axis (" << DEFAULT_Y_MIN << ")" << endl
                      << " -x  --x_max=uint32          Maximum value for the x-axis (" << DEFAULT_X_MAX << ")" << endl
@@ -128,7 +131,8 @@ namespace kat
             {
                 {"intersection",    no_argument,        0, 'n'},
                 {"list",            required_argument,  0, 't'},
-                {"exc_cutoff",      required_argument,  0, 'e'},
+                {"exc_cutoff_d1",   required_argument,  0, 'e'},
+                {"exc_cutoff_d2",   required_argument,  0, 'f'},
                 {"x_min",           required_argument,  0, 'r'},
                 {"y_min",           required_argument,  0, 's'},
                 {"x_max",           required_argument,  0, 'x'},
@@ -139,7 +143,7 @@ namespace kat
 
             vector<option>* long_options = BasePlotArgs::longOptions();
 
-            for(uint8_t i = 0; i < 9; i++)
+            for(uint8_t i = 0; i < 10; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -149,7 +153,7 @@ namespace kat
 
         string shortOptions()
         {
-            return BasePlotArgs::shortOptions() + "nl:r:s:x:y:lm";
+            return BasePlotArgs::shortOptions() + "nt:e:f:r:s:x:y:lm";
         }
 
         void setOption(int c, string& option_arg) {
@@ -165,7 +169,10 @@ namespace kat
                 list = string(option_arg);
                 break;
             case 'e':
-                exc_cutoff = strToInt16(option_arg);
+                exc_cutoff_d1 = strToInt16(option_arg);
+                break;
+            case 'f':
+                exc_cutoff_d2 = strToInt16(option_arg);
                 break;
             case 'r':
                 x_min = strToInt32(option_arg);
@@ -205,7 +212,8 @@ namespace kat
             status  << BasePlotArgs::currentStatus()
                     << "Intersection mode activated: " << intersection_mode << endl
                     << "List: " << list << endl
-                    << "Exclusive content cutoff: " << exc_cutoff << endl
+                    << "Exclusive content cutoff for dataset 1: " << exc_cutoff_d1 << endl
+                    << "Exclusive content cutoff for dataset 2: " << exc_cutoff_d2 << endl
                     << "X Min: " << x_min << endl
                     << "Y Min: " << y_min << endl
                     << "X Max: " << x_max << endl
@@ -221,7 +229,8 @@ namespace kat
         string      mx_path;
         bool        intersection_mode;
         string      list;
-        uint16_t    exc_cutoff;
+        uint16_t    exc_cutoff_d1;
+        uint16_t    exc_cutoff_d2;
         uint32_t    x_min;
         uint32_t    y_min;
         uint32_t    x_max;
@@ -232,7 +241,7 @@ namespace kat
         // Default constructor
         SpectraMxPlotArgs() : BasePlotArgs(MIN_ARGS),
             mx_path(""),
-            intersection_mode(DEFAULT_INTERSECTION), list(""), exc_cutoff(DEFAULT_EXC_CUTOFF),
+            intersection_mode(DEFAULT_INTERSECTION), list(""), exc_cutoff_d1(DEFAULT_EXC_CUTOFF_D1), exc_cutoff_d2(DEFAULT_EXC_CUTOFF_D2),
             x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
             x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE)
         {
@@ -242,7 +251,7 @@ namespace kat
         // Constructor that parses command line options
         SpectraMxPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
             mx_path(""),
-            intersection_mode(DEFAULT_INTERSECTION), list(""), exc_cutoff(DEFAULT_EXC_CUTOFF),
+            intersection_mode(DEFAULT_INTERSECTION), list(""), exc_cutoff_d1(DEFAULT_EXC_CUTOFF_D1), exc_cutoff_d2(DEFAULT_EXC_CUTOFF_D2),
             x_min(DEFAULT_X_MIN), y_min(DEFAULT_Y_MIN), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX),
             x_logscale(DEFAULT_X_LOGSCALE), y_logscale(DEFAULT_Y_LOGSCALE)
         {
