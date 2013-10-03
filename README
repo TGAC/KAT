@@ -3,28 +3,17 @@ KAT - The K-mer Analysis Toolkit
 
 KAT is a suite of tools that analyse jellyfish kmer hashes.  The following tools are currently available in KAT:
 
-   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using
-            K-mers from a jellyfish hash.
+   - sect:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using K-mers from a jellyfish hash.
    - comp:  K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.
-   - gcp:   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer
-            count.
-   - hist:  Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy
-            plotting.
-   - plot:  Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.
-            Requires gnuplot.  The following plot tools are available:
+   - gcp:   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.
+   - hist:  Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy plotting.
+   - plot:  Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions. Requires gnuplot.  The following plot tools are available:
 
-     - density:      Creates a density plot from a matrix created with the "comp" tool.  Typically this is
-                     used to compare two K-mer hashes produced by different NGS reads.
-     - profile:      Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output
-                     coverage from the "sect" tool
-     - spectra-cn:   Creates a stacked histogram using a matrix created with the "comp" tool.  Typically
-                     this is used to compare a jellyfish hash produced from a read set to a jellyfish hash
-                     produced from an assembly. The plot shows the amount of distinct K-mers absent, as well
-                     as the copy number variation present within the assembly.
-     - spectra-hist: Creates a K-mer spectra plot for a set of K-mer histograms produced either by jellyfish-
-                     histo or kat-histo.
-     - spectra-mx:   Creates a K-mer spectra plot for a set of K-mer histograms that are derived from
-                     selected rows or columns in a matrix produced by the "comp".
+     - density:      Creates a density plot from a matrix created with the "comp" tool.  Typically this is used to compare two K-mer hashes produced by different NGS reads.
+     - profile:      Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output coverage from the "sect" tool
+     - spectra-cn:   Creates a stacked histogram using a matrix created with the "comp" tool.  Typically this is used to compare a jellyfish hash produced from a read set to a jellyfish hash produced from an assembly. The plot shows the amount of distinct K-mers absent, as well as the copy number variation present within the assembly.
+     - spectra-hist: Creates a K-mer spectra plot for a set of K-mer histograms produced either by jellyfish-histo or kat-histo.
+     - spectra-mx:   Creates a K-mer spectra plot for a set of K-mer histograms that are derived from selected rows or columns in a matrix produced by the "comp".
 
 In addition, KAT contains a python script for analysing the mathematical distributions present in the K-mer spectra in order to determine how much content is present in each peak.
 
@@ -101,11 +90,7 @@ There are some shared resources available which might aid the generation of a su
 
 - Easing generation of gnuplot commands.  Code was taken and modified from: http://ndevilla.free.fr/gnuplot/
 - "jellyfish_helper.hpp" provides some convienient functionality for loading an managing jellyfish hashes from a simple file path.
-- Sparse Matrix implementation.  In order to avoid loading heavy dependencies such as boost a simple sparse
-  matrix implementation has been added to store matricies in a relatively memory efficient way.  The code was
-  originally taken from: http://www.cplusplus.com/forum/general/8352/ and modified for use in KAT.  If more
-  functionality is required than is available here, either extend this class or use a dedicated matrix
-  library.
+- Sparse Matrix implementation.  In order to avoid loading heavy dependencies such as boost a simple sparse matrix implementation has been added to store matricies in a relatively memory efficient way.  The code was originally taken from: http://www.cplusplus.com/forum/general/8352/ and modified for use in KAT.  If more functionality is required than is available here, either extend this class or use a dedicated matrix library.
 - string and file utils.  Some shortcuts to commonly used string and file operations that would otherwise only be available by adding another library as a dependency to this project.
 
 If you think your subtool is useful and want it available in the official KAT release then please contact daniel.mapleson@tgac.ac.uk or bernardo.clavijo@tgac.ac.uk for discussions on how to harmonise the code.  The job will be easier if you maintain a branch from a clone or fork of the KAT repository on github.
@@ -123,8 +108,8 @@ GNU GPL V3.  See COPYING file for more details.
 
 Authors:
 
-Daniel Mapleson
 Bernardo Clavijo
+Daniel Mapleson
 Sarah Ayling
 Mario Caccamo
 
