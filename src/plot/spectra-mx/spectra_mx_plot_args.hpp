@@ -75,7 +75,7 @@ namespace kat
 
         const string usage() const
         {
-            return "Usage: kat plot spectra-mx [options] {--list <comma_seperated_list> | --venn} <mx_file>";
+            return "Usage: kat plot spectra-mx [options] {--list <comma_seperated_list> | --intersection} <mx_file>";
         }
 
         const string shortDescription() const
@@ -111,10 +111,10 @@ namespace kat
                      << "                             content found in the matrix (" << DEFAULT_INTERSECTION << ")." << endl
                      << " -t  --list                  The list of columns or rows to select from the matrix.  Note that this" << endl
                      << "                             option will override \"--intersection\" if that was also selected." << endl
-                     << " -e  --exc_cutoff_d1=uint16  If in \"--intersection\" mode, this enables you to alter the level" << endl
-                     << "                             at which content for dataset 1 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D1 << ")." << endl
-                     << " -f  --exc_cutoff_d2=uint16  If in \"--intersection\" mode, this enables you to alter the level" << endl
-                     << "                             at which content for dataset 2 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D2 << ")." << endl
+                     << " -e  --exc_cutoff_d1=uint16  If in \"--intersection\" mode, this enables you to alter the level at" << endl
+                     << "                             which content for dataset 1 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D1 << ")." << endl
+                     << " -f  --exc_cutoff_d2=uint16  If in \"--intersection\" mode, this enables you to alter the level at" << endl
+                     << "                             which content for dataset 2 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D2 << ")." << endl
                      << " -r  --x_min=uint32          Minimum value for the x-axis (" << DEFAULT_X_MIN << ")" << endl
                      << " -s  --y_min=uint32          Minimum value for the y-axis (" << DEFAULT_Y_MIN << ")" << endl
                      << " -x  --x_max=uint32          Maximum value for the x-axis (" << DEFAULT_X_MAX << ")" << endl

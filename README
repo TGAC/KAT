@@ -26,8 +26,7 @@ KAT is a suite of tools that analyse jellyfish kmer hashes.  The following tools
      - spectra-mx:   Creates a K-mer spectra plot for a set of K-mer histograms that are derived from
                      selected rows or columns in a matrix produced by the "comp".
 
-In addition, KAT contains a script for.... [ADD INFO ABOUT BERNARDOS SCRIPT HERE]
-
+In addition, KAT contains a python script for analysing the mathematical distributions present in the K-mer spectra in order to determine how much content is present in each peak.
 
 
 -------------------------------------------------------------------------------------------------------------
@@ -61,6 +60,8 @@ The Makefile for kat can take several goals.  Full details of common make goals 
   - "make dist" - packages the installation into a tarballed distributable.
   - "make distcheck" - runs some sanity tests to ensure the tarballed distributable is likely to work.
 
+KAT also come with a python script called "dist_analysis.py", which allows the user to determine the amount of content under each peak in the K-mer spectra.  This script will automatically be moved into your selected install directory after running "make install".  However, before running this script you will need to install python and the python numpy and scipy libraries.  In future versions this script will be properly integrated into KAT as another subtool written in C++.
+
 
 -------------------------------------------------------------------------------------------------------------
 
@@ -70,6 +71,7 @@ After KAT has been installed, the following tools should be available:
 
   "kat" - a single executable binary file that contains a number of subtools.
   "kat_comp_reads.sh" - a bash script demonstrating a simple pipeline to compare the K-mers in two read files
+  "dist_analysis.py" - a python script for determining the amount of content in each peak in the K-mer spectra
 
 Running "kat --help" will bring up a list of available tools within kat.  To get help on any of these subtools simple type: "kat <tool> --help".  For example: "kat sect --help"; will show details on how to use the sequence coverage estimator tool.
 
