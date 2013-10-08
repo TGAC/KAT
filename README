@@ -29,7 +29,7 @@ Generic installation description can be found in the INSTALL file.  Short summar
   - Ensure these tools are correctly installed and available on your system:
       - gcc tool chain
       - make
-      - jellyfish = V1.1.10 - http://www.cbcb.umd.edu/software/jellyfish
+      - jellyfish = V1.1.10 - http://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.10.tar.gz  IMPORTANT NOTE: Jellyfish 1.1.10 is no longer hyperlinked on the jellyfish website.  Please use the full path just described to get the correct version.   We will update KAT to use the latest version of jellyfish in due course.
       - seqan >= V1.4.1 - http://www.seqan.de
       - gnuplot (required for plotting at runtime) - http://www.gnuplot.info
   - For a typical installation on a machine where you have root access type "./configure; make; sudo make install;"
@@ -74,8 +74,8 @@ Extending KAT:
 Developers can extend KAT by adding additional tools, whilst leveraging some of the shared resources that KAT and Jellyfish have made available.  In order to add an additional tool to KAT, developers will need a reasonable working knowledge of C++ programming and have GNU auto tools available on their system.  The process for adding a new subtool is as follows:
 
 1. Create a new directory with the tools name in the "src" directory
-2. Copy the template _args.hpp file into this directory and rename to whatever you wish.  Modify the template file so that it contains details of how to use your tool.  Comments have been added to the template to indicate places where you will have to add your custom code. The args template file makes use of getopt.h so developers familiar with this library should have no issues here.  For those unfamiliar with this library, please read the getopt documentation: http://www.gnu.org/software/libc/manual/html_node/Getopt.html
-3. Copy the template _main.cc and _main.hpp files into the new directory and write whatever code is necessary for your tool.
+2. Copy the template_args.hpp file into this directory and rename to whatever you wish.  Modify the template file so that it contains details of how to use your tool.  Comments have been added to the template to indicate places where you will have to add your custom code. The args template file makes use of getopt.h so developers familiar with this library should have no issues here.  For those unfamiliar with this library, please read the getopt documentation: http://www.gnu.org/software/libc/manual/html_node/Getopt.html
+3. Copy the template_main.cc and _main.hpp files into the new directory and write whatever code is necessary for your tool.
 4. Add an include and extend the validMode method in "src/kat.cc" so that your tool is recognised.  Also add your tool to the longDescription method.
 5. Update the "src/kat_args.hpp" to extend the kat help messages.
 6. Update the Makefile.am file to include your _main.cc file.
