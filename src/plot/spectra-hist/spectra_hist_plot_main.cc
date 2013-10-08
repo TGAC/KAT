@@ -79,7 +79,7 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
     spectra_hist_plot.set_title(args.title);
     spectra_hist_plot.set_xlabel(args.x_label);
     spectra_hist_plot.set_ylabel(args.y_label);
-    spectra_hist_plot.set_xrange(args.x_logscale ? 1 : args.x_min, args.x_logscale ? DEFAULT_X_MAX : args.x_max);
+    spectra_hist_plot.set_xrange(args.x_logscale ? 1 : args.x_min, args.x_max);
     spectra_hist_plot.set_yrange(args.y_logscale ? 1 : args.y_min, args.y_max);
 
     if (args.x_logscale)

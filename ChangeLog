@@ -1,0 +1,22 @@
+
+KAT Changelog
+
+===========================================
+
+V1.0.1 - 3rd October 2013
+
+Initial Release of KAT.
+
+
+===========================================
+
+V1.0.2 - 8th October 2013
+
+Fix to installation procedure when cloning a fresh repository.
+ - Modified compiler options so that -all-static is off
+ - Added Makefile.in to git repo
+ - Modified README to emphasise that only 1.1.10 works with this version.
+
+Fix to spectra-hist so that x-max can be properly adjusted when logscale is on
+
+

@@ -1,4 +1,4 @@
-AC_INIT([Kmer Analysis Toolkit (KAT)], [1.0.1], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
+AC_INIT([Kmer Analysis Toolkit (KAT)], [1.0.2], [daniel.mapleson@tgac.ac.uk], [kat], [http://www.tgac.ac.uk])
 AM_INIT_AUTOMAKE([1.11 -Wall no-define])
 
 AC_CONFIG_MACRO_DIR([m4])
@@ -70,7 +70,7 @@ boost_dir=":"
 doxygen_dir=":"
 
 
-PKG_CHECK_MODULES([JELLYFISH], [jellyfish-1.1 >= 1.1.10])
+PKG_CHECK_MODULES([JELLYFISH], [jellyfish-1.1 = 1.1.10])
 
 AC_ARG_WITH(seqan,
         [  --with-seqan=LIB_DIR    seqan root directory is here. ],
@@ -111,8 +111,8 @@ fi
 AC_CHECK_HEADER([seqan/sequence.h], [], [
          echo "Seqan is required to compile and run KAT.  Please make sure seqan is installed on your system."
          echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment"
-         echo "variable then please re-run \"./configure\" with the \"--with-seqan\" argument to specify the root"
-         echo "directory of your seqan installation"
+         echo "variable then please re-run \"./configure\".  You can optionally use the \"--with-seqan\" argument"
+         echo "to specify the root directory of your seqan installation."
          exit -1],
          [])
 

@@ -64,4 +64,5 @@ OTHER_FILES += \
     src/Makefile.am \
     Makefile.am \
     tests/Makefile.am \
-    configure.ac
+    configure.ac \
+    ChangeLog
