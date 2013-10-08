@@ -65,4 +65,6 @@ OTHER_FILES += \
     Makefile.am \
     tests/Makefile.am \
     configure.ac \
-    ChangeLog
+    ChangeLog \
+    README \
+    AUTHORS

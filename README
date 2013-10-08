@@ -29,7 +29,7 @@ Generic installation description can be found in the INSTALL file.  Short summar
   - Ensure these tools are correctly installed and available on your system:
       - gcc tool chain
       - make
-      - jellyfish >= V1.1.10 - http://www.cbcb.umd.edu/software/jellyfish
+      - jellyfish = V1.1.10 - http://www.cbcb.umd.edu/software/jellyfish
       - seqan >= V1.4.1 - http://www.seqan.de
       - gnuplot (required for plotting at runtime) - http://www.gnuplot.info
   - For a typical installation on a machine where you have root access type "./configure; make; sudo make install;"
