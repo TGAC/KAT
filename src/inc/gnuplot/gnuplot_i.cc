@@ -107,7 +107,7 @@ inline Gnuplot::Gnuplot(const std::vector<double> &x,
 // configure plot: setup file output and canvas size
 //
 void Gnuplot::configurePlot(const std::string& type, const std::string& output_path,
-    uint canvas_width, uint canvas_height)
+    int canvas_width, int canvas_height)
 {
 
     std::ostringstream term_str;
