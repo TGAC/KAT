@@ -47,8 +47,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-TESTS = check_comp$(EXEEXT)
-check_PROGRAMS = check_comp$(EXEEXT)
+TESTS = check_comp$(EXEEXT) check_sect$(EXEEXT)
+check_PROGRAMS = check_comp$(EXEEXT) check_sect$(EXEEXT)
 subdir = tests
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/depcomp $(top_srcdir)/test-driver
@@ -64,6 +64,9 @@ CONFIG_CLEAN_VPATH_FILES =
 am_check_comp_OBJECTS = check_comp.$(OBJEXT)
 check_comp_OBJECTS = $(am_check_comp_OBJECTS)
 check_comp_LDADD = $(LDADD)
+am_check_sect_OBJECTS = check_sect.$(OBJEXT)
+check_sect_OBJECTS = $(am_check_sect_OBJECTS)
+check_sect_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -93,8 +96,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(check_comp_SOURCES)
-DIST_SOURCES = $(check_comp_SOURCES)
+SOURCES = $(check_comp_SOURCES) $(check_sect_SOURCES)
+DIST_SOURCES = $(check_comp_SOURCES) $(check_sect_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -447,6 +450,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_CPPFLAGS = -Wall -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
 check_comp_SOURCES = check_comp.cc
+check_sect_SOURCES = check_sect.cc
 all: all-am
 
 .SUFFIXES:
@@ -487,6 +491,9 @@ clean-checkPROGRAMS:
 check_comp$(EXEEXT): $(check_comp_OBJECTS) $(check_comp_DEPENDENCIES) $(EXTRA_check_comp_DEPENDENCIES) 
 	@rm -f check_comp$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(check_comp_OBJECTS) $(check_comp_LDADD) $(LIBS)
+check_sect$(EXEEXT): $(check_sect_OBJECTS) $(check_sect_DEPENDENCIES) $(EXTRA_check_sect_DEPENDENCIES) 
+	@rm -f check_sect$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(check_sect_OBJECTS) $(check_sect_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -495,6 +502,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_comp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/check_sect.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -708,6 +716,13 @@ recheck: all $(check_PROGRAMS)
 check_comp.log: check_comp$(EXEEXT)
 	@p='check_comp$(EXEEXT)'; \
 	b='check_comp'; \
+	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
+	--log-file $$b.log --trs-file $$b.trs \
+	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \
+	"$$tst" $(AM_TESTS_FD_REDIRECT)
+check_sect.log: check_sect$(EXEEXT)
+	@p='check_sect$(EXEEXT)'; \
+	b='check_sect'; \
 	$(am__check_pre) $(LOG_DRIVER) --test-name "$$f" \
 	--log-file $$b.log --trs-file $$b.trs \
 	$(am__common_driver_flags) $(AM_LOG_DRIVER_FLAGS) $(LOG_DRIVER_FLAGS) -- $(LOG_COMPILE) \

@@ -344,7 +344,7 @@ namespace kat
                 {
                     out << (*seqCounts)[0];
 
-                    for(uint_t j = 1; j < seqCounts->size(); j++)
+                    for(size_t j = 1; j < seqCounts->size(); j++)
                     {
                         out << " " << (*seqCounts)[j];
                     }
@@ -426,8 +426,8 @@ namespace kat
             ssSeq << seqs[index];
             string seq = ssSeq.str();
 
-            uint16_t seqLength = seq.length();
-            uint_t nbCounts = seqLength - kmer + 1;
+            uint64_t seqLength = seq.length();
+            uint64_t nbCounts = seqLength - kmer + 1;
             float mean_cvg = 0;
 
             if (seqLength < kmer)
@@ -441,7 +441,7 @@ namespace kat
 
                 uint64_t sum = 0;
 
-                for(uint_t i = 0; i < nbCounts; i++)
+                for(uint64_t i = 0; i < nbCounts; i++)
                 {
                     string merstr = seq.substr(i, kmer);
 
@@ -473,11 +473,11 @@ namespace kat
             (*lengths)[index] = seqLength;
 
             // Calc GC%
-            uint32_t gs = 0;
-            uint32_t cs = 0;
-            uint32_t ns = 0;
+            uint64_t gs = 0;
+            uint64_t cs = 0;
+            uint64_t ns = 0;
 
-            for(uint32_t i = 0; i < seqLength; i++)
+            for(uint64_t i = 0; i < seqLength; i++)
             {
                 char c = seq[i];
 

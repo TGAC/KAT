@@ -15,23 +15,24 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
-
-#include <comp/comp_args.hpp>
-#include <comp/comp.hpp>
-#define BOOST_TEST_MODULE Comp
+#include <../src/comp/comp_args.hpp>
+#include <../src/comp/comp.hpp>
+#define BOOST_TEST_MODULE COMP
 #include <boost/test/included/unit_test.hpp>
 
+using kat::CompArgs;
+using kat::Comp;
 
-
-BOOST_AUTO_TEST_CASE( comp )
+BOOST_AUTO_TEST_CASE( COMP )
 {
     CompArgs args;
 
-    args.db1_path = "resources/comp_test_1.jf17_0";
-    args.db2_path = "resources/comp_test_2.jf17_0";
-    args.both_strands = true;
+    args.db1_path = "data/comp_test_1.jf31_0";
+    args.db2_path = "data/comp_test_2.jf31_0";
+    args.output_prefix = "temp/comp_test";
+    args.threads = 1;
 
-    Comp comp = Comp(&args);
+    Comp<hash_query_t> comp(&args);
 
     comp.do_it();
 

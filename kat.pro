@@ -58,7 +58,8 @@ SOURCES += \
     src/plot/spectra-cn/spectra_cn_plot_main.cc \
     src/plot/spectra-hist/spectra_hist_plot_main.cc \
     src/hist/hist_main.cc \
-    src/plot/spectra-mx/spectra_mx_plot_main.cc
+    src/plot/spectra-mx/spectra_mx_plot_main.cc \
+    tests/check_sect.cc
 
 OTHER_FILES += \
     src/Makefile.am \

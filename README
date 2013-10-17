@@ -45,7 +45,7 @@ Type "./configure --help" for full details.
 
 The Makefile for kat can take several goals.  Full details of common make goals can be found in the INSTALL file.  Typically, the following options can optionally used by kat:
 
-  - "make check" - runs unit tests.  Requires boost to be installed and available.
+  - "make check" - runs unit tests.  Requires boost unit test framework to be installed and available.
   - "make dist" - packages the installation into a tarballed distributable.
   - "make distcheck" - runs some sanity tests to ensure the tarballed distributable is likely to work.
 

@@ -3,10 +3,13 @@ KAT Changelog
 
 ===========================================
 
-V1.0.1 - 3rd October 2013
+V1.0.3 - 17th October 2013
 
-Initial Release of KAT.
+Fixed an overflow bug with SECT, where sequences of over 64K in length, we not handled correctly.
 
+Fixed an issue with the gnuplot handler, which prevented compilation on Mac
+
+Added and fixed unit tests.  Unit tests can now be run by typing "make check" assuming the boost unit test framework is installed.
 
 ===========================================
 
@@ -19,4 +22,11 @@ Fix to installation procedure when cloning a fresh repository.
 
 Fix to spectra-hist so that x-max can be properly adjusted when logscale is on
 
+===========================================
+
+V1.0.1 - 3rd October 2013
+
+Initial Release of KAT.
+
+===========================================
 
