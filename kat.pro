@@ -67,5 +67,5 @@ OTHER_FILES += \
     tests/Makefile.am \
     configure.ac \
     ChangeLog \
-    README \
-    AUTHORS
+    AUTHORS \
+    README.md

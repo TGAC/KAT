@@ -20,3 +20,5 @@
 /*.tar.gz
 /kat-0.3.3/
 /config.h
+/*.log
+/*.scan
