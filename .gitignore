@@ -5,8 +5,6 @@
 /config.log
 /config.status
 /depcomp
-/install-sh
-/missing
 /bin/
 /test/
 /stamp-h1
@@ -22,3 +20,4 @@
 /config.h
 /*.log
 /*.scan
+/kat-1.0.3/

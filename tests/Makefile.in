@@ -333,7 +333,7 @@ AMTAR = @AMTAR@
 # additional include paths necessary to compile the C++ library
 AM_CXXFLAGS = @JELLYFISH_CFLAGS@ -I$(top_srcdir)/src @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-AM_LDFLAGS = @JELLYFISH_LIBS@ -all-static -pthread
+AM_LDFLAGS = @JELLYFISH_LIBS@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -448,7 +448,7 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-AM_CPPFLAGS = -Wall -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
+AM_CPPFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
 check_comp_SOURCES = check_comp.cc
 check_sect_SOURCES = check_sect.cc
 all: all-am
