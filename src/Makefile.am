@@ -2,12 +2,12 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # additional include paths necessary to compile the C++ library
-AM_CPPFLAGS = -Wall -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
+AM_CPPFLAGS=-I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
+AM_CXXFLAGS=-Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor @AM_CXXFLAGS@
+LIBS=@MAIN_LIBS@
 
 bin_PROGRAMS = kat
 
-kat_CXXFLAGS = @JELLYFISH_CFLAGS@ -I$(top_srcdir)/src @AM_CXXFLAGS@
-kat_LDADD = @JELLYFISH_LIBS@
 kat_SOURCES = \
                 inc/gnuplot/gnuplot_i.cc \
 		inc/gnuplot/gnuplot_i.hpp \
@@ -58,4 +58,3 @@ kat_SOURCES = \
                 kat.cc \
 		kat_args.hpp
 
-AM_LDFLAGS = @JELLYFISH_LIBS@

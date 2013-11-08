@@ -2,9 +2,9 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # additional include paths necessary to compile the C++ library
-AM_CXXFLAGS = @JELLYFISH_CFLAGS@ -I$(top_srcdir)/src @AM_CXXFLAGS@
-AM_LDFLAGS = @JELLYFISH_LIBS@
-AM_CPPFLAGS = -Wall -Wno-unused-variable -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
+AM_CPPFLAGS=-I$(top_srcdir)/src/inc -I$(top_srcdir)/src @TEST_CPPFLAGS@ @AM_CPPFLAGS@
+AM_CXXFLAGS=-Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor @AM_CXXFLAGS@
+LIBS=@TEST_LIBS@
 
 TESTS = check_comp check_sect
 check_PROGRAMS = check_comp check_sect

@@ -51,7 +51,7 @@ POST_UNINSTALL = :
 bin_PROGRAMS = kat$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(top_srcdir)/depcomp
+	$(top_srcdir)/build-aux/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/pkg.m4 \
 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.ac
@@ -64,21 +64,18 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_kat_OBJECTS = inc/gnuplot/kat-gnuplot_i.$(OBJEXT) \
-	inc/matrix/kat-matrix_metadata_extractor.$(OBJEXT) \
-	sect/kat-sect_main.$(OBJEXT) comp/kat-comp_main.$(OBJEXT) \
-	gcp/kat-gcp_main.$(OBJEXT) hist/kat-hist_main.$(OBJEXT) \
-	plot/kat-plot_main.$(OBJEXT) \
-	plot/density/kat-density_plot_main.$(OBJEXT) \
-	plot/spectra-cn/kat-spectra_cn_plot_main.$(OBJEXT) \
-	plot/profile/kat-profile_plot_main.$(OBJEXT) \
-	plot/spectra-hist/kat-spectra_hist_plot_main.$(OBJEXT) \
-	plot/spectra-mx/kat-spectra_mx_plot_main.$(OBJEXT) \
-	kat-kat.$(OBJEXT)
+am_kat_OBJECTS = inc/gnuplot/gnuplot_i.$(OBJEXT) \
+	inc/matrix/matrix_metadata_extractor.$(OBJEXT) \
+	sect/sect_main.$(OBJEXT) comp/comp_main.$(OBJEXT) \
+	gcp/gcp_main.$(OBJEXT) hist/hist_main.$(OBJEXT) \
+	plot/plot_main.$(OBJEXT) \
+	plot/density/density_plot_main.$(OBJEXT) \
+	plot/spectra-cn/spectra_cn_plot_main.$(OBJEXT) \
+	plot/profile/profile_plot_main.$(OBJEXT) \
+	plot/spectra-hist/spectra_hist_plot_main.$(OBJEXT) \
+	plot/spectra-mx/spectra_mx_plot_main.$(OBJEXT) kat.$(OBJEXT)
 kat_OBJECTS = $(am_kat_OBJECTS)
-kat_DEPENDENCIES =
-kat_LINK = $(CXXLD) $(kat_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) \
-	$(LDFLAGS) -o $@
+kat_LDADD = $(LDADD)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -92,13 +89,9 @@ am__v_at_ = $(am__v_at_@AM_DEFAULT_V@)
 am__v_at_0 = @
 am__v_at_1 = 
 DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/build-aux/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_@AM_V@)
@@ -153,13 +146,20 @@ CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 ACLOCAL = @ACLOCAL@
 AMTAR = @AMTAR@
-AM_CXXFLAGS = @AM_CXXFLAGS@
+AM_CFLAGS = @AM_CFLAGS@
+
+# additional include paths necessary to compile the C++ library
+AM_CPPFLAGS = -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
+AM_CXXFLAGS = -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor @AM_CXXFLAGS@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-AM_LDFLAGS = @JELLYFISH_LIBS@
+AM_PATH = @AM_PATH@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
 AWK = @AWK@
+CC = @CC@
+CCDEPMODE = @CCDEPMODE@
+CFLAGS = @CFLAGS@
 CPPFLAGS = @CPPFLAGS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
@@ -204,12 +204,11 @@ INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-JELLYFISH_CFLAGS = @JELLYFISH_CFLAGS@
-JELLYFISH_LIBS = @JELLYFISH_LIBS@
 LDFLAGS = @LDFLAGS@
 LIBOBJS = @LIBOBJS@
-LIBS = @LIBS@
+LIBS = @MAIN_LIBS@
 LTLIBOBJS = @LTLIBOBJS@
+MAIN_LIBS = @MAIN_LIBS@
 MAKEINFO = @MAKEINFO@
 MKDIR_P = @MKDIR_P@
 OBJEXT = @OBJEXT@
@@ -225,11 +224,14 @@ PKG_CONFIG = @PKG_CONFIG@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
+TEST_CPPFLAGS = @TEST_CPPFLAGS@
+TEST_LIBS = @TEST_LIBS@
 VERSION = @VERSION@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
+ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
@@ -249,6 +251,8 @@ htmldir = @htmldir@
 includedir = @includedir@
 infodir = @infodir@
 install_sh = @install_sh@
+jellyfish_CFLAGS = @jellyfish_CFLAGS@
+jellyfish_LIBS = @jellyfish_LIBS@
 libdir = @libdir@
 libexecdir = @libexecdir@
 localedir = @localedir@
@@ -270,11 +274,6 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
-
-# additional include paths necessary to compile the C++ library
-AM_CPPFLAGS = -Wall -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -I$(top_srcdir)/src/inc
-kat_CXXFLAGS = @JELLYFISH_CFLAGS@ -I$(top_srcdir)/src @AM_CXXFLAGS@
-kat_LDADD = @JELLYFISH_LIBS@
 kat_SOURCES = \
                 inc/gnuplot/gnuplot_i.cc \
 		inc/gnuplot/gnuplot_i.hpp \
@@ -338,9 +337,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu src/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign src/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu src/Makefile
+	  $(AUTOMAKE) --foreign src/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -407,7 +406,7 @@ inc/gnuplot/$(am__dirstamp):
 inc/gnuplot/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) inc/gnuplot/$(DEPDIR)
 	@: > inc/gnuplot/$(DEPDIR)/$(am__dirstamp)
-inc/gnuplot/kat-gnuplot_i.$(OBJEXT): inc/gnuplot/$(am__dirstamp) \
+inc/gnuplot/gnuplot_i.$(OBJEXT): inc/gnuplot/$(am__dirstamp) \
 	inc/gnuplot/$(DEPDIR)/$(am__dirstamp)
 inc/matrix/$(am__dirstamp):
 	@$(MKDIR_P) inc/matrix
@@ -415,7 +414,7 @@ inc/matrix/$(am__dirstamp):
 inc/matrix/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) inc/matrix/$(DEPDIR)
 	@: > inc/matrix/$(DEPDIR)/$(am__dirstamp)
-inc/matrix/kat-matrix_metadata_extractor.$(OBJEXT):  \
+inc/matrix/matrix_metadata_extractor.$(OBJEXT):  \
 	inc/matrix/$(am__dirstamp) \
 	inc/matrix/$(DEPDIR)/$(am__dirstamp)
 sect/$(am__dirstamp):
@@ -424,7 +423,7 @@ sect/$(am__dirstamp):
 sect/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) sect/$(DEPDIR)
 	@: > sect/$(DEPDIR)/$(am__dirstamp)
-sect/kat-sect_main.$(OBJEXT): sect/$(am__dirstamp) \
+sect/sect_main.$(OBJEXT): sect/$(am__dirstamp) \
 	sect/$(DEPDIR)/$(am__dirstamp)
 comp/$(am__dirstamp):
 	@$(MKDIR_P) comp
@@ -432,7 +431,7 @@ comp/$(am__dirstamp):
 comp/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) comp/$(DEPDIR)
 	@: > comp/$(DEPDIR)/$(am__dirstamp)
-comp/kat-comp_main.$(OBJEXT): comp/$(am__dirstamp) \
+comp/comp_main.$(OBJEXT): comp/$(am__dirstamp) \
 	comp/$(DEPDIR)/$(am__dirstamp)
 gcp/$(am__dirstamp):
 	@$(MKDIR_P) gcp
@@ -440,7 +439,7 @@ gcp/$(am__dirstamp):
 gcp/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) gcp/$(DEPDIR)
 	@: > gcp/$(DEPDIR)/$(am__dirstamp)
-gcp/kat-gcp_main.$(OBJEXT): gcp/$(am__dirstamp) \
+gcp/gcp_main.$(OBJEXT): gcp/$(am__dirstamp) \
 	gcp/$(DEPDIR)/$(am__dirstamp)
 hist/$(am__dirstamp):
 	@$(MKDIR_P) hist
@@ -448,7 +447,7 @@ hist/$(am__dirstamp):
 hist/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hist/$(DEPDIR)
 	@: > hist/$(DEPDIR)/$(am__dirstamp)
-hist/kat-hist_main.$(OBJEXT): hist/$(am__dirstamp) \
+hist/hist_main.$(OBJEXT): hist/$(am__dirstamp) \
 	hist/$(DEPDIR)/$(am__dirstamp)
 plot/$(am__dirstamp):
 	@$(MKDIR_P) plot
@@ -456,7 +455,7 @@ plot/$(am__dirstamp):
 plot/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) plot/$(DEPDIR)
 	@: > plot/$(DEPDIR)/$(am__dirstamp)
-plot/kat-plot_main.$(OBJEXT): plot/$(am__dirstamp) \
+plot/plot_main.$(OBJEXT): plot/$(am__dirstamp) \
 	plot/$(DEPDIR)/$(am__dirstamp)
 plot/density/$(am__dirstamp):
 	@$(MKDIR_P) plot/density
@@ -464,7 +463,7 @@ plot/density/$(am__dirstamp):
 plot/density/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) plot/density/$(DEPDIR)
 	@: > plot/density/$(DEPDIR)/$(am__dirstamp)
-plot/density/kat-density_plot_main.$(OBJEXT):  \
+plot/density/density_plot_main.$(OBJEXT):  \
 	plot/density/$(am__dirstamp) \
 	plot/density/$(DEPDIR)/$(am__dirstamp)
 plot/spectra-cn/$(am__dirstamp):
@@ -473,7 +472,7 @@ plot/spectra-cn/$(am__dirstamp):
 plot/spectra-cn/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) plot/spectra-cn/$(DEPDIR)
 	@: > plot/spectra-cn/$(DEPDIR)/$(am__dirstamp)
-plot/spectra-cn/kat-spectra_cn_plot_main.$(OBJEXT):  \
+plot/spectra-cn/spectra_cn_plot_main.$(OBJEXT):  \
 	plot/spectra-cn/$(am__dirstamp) \
 	plot/spectra-cn/$(DEPDIR)/$(am__dirstamp)
 plot/profile/$(am__dirstamp):
@@ -482,7 +481,7 @@ plot/profile/$(am__dirstamp):
 plot/profile/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) plot/profile/$(DEPDIR)
 	@: > plot/profile/$(DEPDIR)/$(am__dirstamp)
-plot/profile/kat-profile_plot_main.$(OBJEXT):  \
+plot/profile/profile_plot_main.$(OBJEXT):  \
 	plot/profile/$(am__dirstamp) \
 	plot/profile/$(DEPDIR)/$(am__dirstamp)
 plot/spectra-hist/$(am__dirstamp):
@@ -491,7 +490,7 @@ plot/spectra-hist/$(am__dirstamp):
 plot/spectra-hist/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) plot/spectra-hist/$(DEPDIR)
 	@: > plot/spectra-hist/$(DEPDIR)/$(am__dirstamp)
-plot/spectra-hist/kat-spectra_hist_plot_main.$(OBJEXT):  \
+plot/spectra-hist/spectra_hist_plot_main.$(OBJEXT):  \
 	plot/spectra-hist/$(am__dirstamp) \
 	plot/spectra-hist/$(DEPDIR)/$(am__dirstamp)
 plot/spectra-mx/$(am__dirstamp):
@@ -500,12 +499,12 @@ plot/spectra-mx/$(am__dirstamp):
 plot/spectra-mx/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) plot/spectra-mx/$(DEPDIR)
 	@: > plot/spectra-mx/$(DEPDIR)/$(am__dirstamp)
-plot/spectra-mx/kat-spectra_mx_plot_main.$(OBJEXT):  \
+plot/spectra-mx/spectra_mx_plot_main.$(OBJEXT):  \
 	plot/spectra-mx/$(am__dirstamp) \
 	plot/spectra-mx/$(DEPDIR)/$(am__dirstamp)
 kat$(EXEEXT): $(kat_OBJECTS) $(kat_DEPENDENCIES) $(EXTRA_kat_DEPENDENCIES) 
 	@rm -f kat$(EXEEXT)
-	$(AM_V_CXXLD)$(kat_LINK) $(kat_OBJECTS) $(kat_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(CXXLINK) $(kat_OBJECTS) $(kat_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -525,19 +524,19 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kat-kat.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@comp/$(DEPDIR)/kat-comp_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@gcp/$(DEPDIR)/kat-gcp_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hist/$(DEPDIR)/kat-hist_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@plot/$(DEPDIR)/kat-plot_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@plot/density/$(DEPDIR)/kat-density_plot_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@plot/profile/$(DEPDIR)/kat-profile_plot_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@sect/$(DEPDIR)/kat-sect_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/kat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@comp/$(DEPDIR)/comp_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@gcp/$(DEPDIR)/gcp_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hist/$(DEPDIR)/hist_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inc/gnuplot/$(DEPDIR)/gnuplot_i.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inc/matrix/$(DEPDIR)/matrix_metadata_extractor.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@plot/$(DEPDIR)/plot_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@plot/density/$(DEPDIR)/density_plot_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@plot/profile/$(DEPDIR)/profile_plot_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@plot/spectra-cn/$(DEPDIR)/spectra_cn_plot_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@plot/spectra-hist/$(DEPDIR)/spectra_hist_plot_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@plot/spectra-mx/$(DEPDIR)/spectra_mx_plot_main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@sect/$(DEPDIR)/sect_main.Po@am__quote@
 
 .cc.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -554,188 +553,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-inc/gnuplot/kat-gnuplot_i.o: inc/gnuplot/gnuplot_i.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT inc/gnuplot/kat-gnuplot_i.o -MD -MP -MF inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Tpo -c -o inc/gnuplot/kat-gnuplot_i.o `test -f 'inc/gnuplot/gnuplot_i.cc' || echo '$(srcdir)/'`inc/gnuplot/gnuplot_i.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Tpo inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='inc/gnuplot/gnuplot_i.cc' object='inc/gnuplot/kat-gnuplot_i.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o inc/gnuplot/kat-gnuplot_i.o `test -f 'inc/gnuplot/gnuplot_i.cc' || echo '$(srcdir)/'`inc/gnuplot/gnuplot_i.cc
-
-inc/gnuplot/kat-gnuplot_i.obj: inc/gnuplot/gnuplot_i.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT inc/gnuplot/kat-gnuplot_i.obj -MD -MP -MF inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Tpo -c -o inc/gnuplot/kat-gnuplot_i.obj `if test -f 'inc/gnuplot/gnuplot_i.cc'; then $(CYGPATH_W) 'inc/gnuplot/gnuplot_i.cc'; else $(CYGPATH_W) '$(srcdir)/inc/gnuplot/gnuplot_i.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Tpo inc/gnuplot/$(DEPDIR)/kat-gnuplot_i.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='inc/gnuplot/gnuplot_i.cc' object='inc/gnuplot/kat-gnuplot_i.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o inc/gnuplot/kat-gnuplot_i.obj `if test -f 'inc/gnuplot/gnuplot_i.cc'; then $(CYGPATH_W) 'inc/gnuplot/gnuplot_i.cc'; else $(CYGPATH_W) '$(srcdir)/inc/gnuplot/gnuplot_i.cc'; fi`
-
-inc/matrix/kat-matrix_metadata_extractor.o: inc/matrix/matrix_metadata_extractor.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT inc/matrix/kat-matrix_metadata_extractor.o -MD -MP -MF inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Tpo -c -o inc/matrix/kat-matrix_metadata_extractor.o `test -f 'inc/matrix/matrix_metadata_extractor.cc' || echo '$(srcdir)/'`inc/matrix/matrix_metadata_extractor.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Tpo inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='inc/matrix/matrix_metadata_extractor.cc' object='inc/matrix/kat-matrix_metadata_extractor.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o inc/matrix/kat-matrix_metadata_extractor.o `test -f 'inc/matrix/matrix_metadata_extractor.cc' || echo '$(srcdir)/'`inc/matrix/matrix_metadata_extractor.cc
-
-inc/matrix/kat-matrix_metadata_extractor.obj: inc/matrix/matrix_metadata_extractor.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT inc/matrix/kat-matrix_metadata_extractor.obj -MD -MP -MF inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Tpo -c -o inc/matrix/kat-matrix_metadata_extractor.obj `if test -f 'inc/matrix/matrix_metadata_extractor.cc'; then $(CYGPATH_W) 'inc/matrix/matrix_metadata_extractor.cc'; else $(CYGPATH_W) '$(srcdir)/inc/matrix/matrix_metadata_extractor.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Tpo inc/matrix/$(DEPDIR)/kat-matrix_metadata_extractor.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='inc/matrix/matrix_metadata_extractor.cc' object='inc/matrix/kat-matrix_metadata_extractor.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o inc/matrix/kat-matrix_metadata_extractor.obj `if test -f 'inc/matrix/matrix_metadata_extractor.cc'; then $(CYGPATH_W) 'inc/matrix/matrix_metadata_extractor.cc'; else $(CYGPATH_W) '$(srcdir)/inc/matrix/matrix_metadata_extractor.cc'; fi`
-
-sect/kat-sect_main.o: sect/sect_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT sect/kat-sect_main.o -MD -MP -MF sect/$(DEPDIR)/kat-sect_main.Tpo -c -o sect/kat-sect_main.o `test -f 'sect/sect_main.cc' || echo '$(srcdir)/'`sect/sect_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) sect/$(DEPDIR)/kat-sect_main.Tpo sect/$(DEPDIR)/kat-sect_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sect/sect_main.cc' object='sect/kat-sect_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o sect/kat-sect_main.o `test -f 'sect/sect_main.cc' || echo '$(srcdir)/'`sect/sect_main.cc
-
-sect/kat-sect_main.obj: sect/sect_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT sect/kat-sect_main.obj -MD -MP -MF sect/$(DEPDIR)/kat-sect_main.Tpo -c -o sect/kat-sect_main.obj `if test -f 'sect/sect_main.cc'; then $(CYGPATH_W) 'sect/sect_main.cc'; else $(CYGPATH_W) '$(srcdir)/sect/sect_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) sect/$(DEPDIR)/kat-sect_main.Tpo sect/$(DEPDIR)/kat-sect_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='sect/sect_main.cc' object='sect/kat-sect_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o sect/kat-sect_main.obj `if test -f 'sect/sect_main.cc'; then $(CYGPATH_W) 'sect/sect_main.cc'; else $(CYGPATH_W) '$(srcdir)/sect/sect_main.cc'; fi`
-
-comp/kat-comp_main.o: comp/comp_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT comp/kat-comp_main.o -MD -MP -MF comp/$(DEPDIR)/kat-comp_main.Tpo -c -o comp/kat-comp_main.o `test -f 'comp/comp_main.cc' || echo '$(srcdir)/'`comp/comp_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) comp/$(DEPDIR)/kat-comp_main.Tpo comp/$(DEPDIR)/kat-comp_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='comp/comp_main.cc' object='comp/kat-comp_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o comp/kat-comp_main.o `test -f 'comp/comp_main.cc' || echo '$(srcdir)/'`comp/comp_main.cc
-
-comp/kat-comp_main.obj: comp/comp_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT comp/kat-comp_main.obj -MD -MP -MF comp/$(DEPDIR)/kat-comp_main.Tpo -c -o comp/kat-comp_main.obj `if test -f 'comp/comp_main.cc'; then $(CYGPATH_W) 'comp/comp_main.cc'; else $(CYGPATH_W) '$(srcdir)/comp/comp_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) comp/$(DEPDIR)/kat-comp_main.Tpo comp/$(DEPDIR)/kat-comp_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='comp/comp_main.cc' object='comp/kat-comp_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o comp/kat-comp_main.obj `if test -f 'comp/comp_main.cc'; then $(CYGPATH_W) 'comp/comp_main.cc'; else $(CYGPATH_W) '$(srcdir)/comp/comp_main.cc'; fi`
-
-gcp/kat-gcp_main.o: gcp/gcp_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT gcp/kat-gcp_main.o -MD -MP -MF gcp/$(DEPDIR)/kat-gcp_main.Tpo -c -o gcp/kat-gcp_main.o `test -f 'gcp/gcp_main.cc' || echo '$(srcdir)/'`gcp/gcp_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) gcp/$(DEPDIR)/kat-gcp_main.Tpo gcp/$(DEPDIR)/kat-gcp_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='gcp/gcp_main.cc' object='gcp/kat-gcp_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o gcp/kat-gcp_main.o `test -f 'gcp/gcp_main.cc' || echo '$(srcdir)/'`gcp/gcp_main.cc
-
-gcp/kat-gcp_main.obj: gcp/gcp_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT gcp/kat-gcp_main.obj -MD -MP -MF gcp/$(DEPDIR)/kat-gcp_main.Tpo -c -o gcp/kat-gcp_main.obj `if test -f 'gcp/gcp_main.cc'; then $(CYGPATH_W) 'gcp/gcp_main.cc'; else $(CYGPATH_W) '$(srcdir)/gcp/gcp_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) gcp/$(DEPDIR)/kat-gcp_main.Tpo gcp/$(DEPDIR)/kat-gcp_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='gcp/gcp_main.cc' object='gcp/kat-gcp_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o gcp/kat-gcp_main.obj `if test -f 'gcp/gcp_main.cc'; then $(CYGPATH_W) 'gcp/gcp_main.cc'; else $(CYGPATH_W) '$(srcdir)/gcp/gcp_main.cc'; fi`
-
-hist/kat-hist_main.o: hist/hist_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT hist/kat-hist_main.o -MD -MP -MF hist/$(DEPDIR)/kat-hist_main.Tpo -c -o hist/kat-hist_main.o `test -f 'hist/hist_main.cc' || echo '$(srcdir)/'`hist/hist_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) hist/$(DEPDIR)/kat-hist_main.Tpo hist/$(DEPDIR)/kat-hist_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hist/hist_main.cc' object='hist/kat-hist_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o hist/kat-hist_main.o `test -f 'hist/hist_main.cc' || echo '$(srcdir)/'`hist/hist_main.cc
-
-hist/kat-hist_main.obj: hist/hist_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT hist/kat-hist_main.obj -MD -MP -MF hist/$(DEPDIR)/kat-hist_main.Tpo -c -o hist/kat-hist_main.obj `if test -f 'hist/hist_main.cc'; then $(CYGPATH_W) 'hist/hist_main.cc'; else $(CYGPATH_W) '$(srcdir)/hist/hist_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) hist/$(DEPDIR)/kat-hist_main.Tpo hist/$(DEPDIR)/kat-hist_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='hist/hist_main.cc' object='hist/kat-hist_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o hist/kat-hist_main.obj `if test -f 'hist/hist_main.cc'; then $(CYGPATH_W) 'hist/hist_main.cc'; else $(CYGPATH_W) '$(srcdir)/hist/hist_main.cc'; fi`
-
-plot/kat-plot_main.o: plot/plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/kat-plot_main.o -MD -MP -MF plot/$(DEPDIR)/kat-plot_main.Tpo -c -o plot/kat-plot_main.o `test -f 'plot/plot_main.cc' || echo '$(srcdir)/'`plot/plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/$(DEPDIR)/kat-plot_main.Tpo plot/$(DEPDIR)/kat-plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/plot_main.cc' object='plot/kat-plot_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/kat-plot_main.o `test -f 'plot/plot_main.cc' || echo '$(srcdir)/'`plot/plot_main.cc
-
-plot/kat-plot_main.obj: plot/plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/kat-plot_main.obj -MD -MP -MF plot/$(DEPDIR)/kat-plot_main.Tpo -c -o plot/kat-plot_main.obj `if test -f 'plot/plot_main.cc'; then $(CYGPATH_W) 'plot/plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/plot_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/$(DEPDIR)/kat-plot_main.Tpo plot/$(DEPDIR)/kat-plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/plot_main.cc' object='plot/kat-plot_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/kat-plot_main.obj `if test -f 'plot/plot_main.cc'; then $(CYGPATH_W) 'plot/plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/plot_main.cc'; fi`
-
-plot/density/kat-density_plot_main.o: plot/density/density_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/density/kat-density_plot_main.o -MD -MP -MF plot/density/$(DEPDIR)/kat-density_plot_main.Tpo -c -o plot/density/kat-density_plot_main.o `test -f 'plot/density/density_plot_main.cc' || echo '$(srcdir)/'`plot/density/density_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/density/$(DEPDIR)/kat-density_plot_main.Tpo plot/density/$(DEPDIR)/kat-density_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/density/density_plot_main.cc' object='plot/density/kat-density_plot_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/density/kat-density_plot_main.o `test -f 'plot/density/density_plot_main.cc' || echo '$(srcdir)/'`plot/density/density_plot_main.cc
-
-plot/density/kat-density_plot_main.obj: plot/density/density_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/density/kat-density_plot_main.obj -MD -MP -MF plot/density/$(DEPDIR)/kat-density_plot_main.Tpo -c -o plot/density/kat-density_plot_main.obj `if test -f 'plot/density/density_plot_main.cc'; then $(CYGPATH_W) 'plot/density/density_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/density/density_plot_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/density/$(DEPDIR)/kat-density_plot_main.Tpo plot/density/$(DEPDIR)/kat-density_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/density/density_plot_main.cc' object='plot/density/kat-density_plot_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/density/kat-density_plot_main.obj `if test -f 'plot/density/density_plot_main.cc'; then $(CYGPATH_W) 'plot/density/density_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/density/density_plot_main.cc'; fi`
-
-plot/spectra-cn/kat-spectra_cn_plot_main.o: plot/spectra-cn/spectra_cn_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/spectra-cn/kat-spectra_cn_plot_main.o -MD -MP -MF plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Tpo -c -o plot/spectra-cn/kat-spectra_cn_plot_main.o `test -f 'plot/spectra-cn/spectra_cn_plot_main.cc' || echo '$(srcdir)/'`plot/spectra-cn/spectra_cn_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Tpo plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/spectra-cn/spectra_cn_plot_main.cc' object='plot/spectra-cn/kat-spectra_cn_plot_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/spectra-cn/kat-spectra_cn_plot_main.o `test -f 'plot/spectra-cn/spectra_cn_plot_main.cc' || echo '$(srcdir)/'`plot/spectra-cn/spectra_cn_plot_main.cc
-
-plot/spectra-cn/kat-spectra_cn_plot_main.obj: plot/spectra-cn/spectra_cn_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/spectra-cn/kat-spectra_cn_plot_main.obj -MD -MP -MF plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Tpo -c -o plot/spectra-cn/kat-spectra_cn_plot_main.obj `if test -f 'plot/spectra-cn/spectra_cn_plot_main.cc'; then $(CYGPATH_W) 'plot/spectra-cn/spectra_cn_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/spectra-cn/spectra_cn_plot_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Tpo plot/spectra-cn/$(DEPDIR)/kat-spectra_cn_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/spectra-cn/spectra_cn_plot_main.cc' object='plot/spectra-cn/kat-spectra_cn_plot_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/spectra-cn/kat-spectra_cn_plot_main.obj `if test -f 'plot/spectra-cn/spectra_cn_plot_main.cc'; then $(CYGPATH_W) 'plot/spectra-cn/spectra_cn_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/spectra-cn/spectra_cn_plot_main.cc'; fi`
-
-plot/profile/kat-profile_plot_main.o: plot/profile/profile_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/profile/kat-profile_plot_main.o -MD -MP -MF plot/profile/$(DEPDIR)/kat-profile_plot_main.Tpo -c -o plot/profile/kat-profile_plot_main.o `test -f 'plot/profile/profile_plot_main.cc' || echo '$(srcdir)/'`plot/profile/profile_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/profile/$(DEPDIR)/kat-profile_plot_main.Tpo plot/profile/$(DEPDIR)/kat-profile_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/profile/profile_plot_main.cc' object='plot/profile/kat-profile_plot_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/profile/kat-profile_plot_main.o `test -f 'plot/profile/profile_plot_main.cc' || echo '$(srcdir)/'`plot/profile/profile_plot_main.cc
-
-plot/profile/kat-profile_plot_main.obj: plot/profile/profile_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/profile/kat-profile_plot_main.obj -MD -MP -MF plot/profile/$(DEPDIR)/kat-profile_plot_main.Tpo -c -o plot/profile/kat-profile_plot_main.obj `if test -f 'plot/profile/profile_plot_main.cc'; then $(CYGPATH_W) 'plot/profile/profile_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/profile/profile_plot_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/profile/$(DEPDIR)/kat-profile_plot_main.Tpo plot/profile/$(DEPDIR)/kat-profile_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/profile/profile_plot_main.cc' object='plot/profile/kat-profile_plot_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/profile/kat-profile_plot_main.obj `if test -f 'plot/profile/profile_plot_main.cc'; then $(CYGPATH_W) 'plot/profile/profile_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/profile/profile_plot_main.cc'; fi`
-
-plot/spectra-hist/kat-spectra_hist_plot_main.o: plot/spectra-hist/spectra_hist_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/spectra-hist/kat-spectra_hist_plot_main.o -MD -MP -MF plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Tpo -c -o plot/spectra-hist/kat-spectra_hist_plot_main.o `test -f 'plot/spectra-hist/spectra_hist_plot_main.cc' || echo '$(srcdir)/'`plot/spectra-hist/spectra_hist_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Tpo plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/spectra-hist/spectra_hist_plot_main.cc' object='plot/spectra-hist/kat-spectra_hist_plot_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/spectra-hist/kat-spectra_hist_plot_main.o `test -f 'plot/spectra-hist/spectra_hist_plot_main.cc' || echo '$(srcdir)/'`plot/spectra-hist/spectra_hist_plot_main.cc
-
-plot/spectra-hist/kat-spectra_hist_plot_main.obj: plot/spectra-hist/spectra_hist_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/spectra-hist/kat-spectra_hist_plot_main.obj -MD -MP -MF plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Tpo -c -o plot/spectra-hist/kat-spectra_hist_plot_main.obj `if test -f 'plot/spectra-hist/spectra_hist_plot_main.cc'; then $(CYGPATH_W) 'plot/spectra-hist/spectra_hist_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/spectra-hist/spectra_hist_plot_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Tpo plot/spectra-hist/$(DEPDIR)/kat-spectra_hist_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/spectra-hist/spectra_hist_plot_main.cc' object='plot/spectra-hist/kat-spectra_hist_plot_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/spectra-hist/kat-spectra_hist_plot_main.obj `if test -f 'plot/spectra-hist/spectra_hist_plot_main.cc'; then $(CYGPATH_W) 'plot/spectra-hist/spectra_hist_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/spectra-hist/spectra_hist_plot_main.cc'; fi`
-
-plot/spectra-mx/kat-spectra_mx_plot_main.o: plot/spectra-mx/spectra_mx_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/spectra-mx/kat-spectra_mx_plot_main.o -MD -MP -MF plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Tpo -c -o plot/spectra-mx/kat-spectra_mx_plot_main.o `test -f 'plot/spectra-mx/spectra_mx_plot_main.cc' || echo '$(srcdir)/'`plot/spectra-mx/spectra_mx_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Tpo plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/spectra-mx/spectra_mx_plot_main.cc' object='plot/spectra-mx/kat-spectra_mx_plot_main.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/spectra-mx/kat-spectra_mx_plot_main.o `test -f 'plot/spectra-mx/spectra_mx_plot_main.cc' || echo '$(srcdir)/'`plot/spectra-mx/spectra_mx_plot_main.cc
-
-plot/spectra-mx/kat-spectra_mx_plot_main.obj: plot/spectra-mx/spectra_mx_plot_main.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT plot/spectra-mx/kat-spectra_mx_plot_main.obj -MD -MP -MF plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Tpo -c -o plot/spectra-mx/kat-spectra_mx_plot_main.obj `if test -f 'plot/spectra-mx/spectra_mx_plot_main.cc'; then $(CYGPATH_W) 'plot/spectra-mx/spectra_mx_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/spectra-mx/spectra_mx_plot_main.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Tpo plot/spectra-mx/$(DEPDIR)/kat-spectra_mx_plot_main.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='plot/spectra-mx/spectra_mx_plot_main.cc' object='plot/spectra-mx/kat-spectra_mx_plot_main.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o plot/spectra-mx/kat-spectra_mx_plot_main.obj `if test -f 'plot/spectra-mx/spectra_mx_plot_main.cc'; then $(CYGPATH_W) 'plot/spectra-mx/spectra_mx_plot_main.cc'; else $(CYGPATH_W) '$(srcdir)/plot/spectra-mx/spectra_mx_plot_main.cc'; fi`
-
-kat-kat.o: kat.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT kat-kat.o -MD -MP -MF $(DEPDIR)/kat-kat.Tpo -c -o kat-kat.o `test -f 'kat.cc' || echo '$(srcdir)/'`kat.cc
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/kat-kat.Tpo $(DEPDIR)/kat-kat.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kat.cc' object='kat-kat.o' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o kat-kat.o `test -f 'kat.cc' || echo '$(srcdir)/'`kat.cc
-
-kat-kat.obj: kat.cc
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -MT kat-kat.obj -MD -MP -MF $(DEPDIR)/kat-kat.Tpo -c -o kat-kat.obj `if test -f 'kat.cc'; then $(CYGPATH_W) 'kat.cc'; else $(CYGPATH_W) '$(srcdir)/kat.cc'; fi`
-@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/kat-kat.Tpo $(DEPDIR)/kat-kat.Po
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='kat.cc' object='kat-kat.obj' libtool=no @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(kat_CXXFLAGS) $(CXXFLAGS) -c -o kat-kat.obj `if test -f 'kat.cc'; then $(CYGPATH_W) 'kat.cc'; else $(CYGPATH_W) '$(srcdir)/kat.cc'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
