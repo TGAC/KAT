@@ -7642,7 +7642,7 @@ fi
 if test "${with_seqan+set}" = set; then :
   withval=$with_seqan; SEQAN_PATH=$withval
 else
-  SEQAN_PATHSET=0
+  SEQAN_PATH=0
 fi
 
 

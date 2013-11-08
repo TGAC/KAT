@@ -131,7 +131,7 @@ AC_ARG_WITH([jellyfish],
 AC_ARG_WITH([seqan],
         [AS_HELP_STRING([--with-seqan=PREFIX],
 		[Use this if your seqan installation prefix was set to a non-standard location.])],
-        [SEQAN_PATH=$withval], [SEQAN_PATHSET=0])
+        [SEQAN_PATH=$withval], [SEQAN_PATH=0])
 
 AC_ARG_WITH([boost],
         [AS_HELP_STRING([--with-boost=PREFIX],
