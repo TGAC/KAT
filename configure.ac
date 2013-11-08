@@ -154,7 +154,11 @@ PKG_CHECK_MODULES([jellyfish], [jellyfish-1.1 = 1.1.10])
 
 # Note that we are adding the jellyfish cflags to the cppflags var.  This is intentional!  Check the jellyfish package config file to see why. There is also some stuff on the jellyfish_LIBS var that should be on LDFLAGS but it will still work this way so I'll leave it
 AM_CPPFLAGS="$jellyfish_CFLAGS $AM_CPPFLAGS"
-JELLYFISH_LIB="${JELLYFISH_PATH}/lib/libjellyfish-1.1.a" 
+if test ${JELLYFISH_PATH} != 0; then
+	JELLYFISH_LIB="${JELLYFISH_PATH}/lib/libjellyfish-1.1.a"
+else
+	JELLYFISH_LIB="${jellyfish_LIBS}"
+fi
 
 
 # Update vars for seqan if required
