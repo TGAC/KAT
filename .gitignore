@@ -21,6 +21,7 @@
 config.h.in
 configure
 **/Makefile.in
+Makefile.in
 /*.log
 /*.scan
 /kat-1.0.3/
