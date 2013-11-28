@@ -27,13 +27,13 @@ Generic installation description can be found in the INSTALL file. Short summary
   - Ensure these tools are correctly installed and available on your system:
       - gcc tool chain
       - make
-      - jellyfish = V1.1.10 - http://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.10.tar.gz  **IMPORTANT NOTE**: Jellyfish 1.1.10 is no longer hyperlinked on the jellyfish website.  Please use the full path just described to get the correct version.   We will update KAT to use the latest version of jellyfish in due course.
+      - jellyfish = V1.1.10 - http://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.10.tar.gz  **IMPORTANT NOTE**: Jellyfish 1.1.10 is no longer hyperlinked on the jellyfish website.  Please use the full path just described to get the correct version.   We will update KAT to support newer versions of jellyfish in due course.
       - seqan >= V1.4.1 - http://www.seqan.de
-      - gnuplot (required for plotting at runtime) - http://www.gnuplot.info
+      - gnuplot (required for plotting at runtime, must be available on the path to use this functionality) - http://www.gnuplot.info
+  - If you cloned the git repository you must first run "./autogen.sh" to create the configure and make files for your project.  Do not worry if this fails due to missing dependencies at this stage.  If you downloaded a source code distribution tarball then you can skip this step.
   - For a typical installation on a machine where you have root access type ```./configure; make; sudo make install;```
-  - To use the plotting functionality you should also have a version of gnuplot installed on your system
 
-The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by default.  In addition, some options specific to KAT are:
+The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by default.  In addition, some options specific to managing KAT dependencies located in non-standard locations are:
 
   - ```--with-seqan``` - for specifying a custom seqan directory
   - ```--with-boost``` - for specifying a custom boost directory (boost is only required for unit testing)
