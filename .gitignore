@@ -26,3 +26,5 @@ Makefile.in
 /*.scan
 /kat-1.0.3/
 /build-aux/
+/kat-1.0.4/
+/*.layout
