@@ -151,9 +151,12 @@ namespace kat
                 *out_stream << endl;
 
             // Sequence K-mer counts output stream
-            std::ostringstream count_path;
-            count_path << args->output_prefix << "_counts.cvg";
-            ofstream_default count_path_stream(count_path.str().c_str(), cout);
+            ofstream_default* count_path_stream = NULL;
+            if (!args->no_count_stats) {
+                std::ostringstream count_path;
+                count_path << args->output_prefix << "_counts.cvg";
+                count_path_stream = new ofstream_default(count_path.str().c_str(), cout);
+            }
 
             // Average sequence coverage and GC% scores output stream
             std::ostringstream cvg_gc_path;
@@ -182,8 +185,11 @@ namespace kat
                 // In each thread lookup each K-mer in the hash
                 exec_join(args->threads_arg);
 
-                // Output findings for this batch
-                printCounts(count_path_stream);
+                // Output counts for this batch if (not not) requested
+                if (!args->no_count_stats)
+                    printCounts(*count_path_stream);
+
+                // Output stats
                 printStatTable(cvg_gc_stream);
 
                 // Remove any batch specific variables from memory
@@ -197,7 +203,11 @@ namespace kat
             }
 
             // Close output streams
-            count_path_stream.close();
+            if (!args->no_count_stats) {
+                count_path_stream->close();
+                delete count_path_stream;
+            }
+
             cvg_gc_stream.close();
 
             // Merge the contamination matrix

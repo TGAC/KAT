@@ -5,9 +5,9 @@
 # Autoconf initialistion.  Sets package name version and contact details
 AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.4],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
 
-# I built this with autoconf 2.63 and have only tested it on 2.63 and 2.69 systems.  You can change this but I don't
+# I built this with autoconf 2.59 and have only tested it on 2.59, 2.63 and 2.69 systems.  You can change this but I don't
 # make any guarentees
-AC_PREREQ([2.63])
+AC_PREREQ([2.59])
 
 # Check that the configure script is being run from the right directory
 AC_CONFIG_SRCDIR([src/kat.cc])
