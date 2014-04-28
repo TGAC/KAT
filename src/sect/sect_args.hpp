@@ -40,6 +40,7 @@ namespace kat
     const uint16_t  DEFAULT_CVG_BINS        = 1001;
     const bool      DEFAULT_CVG_LOG         = false;
     const bool      DEFAULT_BOTH_STRANDS    = false;
+    const bool      DEFAULT_NO_COUNT_STATS  = false;
 
     const uint16_t MIN_ARGS = 1;
 
@@ -85,7 +86,10 @@ namespace kat
                      << " -t, --threads=uint16        The number of threads to use (" << DEFAULT_THREADS << ")." << endl
                      << " -C, --both_strands          IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both" << endl
                      << "                             strands.  If this is not set to the same value as was produced during jellyfish" << endl
-                     << "                             counting then output from sect will be unpredicatable (" << DEFAULT_BOTH_STRANDS << ").";
+                     << "                             counting then output from sect will be unpredicatable (" << DEFAULT_BOTH_STRANDS << ")." << endl
+                     << " -n, --no_count_stats        Tells SECT not to output count stats.  Sometimes when using SECT on read files" << endl
+                     << "                             the output can get very large.  When flagged this just outputs summary stats for" << endl
+                     << "                             each sequence.";
 
             return help_str.str();
         }
@@ -100,12 +104,13 @@ namespace kat
                 {"cvg_bins",        required_argument,  0, 'y'},
                 {"cvg_logscale",    no_argument,        0, 'l'},
                 {"threads",         required_argument,  0, 't'},
-                {"both_strands",    no_argument,        0, 'C'}
+                {"both_strands",    no_argument,        0, 'C'},
+                {"no_count_stats",  no_argument,        0, 'n'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 7; i++)
+            for(uint8_t i = 0; i < 8; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -115,7 +120,7 @@ namespace kat
 
         string shortOptions()
         {
-            return "s:o:x:y:lt:C";
+            return "s:o:x:y:lt:Cn";
         }
 
         void setOption(int c, string& option_arg) {
@@ -142,6 +147,9 @@ namespace kat
                 break;
             case 'l':
                 cvg_logscale = true;
+                break;
+            case 'n':
+                no_count_stats = true;
                 break;
             }
         }
@@ -176,17 +184,20 @@ namespace kat
         bool        cvg_logscale;
         uint16_t    threads_arg;
         bool        both_strands;
+        bool        no_count_stats;
 
         // Default constructor
         SectArgs() : BaseArgs(MIN_ARGS),
             seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
-            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS)
+            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS),
+            no_count_stats(DEFAULT_NO_COUNT_STATS)
         {}
 
         // Constructor that parses command line options
         SectArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS),
             seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
-            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS)
+            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS),
+            no_count_stats(DEFAULT_NO_COUNT_STATS)
         {
             parse(argc, argv);
         }
