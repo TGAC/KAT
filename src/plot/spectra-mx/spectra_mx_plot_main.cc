@@ -89,7 +89,7 @@ string getDataFromList(string mx_path, string list)
         }
         else
         {
-            throw;
+            throw "Unrecognised list item identifer.  Expected 'c' or 'r'.";
         }
 
         data_str << "e\n";
@@ -216,7 +216,7 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
     if (args.y_logscale)
         spectra_mx_plot.set_ylogscale();
 
-    spectra_mx_plot.cmd("set size ratio 1");
+    //spectra_mx_plot.cmd("set size ratio 1");
     spectra_mx_plot.cmd("set key font \",8\"");
     spectra_mx_plot.cmd("set xlabel offset \"0,1\" font \",10\"");
     spectra_mx_plot.cmd("set ylabel offset \"2,0\" font \",10\"");
@@ -236,7 +236,15 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
         if (args.verbose)
             cerr << "Extracting requested data from matrix... " << endl;
 
-        data = getDataFromList(args.mx_path, args.list);
+        try
+        {
+            data = getDataFromList(args.mx_path, args.list);
+        }
+        catch(const char* msg)
+        {
+            cerr << "Error: " << msg << endl;
+            return 1;
+        }
 
         if (args.verbose)
             cerr << "done." << endl;
