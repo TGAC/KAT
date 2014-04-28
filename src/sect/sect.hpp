@@ -73,8 +73,8 @@ namespace kat
         StringSet<CharString>           names;
         StringSet<Dna5String>           seqs;
         vector<vector<uint64_t>*>       *counts;    // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
-        vector<float>                   *coverages; // Overall coverage calculated for each sequence from the K-mer windows.
-        vector<float>                   *gcs;       // GC% for each sequence
+        vector<double>                  *coverages; // Overall coverage calculated for each sequence from the K-mer windows.
+        vector<double>                  *gcs;       // GC% for each sequence
         vector<uint32_t>                *lengths;   // Length in nucleotides for each sequence
 
         int                             resultCode;
@@ -151,9 +151,12 @@ namespace kat
                 *out_stream << endl;
 
             // Sequence K-mer counts output stream
-            std::ostringstream count_path;
-            count_path << args->output_prefix << "_counts.cvg";
-            ofstream_default count_path_stream(count_path.str().c_str(), cout);
+            ofstream_default* count_path_stream = NULL;
+            if (!args->no_count_stats) {
+                std::ostringstream count_path;
+                count_path << args->output_prefix << "_counts.cvg";
+                count_path_stream = new ofstream_default(count_path.str().c_str(), cout);
+            }
 
             // Average sequence coverage and GC% scores output stream
             std::ostringstream cvg_gc_path;
@@ -182,8 +185,11 @@ namespace kat
                 // In each thread lookup each K-mer in the hash
                 exec_join(args->threads_arg);
 
-                // Output findings for this batch
-                printCounts(count_path_stream);
+                // Output counts for this batch if (not not) requested
+                if (!args->no_count_stats)
+                    printCounts(*count_path_stream);
+
+                // Output stats
                 printStatTable(cvg_gc_stream);
 
                 // Remove any batch specific variables from memory
@@ -197,7 +203,11 @@ namespace kat
             }
 
             // Close output streams
-            count_path_stream.close();
+            if (!args->no_count_stats) {
+                count_path_stream->close();
+                delete count_path_stream;
+            }
+
             cvg_gc_stream.close();
 
             // Merge the contamination matrix
@@ -284,8 +294,8 @@ namespace kat
         void createBatchVars(uint16_t batchSize)
         {
             counts = new vector<vector<uint64_t>*>(batchSize);
-            coverages = new vector<float>(batchSize);
-            gcs = new vector<float>(batchSize);
+            coverages = new vector<double>(batchSize);
+            gcs = new vector<double>(batchSize);
             lengths = new vector<uint32_t>(batchSize);
         }
 
@@ -428,7 +438,7 @@ namespace kat
 
             uint64_t seqLength = seq.length();
             uint64_t nbCounts = seqLength - kmer + 1;
-            float mean_cvg = 0;
+            double mean_cvg = 0.0;
 
             if (seqLength < kmer)
             {
@@ -464,7 +474,7 @@ namespace kat
                 (*counts)[index] = seqCounts;
 
                 // Assumes simple mean calculation for sequence coverage for now... plug in Bernardo's method later.
-                mean_cvg = (float)sum / (float)nbCounts;
+                mean_cvg = (double)sum / (double)nbCounts;
                 (*coverages)[index] = mean_cvg;
 
             }
@@ -489,21 +499,19 @@ namespace kat
                     ns++;
             }
 
-            float gc_perc = ((float)(gs + cs)) / ((float)(seqLength - ns));
+            double gc_perc = ((double)(gs + cs)) / ((double)(seqLength - ns));
             (*gcs)[index] = gc_perc;
 
-            float log_cvg = args->cvg_logscale ? log10(mean_cvg) : mean_cvg;
+            double log_cvg = args->cvg_logscale ? log10(mean_cvg) : mean_cvg;
 
             // Assume log_cvg 5 is max value
-            float compressed_cvg = args->cvg_logscale ? log_cvg * (args->cvg_bins / 5.0) : mean_cvg * 0.1;
+            double compressed_cvg = args->cvg_logscale ? log_cvg * (args->cvg_bins / 5.0) : mean_cvg * 0.1;
 
-            uint16_t x = gc_perc * args->gc_bins;  // Convert float to 1.dp
+            uint16_t x = gc_perc * args->gc_bins;  // Convert double to 1.dp
             uint16_t y = compressed_cvg >= args->cvg_bins ? args->cvg_bins - 1 : compressed_cvg;      // Simply cap the y value
 
             // Add bases to matrix
             contamination_mx->getThreadMatrix(th_id)->inc(x, y, seqLength);
-
         }
-
     };
 }

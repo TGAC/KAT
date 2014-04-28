@@ -1,6 +1,37 @@
 
 KAT Changelog
 
+
+===========================================
+
+V1.0.5 - 28th April 2014
+
+Removed call to auto configure when running the autogen.sh script.
+
+Fixed issue where title could not be overriden by the user in the plotting
+tools.
+
+Changed short option name for the "list" option in spectra-mx plot tool to
+'c'.  This is to avoid a conflict with the "title" option.
+
+Provided a more descriptive error message if the user enters a malformed
+value for the "list" option in the spectra-mx tool.
+
+Removed call to set the size ratio to 1 in the spectra-mx tool
+
+===========================================
+
+V1.0.4 (internal release) - 1st April 2014
+
+Dropped autoconf version to 2.59 to allow KAT to run in more environments.
+
+Changed floats to doubles in sect.  Previously, we may have got imprecise
+mean coverage estimates when using really big sequences, such as whole
+chromosome length.
+
+Fixed spectra-cn issue, where we were not including all high copy kmers in a
+final band of the spectra-cn plot.
+
 ===========================================
 
 V1.0.3 - 28th November 2013

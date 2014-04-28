@@ -106,6 +106,7 @@ namespace kat
                 break;
             case 't':
                 title = string(option_arg);
+                title_mod = true;
                 break;
             case 'i':
                 x_label = string(option_arg);

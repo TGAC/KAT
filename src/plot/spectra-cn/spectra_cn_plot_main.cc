@@ -44,12 +44,22 @@ string createLineStyleStr(uint16_t i, const char* colour)
     return line_style_str.str();
 }
 
-string createSinglePlotString(const string data_file, uint16_t idx)
+string createSinglePlotString(const string data_file, uint16_t idx, uint16_t level_count)
 {
-    uint16_t col = idx+1;
+    ostringstream col_str;
+    col_str << idx+1;
+
+    int limit = level_count+1;
+
+    ostringstream sum_str;
+    sum_str << "(sum[i=" << limit << ":900] column(i))";
+
+    string col = (idx == limit) ? sum_str.str() : col_str.str();
+
+    string plus = (idx == limit) ? " +" : "";
 
     ostringstream plot_str;
-    plot_str << "'" << data_file << "' u " << col << " t \"" << idx << "x\"";
+    plot_str << "'" << data_file << "' u " << col << " t \"" << idx << "x" << plus << "\"";
     return plot_str.str();
 }
 
@@ -58,15 +68,20 @@ vector<uint16_t>* getStandardCols(SpectraCnPlotArgs* args)
 {
     vector<uint16_t>* col_defs = new vector<uint16_t>();
 
+    // To cover absent content if required
     if (!args->ignore_absent)
     {
         col_defs->push_back(0);
     }
 
+    // To cover 1 - max_duplication
     for(uint16_t i = 1; i <= args->max_duplication; i++)
     {
         col_defs->push_back(i);
     }
+
+    // Placeholder to cover everything else
+    col_defs->push_back(args->max_duplication + 1);
 
     return col_defs;
 }
@@ -120,11 +135,11 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
     {
         // Determine configuration
         bool request_absent = (*plot_cols)[0] == 0 ? true : false;
-        uint16_t level_count = request_absent ? plot_cols->size() - 1 : plot_cols->size();
+        uint16_t level_count = request_absent ? plot_cols->size() - 2 : plot_cols->size() - 1;
 
         if (args.verbose)
         {
-            cerr << "Request plot fo absent K-mers" << endl
+            cerr << "Request plot for absent K-mers" << endl
                  << level_count << " levels of present K-mers requested for plotting" << endl << endl;
         }
 
@@ -152,11 +167,11 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
 
         if (request_absent)
         {
-            plot_str << createSinglePlotString(args.mx_arg, 0) << " lt rgb \"black\"";
+            plot_str << createSinglePlotString(args.mx_arg, 0, level_count) << " lt rgb \"black\"";
             first = false;
         }
 
-        for(uint16_t i = 0; i < level_count; i++)
+        for(uint16_t i = 1; i <= level_count; i++)
         {
             if (first)
                 first = false;
@@ -164,11 +179,13 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
                 plot_str << ", ";
 
 
-            double col_frac = 1.0 - ((double)i / (double)(level_count - 1));
-            uint16_t index = request_absent ? i+1 : i;
+            double col_frac = 1.0 - ((double)(i-1) / (double)(level_count-1));
 
-            plot_str << createSinglePlotString(args.mx_arg, (*plot_cols)[index]) << " lt palette frac " << std::fixed << col_frac;
+            plot_str << createSinglePlotString(args.mx_arg, i, level_count) << " lt palette frac " << std::fixed << col_frac;
         }
+
+        // Do the rest
+        plot_str << ", " << createSinglePlotString(args.mx_arg, level_count + 1, level_count) << " lt rgb \"gray\"";
 
         spectra_cn_plot.cmd("set palette rgb 33,13,10");
         spectra_cn_plot.cmd("unset colorbox");

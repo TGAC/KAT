@@ -109,7 +109,7 @@ namespace kat
             help_str << BasePlotArgs::optionsDescription() << endl
                      << " -n  --intersection          Activate intersection mode, which plots the shared and exclusive" << endl
                      << "                             content found in the matrix (" << DEFAULT_INTERSECTION << ")." << endl
-                     << " -t  --list                  The list of columns or rows to select from the matrix.  Note that this" << endl
+                     << " -c  --list                  The list of columns or rows to select from the matrix.  Note that this" << endl
                      << "                             option will override \"--intersection\" if that was also selected." << endl
                      << " -e  --exc_cutoff_d1=uint16  If in \"--intersection\" mode, this enables you to alter the level at" << endl
                      << "                             which content for dataset 1 is considered exclusive or shared (" << DEFAULT_EXC_CUTOFF_D1 << ")." << endl
@@ -130,7 +130,7 @@ namespace kat
             static struct option long_options_array[] =
             {
                 {"intersection",    no_argument,        0, 'n'},
-                {"list",            required_argument,  0, 't'},
+                {"list",            required_argument,  0, 'c'},
                 {"exc_cutoff_d1",   required_argument,  0, 'e'},
                 {"exc_cutoff_d2",   required_argument,  0, 'f'},
                 {"x_min",           required_argument,  0, 'r'},
@@ -153,7 +153,7 @@ namespace kat
 
         string shortOptions()
         {
-            return BasePlotArgs::shortOptions() + "nt:e:f:r:s:x:y:lm";
+            return BasePlotArgs::shortOptions() + "nc:e:f:r:s:x:y:lm";
         }
 
         void setOption(int c, string& option_arg) {
@@ -165,7 +165,7 @@ namespace kat
             case 'n':
                 intersection_mode = true;
                 break;
-            case 't':
+            case 'c':
                 list = string(option_arg);
                 break;
             case 'e':
