@@ -72,6 +72,12 @@ string getDataFromList(string mx_path, string list)
     {
         char c_or_r = parts[i][0];
         uint16_t index = atoi(parts[i].substr(1).c_str());
+        ostringstream convert; convert << index; string index_str = convert.str();
+        
+        if (parts[i].substr(1).compare(index_str) != 0) {
+            throw "Your row or column index is not valid.";
+        }
+        
 
         if (c_or_r == 'c')
         {
@@ -89,7 +95,7 @@ string getDataFromList(string mx_path, string list)
         }
         else
         {
-            throw "Unrecognised list item identifer.  Expected 'c' or 'r'.";
+            throw "Unrecognised list item identifier.  Expected 'c' or 'r'.";
         }
 
         data_str << "e\n";
