@@ -28,3 +28,4 @@ Makefile.in
 /build-aux/
 /kat-1.0.4/
 /*.layout
+/nbproject/
