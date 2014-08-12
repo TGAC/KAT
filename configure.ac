@@ -150,7 +150,7 @@ if test ${JELLYFISH_PATH} != 0; then
 fi
 
 # Jellyfish uses pkg-config so use this special macro to ensure that it's present and then we set the environment vars separately
-PKG_CHECK_MODULES([jellyfish], [jellyfish-1.1 = 1.1.10])
+PKG_CHECK_MODULES([jellyfish], [jellyfish-1.1 = 1.1.11])
 
 # Note that we are adding the jellyfish cflags to the cppflags var.  This is intentional!  Check the jellyfish package config file to see why. There is also some stuff on the jellyfish_LIBS var that should be on LDFLAGS but it will still work this way so I'll leave it
 AM_CPPFLAGS="$jellyfish_CFLAGS $AM_CPPFLAGS"
@@ -188,7 +188,7 @@ CPPFLAGS="${AM_CPPFLAGS} ${CPPFLAGS}"
 # for generating source code documentation.
 
 AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
-         echo "Jellyfish is required to compile and run KAT.  Please make sure jellyfish-1.1.10 is installed on your system."
+         echo "Jellyfish is required to compile and run KAT.  Please make sure jellyfish-1.1.11 is installed on your system."
          echo "You can optionally use the \"--with-jellyfish=prefix\" argument to specify the root directory of your jellyfish installation."
          exit -1],
 	[])
