@@ -96,6 +96,7 @@ DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg])
 # Check some (almost) standard functionality is present that we require to run KAT.
 #AC_CHECK_HEADER_STDBOOL  # Commented this out because this was introduced after 2.63.
 AC_FUNC_ERROR_AT_LINE
+AC_FUNC_STRERROR_R
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 AC_TYPE_INT64_T
