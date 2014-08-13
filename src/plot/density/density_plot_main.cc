@@ -26,10 +26,11 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
+
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/matrix_metadata_extractor.hpp>
-
-#include <file_utils.hpp>
 
 #include "density_plot_args.hpp"
 #include "density_plot_main.hpp"
@@ -53,7 +54,7 @@ int kat::densityPlotStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!fileExists(args.mx_arg))
+    if (!bfs::exists(args.mx_arg) && !bfs::symbolic_link_exists(args.mx_arg))
     {
         cerr << endl << "Could not find matrix file at: " << args.mx_arg << "; please check the path and try again." << endl << endl;
         return 1;

@@ -27,10 +27,8 @@
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
-#include <jellyfish/hash.hpp>
-#include <jellyfish/counter.hpp>
-#include <jellyfish/thread_exec.hpp>
-#include <jellyfish/jellyfish_helper.hpp>
+#include <jellyfish/mer_dna.hpp>
+#include <jellyfish_helper.hpp>
 
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
@@ -53,18 +51,16 @@ namespace kat
 {
     const uint16_t BATCH_SIZE = 1024;
 
-    template<typename hash_t>
-    class Sect : public thread_exec
+    class Sect
     {
     private:
 
         // Input args
-        const SectArgs                  *args;
+        const SectArgs                  args;
         const size_t                    bucket_size, remaining;	// Chunking vars
 
         // Variables that live for the lifetime of this object
-        JellyfishHelper                 *jfh;
-        hash_t                          *hash;		// Jellyfish hash
+        JellyfishHelper                 jfh;
         ThreadedSparseMatrix<uint64_t>  *contamination_mx;  // Stores cumulative base count for each sequence where GC and CVG are binned
         uint32_t                        offset;
         uint16_t                        recordsInBatch;
@@ -80,13 +76,13 @@ namespace kat
         int                             resultCode;
 
     public:
-        Sect(SectArgs *_args) :
+        Sect(SectArgs& _args) :
             args(_args),
-            bucket_size(BATCH_SIZE / args->threads_arg),
-            remaining(BATCH_SIZE % (bucket_size < 1 ? 1 : args->threads_arg))
+            bucket_size(BATCH_SIZE / args.threads_arg),
+            remaining(BATCH_SIZE % (bucket_size < 1 ? 1 : args.threads_arg))
         {
             // Setup handle to jellyfish hash
-            jfh = new JellyfishHelper(args->jellyfish_hash);
+            jfh = JellyfishHelper(args.jellyfish_hash);
 
             // Setup space for storing output
             offset = 0;
@@ -95,19 +91,14 @@ namespace kat
             names = StringSet<CharString>();
             seqs = StringSet<Dna5String>();
 
-            contamination_mx = new ThreadedSparseMatrix<uint64_t>(args->gc_bins, args->cvg_bins, args->threads_arg);
+            contamination_mx = new ThreadedSparseMatrix<uint64_t>(args.gc_bins, args.cvg_bins, args.threads_arg);
 
             resultCode = 0;
         }
 
         ~Sect()
         {
-            if (jfh)
-                delete jfh;
-
-            jfh = NULL;
-
-
+            
             if (contamination_mx)
                 delete contamination_mx;
 
@@ -119,48 +110,38 @@ namespace kat
         }
 
 
-        void do_it()
+        void execute()
         {
             // Setup output stream for jellyfish initialisation
-            std::ostream* out_stream = args->verbose ? &cerr : (std::ostream*)0;
-
-            // Load the jellyfish hash
-            hash = jfh->loadHash(false, out_stream);
-
-            // Whether to treat this hash as double stranded or not.
-            // Ideally it would be nice to determine this directly from the hash but I'm
-            // not sure how to do that at the moment... it might not be possible
-            if (args->both_strands)
-                hash->set_canonical(true);
+            std::ostream* out_stream = args.verbose ? &cerr : (std::ostream*)0;
 
             // Open file, create RecordReader and check all is well
-            std::fstream in(args->seq_file.c_str(), std::ios::in);
+            std::fstream in(args.seq_file.c_str(), std::ios::in);
             seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
 
             // Create the AutoSeqStreamFormat object and guess the file format.
             seqan::AutoSeqStreamFormat formatTag;
             if (!guessStreamFormat(reader, formatTag))
             {
-                std::cerr << "ERROR: Could not detect file format for: " << args->seq_file << endl;
+                std::cerr << "ERROR: Could not detect file format for: " << args.seq_file << endl;
                 return;
             }
 
-
             // Setup output streams for files
-            if (args->verbose)
+            if (args.verbose)
                 *out_stream << endl;
 
             // Sequence K-mer counts output stream
             ofstream_default* count_path_stream = NULL;
-            if (!args->no_count_stats) {
+            if (!args.no_count_stats) {
                 std::ostringstream count_path;
-                count_path << args->output_prefix << "_counts.cvg";
+                count_path << args.output_prefix << "_counts.cvg";
                 count_path_stream = new ofstream_default(count_path.str().c_str(), cout);
             }
 
             // Average sequence coverage and GC% scores output stream
             std::ostringstream cvg_gc_path;
-            cvg_gc_path << args->output_prefix << "_stats.csv";
+            cvg_gc_path << args.output_prefix << "_stats.csv";
             ofstream_default cvg_gc_stream(cvg_gc_path.str().c_str(), cout);
             cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
 
@@ -169,12 +150,12 @@ namespace kat
             // Processes sequences in batches of records to reduce memory requirements
             while(!atEnd(reader) && res == 0)
             {
-                if (args->verbose)
+                if (args.verbose)
                     *out_stream << "Loading Batch of sequences... ";
 
                 res = loadBatch(reader, formatTag, recordsInBatch);
 
-                if (args->verbose)
+                if (args.verbose)
                     *out_stream << "Loaded " << recordsInBatch << " records.  Processing batch... ";
 
                 // Allocate memory for output produced by this batch
@@ -183,10 +164,10 @@ namespace kat
                 // Process batch with worker threads
                 // Process each sequence is processed in a different thread.
                 // In each thread lookup each K-mer in the hash
-                exec_join(args->threads_arg);
+                //exec_join(args.threads_arg);
 
                 // Output counts for this batch if (not not) requested
-                if (!args->no_count_stats)
+                if (!args.no_count_stats)
                     printCounts(*count_path_stream);
 
                 // Output stats
@@ -198,12 +179,12 @@ namespace kat
                 // Increment batch management vars
                 offset += recordsInBatch;
 
-                if (args->verbose)
+                if (args.verbose)
                     *out_stream << "done" << endl;
             }
 
             // Close output streams
-            if (!args->no_count_stats) {
+            if (!args.no_count_stats) {
                 count_path_stream->close();
                 delete count_path_stream;
             }
@@ -215,9 +196,9 @@ namespace kat
 
             // Send contamination matrix to file
             std::ostringstream contamination_mx_path;
-            contamination_mx_path << args->output_prefix << "_contamination.mx";
+            contamination_mx_path << args.output_prefix << "_contamination.mx";
             ofstream_default contamination_mx_stream(contamination_mx_path.str().c_str(), cout);
-            printContaminationMatrix(contamination_mx_stream, args->seq_file.c_str());
+            printContaminationMatrix(contamination_mx_stream, args.seq_file.c_str());
             contamination_mx_stream.close();
 
             // If there was a problem reading the data notify the user, otherwise output
@@ -245,10 +226,9 @@ namespace kat
         void printVars(std::ostream &out)
         {
             out << "SECT parameters:" << endl;
-            out << " - Sequence File Path: " << args->seq_file << endl;
-            out << " - Hash File Path: " << args->jellyfish_hash << endl;
-            out << " - Hash: " << (hash ? "loaded" : "not loaded") << endl;
-            out << " - Threads: " << args->threads_arg << endl;
+            out << " - Sequence File Path: " << args.seq_file << endl;
+            out << " - Hash File Path: " << args.jellyfish_hash << endl;
+            out << " - Threads: " << args.threads_arg << endl;
             out << " - Bucket size: " << bucket_size << endl;
             out << " - Remaining: " << remaining << endl << endl;
         }
@@ -381,12 +361,12 @@ namespace kat
         {
             SparseMatrix<uint64_t>* mx = contamination_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "Contamination Plot for " << args->seq_file << " and " << args->jellyfish_hash << endl;
+            out << mme::KEY_TITLE << "Contamination Plot for " << args.seq_file << " and " << args.jellyfish_hash << endl;
             out << mme::KEY_X_LABEL << "GC%" << endl;
             out << mme::KEY_Y_LABEL << "Average K-mer Coverage" << endl;
             out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;
-            out << mme::KEY_NB_COLUMNS << args->gc_bins << endl;
-            out << mme::KEY_NB_ROWS << args->cvg_bins << endl;
+            out << mme::KEY_NB_COLUMNS << args.gc_bins << endl;
+            out << mme::KEY_NB_ROWS << args.cvg_bins << endl;
             out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
             out << mme::KEY_TRANSPOSE << "0" << endl;
             out << mme::MX_META_END << endl;
@@ -408,7 +388,7 @@ namespace kat
             // Process a remainder if required
             if (th_id < remaining)
             {
-                size_t rem_idx = (args->threads_arg * bucket_size) + th_id;
+                size_t rem_idx = (args.threads_arg * bucket_size) + th_id;
                 processSeq(rem_idx);
             }
         }
@@ -418,7 +398,7 @@ namespace kat
         {
             size_t start = th_id;
             size_t end = recordsInBatch;
-            for(size_t i = start; i < end; i += args->threads_arg)
+            for(size_t i = start; i < end; i += args.threads_arg)
             {
                 processSeq(i, th_id);
             }
@@ -426,7 +406,7 @@ namespace kat
 
         void processSeq(const size_t index, const uint_t th_id)
         {
-            uint_t kmer = hash->get_mer_len();
+            unsigned int kmer = jfh->getKeyLen();
 
             // There's no substring functionality in SeqAn in this version (1.4.1).  So we'll just
             // use regular c++ string's for this bit.  The next version of SeqAn may offer substring
@@ -462,8 +442,8 @@ namespace kat
                     }
                     else
                     {
-                        const char* mer = merstr.c_str();
-                        uint_t count = (*hash)[mer];
+                        const mer_dna mer = merstr.c_str();
+                        uint_t count = jfh->getCount(mer);
                         sum += count;
 
                         (*seqCounts)[i] = count;
@@ -502,13 +482,13 @@ namespace kat
             double gc_perc = ((double)(gs + cs)) / ((double)(seqLength - ns));
             (*gcs)[index] = gc_perc;
 
-            double log_cvg = args->cvg_logscale ? log10(mean_cvg) : mean_cvg;
+            double log_cvg = args.cvg_logscale ? log10(mean_cvg) : mean_cvg;
 
             // Assume log_cvg 5 is max value
-            double compressed_cvg = args->cvg_logscale ? log_cvg * (args->cvg_bins / 5.0) : mean_cvg * 0.1;
+            double compressed_cvg = args.cvg_logscale ? log_cvg * (args.cvg_bins / 5.0) : mean_cvg * 0.1;
 
-            uint16_t x = gc_perc * args->gc_bins;  // Convert double to 1.dp
-            uint16_t y = compressed_cvg >= args->cvg_bins ? args->cvg_bins - 1 : compressed_cvg;      // Simply cap the y value
+            uint16_t x = gc_perc * args.gc_bins;  // Convert double to 1.dp
+            uint16_t y = compressed_cvg >= args.cvg_bins ? args.cvg_bins - 1 : compressed_cvg;      // Simply cap the y value
 
             // Add bases to matrix
             contamination_mx->getThreadMatrix(th_id)->inc(x, y, seqLength);

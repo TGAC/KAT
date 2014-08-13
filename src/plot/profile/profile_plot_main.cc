@@ -29,7 +29,9 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 #include <str_utils.hpp>
-#include <file_utils.hpp>
+
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 #include "profile_plot_args.hpp"
 #include "profile_plot_main.hpp"
@@ -163,7 +165,7 @@ int kat::profilePlotStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!fileExists(args.sect_profile))
+    if (!bfs::exists(args.sect_profile) && !bfs::symbolic_link_exists(args.sect_profile))
     {
         cerr << endl << "Could not find sect profile file at: " << args.sect_profile << "; please check the path and try again." << endl << endl;
         return 1;

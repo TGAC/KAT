@@ -24,7 +24,8 @@
 
 #include <jellyfish/mer_counting.hpp>
 
-#include <file_utils.hpp>
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 #include "gcp.hpp"
 #include "gcp_args.hpp"
@@ -43,7 +44,7 @@ int kat::gcpStart(int argc, char *argv[])
     GcpArgs args(argc, argv);
 
     // Check input file exists
-    if (!fileExists(args.db_arg))
+    if (!bfs::exists(args.db_arg) && !bfs::symbolic_link_exists(args.db_arg))
     {
         cerr << endl << "Could not find jellyfish hash file at: " << args.db_arg << "; please check the path and try again." << endl << endl;
         return 1;

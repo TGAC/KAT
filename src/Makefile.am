@@ -1,24 +1,23 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
-# additional include paths necessary to compile the C++ library
-AM_CPPFLAGS=-I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
-AM_CXXFLAGS=-Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor @AM_CXXFLAGS@
-LIBS=@MAIN_LIBS@
 
 bin_PROGRAMS = kat
 
+kat_CXXFLAGS = -g3 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=gnu++0x @JELLYFISH_CFLAGS@ @AM_CXXFLAGS@
+kat_CPPFLAGS = -DCPLUSPLUS @BOOST_CPPFLAGS@ -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
+kat_LDFLAGS = @BOOST_LDFLAGS@ @AM_LDFLAGS@
+kat_LDADD = @BOOST_LIBS@ @JELLYFISH_LIB@ @MAIN_LIBS@
 kat_SOURCES = \
                 inc/gnuplot/gnuplot_i.cc \
 		inc/gnuplot/gnuplot_i.hpp \
-		inc/jellyfish/fstream_default.hpp \
-		inc/jellyfish/jellyfish_helper.hpp \
+		inc/fstream_default.hpp \
+		inc/jellyfish_helper.hpp \
 		inc/matrix/sparse_matrix.hpp \
 		inc/matrix/threaded_sparse_matrix.hpp \
 		inc/matrix/matrix_metadata_extractor.hpp \
                 inc/matrix/matrix_metadata_extractor.cc \
                 inc/str_utils.hpp \
-                inc/file_utils.hpp \
                 inc/common_args.hpp \
                 sect/sect_main.cc \
 		sect/sect.hpp \

@@ -23,6 +23,9 @@
 #include <string>
 #include <iostream>
 
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
+
 #include <gnuplot/gnuplot_i.hpp>
 
 #include "contamination_plot_args.hpp"

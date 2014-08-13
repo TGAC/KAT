@@ -25,9 +25,10 @@
 #include <iostream>
 #include <fstream>
 
-#include <jellyfish/compacted_hash.hpp>
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
-#include <file_utils.hpp>
+#include <jellyfish/compacted_hash.hpp>
 
 #include "comp.hpp"
 #include "comp_args.hpp"
@@ -52,21 +53,21 @@ int kat::compStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!fileExists(args.db1_path))
+    if (!bfs::exists(args.db1_path) && !bfs::symbolic_link_exists(args.db1_path))
     {
         cerr << endl << "Could not find first jellyfish hash file at: " << args.db1_path << "; please check the path and try again." << endl << endl;
         return 1;
     }
 
     // Check input file exists
-    if (!fileExists(args.db2_path))
+    if (!bfs::exists(args.db2_path) && !bfs::symbolic_link_exists(args.db2_path))
     {
         cerr << endl << "Could not find second jellyfish hash file at: " << args.db2_path << "; please check the path and try again." << endl << endl;
         return 1;
     }
 
     // Check input file exists
-    if (!args.db3_path.empty() && !fileExists(args.db3_path))
+    if (!args.db3_path.empty() && !bfs::exists(args.db3_path) && !bfs::symbolic_link_exists(args.db3_path))
     {
         cerr << endl << "Could not find third jellyfish hash file at: " << args.db3_path << "; please check the path and try again." << endl << endl;
         return 1;

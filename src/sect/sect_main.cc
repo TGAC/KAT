@@ -21,9 +21,8 @@
 
 #include <iostream>
 
-#include <jellyfish/mer_counting.hpp>
-
-#include <file_utils.hpp>
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 #include "sect.hpp"
 #include "sect_args.hpp"
@@ -45,27 +44,27 @@ int kat::sectStart(int argc, char *argv[])
         args.print();
 
     // Check input files exist
-    if (!fileExists(args.jellyfish_hash))
+    if (!bfs::exists(args.jellyfish_hash) && !bfs::symbolic_link_exists(args.jellyfish_hash))
     {
         cerr << endl << "Could not find jellyfish hash file at: " << args.jellyfish_hash << "; please check the path and try again." << endl << endl;
         return 2;
     }
 
-    if (!fileExists(args.seq_file))
+    if (!bfs::exists(args.seq_file) && !bfs::symbolic_link_exists(args.seq_file))
     {
         cerr << endl << "Could not find sequence file at: " << args.seq_file << "; please check the path and try again." << endl << endl;
         return 3;
     }
 
     // Create the sequence coverage object
-    Sect<hash_query_t> sect(&args);
+    Sect sect(args);
 
     // Output seqcvg parameters to stderr if requested
     if (args.verbose)
         sect.printVars(cerr);
 
     // Do the work (outputs data to files as it goes)
-    sect.do_it();
+    sect.execute();
 
     // Return the Sect result code... hopefully should be 0
     return sect.getResultCode();

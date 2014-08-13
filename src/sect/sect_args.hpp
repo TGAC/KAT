@@ -39,7 +39,6 @@ namespace kat
     const uint16_t  DEFAULT_GC_BINS         = 1001;
     const uint16_t  DEFAULT_CVG_BINS        = 1001;
     const bool      DEFAULT_CVG_LOG         = false;
-    const bool      DEFAULT_BOTH_STRANDS    = false;
     const bool      DEFAULT_NO_COUNT_STATS  = false;
 
     const uint16_t MIN_ARGS = 1;
@@ -84,9 +83,6 @@ namespace kat
                      << "                             contamination matrix. Otherwise compresses cvg scores by a factor of 0.1 into" << endl
                      << "                             the available bins (" << DEFAULT_CVG_LOG << ")." << endl
                      << " -t, --threads=uint16        The number of threads to use (" << DEFAULT_THREADS << ")." << endl
-                     << " -C, --both_strands          IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both" << endl
-                     << "                             strands.  If this is not set to the same value as was produced during jellyfish" << endl
-                     << "                             counting then output from sect will be unpredicatable (" << DEFAULT_BOTH_STRANDS << ")." << endl
                      << " -n, --no_count_stats        Tells SECT not to output count stats.  Sometimes when using SECT on read files" << endl
                      << "                             the output can get very large.  When flagged this just outputs summary stats for" << endl
                      << "                             each sequence.";
@@ -104,13 +100,12 @@ namespace kat
                 {"cvg_bins",        required_argument,  0, 'y'},
                 {"cvg_logscale",    no_argument,        0, 'l'},
                 {"threads",         required_argument,  0, 't'},
-                {"both_strands",    no_argument,        0, 'C'},
                 {"no_count_stats",  no_argument,        0, 'n'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 8; i++)
+            for(uint8_t i = 0; i < 7; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -142,9 +137,6 @@ namespace kat
             case 'y':
                 cvg_bins = strToInt16(option_arg);
                 break;
-            case 'C':
-                both_strands = true;
-                break;
             case 'l':
                 cvg_logscale = true;
                 break;
@@ -169,9 +161,8 @@ namespace kat
                    << "Compress coverage scores to logscale: " << cvg_logscale << endl
                    << "Threads requested: " << threads_arg << endl
                    << "Jellyfish hash: " << jellyfish_hash << endl
-                   << "Output prefix: " << output_prefix << endl
-                   << "Jellyfish hash double stranded: " << both_strands << endl;
-
+                   << "Output prefix: " << output_prefix << endl;
+            
             return status.str().c_str();
         }
 
@@ -183,20 +174,19 @@ namespace kat
         uint16_t    cvg_bins;
         bool        cvg_logscale;
         uint16_t    threads_arg;
-        bool        both_strands;
         bool        no_count_stats;
 
         // Default constructor
         SectArgs() : BaseArgs(MIN_ARGS),
             seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
-            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS),
+            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS),
             no_count_stats(DEFAULT_NO_COUNT_STATS)
         {}
 
         // Constructor that parses command line options
         SectArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS),
             seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
-            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS),
+            cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS),
             no_count_stats(DEFAULT_NO_COUNT_STATS)
         {
             parse(argc, argv);

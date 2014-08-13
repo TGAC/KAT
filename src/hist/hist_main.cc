@@ -27,7 +27,8 @@
 
 #include <jellyfish/compacted_hash.hpp>
 
-#include <file_utils.hpp>
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 #include "histogram.hpp"
 #include "hist_args.hpp"
@@ -52,7 +53,7 @@ int kat::histStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!fileExists(args.db_path))
+    if (!bfs::exists(args.db_path) && !bfs::symbolic_link_exists(args.db_path))
     {
         cerr << endl << "Could not find jellyfish hash file at: " << args.db_path << "; please check the path and try again." << endl << endl;
         return 1;

@@ -26,7 +26,9 @@
 #include <vector>
 
 #include <gnuplot/gnuplot_i.hpp>
-#include <file_utils.hpp>
+
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
 
 #include "spectra_cn_plot_args.hpp"
 #include "spectra_cn_plot_main.hpp"
@@ -123,7 +125,7 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!fileExists(args.mx_arg))
+    if (!bfs::exists(args.mx_arg) && !bfs::symbolic_link_exists(args.mx_arg))
     {
         cerr << endl << "Could not find matrix file at: " << args.mx_arg << "; please check the path and try again." << endl << endl;
         return 1;

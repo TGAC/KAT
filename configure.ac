@@ -3,11 +3,10 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.5],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
+AC_INIT([Kmer Analysis Toolkit (KAT)],[1.1.0],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
 
-# I built this with autoconf 2.59 and have only tested it on 2.59, 2.63 and 2.69 systems.  You can change this but I don't
-# make any guarentees
-AC_PREREQ([2.59])
+# Require autoconf 2.53 or higher
+AC_PREREQ([2.53])
 
 # Check that the configure script is being run from the right directory
 AC_CONFIG_SRCDIR([src/kat.cc])
@@ -19,11 +18,15 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 
 # Automake initialisation.  Sets some default flags.  We use 'foreign' because we have a markdown README file.
-# I've only tried this with automake 1.11 and above, so you require at least that version installed on your machine if you want to regenerate 'the Makefile.in's.  If you're looking at this comment in the 'configure' script then this the am__api_version, will be set to whatever I used to create this file.  Or it might be whatever you used if you made it yourself with autoconf (or autoreconf, or the autogen.sh script)
+# I've only tried this with automake 1.11 and above, so you require at least that version installed on your 
+# machine if you want to regenerate 'the Makefile.in's.  If you're looking at this comment in the 'configure' 
+# script then this the am__api_version, will be set to whatever I used to create this file.  Or it might be 
+# whatever you used if you made it yourself with autoconf (or autoreconf, or the autogen.sh script)
 AM_INIT_AUTOMAKE([1.11 foreign -Wall no-define])
 
 # Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
-AC_LANG_CPLUSPLUS
+AC_LANG([C++])
+AX_CXX_COMPILE_STDCXX_0X
 
 # Set output variable CXXCPP to a command that runs the C++ preprocessor. If ‘$CXX -E’ doesn't work, /lib/cpp is used. It is portable to run CXXCPP only on files with a .c, .C, .cc, or .cpp extension.
 AC_PROG_CXXCPP
@@ -37,6 +40,9 @@ AC_PROG_CXX
 CFLAGS=""
 AC_PROG_CC
 
+# Delegates building of libraries to libtool
+LT_PREREQ([2.4.2])
+LT_INIT
 
 # Create the 'install-sh' script, which is used as the 'install' make target
 AC_PROG_INSTALL
@@ -63,29 +69,9 @@ if test x"$debugit" = x"yes"; then
     
 else
     AC_DEFINE([NDEBUG],[],[No-debug Mode])
-    AM_CXXFLAGS="-O3"
-    AM_CFLAGS="-O3"
+    AM_CXXFLAGS="-g -O3"
+    AM_CFLAGS="-g -O3"
 fi
-
-######################################################################
-
-
-######################################################################
-# DOXYGEN SUPPORT
-######################################################################
-
-DX_HTML_FEATURE(ON)
-DX_CHM_FEATURE(OFF)
-DX_CHI_FEATURE(OFF)
-DX_MAN_FEATURE(ON)
-DX_RTF_FEATURE(OFF)
-DX_XML_FEATURE(OFF)
-DX_PDF_FEATURE(ON)
-DX_PS_FEATURE(OFF)
-
-DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg])
-
-######################################################################
 
 
 ######################################################################
@@ -121,6 +107,20 @@ AC_CHECK_HEADERS([getopt.h])
 AC_CHECK_LIB(pthread, pthread_exit)
 
 
+## Check for boost
+AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])
+AX_BOOST_FILESYSTEM
+AX_BOOST_SYSTEM
+AX_BOOST_TIMER
+AX_BOOST_THREAD
+AX_BOOST_UNIT_TEST_FRAMEWORK
+
+# Combine BOOST variables (apart for BOOST_TEST)
+BOOST_LDFLAGS="${BOOST_FILESYSTEM_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LDFLAGS} ${BOOST_SYSTEM_LDFLAGS} ${BOOST_TIMER_LDFLAGS} ${BOOST_THREAD_LDFLAGS}"
+BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB} ${BOOST_THREAD_LIB}"
+
+
+
 # Allow users to specify custom directories for jellyfish, boost and seqan.  This might save some users from having to set the environment variables manually.
 
 AC_ARG_WITH([jellyfish],
@@ -133,29 +133,22 @@ AC_ARG_WITH([seqan],
 		[Use this if your seqan installation prefix was set to a non-standard location.])],
         [SEQAN_PATH=$withval], [SEQAN_PATH=0])
 
-AC_ARG_WITH([boost],
-        [AS_HELP_STRING([--with-boost=PREFIX],
-		[Use this if your boost installation prefix was set to a non-standard location. Boost is only required for running unit tests.  i.e. if boost is not available you will not be able to run [make check] but KAT will probably still work fine.])],
-        [BOOST_PATH=$withval], [BOOST_PATH=0])
-
-AC_ARG_WITH([doxygen],
-        [AS_HELP_STRING([--with-doxygen=PREFIX],
-		[Use this if your doxygen installation prefix was set to a non-standard location. Doxygen is only required for building source code documentation.  i.e. if doxygen is not available you will not be able to run [make doxygen-doc] but KAT will still work fine without this.])],
-        [DOXYGEN_PATH=$withval], [DOXYGEN_PATH=0])
-
 
 # Just need the jellyfish package config path
 if test ${JELLYFISH_PATH} != 0; then
     PKG_CONFIG_PATH="${JELLYFISH_PATH}/lib/pkgconfig:${PKG_CONFIG_PATH}"
 fi
 
-# Jellyfish uses pkg-config so use this special macro to ensure that it's present and then we set the environment vars separately
-PKG_CHECK_MODULES([jellyfish], [jellyfish-1.1 = 1.1.10])
+# Jellyfish uses pkg-config so use this special macro to ensure that it's present 
+# and then we set the environment vars separately
+PKG_CHECK_MODULES([jellyfish], [jellyfish-2.0 >= 2])
 
-# Note that we are adding the jellyfish cflags to the cppflags var.  This is intentional!  Check the jellyfish package config file to see why. There is also some stuff on the jellyfish_LIBS var that should be on LDFLAGS but it will still work this way so I'll leave it
-AM_CPPFLAGS="$jellyfish_CFLAGS $AM_CPPFLAGS"
+# Note that we are adding the jellyfish cflags to the cppflags var.  This is intentional!  
+# Check the jellyfish package config file to see why. There is also some stuff on the 
+# jellyfish_LIBS var that should be on LDFLAGS but it will still work this way so I'll leave it
+JELLYFISH_CFLAGS="$jellyfish_CFLAGS"
 if test ${JELLYFISH_PATH} != 0; then
-	JELLYFISH_LIB="${JELLYFISH_PATH}/lib/libjellyfish-1.1.a"
+	JELLYFISH_LIB="${JELLYFISH_PATH}/lib/libjellyfish-2.0.a"
 else
 	JELLYFISH_LIB="${jellyfish_LIBS}"
 fi
@@ -166,32 +159,24 @@ if test ${SEQAN_PATH} != 0; then
     	AM_CPPFLAGS="-I${SEQAN_PATH}/include $AM_CPPFLAGS"
 fi
 
-# Update vars for boost if required (make sure this goes last as it's only to be used for testing)
-if test ${BOOST_PATH} != 0; then
-    	TEST_CPPFLAGS="-I${BOOST_PATH}/include $AM_CPPFLAGS"
-    	BOOST_LIB="${BOOST_PATH}/lib/libboost_unit_test_framework.a"
-fi
-
-# Update vars for doxygen if required
-if test ${DOXYGEN_PATH} != 0; then
-	AM_PATH="${DOXYGEN_PATH}/bin:${AM_PATH}"
-fi
-
 # Header checks (need to use the actual command line vars here so we need to store and restore these)
 
 OLD_CPPFLAGS=$CPPFLAGS
-CPPFLAGS="${AM_CPPFLAGS} ${CPPFLAGS}"
-
+CPPFLAGS="${AM_CPPFLAGS} ${JELLYFISH_CFLAGS} ${CPPFLAGS}"
 
 # Only jellyfish and seqan are actually necessary to run KAT. Boost is only used for unit testing
 # if the tests fail it's not the end of the world, and doxygen is only required
 # for generating source code documentation.
 
-AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
-         echo "Jellyfish is required to compile and run KAT.  Please make sure jellyfish-1.1.10 is installed on your system."
+AC_CHECK_HEADER([jellyfish/jellyfish.hpp], [], [
+         echo "Jellyfish is required to compile and run KAT.  Please make sure jellyfish-2.X.X is installed on your system."
          echo "You can optionally use the \"--with-jellyfish=prefix\" argument to specify the root directory of your jellyfish installation."
          exit -1],
-	[])
+         [-])
+
+#	[#ifdef __JELLYFISH_MER_DNA_HPP__
+#        #include <jellyfish/mer_dna.hpp>
+#        #endif])
 
 
 AC_CHECK_HEADER([seqan/sequence.h], [], [
@@ -205,17 +190,15 @@ AC_CHECK_HEADER([seqan/sequence.h], [], [
 # Restore the previous CPPFLAGS
 CPPFLAGS=$OLD_CPPFLAGS
 
-MAIN_LIBS="${JELLYFISH_LIB} ${LIBS}"
-TEST_LIBS="${BOOST_LIB} ${JELLYFISH_LIB} ${LIBS}"
-
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_CXXFLAGS])
 AC_SUBST([AM_CFLAGS])
 AC_SUBST([AM_PATH])
-AC_SUBST([MAIN_LIBS])
-AC_SUBST([TEST_LIBS])
-AC_SUBST([TEST_CPPFLAGS])
-
+AC_SUBST([JELLYFISH_CFLAGS])
+AC_SUBST([JELLYFISH_LIB])
+AC_SUBST([BOOST_CPPFLAGS])
+AC_SUBST([BOOST_LDFLAGS])
+AC_SUBST([BOOST_LIBS])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])

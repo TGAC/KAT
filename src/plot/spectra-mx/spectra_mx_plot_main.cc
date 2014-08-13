@@ -27,10 +27,12 @@
 #include <algorithm>
 #include <iterator>
 
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
+
 #include <gnuplot/gnuplot_i.hpp>
 
 #include <str_utils.hpp>
-#include <file_utils.hpp>
 
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/matrix_metadata_extractor.hpp>
@@ -183,7 +185,7 @@ int kat::spectraMxPlotStart(int argc, char *argv[])
     }
 
     // Check input file exists
-    if (!fileExists(args.mx_path))
+    if (!bfs::exists(args.mx_path) && !bfs::symbolic_link_exists(args.mx_path))
     {
         cerr << endl << "Could not find matrix file at: " << args.mx_path << "; please check the path and try again." << endl << endl;
         return 2;
