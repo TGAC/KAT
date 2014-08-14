@@ -17,7 +17,6 @@
 
 #pragma once
 
-namespace kat
-{
+namespace kat {
     int gcpStart(int argc, char *argv[]);
 }

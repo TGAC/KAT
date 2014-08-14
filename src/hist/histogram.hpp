@@ -25,109 +25,101 @@
 #include <fstream>
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
+
+using boost::shared_ptr;
+
 #include <matrix/matrix_metadata_extractor.hpp>
 
 #include <jellyfish/hash.hpp>
 #include <jellyfish/counter.hpp>
 #include <jellyfish/thread_exec.hpp>
-#include <jellyfish/jellyfish_helper.hpp>
+
+#include <jellyfish_helper.hpp>
 
 #include "hist_args.hpp"
 
-namespace kat
-{
+namespace kat {
 
     template<typename hash_t>
-    class Histogram : public thread_exec
-    {
+    class Histogram : public jellyfish::thread_exec {
     private:
         // Arguments from user
-        HistArgs *args;
+        HistArgs args;
 
         // Jellyfish mapped file hash vars
-        JellyfishHelper         *jfh;
-        hash_t                  *hash;		// Shortcut to Jellyfish hash (don't try to delete)
-
+        shared_ptr<JellyfishHelper> jfh;
+        
         // Internal vars
-        uint64_t  base, ceil, inc, nb_buckets, nb_slices;
-        uint64_t        *data;
-        counter_t       slice_id;
+        uint64_t base, ceil, inc, nb_buckets, nb_slices;
+        uint64_t *data;
+        counter_t slice_id;
 
     public:
-        Histogram(HistArgs* _args) : args(_args)
-        {
+
+        Histogram(HistArgs& _args) : args(_args) {
+            
             // Some validation first
-            if(args->high < args->low)
+            if (args.high < args.low)
                 throw "High count value must be >= to low count value";
 
-            if (args->verbose)
+            if (args.verbose)
                 cerr << "Setting up histo tool..." << endl;
 
             // Setup handles to load hashes
-            jfh = new JellyfishHelper(args->db_path);
+            jfh = shared_ptr<JellyfishHelper>(new JellyfishHelper(args.db_path));
 
             // Ensure hash is null at this stage (we'll load them later)
             hash = NULL;
 
             // Calculate other vars required for this run
-            base = args->calcBase();
-            ceil = args->calcCeil();
+            base = args.calcBase();
+            ceil = args.calcCeil();
             nb_buckets = ceil + 1 - base;
-            nb_slices = args->threads * 100;
+            nb_slices = args.threads * 100;
 
-            data = new uint64_t[args->threads * nb_buckets];
-            memset(data, '\0', args->threads * nb_buckets * sizeof(uint64_t));
+            data = new uint64_t[args.threads * nb_buckets];
+            memset(data, '\0', args.threads * nb_buckets * sizeof (uint64_t));
 
             if (args->verbose)
                 cerr << "Histo tool setup successfully." << endl;
         }
 
-        ~Histogram()
-        {
-            if(data)
+        virtual ~Histogram() {
+            if (data)
                 delete [] data;
-
-            if (jfh)
-                delete jfh;
-
-            jfh = NULL;
         }
 
-        void do_it()
-        {
-            if (args->verbose)
-            {
+        void execute() {
+            if (args.verbose) {
                 cerr << "Loading hash..." << endl;
             }
 
-            std::ostream* out_stream = args->verbose ? &cerr : (std::ostream*)0;
+            std::ostream* out_stream = arg.verbose ? &cerr : (std::ostream*)0;
 
             // Load the hashes
             hash = jfh->loadHash(true, out_stream);
 
-            if (args->verbose)
+            if (args.verbose)
                 cerr << endl
-                     << "Hash loaded successfully." << endl
-                     << "Starting threads...";
+                    << "Hash loaded successfully." << endl
+                    << "Starting threads...";
 
-            exec_join(args->threads);
+            exec_join(args.threads);
 
-            if (args->verbose)
+            if (args.verbose)
                 cerr << "done." << endl;
         }
 
-        void start(int th_id)
-        {
+        void start(int th_id) {
             uint64_t *hist = &data[th_id * nb_buckets];
 
-            for(size_t i = slice_id++; i < nb_slices; i = slice_id++)
-            {
+            for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
                 typename hash_t::iterator it = hash->iterator_slice(i, nb_slices);
-                while(it.next())
-                {
-                    if(it.get_val() < base)
+                while (it.next()) {
+                    if (it.get_val() < base)
                         ++hist[0];
-                    else if(it.get_val() > ceil)
+                    else if (it.get_val() > ceil)
                         ++hist[nb_buckets - 1];
                     else
                         ++hist[(it.get_val() - base) / inc];
@@ -135,9 +127,7 @@ namespace kat
             }
         }
 
-
-        void print(std::ostream &out)
-        {
+        void print(std::ostream &out) {
             // Output header
             out << mme::KEY_TITLE << "K-mer spectra for: " << args->db_path << endl;
             out << mme::KEY_X_LABEL << "K" << hash->get_mer_len() << " multiplicity: " << args->db_path << endl;
@@ -145,11 +135,10 @@ namespace kat
             out << mme::MX_META_END << endl;
 
             uint64_t col = base;
-            for(uint64_t i = 0; i < nb_buckets; i++, col += inc)
-            {
+            for (uint64_t i = 0; i < nb_buckets; i++, col += inc) {
                 uint64_t count = 0;
 
-                for(uint_t j = 0; j < args->threads; j++)
+                for (uint_t j = 0; j < args->threads; j++)
                     count += data[j * nb_buckets + i];
 
                 out << col << " " << count << "\n";

@@ -17,7 +17,6 @@
 
 #pragma once
 
-namespace kat
-{
+namespace kat {
     int compStart(int argc, char *argv[]);
 }

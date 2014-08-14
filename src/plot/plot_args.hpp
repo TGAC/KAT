@@ -32,33 +32,36 @@ using std::cerr;
 using std::cout;
 using std::endl;
 
-namespace kat
-{
-    const string KAT_PLOT_DENSITY_ID        = "density";
-    const string KAT_PLOT_PROFILE_ID        = "profile";
-    const string KAT_PLOT_SPECTRA_CN_ID     = "spectra-cn";
-    const string KAT_PLOT_SPECTRA_HIST_ID   = "spectra-hist";
-    const string KAT_PLOT_SPECTRA_MX_ID   = "spectra-mx";
+namespace kat {
+    const string KAT_PLOT_DENSITY_ID = "density";
+    const string KAT_PLOT_PROFILE_ID = "profile";
+    const string KAT_PLOT_SPECTRA_CN_ID = "spectra-cn";
+    const string KAT_PLOT_SPECTRA_HIST_ID = "spectra-hist";
+    const string KAT_PLOT_SPECTRA_MX_ID = "spectra-mx";
 
     const uint16_t MIN_ARGS = 0;
 
-    class PlotArgs : public BaseArgs
-    {
+    class PlotArgs : public BaseArgs {
     private:
-        string  mode_arg;
-        int     mode_argc;
-        char**  mode_argv;
+        string mode_arg;
+        int mode_argc;
+        char** mode_argv;
 
     protected:
 
         // ***********************************************
         // These methods override BaseArgs virtual methods
 
-        const string usage() const               { return "Usage: kat plot <mode>"; }
-        const string shortDescription() const    { return "Create K-mer Plots"; }
-        const string longDescription() const
-        {
-            return  "First argument should be the plot mode you wish to use:\n" \
+        const string usage() const {
+            return "Usage: kat plot <mode>";
+        }
+
+        const string shortDescription() const {
+            return "Create K-mer Plots";
+        }
+
+        const string longDescription() const {
+            return "First argument should be the plot mode you wish to use:\n" \
                     "  - density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
                     "                     used to compare two K-mer hashes produced by different NGS reads.\n" \
                     "  - profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
@@ -73,29 +76,40 @@ namespace kat
                     "                     selected rows or columns in a matrix produced by the \"comp\".";
         }
 
-        const string optionsDescription() const    { return ""; }
+        const string optionsDescription() const {
+            return "";
+        }
 
-        vector<option>* longOptions()
-        {
+        vector<option>* longOptions() {
             vector<option>* long_options = new vector<option>();
 
             return long_options;
         }
 
-        string shortOptions()                   { return ""; }
-        void setOption(int c, string& option_arg) {}
-        void processRemainingArgs(const vector<string>& remaining_args) {}
-        const string currentStatus() const       { return ""; }
+        string shortOptions() {
+            return "";
+        }
+
+        void setOption(int c, string& option_arg) {
+        }
+
+        void processRemainingArgs(const vector<string>& remaining_args) {
+        }
+
+        const string currentStatus() const {
+            return "";
+        }
 
     public:
 
         // Default constructor
-        PlotArgs() : BaseArgs(MIN_ARGS)
-        {}
+
+        PlotArgs() : BaseArgs(MIN_ARGS) {
+        }
 
         // Constructor that parses command line options
-        PlotArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS)
-        {
+
+        PlotArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS) {
             customParse(argc, argv);
         }
 
@@ -111,30 +125,24 @@ namespace kat
             return mode_argv;
         }
 
-        bool validMode(string mode_str)
-        {
+        bool validMode(string mode_str) {
             return (mode_str.compare(KAT_PLOT_DENSITY_ID) == 0 ||
                     mode_str.compare(KAT_PLOT_PROFILE_ID) == 0 ||
                     mode_str.compare(KAT_PLOT_SPECTRA_CN_ID) == 0 ||
                     mode_str.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0 ||
                     mode_str.compare(KAT_PLOT_SPECTRA_MX_ID) == 0) ?
-                        true : false;
+                    true : false;
         }
 
-
-        void customParse(int argc, char *argv[])
-        {
-            if (argc <= 1)
-            {
+        void customParse(int argc, char *argv[]) {
+            if (argc <= 1) {
                 error("No plot mode specified");
-            }
-            else if (validMode(string(argv[1]))) {
+            } else if (validMode(string(argv[1]))) {
 
                 mode_arg = argv[1];
                 mode_argc = argc - 1;
                 mode_argv = argv + 1;
-            }
-            else {
+            } else {
 
                 // Let BaseArgs have a go, but make sure we fail after
                 parse(argc, argv);

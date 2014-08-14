@@ -26,9 +26,10 @@
 #include <fstream>
 
 #include <boost/filesystem.hpp>
-namespace bfs = boost::filesystem;
+#include <boost/shared_ptr.hpp>
 
-#include <jellyfish/compacted_hash.hpp>
+namespace bfs = boost::filesystem;
+using boost::shared_ptr;
 
 #include "comp.hpp"
 #include "comp_args.hpp"
@@ -43,8 +44,9 @@ using kat::CompArgs;
 using kat::Comp;
 
 // Start point
-int kat::compStart(int argc, char *argv[])
-{
+
+int kat::compStart(int argc, char *argv[]) {
+    
     // Parse args
     CompArgs args(argc, argv);
 
@@ -53,35 +55,32 @@ int kat::compStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!bfs::exists(args.db1_path) && !bfs::symbolic_link_exists(args.db1_path))
-    {
+    if (!bfs::exists(args.db1_path) && !bfs::symbolic_link_exists(args.db1_path)) {
         cerr << endl << "Could not find first jellyfish hash file at: " << args.db1_path << "; please check the path and try again." << endl << endl;
         return 1;
     }
 
     // Check input file exists
-    if (!bfs::exists(args.db2_path) && !bfs::symbolic_link_exists(args.db2_path))
-    {
+    if (!bfs::exists(args.db2_path) && !bfs::symbolic_link_exists(args.db2_path)) {
         cerr << endl << "Could not find second jellyfish hash file at: " << args.db2_path << "; please check the path and try again." << endl << endl;
         return 1;
     }
 
     // Check input file exists
-    if (!args.db3_path.empty() && !bfs::exists(args.db3_path) && !bfs::symbolic_link_exists(args.db3_path))
-    {
+    if (!args.db3_path.empty() && !bfs::exists(args.db3_path) && !bfs::symbolic_link_exists(args.db3_path)) {
         cerr << endl << "Could not find third jellyfish hash file at: " << args.db3_path << "; please check the path and try again." << endl << endl;
         return 1;
     }
 
     // Create the sequence coverage object
-    Comp<hash_query_t> comp(&args);
+    Comp comp(args);
 
     // Output comp parameters to stderr if requested
     if (args.verbose)
         comp.printVars(cerr);
 
     // Do the work
-    comp.do_it();
+    comp.execute();
 
     // Send main matrix to output file
     std::ostringstream main_mx_out_path;
@@ -91,8 +90,7 @@ int kat::compStart(int argc, char *argv[])
     main_mx_out_stream.close();
 
     // Output ends matricies if required
-    if (!(args.db3_path.empty()))
-    {
+    if (!(args.db3_path.empty())) {
         // Ends matrix
         std::ostringstream ends_mx_out_path;
         ends_mx_out_path << args.output_prefix << "_ends.mx";

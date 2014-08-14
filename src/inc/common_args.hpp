@@ -32,21 +32,18 @@ using std::vector;
 using std::string;
 
 
-namespace kat
-{
+namespace kat {
     const bool DEFAULT_VERBOSE = false;
 
     /**
      * @brief The BaseArgs class
      */
-    class BaseArgs
-    {
+    class BaseArgs {
     private:
         uint16_t min_args;
         vector<string> remaining_args;
 
-        void noArgsError()
-        {
+        void noArgsError() {
             const char* suffix = min_args > 1 ? "s" : "";
 
             std::ostringstream error_msg;
@@ -126,82 +123,69 @@ namespace kat
          */
         bool verbose;
 
-
         /**
          * Default constructor
          */
-        BaseArgs(uint16_t _min_args) : verbose(DEFAULT_VERBOSE)
-        {
+        BaseArgs(uint16_t _min_args) : verbose(DEFAULT_VERBOSE) {
             min_args = _min_args;
         }
 
-        /**
-         * @brief ~BaseArgs Virtual destructor makes this class abstract
-         */
-        virtual ~BaseArgs() {}
-
+        virtual ~BaseArgs() {
+        }
 
         /**
          * @brief error The error message to show for this program if the user didn't enter the correct syntax
          * to run the program.  Also displays usage information.
          * @param msg The error message to display
          */
-        void error(const char *msg)
-        {
+        void error(const char *msg) {
             cerr << endl
-                 << "Error: " << msg << endl << endl
-                 << usage() << endl << endl
-                 << "Use --help for more information" << endl << endl;
+                    << "Error: " << msg << endl << endl
+                    << usage() << endl << endl
+                    << "Use --help for more information" << endl << endl;
             exit(1);
         }
-
 
         /**
          * @brief help A help message describing the syntax for all the programs options and arguments
          * @return
          */
-        const string help()
-        {
+        const string help() {
             std::ostringstream help_str;
 
             help_str << shortDescription() << endl << endl
-                     << longDescription() << endl << endl
-                     << "Options (default value in (), *required):" << endl
-                     << optionsDescription() << endl
-                     << " -v, --verbose               Outputs additional information to stderr" << endl
-                     << "     --usage                 Usage" << endl
-                     << "     --help                  This message" << endl;
+                    << longDescription() << endl << endl
+                    << "Options (default value in (), *required):" << endl
+                    << optionsDescription() << endl
+                    << " -v, --verbose               Outputs additional information to stderr" << endl
+                    << "     --usage                 Usage" << endl
+                    << "     --help                  This message" << endl;
 
             return help_str.str();
         }
 
-
-        void parse(int argc, char *argv[])
-        {
+        void parse(int argc, char *argv[]) {
             int c;
             int help_flag = 0;
             int usage_flag = 0;
 
             // Check that something is on the command line
-            if (argc <= 1)
-            {
+            if (argc <= 1) {
                 // Will terminate here
                 noArgsError();
             }
 
-            static struct option long_common_options[] =
-            {
-                {"verbose",         no_argument,        0,           'v'},
-                {"help",            no_argument,        &help_flag,  1},
-                {"usage",           no_argument,        &usage_flag, 1},
+            static struct option long_common_options[] ={
+                {"verbose", no_argument, 0, 'v'},
+                {"help", no_argument, &help_flag, 1},
+                {"usage", no_argument, &usage_flag, 1},
                 {0, 0, 0, 0}
             };
 
 
             vector<option>* long_options = longOptions();
 
-            for(uint8_t i = 0; i < 4; i++)
-            {
+            for (uint8_t i = 0; i < 4; i++) {
                 long_options->push_back(long_common_options[i]);
             }
 
@@ -214,12 +198,11 @@ namespace kat
             strcpy(short_options, short_options_str.str().c_str());
 
             // Loop through the options
-            while (true)
-            {
+            while (true) {
                 /* getopt_long stores the option index here. */
                 int index = -1;
 
-                c = getopt_long (argc, argv, short_options, long_options_array, &index);
+                c = getopt_long(argc, argv, short_options, long_options_array, &index);
 
                 /* Detect the end of the options. */
                 if (c == -1)
@@ -227,50 +210,46 @@ namespace kat
 
                 bool base_arg_found = false;
 
-                switch (c)
-                {
-                case ':':
-                    cerr << "Missing required argument for "
-                              << (index == -1 ? string(1, (char)optopt) : string(long_options_array[index].name))
-                              << endl;
-                    exit(1);
-                case '?':
-                    cerr << "Use --usage or --help for some help" << endl << endl;
-                    exit(1);
-                case 'v':
-                    verbose = true;
-                    base_arg_found = true;
-                    break;
+                switch (c) {
+                    case ':':
+                        cerr << "Missing required argument for "
+                                << (index == -1 ? string(1, (char) optopt) : string(long_options_array[index].name))
+                                << endl;
+                        exit(1);
+                    case '?':
+                        cerr << "Use --usage or --help for some help" << endl << endl;
+                        exit(1);
+                    case 'v':
+                        verbose = true;
+                        base_arg_found = true;
+                        break;
                 }
 
-                if (!base_arg_found)
-                {
+                if (!base_arg_found) {
                     string option_arg = optarg == NULL ? "" : string(optarg);
                     setOption(c, option_arg);
                 }
             }
 
             // If the help flag was set print usage and help then exit
-            if (help_flag)
-            {
+            if (help_flag) {
                 // Clean up
                 delete long_options;
 
                 cout << endl
-                     << usage() << endl << endl
-                     << help() << endl;
+                        << usage() << endl << endl
+                        << help() << endl;
                 exit(0);
             }
 
             // If the usage flag was set print usage then exit
-            if (usage_flag)
-            {
+            if (usage_flag) {
                 // Clean up
                 delete long_options;
 
                 cout << endl
-                     << usage() << endl << endl
-                     << "Use --help for more information." << endl << endl;
+                        << usage() << endl << endl
+                        << "Use --help for more information." << endl << endl;
                 exit(0);
             }
 
@@ -278,8 +257,7 @@ namespace kat
             int nb_remaining_args = argc - optind;
 
             // Check we still have the required number left, if not error then exit
-            if(nb_remaining_args < min_args)
-            {
+            if (nb_remaining_args < min_args) {
                 // Clean up
                 delete long_options;
 
@@ -288,8 +266,7 @@ namespace kat
             }
 
             // Add all remaining arguments to file list
-            for(uint16_t i = 0; i < nb_remaining_args; i++)
-            {
+            for (uint16_t i = 0; i < nb_remaining_args; i++) {
                 remaining_args.push_back(string(argv[optind++]));
             }
 
@@ -300,8 +277,7 @@ namespace kat
             delete long_options;
         }
 
-        void print()
-        {
+        void print() {
             if (verbose)
                 cerr << "Verbose flag set" << endl;
 

@@ -35,8 +35,9 @@ using std::string;
 using kat::PlotArgs;
 
 // Start point
-int kat::plotStart(int argc, char *argv[])
-{
+
+int kat::plotStart(int argc, char *argv[]) {
+    
     // Parse args
     PlotArgs args(argc, argv);
 
@@ -44,24 +45,15 @@ int kat::plotStart(int argc, char *argv[])
     string mode = args.getMode();
 
     // Pass remaining args to relevant child tool
-    if (mode.compare(KAT_PLOT_DENSITY_ID) == 0)
-    {
+    if (mode.compare(KAT_PLOT_DENSITY_ID) == 0) {
         kat::densityPlotStart(args.getModeArgC(), args.getModeArgV());
-    }
-    else if (mode.compare(KAT_PLOT_PROFILE_ID) == 0)
-    {
+    } else if (mode.compare(KAT_PLOT_PROFILE_ID) == 0) {
         kat::profilePlotStart(args.getModeArgC(), args.getModeArgV());
-    }
-    else if (mode.compare(KAT_PLOT_SPECTRA_CN_ID) == 0)
-    {
+    } else if (mode.compare(KAT_PLOT_SPECTRA_CN_ID) == 0) {
         kat::spectraCnPlotStart(args.getModeArgC(), args.getModeArgV());
-    }
-    else if (mode.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0)
-    {
+    } else if (mode.compare(KAT_PLOT_SPECTRA_HIST_ID) == 0) {
         kat::spectraHistPlotStart(args.getModeArgC(), args.getModeArgV());
-    }
-    else if (mode.compare(KAT_PLOT_SPECTRA_MX_ID) == 0)
-    {
+    } else if (mode.compare(KAT_PLOT_SPECTRA_MX_ID) == 0) {
         kat::spectraMxPlotStart(args.getModeArgC(), args.getModeArgV());
     }
 

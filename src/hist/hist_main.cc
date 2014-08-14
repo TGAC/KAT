@@ -43,8 +43,9 @@ using kat::HistArgs;
 using kat::Histogram;
 
 // Start point
-int kat::histStart(int argc, char *argv[])
-{
+
+int kat::histStart(int argc, char *argv[]) {
+    
     // Parse args
     HistArgs args(argc, argv);
 
@@ -53,15 +54,14 @@ int kat::histStart(int argc, char *argv[])
         args.print();
 
     // Check input file exists
-    if (!bfs::exists(args.db_path) && !bfs::symbolic_link_exists(args.db_path))
-    {
+    if (!bfs::exists(args.db_path) && !bfs::symbolic_link_exists(args.db_path)) {
         cerr << endl << "Could not find jellyfish hash file at: " << args.db_path << "; please check the path and try again." << endl << endl;
         return 1;
     }
 
     // Setup output channel
     ofstream_default out(args.output.c_str(), std::cout);
-    if(!out.good())
+    if (!out.good())
         die << "Error opening output file '" << args.output << "'" << err::no;
 
     // Create the sequence coverage object

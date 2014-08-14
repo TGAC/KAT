@@ -33,100 +33,90 @@ using std::cerr;
 using std::endl;
 using std::ostringstream;
 
-namespace kat
-{
-    const string DEFAULT_OUTPUT_TYPE        = "png";
+namespace kat {
+    const string DEFAULT_OUTPUT_TYPE = "png";
 
-
-    class BasePlotArgs : public BaseArgs
-    {
+    class BasePlotArgs : public BaseArgs {
     private:
-        bool    title_mod;
-        bool    x_label_mod;
-        bool    y_label_mod;
+        bool title_mod;
+        bool x_label_mod;
+        bool y_label_mod;
 
 
     protected:
 
         // These methods override BaseArgs virtual methods
 
-        const string optionsDescription() const
-        {
+        const string optionsDescription() const {
             ostringstream help_str;
 
             help_str << " -p, --output_type=string    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected" << endl
-                     << "                             please ensure your gnuplot installation can export pdf files. (\"" << DEFAULT_OUTPUT_TYPE << "\")" << endl
-                     << " -o, --output=string         Output file (\"" << defaultOutputPrefix() << "." << DEFAULT_OUTPUT_TYPE << "\")" << endl
-                     << " -t, --title=string          Title for plot (\"" << defaultTitle() << "\")" << endl
-                     << " -i, --x_label=string        Label for the x-axis (\"" << defaultXLabel() << "\")" << endl
-                     << " -j, --y_label=string        Label for the y-axis (\"" << defaultYLabel() << "\")" << endl
-                     << " -w, --width=uint16          Width of canvas (" << defaultWidth() << ")" << endl
-                     << " -h, --height=uint16         Height of canvas (" << defaultHeight() << ")";
+                    << "                             please ensure your gnuplot installation can export pdf files. (\"" << DEFAULT_OUTPUT_TYPE << "\")" << endl
+                    << " -o, --output=string         Output file (\"" << defaultOutputPrefix() << "." << DEFAULT_OUTPUT_TYPE << "\")" << endl
+                    << " -t, --title=string          Title for plot (\"" << defaultTitle() << "\")" << endl
+                    << " -i, --x_label=string        Label for the x-axis (\"" << defaultXLabel() << "\")" << endl
+                    << " -j, --y_label=string        Label for the y-axis (\"" << defaultYLabel() << "\")" << endl
+                    << " -w, --width=uint16          Width of canvas (" << defaultWidth() << ")" << endl
+                    << " -h, --height=uint16         Height of canvas (" << defaultHeight() << ")";
 
             return help_str.str();
         }
 
-        vector<option>* longOptions()
-        {
-            static struct option long_options_array[] =
-            {
-                {"output_type",     required_argument,  0, 'p'},
-                {"output",          required_argument,  0, 'o'},
-                {"title",           required_argument,  0, 't'},
-                {"x_label",         required_argument,  0, 'i'},
-                {"y_label",         required_argument,  0, 'j'},
-                {"width",           required_argument,  0, 'w'},
-                {"height",          required_argument,  0, 'h'}
+        vector<option>* longOptions() {
+            static struct option long_options_array[] ={
+                {"output_type", required_argument, 0, 'p'},
+                {"output", required_argument, 0, 'o'},
+                {"title", required_argument, 0, 't'},
+                {"x_label", required_argument, 0, 'i'},
+                {"y_label", required_argument, 0, 'j'},
+                {"width", required_argument, 0, 'w'},
+                {"height", required_argument, 0, 'h'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 7; i++)
-            {
+            for (uint8_t i = 0; i < 7; i++) {
                 long_options->push_back(long_options_array[i]);
             }
 
             return long_options;
         }
 
-        string shortOptions()
-        {
+        string shortOptions() {
             return "o:p:t:i:j:w:h:";
         }
 
         void setOption(int c, string& option_arg) {
 
-            switch(c)
-            {
-            case 'o':
-                output_arg = string(option_arg);
-                break;
-            case 'p':
-                output_type = string(option_arg);
-                break;
-            case 't':
-                title = string(option_arg);
-                title_mod = true;
-                break;
-            case 'i':
-                x_label = string(option_arg);
-                x_label_mod = true;
-                break;
-            case 'j':
-                y_label = string(option_arg);
-                y_label_mod = true;
-                break;
-            case 'w':
-                width = strToInt16(option_arg);
-                break;
-            case 'h':
-                height = strToInt16(option_arg);
-                break;
+            switch (c) {
+                case 'o':
+                    output_arg = string(option_arg);
+                    break;
+                case 'p':
+                    output_type = string(option_arg);
+                    break;
+                case 't':
+                    title = string(option_arg);
+                    title_mod = true;
+                    break;
+                case 'i':
+                    x_label = string(option_arg);
+                    x_label_mod = true;
+                    break;
+                case 'j':
+                    y_label = string(option_arg);
+                    y_label_mod = true;
+                    break;
+                case 'w':
+                    width = strToInt16(option_arg);
+                    break;
+                case 'h':
+                    height = strToInt16(option_arg);
+                    break;
             }
         }
 
-        const string currentStatus() const
-        {
+        const string currentStatus() const {
             ostringstream status;
 
             status << "Output type: " << output_type.c_str() << endl;
@@ -142,11 +132,11 @@ namespace kat
 
     public:
 
-        string  output_type;
-        string  output_arg;
-        string  title;
-        string  x_label;
-        string  y_label;
+        string output_type;
+        string output_arg;
+        string title;
+        string x_label;
+        string y_label;
         uint16_t width;
         uint16_t height;
 
@@ -154,8 +144,7 @@ namespace kat
          * @brief BasePlotArgs Constructor.  Requires the number of trailing arguments to be specified for this plotting tool.
          * @param min_args
          */
-        BasePlotArgs(uint16_t min_args) : BaseArgs(min_args), output_type(DEFAULT_OUTPUT_TYPE), output_arg("")
-        {
+        BasePlotArgs(uint16_t min_args) : BaseArgs(min_args), output_type(DEFAULT_OUTPUT_TYPE), output_arg("") {
             title_mod = false;
             x_label_mod = false;
             y_label_mod = false;
@@ -164,7 +153,8 @@ namespace kat
         /**
          * @brief ~BasePlotArgs Virtual destructor makes this class abstract
          */
-        virtual ~BasePlotArgs() {}
+        virtual ~BasePlotArgs() {
+        }
 
 
         // **************************************************
@@ -178,22 +168,27 @@ namespace kat
         virtual const uint16_t defaultWidth() const = 0;
         virtual const uint16_t defaultHeight() const = 0;
 
-
         /**
          * @brief determineOutputPath Work out the output path to use (either user specified or auto generated)
          * @return
          */
-        string determineOutputPath()
-        {
+        string determineOutputPath() {
             std::ostringstream output_str;
             output_str << defaultOutputPrefix() << "." << output_type;
             return output_arg.empty() ? output_str.str() : output_arg;
         }
 
+        const bool titleModified() {
+            return title_mod;
+        }
 
-        const bool titleModified()    { return title_mod; }
-        const bool xLabelModified()   { return x_label_mod; }
-        const bool yLabelModified()   { return y_label_mod; }
+        const bool xLabelModified() {
+            return x_label_mod;
+        }
+
+        const bool yLabelModified() {
+            return y_label_mod;
+        }
 
     };
 }

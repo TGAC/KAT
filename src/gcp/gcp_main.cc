@@ -38,14 +38,13 @@ using kat::GcpArgs;
 using kat::Gcp;
 
 // Start point
-int kat::gcpStart(int argc, char *argv[])
-{
+
+int kat::gcpStart(int argc, char *argv[]) {
     // Parse args
     GcpArgs args(argc, argv);
 
     // Check input file exists
-    if (!bfs::exists(args.db_arg) && !bfs::symbolic_link_exists(args.db_arg))
-    {
+    if (!bfs::exists(args.db_arg) && !bfs::symbolic_link_exists(args.db_arg)) {
         cerr << endl << "Could not find jellyfish hash file at: " << args.db_arg << "; please check the path and try again." << endl << endl;
         return 1;
     }

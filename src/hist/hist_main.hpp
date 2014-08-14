@@ -17,7 +17,6 @@
 
 #pragma once
 
-namespace kat
-{
+namespace kat {
     int histStart(int argc, char *argv[]);
 }

@@ -34,8 +34,9 @@ using kat::SectArgs;
 using kat::Sect;
 
 // Start point
-int kat::sectStart(int argc, char *argv[])
-{
+
+int kat::sectStart(int argc, char *argv[]) {
+    
     // Parse args
     SectArgs args(argc, argv);
 
@@ -44,14 +45,12 @@ int kat::sectStart(int argc, char *argv[])
         args.print();
 
     // Check input files exist
-    if (!bfs::exists(args.jellyfish_hash) && !bfs::symbolic_link_exists(args.jellyfish_hash))
-    {
+    if (!bfs::exists(args.jellyfish_hash) && !bfs::symbolic_link_exists(args.jellyfish_hash)) {
         cerr << endl << "Could not find jellyfish hash file at: " << args.jellyfish_hash << "; please check the path and try again." << endl << endl;
         return 2;
     }
 
-    if (!bfs::exists(args.seq_file) && !bfs::symbolic_link_exists(args.seq_file))
-    {
+    if (!bfs::exists(args.seq_file) && !bfs::symbolic_link_exists(args.seq_file)) {
         cerr << endl << "Could not find sequence file at: " << args.seq_file << "; please check the path and try again." << endl << endl;
         return 3;
     }

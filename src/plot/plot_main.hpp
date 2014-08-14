@@ -17,8 +17,7 @@
 
 #pragma once
 
-namespace kat
-{
+namespace kat {
     int plotStart(int argc, char *argv[]);
 }
 

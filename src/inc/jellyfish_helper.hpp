@@ -20,6 +20,15 @@
 #include <string.h>
 #include <iostream>
 
+using std::ifstream;
+using std::ostream;
+using std::string;
+using std::cerr;
+using std::endl;
+
+#include <boost/shared_ptr.hpp>
+
+using boost::shared_ptr;
 
 #include <jellyfish/err.hpp>
 #include <jellyfish/file_header.hpp>
@@ -28,82 +37,101 @@
 #include <jellyfish/jellyfish.hpp>
 #include <fstream_default.hpp>
 
-using std::ifstream;
-using std::ostream;
-using std::string;
-using std::cerr;
-using std::endl;
-
+using jellyfish::mer_dna;
 using jellyfish::file_header;
 using jellyfish::mapped_file;
 
-class JellyfishHelper
-{
-private:
-    const string jfHashPath;
-    ifstream in;
-    file_header header;
-    binary_reader reader;
-    mapped_file map;
-    binary_query query;
-    ostream* out;
+namespace kat {
 
-public:
-
-    JellyfishHelper(const string _jfHashPath) :
-        jfHashPath(_jfHashPath) {
-            
-        in = std::ifstream(jfHashPath, std::ios::in|std::ios::binary);
-        header = file_header(in);
-        
-        if(!in.good())
-            die << "Failed to parse header of file '" << jfHashPath << "'";
-        
-        mer_dna::k(header.key_len() / 2);
-        
-        // Output jellyfish has details if requested
-        if (out) {
-            header.write(*out);
-        }
-        
-        if (header.format() == "bloomcounter") {
-            cerr << "KAT does not currently support bloom counted kmer hashes.  Please create a binary hash with jellyfish and use that instead.";
-            throw;
-        }
-        else if(header.format() == binary_dumper::format) {
-            
-            // Create a binary reader for the input file, configured using the header properties
-            reader = binary_reader(in, &header);
-            
-            // Create a binary map for the input file
-            map = mapped_file(jfHashPath);
-            
-            query = binary_query(map.base() + header.offset(), header.key_len(), header.counter_len(), header.matrix(),
-                               header.size() - 1, map.length() - header.offset());
+    enum AccessMethod {
+        SEQUENTIAL,
+        RANDOM
+    };
     
-        } else if(header.format() == text_dumper::format) {
-            cerr << "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.";            
-            throw;
-        } else {
-            cerr << "Unknown format '" << header.format() << "'";
-            throw;
+    class JellyfishHelper {
+    private:
+        string jfHashPath;
+        AccessMethod accessMethod;
+        shared_ptr<ifstream> in;
+        file_header header;
+        shared_ptr<binary_reader> reader;
+        shared_ptr<mapped_file> map;
+        shared_ptr<binary_query> query;
+        ostream* out;
+
+    public:
+
+        JellyfishHelper(string _jfHashPath, AccessMethod _accessMethod) :
+        jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
+
+            in = shared_ptr<ifstream>(new ifstream(jfHashPath, std::ios::in | std::ios::binary));
+            header = file_header(*in);
+
+            if (!in->good())
+                die << "Failed to parse header of file '" << jfHashPath << "'";
+
+            mer_dna::k(header.key_len() / 2);
+
+            // Output jellyfish has details if requested
+            if (out) {
+                header.write(*out);
+            }
+
+            if (header.format() == "bloomcounter") {
+                cerr << "KAT does not currently support bloom counted kmer hashes.  Please create a binary hash with jellyfish and use that instead.";
+                throw;
+            } else if (header.format() == binary_dumper::format) {
+
+                // Create a binary reader for the input file, configured using the header properties
+                reader = shared_ptr<binary_reader>(new binary_reader(*in, &header));
+
+                // Create a binary map for the input file
+                map = shared_ptr<mapped_file>(new mapped_file(jfHashPath.c_str()));
+
+                if (accessMethod == SEQUENTIAL) {
+                    map->sequential();
+                }
+                else {
+                    map->random();
+                }
+                
+                query = shared_ptr<binary_query>(new binary_query(map->base() + header.offset(), 
+                        header.key_len(), header.counter_len(), header.matrix(),
+                        header.size() - 1, map->length() - header.offset()));
+
+                
+            } else if (header.format() == text_dumper::format) {
+                cerr << "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.";
+                throw;
+            } else {
+                cerr << "Unknown format '" << header.format() << "'";
+                throw;
+            }
+
         }
 
-    }
+        virtual ~JellyfishHelper() {
 
-    ~JellyfishHelper() {       
-        in.close();
-    }
+            if (in)
+                in->close();
+        }
 
-    unsigned int getKeyLen() {
-        return header.key_len();
-    }
-    
-    uint64_t getCount(mer_dna& kmer) {
-        if(header.canonical())
-            kmer.canonicalize();
-        return query[kmer];
-    }
+        unsigned int getKeyLen() {
+            return header.key_len();
+        }
+
+        uint64_t getCount(mer_dna& kmer) {
+            if (header.canonical())
+                kmer.canonicalize();
+            return (*query)[kmer];
+        }
+        
+        void setOut(ostream* out) {
+            this->out = out;
+        }
+
+        
 
 
-};
+    };
+}

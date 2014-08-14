@@ -33,88 +33,65 @@
 
 using std::ostream;
 
-namespace kat
-{
-    template<typename hash_t>
-    class Gcp : public thread_exec
-    {
+namespace kat {
+
+    class Gcp {
     private:
 
         // Input args
-        const GcpArgs                   *args;
-        const uint64_t                  nb_slices;
-        counter_t                       slice_id;
-
+        GcpArgs args;
+        const uint64_t nb_slices;
+        counter_t slice_id;
 
         // Variables that live for the lifetime of this object
-        JellyfishHelper                 *jfh;
-        hash_t                          *hash;		// Jellyfish hash
-
+        shared_ptr<JellyfishHelper> jfh;
+        
         // Stores results
-        ThreadedSparseMatrix<uint64_t>  *gcp_mx;  // Stores cumulative base count for each sequence where GC and CVG are binned
+        shared_ptr<ThreadedSparseMatrix> gcp_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
 
     public:
-        Gcp(GcpArgs *_args) :
-            args(_args), nb_slices(args->threads_arg * 100)
-        {
+
+        Gcp(GcpArgs& _args) :
+        args(_args), nb_slices(args.threads_arg * 100) {
             // Setup handle to jellyfish hash
-            jfh = new JellyfishHelper(args->db_arg);
-
-            // No output as yet
-            gcp_mx = NULL;
+            jfh = shared_ptr<JellyfishHelper>(new JellyfishHelper(args.db_arg));
         }
 
-        ~Gcp()
-        {
-            if (jfh)
-                delete jfh;
-
-            jfh = NULL;
-
-
-            if (gcp_mx)
-                delete gcp_mx;
-
-            gcp_mx = NULL;
+        ~Gcp() {            
         }
 
-
-        void do_it()
-        {
+        void execute() {
+            
             // Setup output stream for jellyfish initialisation
-            std::ostream* out_stream = args->verbose ? &cerr : (std::ostream*)0;
+            std::ostream* out_stream = args.verbose ? &cerr : (std::ostream*)0;
 
             // Load the jellyfish hash for sequential access
             hash = jfh->loadHash(true, out_stream);
 
             // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
-            gcp_mx = new ThreadedSparseMatrix<uint64_t>(hash->get_mer_len(), args->cvg_bins + 1, args->threads_arg);
+            gcp_mx = shared_ptr<ThreadedSparseMatrix>(new ThreadedSparseMatrix(hash->get_mer_len(), args->cvg_bins + 1, args->threads_arg));
 
             // Process batch with worker threads
             // Process each sequence is processed in a different thread.
             // In each thread lookup each K-mer in the hash
-            exec_join(args->threads_arg);
+            exec_join(args.threads_arg);
 
             // Merge the contamination matrix
             gcp_mx->mergeThreadedMatricies();
         }
 
-        void start(int th_id)
-        {
-            SparseMatrix<uint64_t>* mx = gcp_mx->getThreadMatrix(th_id);
+        void start(int th_id) {
+            SM64 mx = gcp_mx->getThreadMatrix(th_id);
 
-            for(size_t i = slice_id++; i < nb_slices; i = slice_id++)
-            {
+            for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
                 typename hash_t::iterator it = hash->iterator_slice(i, nb_slices);
-                while(it.next())
-                {
+                while (it.next()) {
                     string kmer = it.get_dna_str();
                     uint64_t kmer_count = it.get_val();
 
                     uint16_t g_or_c = 0;
 
-                    for(uint16_t i = 0; i < kmer.length(); i++)
-                    {
+                    for (uint16_t i = 0; i < kmer.length(); i++) {
                         char c = kmer[i];
 
                         if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
@@ -122,9 +99,9 @@ namespace kat
                     }
 
                     // Apply scaling factor
-                    uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double)kmer_count * args->cvg_scale);
+                    uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * args->cvg_scale);
 
-                    if(cvg_pos > args->cvg_bins)
+                    if (cvg_pos > args->cvg_bins)
                         mx->inc(g_or_c, args->cvg_bins, 1);
                     else
                         mx->inc(g_or_c, cvg_pos, 1);
@@ -132,21 +109,19 @@ namespace kat
             }
         }
 
-
-        void printVars(ostream &out)
-        {
+        void printVars(ostream &out) {
             out << "GCP parameters:" << endl;
-            out << " - Hash File Path: " << args->db_arg << endl;
+            out << " - Hash File Path: " << args.db_arg << endl;
             out << " - Hash: " << (hash ? "loaded" : "not loaded") << endl;
-            out << " - Threads: " << args->threads_arg << endl;
+            out << " - Threads: " << args.threads_arg << endl;
         }
 
         // Print K-mer comparison matrix
-        void printMainMatrix(ostream &out)
-        {
-            SparseMatrix<uint64_t>* mx = gcp_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << args->db_arg << endl;
+        void printMainMatrix(ostream &out) {
+            SM64 mx = gcp_mx->getFinalMatrix();
+
+            out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << args.db_arg << endl;
             out << mme::KEY_X_LABEL << "K-mer multiplicity" << endl;
             out << mme::KEY_Y_LABEL << "GC count" << endl;
             out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
