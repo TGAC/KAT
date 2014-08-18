@@ -44,21 +44,32 @@ string createLineStyleStr(uint16_t i, const char* colour)
     return line_style_str.str();
 }
 
-string createSinglePlotString(const string data_file, uint16_t idx, uint16_t level_count)
+string createSinglePlotString(const string data_file, uint16_t idx, uint16_t level_count, bool cumulative)
 {
+    int16_t mxCol = idx+1;
+            
     ostringstream col_str;
-    col_str << idx+1;
+    col_str << mxCol;
 
     int limit = level_count+1;
 
     ostringstream sum_str;
-    sum_str << "(sum[i=" << limit << ":900] column(i))";
+    sum_str << "(sum[i=" << (limit+1) << ":900] column(i))";
 
-    string col = (idx == limit) ? sum_str.str() : col_str.str();
-
+    string col = "";
+    if (cumulative) {
+        ostringstream cumul_str;
+        cumul_str << " (cum_sum($" << mxCol << "))";
+        col = cumul_str.str();
+    }
+    else {
+        col = (idx == limit) ? sum_str.str() : col_str.str();
+    }
+    
     string plus = (idx == limit) ? " +" : "";
-
+    
     ostringstream plot_str;
+    
     plot_str << "'" << data_file << "' u " << col << " t \"" << idx << "x" << plus << "\"";
     return plot_str.str();
 }
@@ -155,19 +166,25 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
 
         spectra_cn_plot.set_title(args.title);
         spectra_cn_plot.set_xlabel(args.x_label);
-        spectra_cn_plot.set_ylabel(args.y_label);
+        spectra_cn_plot.set_ylabel(args.cumulative ? "Cumulative " + args.y_label : args.y_label);
 
 
         // Get plot strings
         ostringstream plot_str;
 
-
-
+        
+        if (args.cumulative) {
+            plot_str << "a = 0" << endl 
+                     << "cum_sum(x)=(a=a+x,a)" << endl;
+        }
+        
+        plot_str << "plot ";
+        
         bool first = true;
 
-        if (request_absent)
+        if (request_absent && !args.cumulative)
         {
-            plot_str << createSinglePlotString(args.mx_arg, 0, level_count) << " lt rgb \"black\"";
+            plot_str << createSinglePlotString(args.mx_arg, 0, level_count, false) << " lt rgb \"black\"";
             first = false;
         }
 
@@ -178,14 +195,15 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
             else
                 plot_str << ", ";
 
-
             double col_frac = 1.0 - ((double)(i-1) / (double)(level_count-1));
 
-            plot_str << createSinglePlotString(args.mx_arg, i, level_count) << " lt palette frac " << std::fixed << col_frac;
+            plot_str << "a=0,";
+            plot_str << createSinglePlotString(args.mx_arg, i, level_count, args.cumulative) << " lt palette frac " << std::fixed << col_frac;
         }
 
         // Do the rest
-        plot_str << ", " << createSinglePlotString(args.mx_arg, level_count + 1, level_count) << " lt rgb \"gray\"";
+        plot_str << ", " << createSinglePlotString(args.mx_arg, level_count + 1, level_count, args.cumulative) << " lt rgb \"gray\"";
+
 
         spectra_cn_plot.cmd("set palette rgb 33,13,10");
         spectra_cn_plot.cmd("unset colorbox");
@@ -197,12 +215,10 @@ int kat::spectraCnPlotStart(int argc, char *argv[])
         spectra_cn_plot.set_xrange(0, args.x_max);
         spectra_cn_plot.set_yrange(0, args.y_max);
 
-        ostringstream plot_cmd;
-        plot_cmd << "plot " << plot_str.str();
-        spectra_cn_plot.cmd(plot_cmd.str());
+        spectra_cn_plot.cmd(plot_str.str());
 
         if (args.verbose)
-            cerr << "Gnuplot command: " << plot_cmd.str() << endl;
+            cerr << "Gnuplot command: " << plot_str.str() << endl;
     }
 
 

@@ -3,7 +3,7 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.5],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
+AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.6],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
 
 # I built this with autoconf 2.59 and have only tested it on 2.59, 2.63 and 2.69 systems.  You can change this but I don't
 # make any guarentees
@@ -96,6 +96,7 @@ DX_INIT_DOXYGEN([$PACKAGE_NAME],[doxygen.cfg])
 # Check some (almost) standard functionality is present that we require to run KAT.
 #AC_CHECK_HEADER_STDBOOL  # Commented this out because this was introduced after 2.63.
 AC_FUNC_ERROR_AT_LINE
+AC_FUNC_STRERROR_R
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 AC_TYPE_INT64_T
@@ -150,7 +151,7 @@ if test ${JELLYFISH_PATH} != 0; then
 fi
 
 # Jellyfish uses pkg-config so use this special macro to ensure that it's present and then we set the environment vars separately
-PKG_CHECK_MODULES([jellyfish], [jellyfish-1.1 = 1.1.10])
+PKG_CHECK_MODULES([jellyfish], [jellyfish-1.1 >= 1.1.10 jellyfish-1.1 <= 1.1.11])
 
 # Note that we are adding the jellyfish cflags to the cppflags var.  This is intentional!  Check the jellyfish package config file to see why. There is also some stuff on the jellyfish_LIBS var that should be on LDFLAGS but it will still work this way so I'll leave it
 AM_CPPFLAGS="$jellyfish_CFLAGS $AM_CPPFLAGS"
