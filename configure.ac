@@ -189,7 +189,7 @@ CPPFLAGS="${AM_CPPFLAGS} ${CPPFLAGS}"
 # for generating source code documentation.
 
 AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
-         echo "Jellyfish is required to compile and run KAT.  Please make sure jellyfish-1.1.10 is installed on your system."
+         echo "Jellyfish is required to compile and run KAT.  Please make sure jellyfish-1.1.11 is installed on your system."
          echo "You can optionally use the \"--with-jellyfish=prefix\" argument to specify the root directory of your jellyfish installation."
          exit -1],
 	[])
