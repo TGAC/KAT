@@ -36,6 +36,7 @@ namespace kat
     const int32_t   DEFAULT_Y_MAX           = 1000000;
     const uint16_t  DEFAULT_DUPLICATION     = 5;
     const bool      DEFAULT_IGNORE_ABSENT   = false;
+    const bool      DEFAULT_CUMULATIVE      = false;
 
     const uint16_t MIN_ARGS = 1;
 
@@ -76,7 +77,8 @@ namespace kat
                      << " -a, --ignore_absent         Ignore K-mers in reads but absent from the assembly" << endl
                      << " -m, --max_dup=uint16        Maximum duplication level to show in plots (5)" << endl
                      << " -c, --columns=string        Comma separated string listing columns to show in plot.  If used, this" << endl
-                     << "                             overrides \"--ignore_absent\" and \"--columns\"";
+                     << "                             overrides \"--ignore_absent\" and \"--columns\"" << endl
+                     << " -u, --cumulative            Plot cumulative distribution of kmers";
 
             return help_str.str();
         }
@@ -90,11 +92,12 @@ namespace kat
                 {"ignore_absent",   no_argument,        0, 'a'},
                 {"max_dup",         required_argument,  0, 'm'},
                 {"columns",         required_argument,  0, 'c'},
+                {"cumulative",      no_argument,        0, 'u'}
             };
 
             vector<option>* long_options = BasePlotArgs::longOptions();
 
-            for(uint8_t i = 0; i < 5; i++)
+            for(uint8_t i = 0; i < 6; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -104,7 +107,7 @@ namespace kat
 
         string shortOptions()
         {
-            return BasePlotArgs::shortOptions() + "x:y:a:m:c";
+            return BasePlotArgs::shortOptions() + "x:y:am:c:u";
         }
 
         void setOption(int c, string& option_arg) {
@@ -128,6 +131,9 @@ namespace kat
             case 'c':
                 columns = string(optarg);
                 break;
+            case 'u':
+                cumulative = true;
+                break;
             }
         }
 
@@ -148,7 +154,8 @@ namespace kat
                     << "Y Max: " << y_max << endl
                     << "Max duplication level to plot: " << max_duplication << endl
                     << "Columns to plot: " << columns << endl
-                    << "Ignore absent K-mers: " << ignore_absent << endl;
+                    << "Ignore absent K-mers: " << ignore_absent << endl
+                    << "Cumulative mode: " << cumulative << endl;
 
             return status.str().c_str();
         }
@@ -161,10 +168,13 @@ namespace kat
         bool        ignore_absent;
         uint16_t    max_duplication;
         string      columns;
+        bool        cumulative;
 
         // Default constructor
         SpectraCnPlotArgs() : BasePlotArgs(MIN_ARGS),
-            mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), columns("")
+            mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), 
+            ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), 
+            columns(""), cumulative(DEFAULT_CUMULATIVE)
         {
             title = defaultTitle();
             x_label = defaultXLabel();
@@ -175,7 +185,9 @@ namespace kat
 
         // Constructor that parses command line options
         SpectraCnPlotArgs(int argc, char* argv[]) : BasePlotArgs(MIN_ARGS),
-            mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), columns("")
+            mx_arg(""), x_max(DEFAULT_X_MAX), y_max(DEFAULT_Y_MAX), 
+            ignore_absent(DEFAULT_IGNORE_ABSENT), max_duplication(DEFAULT_DUPLICATION), 
+            columns(""), cumulative(DEFAULT_CUMULATIVE)
         {
             title = defaultTitle();
             x_label = defaultXLabel();
