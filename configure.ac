@@ -129,11 +129,6 @@ AC_ARG_WITH([jellyfish],
 		[Use this if your jellyfish installation prefix was set to a non-standard location.])],
         [JELLYFISH_PATH=$withval], [JELLYFISH_PATH=0])
 
-AC_ARG_WITH([seqan],
-        [AS_HELP_STRING([--with-seqan=PREFIX],
-		[Use this if your seqan installation prefix was set to a non-standard location.])],
-        [SEQAN_PATH=$withval], [SEQAN_PATH=0])
-
 AC_ARG_WITH([boost],
         [AS_HELP_STRING([--with-boost=PREFIX],
 		[Use this if your boost installation prefix was set to a non-standard location. Boost is only required for running unit tests.  i.e. if boost is not available you will not be able to run [make check] but KAT will probably still work fine.])],
@@ -162,11 +157,6 @@ else
 fi
 
 
-# Update vars for seqan if required
-if test ${SEQAN_PATH} != 0; then
-    	AM_CPPFLAGS="-I${SEQAN_PATH}/include $AM_CPPFLAGS"
-fi
-
 # Update vars for boost if required (make sure this goes last as it's only to be used for testing)
 if test ${BOOST_PATH} != 0; then
     	TEST_CPPFLAGS="-I${BOOST_PATH}/include $AM_CPPFLAGS"
@@ -193,15 +183,6 @@ AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
          echo "You can optionally use the \"--with-jellyfish=prefix\" argument to specify the root directory of your jellyfish installation."
          exit -1],
 	[])
-
-
-AC_CHECK_HEADER([seqan/sequence.h], [], [
-         echo "Seqan is required to compile and run KAT.  Please make sure seqan is installed on your system."
-         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment"
-         echo "variable then please re-run \"./configure\".  You can optionally use the \"--with-seqan=prefix\" argument"
-         echo "to specify the root directory of your seqan installation."
-         exit -1],
-         [])
 
 # Restore the previous CPPFLAGS
 CPPFLAGS=$OLD_CPPFLAGS
