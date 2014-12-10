@@ -119,7 +119,7 @@ AC_CHECK_HEADERS([getopt.h])
 
 
 # Check pthreads exists
-AC_CHECK_LIB(pthread, pthread_exit)
+AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
 
 # Allow users to specify custom directories for jellyfish, boost and seqan.  This might save some users from having to set the environment variables manually.
