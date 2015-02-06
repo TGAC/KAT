@@ -27,7 +27,7 @@ Generic installation description can be found in the INSTALL file. Short summary
   - Ensure these tools are correctly installed and available on your system:
       - gcc tool chain
       - make
-      - jellyfish = V1.1.10 or V1.1.11 - http://www.cbcb.umd.edu/software/jellyfish/Jellyfish **IMPORTANT NOTE**: Please use jellyfish V1.1, we currently do not support jellyfish 2.   We will update KAT to support newer versions of jellyfish in due course.
+      - jellyfish = V1.1.10 or V1.1.11 - http://www.cbcb.umd.edu/software/jellyfish/jellyfish-1.1.11.tar.gz **IMPORTANT NOTE**: Please use jellyfish V1.1, we currently do not support jellyfish 2.   We will update KAT to support newer versions of jellyfish in due course.
       - seqan >= V1.4.1 - http://www.seqan.de
       - gnuplot (required for plotting at runtime, must be available on the path to use this functionality) - http://www.gnuplot.info
   - If you cloned the git repository you must first run "./autogen.sh" to create the configure and make files for your project.  Do not worry if this fails due to missing dependencies at this stage.  If you downloaded a source code distribution tarball then you can skip this step.
