@@ -3,7 +3,7 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.6],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
+AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.7],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
 
 # I built this with autoconf 2.59 and have only tested it on 2.59, 2.63 and 2.69 systems.  You can change this but I don't
 # make any guarentees
@@ -119,7 +119,7 @@ AC_CHECK_HEADERS([getopt.h])
 
 
 # Check pthreads exists
-AC_CHECK_LIB(pthread, pthread_exit)
+AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
 
 # Allow users to specify custom directories for jellyfish, boost and seqan.  This might save some users from having to set the environment variables manually.
@@ -128,11 +128,6 @@ AC_ARG_WITH([jellyfish],
 	[AS_HELP_STRING([--with-jellyfish=PREFIX],
 		[Use this if your jellyfish installation prefix was set to a non-standard location.])],
         [JELLYFISH_PATH=$withval], [JELLYFISH_PATH=0])
-
-AC_ARG_WITH([seqan],
-        [AS_HELP_STRING([--with-seqan=PREFIX],
-		[Use this if your seqan installation prefix was set to a non-standard location.])],
-        [SEQAN_PATH=$withval], [SEQAN_PATH=0])
 
 AC_ARG_WITH([boost],
         [AS_HELP_STRING([--with-boost=PREFIX],
@@ -162,11 +157,6 @@ else
 fi
 
 
-# Update vars for seqan if required
-if test ${SEQAN_PATH} != 0; then
-    	AM_CPPFLAGS="-I${SEQAN_PATH}/include $AM_CPPFLAGS"
-fi
-
 # Update vars for boost if required (make sure this goes last as it's only to be used for testing)
 if test ${BOOST_PATH} != 0; then
     	TEST_CPPFLAGS="-I${BOOST_PATH}/include $AM_CPPFLAGS"
@@ -194,20 +184,11 @@ AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
          exit -1],
 	[])
 
-
-AC_CHECK_HEADER([seqan/sequence.h], [], [
-         echo "Seqan is required to compile and run KAT.  Please make sure seqan is installed on your system."
-         echo "If seqan is installed but the headers are not currently available through the CPPFLAGS environment"
-         echo "variable then please re-run \"./configure\".  You can optionally use the \"--with-seqan=prefix\" argument"
-         echo "to specify the root directory of your seqan installation."
-         exit -1],
-         [])
-
 # Restore the previous CPPFLAGS
 CPPFLAGS=$OLD_CPPFLAGS
 
-MAIN_LIBS="${JELLYFISH_LIB} ${LIBS}"
-TEST_LIBS="${BOOST_LIB} ${JELLYFISH_LIB} ${LIBS}"
+MAIN_LIBS="${PTHREAD_CFLAGS} ${JELLYFISH_LIB} ${LIBS}"
+TEST_LIBS="${BOOST_LIB} ${PTHREAD_CFLAGS} ${JELLYFISH_LIB} ${LIBS}"
 
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_CXXFLAGS])

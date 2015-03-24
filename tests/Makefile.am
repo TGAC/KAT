@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # additional include paths necessary to compile the C++ library
-AM_CPPFLAGS=-I$(top_srcdir)/src/inc -I$(top_srcdir)/src @TEST_CPPFLAGS@ @AM_CPPFLAGS@
+AM_CPPFLAGS=-I$(top_srcdir)/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @TEST_CPPFLAGS@ @AM_CPPFLAGS@
 AM_CXXFLAGS=-Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor @AM_CXXFLAGS@
 LIBS=@TEST_LIBS@
 
