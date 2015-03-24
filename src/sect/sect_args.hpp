@@ -41,6 +41,7 @@ namespace kat
     const bool      DEFAULT_CVG_LOG         = false;
     const bool      DEFAULT_BOTH_STRANDS    = false;
     const bool      DEFAULT_NO_COUNT_STATS  = false;
+    const bool      DEFAULT_MEDIAN          = false;
 
     const uint16_t MIN_ARGS = 1;
 
@@ -89,7 +90,9 @@ namespace kat
                      << "                             counting then output from sect will be unpredicatable (" << DEFAULT_BOTH_STRANDS << ")." << endl
                      << " -n, --no_count_stats        Tells SECT not to output count stats.  Sometimes when using SECT on read files" << endl
                      << "                             the output can get very large.  When flagged this just outputs summary stats for" << endl
-                     << "                             each sequence.";
+                     << "                             each sequence." << endl
+                     << " -m, --median                When calculating average sequence coverage, use median rather than the mean kmer" << endl
+                     << "                             frequency.";
 
             return help_str.str();
         }
@@ -105,12 +108,13 @@ namespace kat
                 {"cvg_logscale",    no_argument,        0, 'l'},
                 {"threads",         required_argument,  0, 't'},
                 {"both_strands",    no_argument,        0, 'C'},
-                {"no_count_stats",  no_argument,        0, 'n'}
+                {"no_count_stats",  no_argument,        0, 'n'},
+                {"median",          no_argument,        0, 'm'}
             };
 
             vector<option>* long_options = new vector<option>();
 
-            for(uint8_t i = 0; i < 8; i++)
+            for(uint8_t i = 0; i < 9; i++)
             {
                 long_options->push_back(long_options_array[i]);
             }
@@ -151,6 +155,9 @@ namespace kat
             case 'n':
                 no_count_stats = true;
                 break;
+            case 'm':
+                median = true;
+                break;
             }
         }
 
@@ -170,7 +177,9 @@ namespace kat
                    << "Threads requested: " << threads_arg << endl
                    << "Jellyfish hash: " << jellyfish_hash << endl
                    << "Output prefix: " << output_prefix << endl
-                   << "Jellyfish hash double stranded: " << both_strands << endl;
+                   << "Jellyfish hash double stranded: " << both_strands << endl
+                   << "Do NOT output count stats: " << no_count_stats << endl
+                   << "Use median (rather than mean) for average kmer coverage: " << median << endl;
 
             return status.str().c_str();
         }
@@ -185,19 +194,20 @@ namespace kat
         uint16_t    threads_arg;
         bool        both_strands;
         bool        no_count_stats;
+        bool        median;
 
         // Default constructor
         SectArgs() : BaseArgs(MIN_ARGS),
             seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
             cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS),
-            no_count_stats(DEFAULT_NO_COUNT_STATS)
+            no_count_stats(DEFAULT_NO_COUNT_STATS), median(DEFAULT_MEDIAN)
         {}
 
         // Constructor that parses command line options
         SectArgs(int argc, char* argv[]) : BaseArgs(MIN_ARGS),
             seq_file(""), output_prefix(DEFAULT_OUTPUT_PREFIX), gc_bins(DEFAULT_GC_BINS), cvg_bins(DEFAULT_CVG_BINS),
             cvg_logscale(DEFAULT_CVG_LOG), threads_arg(DEFAULT_THREADS), both_strands(DEFAULT_BOTH_STRANDS),
-            no_count_stats(DEFAULT_NO_COUNT_STATS)
+            no_count_stats(DEFAULT_NO_COUNT_STATS), median(DEFAULT_MEDIAN)
         {
             parse(argc, argv);
         }

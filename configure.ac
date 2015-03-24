@@ -3,7 +3,7 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.6],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
+AC_INIT([Kmer Analysis Toolkit (KAT)],[1.0.7],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
 
 # I built this with autoconf 2.59 and have only tested it on 2.59, 2.63 and 2.69 systems.  You can change this but I don't
 # make any guarentees
@@ -187,8 +187,8 @@ AC_CHECK_HEADER([jellyfish/hash.hpp], [], [
 # Restore the previous CPPFLAGS
 CPPFLAGS=$OLD_CPPFLAGS
 
-MAIN_LIBS="${JELLYFISH_LIB} ${LIBS}"
-TEST_LIBS="${BOOST_LIB} ${JELLYFISH_LIB} ${LIBS}"
+MAIN_LIBS="${PTHREAD_CFLAGS} ${JELLYFISH_LIB} ${LIBS}"
+TEST_LIBS="${BOOST_LIB} ${PTHREAD_CFLAGS} ${JELLYFISH_LIB} ${LIBS}"
 
 AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_CXXFLAGS])

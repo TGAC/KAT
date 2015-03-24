@@ -438,7 +438,7 @@ namespace kat
 
             uint64_t seqLength = seq.length();
             uint64_t nbCounts = seqLength - kmer + 1;
-            double mean_cvg = 0.0;
+            double average_cvg = 0.0;
 
             if (seqLength < kmer)
             {
@@ -473,9 +473,19 @@ namespace kat
 
                 (*counts)[index] = seqCounts;
 
-                // Assumes simple mean calculation for sequence coverage for now... plug in Bernardo's method later.
-                mean_cvg = (double)sum / (double)nbCounts;
-                (*coverages)[index] = mean_cvg;
+                if (args->median) {
+                    
+                    // Create a copy of the counts, and sort it first, then take median value
+                    vector<uint64_t> sortedSeqCounts = *seqCounts;                    
+                    std::sort(sortedSeqCounts.begin(), sortedSeqCounts.end());
+                    average_cvg = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);                    
+                }
+                else {
+                    // Calculate the mean
+                    average_cvg = (double)sum / (double)nbCounts;                    
+                }
+                
+                (*coverages)[index] = average_cvg;
 
             }
 
@@ -502,10 +512,10 @@ namespace kat
             double gc_perc = ((double)(gs + cs)) / ((double)(seqLength - ns));
             (*gcs)[index] = gc_perc;
 
-            double log_cvg = args->cvg_logscale ? log10(mean_cvg) : mean_cvg;
+            double log_cvg = args->cvg_logscale ? log10(average_cvg) : average_cvg;
 
             // Assume log_cvg 5 is max value
-            double compressed_cvg = args->cvg_logscale ? log_cvg * (args->cvg_bins / 5.0) : mean_cvg * 0.1;
+            double compressed_cvg = args->cvg_logscale ? log_cvg * (args->cvg_bins / 5.0) : average_cvg * 0.1;
 
             uint16_t x = gc_perc * args->gc_bins;  // Convert double to 1.dp
             uint16_t y = compressed_cvg >= args->cvg_bins ? args->cvg_bins - 1 : compressed_cvg;      // Simply cap the y value
