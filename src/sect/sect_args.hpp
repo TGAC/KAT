@@ -124,7 +124,7 @@ namespace kat
 
         string shortOptions()
         {
-            return "s:o:x:y:lt:Cn";
+            return "s:o:x:y:lt:Cnm";
         }
 
         void setOption(int c, string& option_arg) {
