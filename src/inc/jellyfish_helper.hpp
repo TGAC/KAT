@@ -66,7 +66,8 @@ namespace kat {
             header = file_header(*in);
 
             if (!in->good())
-                die << "Failed to parse header of file '" << jfHashPath << "'";
+                cerr << "Failed to parse header of file '" << jfHashPath << "'";
+                throw;
 
             mer_dna::k(header.key_len() / 2);
 

@@ -10,3 +10,11 @@
 /stamp-h1
 /ltmain.sh
 /aclocal.m4
+/compile
+/config.guess
+/config.sub
+/depcomp
+/install-sh
+/missing
+/test-driver
+/libjellyfish-2.0.la
