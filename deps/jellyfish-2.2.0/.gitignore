@@ -1,1 +1,11 @@
 *.h.in~
+/build-aux/
+/autom4te.cache/
+/libtool
+*.0.pc
+/config.status
+/config.log
+/config.h
+/Makefile
+/stamp-h1
+/ltmain.sh

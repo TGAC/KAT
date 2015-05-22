@@ -1,11 +1,19 @@
 AC_INIT([jellyfish], [2.2.0], [gmarcais@umd.edu])
+
+# Put auxillary build scripts in 'build-aux' directory
+AC_CONFIG_AUX_DIR([build-aux])
+
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects foreign parallel-tests color-tests])
 AM_SILENT_RULES([yes])
+AM_PROG_AR
 AC_CONFIG_SRCDIR([jellyfish])
 AC_CONFIG_HEADERS([config.h])
 AC_PROG_LIBTOOL
+
+LT_INIT
+LT_PREREQ([2.4.2])
 
 # Change default compilation flags
 AC_SUBST([ALL_CXXFLAGS], [-std=c++0x])
