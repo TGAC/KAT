@@ -22,7 +22,9 @@ AC_CONFIG_MACRO_DIR([m4])
 # machine if you want to regenerate 'the Makefile.in's.  If you're looking at this comment in the 'configure' 
 # script then this the am__api_version, will be set to whatever I used to create this file.  Or it might be 
 # whatever you used if you made it yourself with autoconf (or autoreconf, or the autogen.sh script)
-AM_INIT_AUTOMAKE([1.11 foreign -Wall no-define])
+AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define])
+
+AM_SILENT_RULES([yes])
 
 # Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
 AC_LANG_CPLUSPLUS
@@ -45,7 +47,11 @@ AX_CXX_COMPILE_STDCXX_11(,[mandatory])
 # Create the 'install-sh' script, which is used as the 'install' make target
 AC_PROG_INSTALL
 
+AM_PROG_AR
+AC_PROG_LIBTOOL
 
+LT_INIT
+LT_PREREQ([2.4.2])
 
 ######################################################################
 # Debug compilation support.
