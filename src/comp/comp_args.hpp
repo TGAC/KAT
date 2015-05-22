@@ -22,14 +22,14 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
-
-#include <common_args.hpp>
-#include <str_utils.hpp>
-
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::vector;
+
+#include <common_args.hpp>
+#include <str_utils.hpp>
+
 
 namespace kat {
     const double DEFAULT_D1_SCALE = 1.0;

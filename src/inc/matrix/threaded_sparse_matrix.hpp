@@ -18,9 +18,8 @@
 #pragma once
 
 #include <stdint.h>
-
-#include <boost/shared_ptr.hpp>
-using boost::shared_ptr;
+#include <memory>
+using std::shared_ptr;
 
 #include "sparse_matrix.hpp"
 

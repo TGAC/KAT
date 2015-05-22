@@ -22,6 +22,14 @@
 #include <stdint.h>
 #include <vector>
 #include <math.h>
+#include <memory>
+using std::vector;
+using std::string;
+using std::cerr;
+using std::endl;
+using std::ostream;
+using std::shared_ptr;
+using std::make_shared;
 
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/sparse_matrix.hpp>
@@ -31,11 +39,6 @@
 
 #include "comp_args.hpp"
 
-using std::vector;
-using std::string;
-using std::cerr;
-using std::endl;
-using std::ostream;
 
 namespace kat {
 
@@ -186,10 +189,10 @@ namespace kat {
                 cerr << "Setting up comp tool..." << endl;
 
             // Setup handles to load hashes
-            jfh1 = shared_ptr<JellyfishHelper>(new JellyfishHelper(args.db1_path));
-            jfh2 = shared_ptr<JellyfishHelper>(new JellyfishHelper(args.db2_path));
+            jfh1 = make_shared<JellyfishHelper>(args.db1_path, AccessMethod::RANDOM);
+            jfh2 = make_shared<JellyfishHelper>(args.db2_path, AccessMethod::RANDOM);
             jfh3 = !(args.db3_path.empty()) ?
-                    shared_ptr<JellyfishHelper>(new JellyfishHelper(args.db3_path)) :
+                    make_shared<JellyfishHelper>(args.db3_path, AccessMethod::RANDOM) :
                     NULL;
 
             // Create the final K-mer counter matrices
@@ -201,24 +204,20 @@ namespace kat {
                 if (args.verbose)
                     cerr << " - Setting up matrices for hash 3" << endl;
 
-                ends_matrix = shared_ptr<ThreadedSparseMatrix>(
-                        new ThreadedSparseMatrix(args.d1_bins, args.d2_bins, args.threads));
-                middle_matrix = shared_ptr<ThreadedSparseMatrix>(
-                        new ThreadedSparseMatrix(args.d1_bins, args.d2_bins, args.threads));
-                mixed_matrix = shared_ptr<ThreadedSparseMatrix>(
-                        new ThreadedSparseMatrix(args.d1_bins, args.d2_bins, args.threads));
+                ends_matrix = make_shared<ThreadedSparseMatrix>(args.d1_bins, args.d2_bins, args.threads);
+                middle_matrix = make_shared<ThreadedSparseMatrix>(args.d1_bins, args.d2_bins, args.threads);
+                mixed_matrix = make_shared<ThreadedSparseMatrix>(args.d1_bins, args.d2_bins, args.threads);
             }
 
             // Create the final comp counters
-            final_comp_counters = shared_ptr<CompCounters>(
-                    new CompCounters(args.db1_path.c_str(), args.db2_path.c_str(), args.db3_path.c_str()));
+            final_comp_counters = make_shared<CompCounters>(
+                    args.db1_path.c_str(), args.db2_path.c_str(), args.db3_path.c_str());
 
             // Create the comp counters for each thread
-            thread_comp_counters = shared_ptr<vector<shared_ptr<CompCounters> > >(
-                    new vector<shared_ptr<CompCounters> >(args.threads));
+            thread_comp_counters = make_shared<vector<shared_ptr<CompCounters>>>(args.threads);
             for (int i = 0; i < args.threads; i++) {
-                thread_comp_counters->push_back(shared_ptr<CompCounters>(
-                        new CompCounters(args.db1_path.c_str(), args.db2_path.c_str(), args.db3_path.c_str())));
+                thread_comp_counters->push_back(make_shared<CompCounters>(
+                        args.db1_path.c_str(), args.db2_path.c_str(), args.db3_path.c_str()));
             }
 
             if (args.verbose)
@@ -237,11 +236,11 @@ namespace kat {
             std::ostream* out_stream = args.verbose ? &cerr : (std::ostream*)0;
 
             // Load the hashes
-            hash1 = jfh1.loadHash(true, out_stream);
+            /*hash1 = jfh1.loadHash(true, out_stream);
             hash2 = jfh2.loadHash(false, out_stream);
 
             if (jfh3)
-                hash3 = jfh3.loadHash(false, out_stream);
+                hash3 = jfh3.loadHash(false, out_stream);*/
 
             // Check K-mer lengths are the same for both hashes.  We can't continue if they are not.
             if (jfh1->getKeyLen() != jfh2->getKeyLen()) {
@@ -282,7 +281,7 @@ namespace kat {
             shared_ptr<CompCounters> comp_counters = (*thread_comp_counters)[th_id];
 
             // Setup iterator for this thread's chunk of hash1
-            typename hash_t::iterator hash1Iterator = hash1->iterator_slice(th_id, args.threads);
+            typename hash_t::iterator hash1Iterator = jfh1->getReader()->->pos() hash1->iterator_slice(th_id, args.threads);
 
             // Go through this thread's slice for hash1
             while (hash1Iterator.next()) {

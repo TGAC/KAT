@@ -19,16 +19,14 @@
 
 #include <string.h>
 #include <iostream>
-
+#include <memory>
 using std::ifstream;
 using std::ostream;
 using std::string;
 using std::cerr;
 using std::endl;
-
-#include <boost/shared_ptr.hpp>
-
-using boost::shared_ptr;
+using std::shared_ptr;
+using std::make_shared;
 
 #include <jellyfish/err.hpp>
 #include <jellyfish/file_header.hpp>
@@ -62,7 +60,7 @@ namespace kat {
     public:
 
         JellyfishHelper(string _jfHashPath, AccessMethod _accessMethod) :
-        jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
+            jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
 
             in = shared_ptr<ifstream>(new ifstream(jfHashPath, std::ios::in | std::ios::binary));
             header = file_header(*in);
@@ -95,9 +93,13 @@ namespace kat {
                     map->random();
                 }
                 
-                query = shared_ptr<binary_query>(new binary_query(map->base() + header.offset(), 
-                        header.key_len(), header.counter_len(), header.matrix(),
-                        header.size() - 1, map->length() - header.offset()));
+                query = make_shared<binary_query>(
+                        map->base() + header.offset(), 
+                        header.key_len(), 
+                        header.counter_len(), 
+                        header.matrix(),
+                        header.size() - 1, 
+                        map->length() - header.offset());
 
                 
             } else if (header.format() == text_dumper::format) {
@@ -130,7 +132,9 @@ namespace kat {
             this->out = out;
         }
 
-        
+        shared_ptr<binary_reader> getReader() {
+            return reader;
+        }
 
 
     };

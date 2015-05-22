@@ -26,6 +26,12 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+using std::string;
+using std::stringstream;
+using std::istringstream;
+using std::ostringstream;
+using std::ifstream;
+using std::vector;
 
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
@@ -39,14 +45,6 @@ namespace bfs = boost::filesystem;
 
 #include "spectra_mx_plot_args.hpp"
 #include "spectra_mx_plot_main.hpp"
-
-using std::string;
-using std::stringstream;
-using std::istringstream;
-using std::ostringstream;
-using std::ifstream;
-using std::vector;
-
 using kat::SpectraMxPlotArgs;
 
 string getDataFromList(string mx_path, string list)

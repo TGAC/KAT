@@ -21,6 +21,8 @@
 
 #include <iostream>
 #include <stdio.h>
+using std::cout;
+using std::cerr;
 
 #include <jellyfish/mer_counting.hpp>
 
@@ -30,10 +32,6 @@ namespace bfs = boost::filesystem;
 #include "gcp.hpp"
 #include "gcp_args.hpp"
 #include "gcp_main.hpp"
-
-using std::cout;
-using std::cerr;
-
 using kat::GcpArgs;
 using kat::Gcp;
 

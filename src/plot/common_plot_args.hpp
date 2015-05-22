@@ -22,16 +22,15 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
-
-#include <common_args.hpp>
-#include <str_utils.hpp>
-
 using std::vector;
 using std::string;
 using std::cout;
 using std::cerr;
 using std::endl;
 using std::ostringstream;
+
+#include <common_args.hpp>
+#include <str_utils.hpp>
 
 namespace kat {
     const string DEFAULT_OUTPUT_TYPE = "png";

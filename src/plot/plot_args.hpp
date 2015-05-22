@@ -22,15 +22,16 @@
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
+using std::string;
+using std::cerr;
+using std::cout;
+using std::endl;
 
 #include <common_args.hpp>
 
 #include "plot_main.hpp"
 
-using std::string;
-using std::cerr;
-using std::cout;
-using std::endl;
+
 
 namespace kat {
     const string KAT_PLOT_DENSITY_ID = "density";

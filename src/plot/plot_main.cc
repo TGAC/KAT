@@ -20,6 +20,7 @@
 #endif
 
 #include <string.h>
+using std::string;
 
 #include "density/density_plot_main.hpp"
 #include "profile/profile_plot_main.hpp"
@@ -29,9 +30,6 @@
 
 #include "plot_args.hpp"
 #include "plot_main.hpp"
-
-using std::string;
-
 using kat::PlotArgs;
 
 // Start point

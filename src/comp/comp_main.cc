@@ -24,22 +24,18 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
-
-#include <boost/filesystem.hpp>
-#include <boost/shared_ptr.hpp>
-
-namespace bfs = boost::filesystem;
-using boost::shared_ptr;
-
-#include "comp.hpp"
-#include "comp_args.hpp"
-#include "comp_main.hpp"
-
+#include <vector>
 using std::vector;
 using std::string;
 using std::cout;
 using std::cerr;
 
+#include <boost/filesystem.hpp>
+namespace bfs = boost::filesystem;
+
+#include "comp.hpp"
+#include "comp_args.hpp"
+#include "comp_main.hpp"
 using kat::CompArgs;
 using kat::Comp;
 

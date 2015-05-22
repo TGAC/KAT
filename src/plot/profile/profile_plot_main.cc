@@ -26,6 +26,12 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+using std::string;
+using std::stringstream;
+using std::istringstream;
+using std::ostringstream;
+using std::vector;
+using std::endl;
 
 #include <gnuplot/gnuplot_i.hpp>
 #include <str_utils.hpp>
@@ -35,14 +41,6 @@ namespace bfs = boost::filesystem;
 
 #include "profile_plot_args.hpp"
 #include "profile_plot_main.hpp"
-
-using std::string;
-using std::stringstream;
-using std::istringstream;
-using std::ostringstream;
-using std::vector;
-using std::endl;
-
 using kat::ProfilePlotArgs;
 
 namespace kat

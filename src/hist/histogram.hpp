@@ -24,10 +24,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
-
-#include <boost/shared_ptr.hpp>
-
-using boost::shared_ptr;
+#include <memory>
+using std::shared_ptr;
 
 #include <matrix/matrix_metadata_extractor.hpp>
 

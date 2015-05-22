@@ -26,6 +26,12 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+using std::string;
+using std::stringstream;
+using std::istringstream;
+using std::ostringstream;
+using std::ifstream;
+using std::vector;
 
 #include <gnuplot/gnuplot_i.hpp>
 #include <str_utils.hpp>
@@ -35,14 +41,6 @@ namespace bfs = boost::filesystem;
 
 #include "spectra_hist_plot_args.hpp"
 #include "spectra_hist_plot_main.hpp"
-
-using std::string;
-using std::stringstream;
-using std::istringstream;
-using std::ostringstream;
-using std::ifstream;
-using std::vector;
-
 using kat::SpectraHistPlotArgs;
 
 

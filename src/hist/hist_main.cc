@@ -24,6 +24,10 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+using std::vector;
+using std::string;
+using std::cout;
+using std::cerr;
 
 #include <jellyfish/compacted_hash.hpp>
 
@@ -33,12 +37,6 @@ namespace bfs = boost::filesystem;
 #include "histogram.hpp"
 #include "hist_args.hpp"
 #include "hist_main.hpp"
-
-using std::vector;
-using std::string;
-using std::cout;
-using std::cerr;
-
 using kat::HistArgs;
 using kat::Histogram;
 
