@@ -19,6 +19,9 @@
 
 #include <iostream>
 #include <cmath>
+#include <memory>
+using std::shared_ptr;
+using std::make_shared;
 
 #include <jellyfish/sorted_dumper.hpp>
 
@@ -114,6 +117,11 @@ public:
     is_.read((char*)&val_, val_len_);
     return is_.good();
   }
+  
+  // ****************************************************************
+  // maplesond - Added to enable thread slicing functionality in KAT.
+  // ****************************************************************
+  shared_ptr<RectangularBinaryMatrix> getMatrix() const { return make_shared<RectangularBinaryMatrix>(m_); }
 };
 
 template<typename Key, typename Val>

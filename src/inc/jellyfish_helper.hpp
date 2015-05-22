@@ -33,11 +33,15 @@ using std::make_shared;
 #include <jellyfish/mapped_file.hpp>
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish/jellyfish.hpp>
+#include <jellyfish/large_hash_array.hpp>
+#include <jellyfish/large_hash_iterator.hpp>
 #include <fstream_default.hpp>
 
 using jellyfish::mer_dna;
 using jellyfish::file_header;
 using jellyfish::mapped_file;
+
+typedef jellyfish::large_hash::array_base<uint64_t, uint64_t, ::atomic::gcc, ::allocators::mmap> lha;
 
 namespace kat {
 
@@ -55,6 +59,7 @@ namespace kat {
         shared_ptr<binary_reader> reader;
         shared_ptr<mapped_file> map;
         shared_ptr<binary_query> query;
+        shared_ptr<lha> hash;
         ostream* out;
 
     public:
@@ -62,7 +67,7 @@ namespace kat {
         JellyfishHelper(string _jfHashPath, AccessMethod _accessMethod) :
             jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
 
-            in = shared_ptr<ifstream>(new ifstream(jfHashPath, std::ios::in | std::ios::binary));
+            in = make_shared<ifstream>(jfHashPath, std::ios::in | std::ios::binary);
             header = file_header(*in);
 
             if (!in->good())
@@ -71,7 +76,7 @@ namespace kat {
 
             mer_dna::k(header.key_len() / 2);
 
-            // Output jellyfish has details if requested
+            // Output jellyfish hash details if requested
             if (out) {
                 header.write(*out);
             }
@@ -82,10 +87,10 @@ namespace kat {
             } else if (header.format() == binary_dumper::format) {
 
                 // Create a binary reader for the input file, configured using the header properties
-                reader = shared_ptr<binary_reader>(new binary_reader(*in, &header));
+                reader = make_shared<binary_reader>(*in, &header);
 
                 // Create a binary map for the input file
-                map = shared_ptr<mapped_file>(new mapped_file(jfHashPath.c_str()));
+                map = make_shared<mapped_file>(jfHashPath.c_str());
 
                 if (accessMethod == SEQUENTIAL) {
                     map->sequential();
@@ -102,6 +107,13 @@ namespace kat {
                         header.size() - 1, 
                         map->length() - header.offset());
 
+                hash = make_shared<lha>(
+                        header.size,
+                        header.key_len(),
+                        header.counter_len(),
+                        header.max_reprobe(),
+                        header.matrix());
+        
                 
             } else if (header.format() == text_dumper::format) {
                 cerr << "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.";
@@ -137,6 +149,8 @@ namespace kat {
             return reader;
         }
 
-
+        shared_ptr<lha> getLargeHashArray() {
+            return hash;            
+        }        
     };
 }

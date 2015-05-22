@@ -23,6 +23,7 @@
 #include <vector>
 #include <math.h>
 #include <memory>
+#include <thread>
 using std::vector;
 using std::string;
 using std::cerr;
@@ -30,6 +31,12 @@ using std::endl;
 using std::ostream;
 using std::shared_ptr;
 using std::make_shared;
+using std::thread;
+
+
+#include <jellyfish/large_hash_iterator.hpp>
+using jellyfish::large_hash::array_base::region_iterator;
+
 
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/sparse_matrix.hpp>
@@ -193,7 +200,7 @@ namespace kat {
             jfh2 = make_shared<JellyfishHelper>(args.db2_path, AccessMethod::RANDOM);
             jfh3 = !(args.db3_path.empty()) ?
                     make_shared<JellyfishHelper>(args.db3_path, AccessMethod::RANDOM) :
-                    NULL;
+                    nullptr;
 
             // Create the final K-mer counter matrices
             main_matrix = shared_ptr<ThreadedSparseMatrix>(
@@ -259,7 +266,7 @@ namespace kat {
                     << "Starting threads...";
 
             // Run the threads
-            exec_join(args.threads);
+            startAndJoinThreads(args.threads);
 
             if (args.verbose)
                 cerr << "done." << endl
@@ -271,106 +278,7 @@ namespace kat {
             if (args.verbose)
                 cerr << "done." << endl;
         }
-
-        void start(int th_id) {
-
-            // Get handle to sparse matrix for this thread
-            shared_ptr<SparseMatrix<uint64_t> > thread_matrix = main_matrix->getThreadMatrix(th_id);
-
-            // Get handle on this thread's comp counter
-            shared_ptr<CompCounters> comp_counters = (*thread_comp_counters)[th_id];
-
-            // Setup iterator for this thread's chunk of hash1
-            typename hash_t::iterator hash1Iterator = jfh1->getReader()->->pos() hash1->iterator_slice(th_id, args.threads);
-
-            // Go through this thread's slice for hash1
-            while (hash1Iterator.next()) {
-                // Get the current K-mer count for hash1
-                uint64_t hash1_count = hash1Iterator.get_val();
-
-                // Get the count for this K-mer in hash2 (assuming it exists... 0 if not)
-                uint64_t hash2_count = (*hash2)[hash1Iterator.get_key()];
-
-                // Get the count for this K-mer in hash3 (assuming it exists... 0 if not)
-                uint64_t hash3_count = hash3 ? (*hash3)[hash1Iterator.get_key()] : 0;
-
-                // Increment hash1's unique counters
-                comp_counters->updateHash1Counters(hash1_count, hash2_count);
-
-                // Increment shared counters
-                comp_counters->updateSharedCounters(hash1_count, hash2_count);
-
-                // Scale counters to make the matrix look pretty
-                uint64_t scaled_hash1_count = scaleCounter(hash1_count, args.d1_scale);
-                uint64_t scaled_hash2_count = scaleCounter(hash2_count, args.d2_scale);
-                uint64_t scaled_hash3_count = scaleCounter(hash3_count, args.d2_scale);
-
-                // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
-                if (scaled_hash1_count >= args.d1_bins) scaled_hash1_count = args.d1_bins - 1;
-                if (scaled_hash2_count >= args.d2_bins) scaled_hash2_count = args.d2_bins - 1;
-                if (scaled_hash3_count >= args.d2_bins) scaled_hash3_count = args.d2_bins - 1;
-
-                // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
-                thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
-
-                // Update hash 3 related matricies if hash 3 was provided
-                if (hash3) {
-                    if (scaled_hash2_count == scaled_hash3_count)
-                        ends_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
-                    else if (scaled_hash3_count > 0)
-                        mixed_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
-                    else
-                        middle_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
-                }
-            }
-
-            // Setup iterator for this thread's chunk of hash2
-            // We setup hash2 for random access, so hopefully performance isn't too bad here...
-            // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-            typename hash_t::iterator hash2Iterator = hash2->iterator_slice(th_id, args.threads);
-
-            // Iterate through this thread's slice of hash2
-            while (hash2Iterator.next()) {
-                // Get the current K-mer count for hash2
-                uint64_t hash2_count = hash2Iterator.get_val();
-
-                // Get the count for this K-mer in hash1 (assuming it exists... 0 if not)
-                uint64_t hash1_count = (*hash1)[hash2Iterator.get_key()];
-
-                // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
-                comp_counters->updateHash2Counters(hash1_count, hash2_count);
-
-                // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
-                if (!hash1_count) {
-                    // Scale counters to make the matrix look pretty
-                    uint64_t scaled_hash2_count = scaleCounter(hash2_count, args.d2_scale);
-
-                    // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
-                    if (scaled_hash2_count >= args.d2_bins) scaled_hash2_count = args.d2_bins - 1;
-
-                    // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
-                    thread_matrix->inc(0, scaled_hash2_count, 1);
-                }
-            }
-
-            // Only update hash3 counters if hash3 was provided
-            if (hash3) {
-                // Setup iterator for this thread's chunk of hash3
-                typename hash_t::iterator hash3Iterator = hash3->iterator_slice(th_id, args->threads);
-
-                // Iterate through this thread's slice of hash2
-                while (hash3Iterator.next()) {
-                    // Get the current K-mer count for hash2
-
-                    uint64_t hash3_count = hash3Iterator.get_val();
-
-                    // Increment hash3's unique counters (don't bother with shared counters... we've already done this)
-                    comp_counters->updateHash3Counters(hash3_count);
-                }
-            }
-        }
-
-
+        
 
         // Threaded matrix data
 
@@ -479,6 +387,116 @@ namespace kat {
 
     private:
 
+        void startAndJoinThreads(const uint16_t nbThreads) {
+            
+            thread t[nbThreads];
+            
+            for(int i = 0; i < nbThreads; i++) {
+                t[i] = thread(&Comp::start, this, i);
+            }
+            
+            for(int i = 0; i < nbThreads; i++){
+                t[i].join();
+            }
+        }
+        
+        void start(int th_id) {
+
+            // Get handle to sparse matrix for this thread
+            shared_ptr<SparseMatrix<uint64_t> > thread_matrix = main_matrix->getThreadMatrix(th_id);
+
+            // Get handle on this thread's comp counter
+            shared_ptr<CompCounters> comp_counters = (*thread_comp_counters)[th_id];
+
+            // Setup iterator for this thread's chunk of hash1
+            region_iterator hash1Iterator = jfh1->getLargeHashArray()->region_slice(th_id, args.threads);
+
+            // Go through this thread's slice for hash1
+            while (hash1Iterator.next()) {
+                // Get the current K-mer count for hash1
+                uint64_t hash1_count = hash1Iterator.val();
+
+                // Get the count for this K-mer in hash2 (assuming it exists... 0 if not)
+                uint64_t hash2_count = jfh1->getCount(hash1Iterator.key());
+
+                // Get the count for this K-mer in hash3 (assuming it exists... 0 if not)
+                uint64_t hash3_count = jfh3 != nullptr ? jfh3->getCount(hash1Iterator.key()) : 0;
+
+                // Increment hash1's unique counters
+                comp_counters->updateHash1Counters(hash1_count, hash2_count);
+
+                // Increment shared counters
+                comp_counters->updateSharedCounters(hash1_count, hash2_count);
+
+                // Scale counters to make the matrix look pretty
+                uint64_t scaled_hash1_count = scaleCounter(hash1_count, args.d1_scale);
+                uint64_t scaled_hash2_count = scaleCounter(hash2_count, args.d2_scale);
+                uint64_t scaled_hash3_count = scaleCounter(hash3_count, args.d2_scale);
+
+                // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
+                if (scaled_hash1_count >= args.d1_bins) scaled_hash1_count = args.d1_bins - 1;
+                if (scaled_hash2_count >= args.d2_bins) scaled_hash2_count = args.d2_bins - 1;
+                if (scaled_hash3_count >= args.d2_bins) scaled_hash3_count = args.d2_bins - 1;
+
+                // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
+                thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
+
+                // Update hash 3 related matricies if hash 3 was provided
+                if (jfh3 != nullptr) {
+                    if (scaled_hash2_count == scaled_hash3_count)
+                        ends_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                    else if (scaled_hash3_count > 0)
+                        mixed_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                    else
+                        middle_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                }
+            }
+
+            // Setup iterator for this thread's chunk of hash2
+            // We setup hash2 for random access, so hopefully performance isn't too bad here...
+            // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
+            region_iterator hash2Iterator = jfh2->getLargeHashArray()->region_slice(th_id, args.threads);
+
+            // Iterate through this thread's slice of hash2
+            while (hash2Iterator.next()) {
+                // Get the current K-mer count for hash2
+                uint64_t hash2_count = hash2Iterator.val();
+
+                // Get the count for this K-mer in hash1 (assuming it exists... 0 if not)
+                uint64_t hash1_count = (*jfh1)->getCount(hash2Iterator.key();
+
+                // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
+                comp_counters->updateHash2Counters(hash1_count, hash2_count);
+
+                // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
+                if (!hash1_count) {
+                    // Scale counters to make the matrix look pretty
+                    uint64_t scaled_hash2_count = scaleCounter(hash2_count, args.d2_scale);
+
+                    // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
+                    if (scaled_hash2_count >= args.d2_bins) scaled_hash2_count = args.d2_bins - 1;
+
+                    // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
+                    thread_matrix->inc(0, scaled_hash2_count, 1);
+                }
+            }
+
+            // Only update hash3 counters if hash3 was provided
+            if (jfh3 != nullptr) {
+                // Setup iterator for this thread's chunk of hash3
+                region_iterator hash3Iterator = jfh3->getLargeHashArray()->region_slice(th_id, args->threads);
+
+                // Iterate through this thread's slice of hash2
+                while (hash3Iterator.next()) {
+                    // Get the current K-mer count for hash2
+
+                    uint64_t hash3_count = hash3Iterator.val();
+
+                    // Increment hash3's unique counters (don't bother with shared counters... we've already done this)
+                    comp_counters->updateHash3Counters(hash3_count);
+                }
+            }
+        }
 
         // Scale counters to make the matrix look pretty
 
@@ -493,7 +511,7 @@ namespace kat {
 
             main_matrix->mergeThreadedMatricies();
 
-            if (hash3) {
+            if (jfh3 != nullptr) {
                 ends_matrix->mergeThreadedMatricies();
                 middle_matrix->mergeThreadedMatricies();
                 mixed_matrix->mergeThreadedMatricies();

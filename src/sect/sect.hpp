@@ -23,6 +23,7 @@
 #include <vector>
 #include <math.h>
 #include <memory>
+#include <thread>
 using std::vector;
 using std::string;
 using std::cerr;
@@ -30,6 +31,7 @@ using std::endl;
 using std::stringstream;
 using std::shared_ptr;
 using std::make_shared;
+using std::thread;
 
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
@@ -146,7 +148,7 @@ namespace kat {
                 // Process batch with worker threads
                 // Process each sequence is processed in a different thread.
                 // In each thread lookup each K-mer in the hash
-                //exec_join(args.threads_arg);
+                startAndJoinThreads(args.threads_arg);
 
                 // Output counts for this batch if (not not) requested
                 if (!args.no_count_stats)
@@ -191,15 +193,7 @@ namespace kat {
             }
         }
 
-        void start(int th_id) {
-            // Check to see if we have useful work to do for this thread, return if not
-            if (bucket_size < 1 && th_id >= recordsInBatch) {
-                return;
-            }
-
-            //processInBlocks(th_id);
-            processInterlaced(th_id);
-        }
+        
 
         void printVars(std::ostream &out) {
             out << "SECT parameters:" << endl;
@@ -218,6 +212,29 @@ namespace kat {
 
     private:
 
+        void startAndJoinThreads(const uint16_t nbThreads) {
+            
+            thread t[nbThreads];
+            
+            for(int i = 0; i < nbThreads; i++) {
+                t[i] = thread(&Sect::start, this, i);
+            }
+            
+            for(int i = 0; i < nbThreads; i++){
+                t[i].join();
+            }
+        }
+        
+        void start(int th_id) {
+            // Check to see if we have useful work to do for this thread, return if not
+            if (bucket_size < 1 && th_id >= recordsInBatch) {
+                return;
+            }
+
+            //processInBlocks(th_id);
+            processInterlaced(th_id);
+        }
+        
         void destroyBatchVars() {
             if (counts != NULL) {
                 for (uint16_t i = 0; i < counts->size(); i++) {
