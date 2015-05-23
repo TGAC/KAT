@@ -58,8 +58,7 @@ int kat::spectraHistPlotStart(int argc, char *argv[])
     // Check input files exists
     for(uint16_t i = 0; i < args.histo_paths.size(); i++)
     {
-        if (!bfs::exists(args.histo_paths[i]) && !bfs::symbolic_link_exists(args.histo_paths[i])))
-        {
+        if (!bfs::exists(args.histo_paths[i]) && !bfs::symbolic_link_exists(args.histo_paths[i])) {
             cerr << endl << "Could not find the histogram file at index " << i << ": " << args.histo_paths[i] << "; please check the path and try again." << endl << endl;
             return 1;
         }

@@ -35,13 +35,15 @@ using std::make_shared;
 #include <jellyfish/jellyfish.hpp>
 #include <jellyfish/large_hash_array.hpp>
 #include <jellyfish/large_hash_iterator.hpp>
-#include <fstream_default.hpp>
+#include <jellyfish/storage.hpp>
 
 using jellyfish::mer_dna;
 using jellyfish::file_header;
 using jellyfish::mapped_file;
+typedef jellyfish::large_hash::array_raw<mer_dna> lha;
 
-typedef jellyfish::large_hash::array_base<uint64_t, uint64_t, ::atomic::gcc, ::allocators::mmap> lha;
+#include <fstream_default.hpp>
+
 
 namespace kat {
 
@@ -103,12 +105,14 @@ namespace kat {
                         map->base() + header.offset(), 
                         header.key_len(), 
                         header.counter_len(), 
-                        header.matrix(),
+                        header.matrix(1),
                         header.size() - 1, 
                         map->length() - header.offset());
 
                 hash = make_shared<lha>(
-                        header.size,
+                        map->base() + header.offset(),
+                        map->end() - map->base(),
+                        header.size(),
                         header.key_len(),
                         header.counter_len(),
                         header.max_reprobe(),
@@ -135,10 +139,8 @@ namespace kat {
             return header.key_len();
         }
 
-        uint64_t getCount(mer_dna& kmer) {
-            if (header.canonical())
-                kmer.canonicalize();
-            return (*query)[kmer];
+        uint64_t getCount(const mer_dna& kmer) {
+            return (*query)[kmer.get_canonical()];
         }
         
         void setOut(ostream* out) {
@@ -149,8 +151,8 @@ namespace kat {
             return reader;
         }
 
-        shared_ptr<lha> getLargeHashArray() {
-            return hash;            
+        lha::region_iterator getSlice(int index, uint16_t nbSlices) {
+            return hash->region_slice(index, nbSlices);            
         }        
     };
 }

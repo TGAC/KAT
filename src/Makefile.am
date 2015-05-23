@@ -9,7 +9,7 @@ LIBS=@MAIN_LIBS@
 bin_PROGRAMS = kat
 
 kat_CXXFLAGS = -g3 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=gnu++0x @AM_CXXFLAGS@
-kat_CPPFLAGS = -DCPLUSPLUS @BOOST_CPPFLAGS@ -I$(top_srcdir)/deps/seqan/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src @AM_CPPFLAGS@
+kat_CPPFLAGS = -DCPLUSPLUS @BOOST_CPPFLAGS@ -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src @AM_CPPFLAGS@
 kat_LDFLAGS = @BOOST_LDFLAGS@ @AM_LDFLAGS@
 kat_LDADD = $(top_srcdir)deps/jellyfish-2.2.0/.libs/libjellyfish-2.0.a /@BOOST_LIBS@ @MAIN_LIBS@
 kat_SOURCES = \

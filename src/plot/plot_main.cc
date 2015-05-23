@@ -19,7 +19,7 @@
 #include <config.h>
 #endif
 
-#include <string.h>
+#include <string>
 using std::string;
 
 #include "density/density_plot_main.hpp"

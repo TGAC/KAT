@@ -35,8 +35,6 @@ using std::thread;
 
 
 #include <jellyfish/large_hash_iterator.hpp>
-using jellyfish::large_hash::array_base::region_iterator;
-
 
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/sparse_matrix.hpp>
@@ -409,7 +407,7 @@ namespace kat {
             shared_ptr<CompCounters> comp_counters = (*thread_comp_counters)[th_id];
 
             // Setup iterator for this thread's chunk of hash1
-            region_iterator hash1Iterator = jfh1->getLargeHashArray()->region_slice(th_id, args.threads);
+            lha::region_iterator hash1Iterator = jfh1->getSlice(th_id, args.threads);
 
             // Go through this thread's slice for hash1
             while (hash1Iterator.next()) {
@@ -455,7 +453,7 @@ namespace kat {
             // Setup iterator for this thread's chunk of hash2
             // We setup hash2 for random access, so hopefully performance isn't too bad here...
             // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-            region_iterator hash2Iterator = jfh2->getLargeHashArray()->region_slice(th_id, args.threads);
+            lha::region_iterator hash2Iterator = jfh2->getSlice(th_id, args.threads);
 
             // Iterate through this thread's slice of hash2
             while (hash2Iterator.next()) {
@@ -463,7 +461,7 @@ namespace kat {
                 uint64_t hash2_count = hash2Iterator.val();
 
                 // Get the count for this K-mer in hash1 (assuming it exists... 0 if not)
-                uint64_t hash1_count = (*jfh1)->getCount(hash2Iterator.key();
+                uint64_t hash1_count = jfh1->getCount(hash2Iterator.key());
 
                 // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
                 comp_counters->updateHash2Counters(hash1_count, hash2_count);
@@ -484,7 +482,7 @@ namespace kat {
             // Only update hash3 counters if hash3 was provided
             if (jfh3 != nullptr) {
                 // Setup iterator for this thread's chunk of hash3
-                region_iterator hash3Iterator = jfh3->getLargeHashArray()->region_slice(th_id, args->threads);
+                lha::region_iterator hash3Iterator = jfh3->getSlice(th_id, args.threads);
 
                 // Iterate through this thread's slice of hash2
                 while (hash3Iterator.next()) {

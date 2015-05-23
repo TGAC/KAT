@@ -24,7 +24,6 @@
 using std::cout;
 using std::cerr;
 
-#include <jellyfish/mer_counting.hpp>
 
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
@@ -52,14 +51,14 @@ int kat::gcpStart(int argc, char *argv[]) {
         args.print();
 
     // Create the sequence coverage object
-    Gcp<hash_query_t> gcp(&args);
+    Gcp gcp(args);
 
     // Output seqcvg parameters to stderr if requested
     if (args.verbose)
         gcp.printVars(cerr);
 
     // Do the work (outputs data to files as it goes)
-    gcp.do_it();
+    gcp.execute();
 
     // Send main matrix to output file
     std::ostringstream main_mx_out_path;

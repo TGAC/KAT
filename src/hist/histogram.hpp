@@ -25,21 +25,20 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <thread>
 using std::shared_ptr;
+using std::make_shared;
+using std::thread;
 
 #include <matrix/matrix_metadata_extractor.hpp>
 
-#include <jellyfish/hash.hpp>
-#include <jellyfish/counter.hpp>
-#include <jellyfish/thread_exec.hpp>
-
+#include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>
 
 #include "hist_args.hpp"
 
 namespace kat {
 
-    template<typename hash_t>
     class Histogram : public jellyfish::thread_exec {
     private:
         // Arguments from user
@@ -51,7 +50,7 @@ namespace kat {
         // Internal vars
         uint64_t base, ceil, inc, nb_buckets, nb_slices;
         uint64_t *data;
-        counter_t slice_id;
+        uint64_t slice_id;
 
     public:
 
@@ -65,10 +64,7 @@ namespace kat {
                 cerr << "Setting up histo tool..." << endl;
 
             // Setup handles to load hashes
-            jfh = shared_ptr<JellyfishHelper>(new JellyfishHelper(args.db_path));
-
-            // Ensure hash is null at this stage (we'll load them later)
-            hash = NULL;
+            jfh = make_shared<JellyfishHelper>(args.db_path, AccessMethod::SEQUENTIAL);
 
             // Calculate other vars required for this run
             base = args.calcBase();
@@ -79,7 +75,7 @@ namespace kat {
             data = new uint64_t[args.threads * nb_buckets];
             memset(data, '\0', args.threads * nb_buckets * sizeof (uint64_t));
 
-            if (args->verbose)
+            if (args.verbose)
                 cerr << "Histo tool setup successfully." << endl;
         }
 
@@ -93,54 +89,68 @@ namespace kat {
                 cerr << "Loading hash..." << endl;
             }
 
-            std::ostream* out_stream = arg.verbose ? &cerr : (std::ostream*)0;
-
-            // Load the hashes
-            hash = jfh->loadHash(true, out_stream);
+            std::ostream* out_stream = args.verbose ? &cerr : (std::ostream*)0;
 
             if (args.verbose)
                 cerr << endl
                     << "Hash loaded successfully." << endl
                     << "Starting threads...";
 
-            exec_join(args.threads);
+            startAndJoinThreads(args.threads);
 
             if (args.verbose)
                 cerr << "done." << endl;
         }
-
-        void start(int th_id) {
-            uint64_t *hist = &data[th_id * nb_buckets];
-
-            for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
-                typename hash_t::iterator it = hash->iterator_slice(i, nb_slices);
-                while (it.next()) {
-                    if (it.get_val() < base)
-                        ++hist[0];
-                    else if (it.get_val() > ceil)
-                        ++hist[nb_buckets - 1];
-                    else
-                        ++hist[(it.get_val() - base) / inc];
-                }
-            }
-        }
-
+        
         void print(std::ostream &out) {
             // Output header
-            out << mme::KEY_TITLE << "K-mer spectra for: " << args->db_path << endl;
-            out << mme::KEY_X_LABEL << "K" << hash->get_mer_len() << " multiplicity: " << args->db_path << endl;
-            out << mme::KEY_Y_LABEL << "Number of distinct K" << hash->get_mer_len() << " mers" << endl;
+            out << mme::KEY_TITLE << "K-mer spectra for: " << args.db_path << endl;
+            out << mme::KEY_X_LABEL << "K" << jfh->getKeyLen() << " multiplicity: " << args.db_path << endl;
+            out << mme::KEY_Y_LABEL << "Number of distinct K" << jfh->getKeyLen() << " mers" << endl;
             out << mme::MX_META_END << endl;
 
             uint64_t col = base;
             for (uint64_t i = 0; i < nb_buckets; i++, col += inc) {
                 uint64_t count = 0;
 
-                for (uint_t j = 0; j < args->threads; j++)
+                for (uint16_t j = 0; j < args.threads; j++)
                     count += data[j * nb_buckets + i];
 
                 out << col << " " << count << "\n";
             }
         }
+
+    protected:
+        
+        void startAndJoinThreads(const uint16_t nbThreads) {
+            
+            thread t[nbThreads];
+            
+            for(int i = 0; i < nbThreads; i++) {
+                t[i] = thread(&Histogram::start, this, i);
+            }
+            
+            for(int i = 0; i < nbThreads; i++){
+                t[i].join();
+            }
+        }
+         
+        void start(int th_id) {
+            uint64_t *hist = &data[th_id * nb_buckets];
+
+            for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
+                lha::region_iterator it = jfh->getSlice(i, nb_slices);
+                while (it.next()) {
+                    if (it.val() < base)
+                        ++hist[0];
+                    else if (it.val() > ceil)
+                        ++hist[nb_buckets - 1];
+                    else
+                        ++hist[(it.val() - base) / inc];
+                }
+            }
+        }
+
+        
     };
 }

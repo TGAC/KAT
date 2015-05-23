@@ -102,15 +102,7 @@ namespace kat {
             std::ostream* out_stream = args.verbose ? &cerr : (std::ostream*)0;
 
             // Open file, create RecordReader and check all is well
-            std::fstream in(args.seq_file.c_str(), std::ios::in);
-            seqan::RecordReader<std::fstream, seqan::SinglePass<> > reader(in);
-
-            // Create the AutoSeqStreamFormat object and guess the file format.
-            seqan::AutoSeqStreamFormat formatTag;
-            if (!seqan::guessStreamFormat(reader, formatTag)) {
-                std::cerr << "ERROR: Could not detect file format for: " << args.seq_file << endl;
-                return;
-            }
+            seqan::SeqFileIn reader(args.seq_file.c_str());
 
             // Setup output streams for files
             if (args.verbose)
@@ -137,7 +129,12 @@ namespace kat {
                 if (args.verbose)
                     *out_stream << "Loading Batch of sequences... ";
 
-                res = loadBatch(reader, formatTag, recordsInBatch);
+                seqan::clear(names);
+                seqan::clear(seqs);
+
+                seqan::readRecords(names, seqs, reader, BATCH_SIZE);
+
+                recordsInBatch = seqan::length(names);
 
                 if (args.verbose)
                     *out_stream << "Loaded " << recordsInBatch << " records.  Processing batch... ";
@@ -268,43 +265,6 @@ namespace kat {
             coverages = new vector<double>(batchSize);
             gcs = new vector<double>(batchSize);
             lengths = new vector<uint32_t>(batchSize);
-        }
-
-        uint16_t loadBatch(seqan::RecordReader<std::fstream, seqan::SinglePass<> >& reader, seqan::AutoSeqStreamFormat& formatTag, uint16_t& recordsRead) {
-            // Create object to contain records to process for this batch
-            seqan::clear(names);
-            seqan::clear(seqs);
-
-            int res = 0;
-            uint32_t recordIndex = offset;
-
-            // Read in a batch (Don't use readBatch... this seems to be broken!)
-            // Room for improvement here... we could load the next batch while processing the previous one.
-            // This would require double buffering.
-            for (unsigned i = 0; (res == 0) && (i < BATCH_SIZE) && !seqan::atEnd(reader); ++i) {
-                seqan::CharString id;
-                seqan::CharString seq;
-
-                res = seqan::readRecord(id, seq, reader, formatTag);
-                if (res == 0) {
-                    seqan::appendValue(names, id);
-
-                    // Hopefully auto converts chars not in {A,T,G,C,N} to N
-                    seqan::Dna5String dnaSeq = seq;
-
-                    seqan::appendValue(seqs, dnaSeq);
-
-                    recordIndex++;
-                } else {
-                    cerr << endl << "ERROR: SECT cannot finish processing all records in file.  SECT encountered an error reading file at record: " << recordIndex
-                            << "; Error code: " << res << "; Last sequence ID: " << id << "; Continuing to process currently loaded records." << endl;
-                }
-            }
-
-            // Record the number of records in this batch (may not be BATCH_SIZE) if we are at the end of the file
-            recordsRead = seqan::length(names);
-
-            return res;
         }
 
         void printCounts(std::ostream &out) {

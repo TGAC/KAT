@@ -24,12 +24,11 @@
 #include <stdio.h>
 #include <iostream>
 #include <fstream>
+#include <vector>
 using std::vector;
 using std::string;
 using std::cout;
 using std::cerr;
-
-#include <jellyfish/compacted_hash.hpp>
 
 #include <boost/filesystem.hpp>
 namespace bfs = boost::filesystem;
@@ -59,18 +58,20 @@ int kat::histStart(int argc, char *argv[]) {
 
     // Setup output channel
     ofstream_default out(args.output.c_str(), std::cout);
-    if (!out.good())
-        die << "Error opening output file '" << args.output << "'" << err::no;
+    if (!out.good()) {
+        cerr << "Error opening output file '" << args.output << "'";
+        throw;
+    }
 
     // Create the sequence coverage object
-    Histogram<hash_query_t> histo(&args);
+    Histogram histo(args);
 
     // Output histo parameters to stderr if requested
     //if (args.verbose)
     //    histo.printVars(cerr);
 
     // Do the work
-    histo.do_it();
+    histo.execute();
 
     // Output the results
     histo.print(out);
