@@ -18,3 +18,5 @@
 /missing
 /test-driver
 /libjellyfish-2.0.la
+/.libs/
+/bin/

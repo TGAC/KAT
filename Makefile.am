@@ -34,11 +34,6 @@ deps/jellyfish-2.2.0/test-driver
 # FILES NOT TO INSTALL
 dist_noinst_SCRIPTS = autogen.sh clean.sh
 
-# SCRIPTS TO ADD TO BIN DIR
-dist_bin_SCRIPTS = \
-        scripts/kat_comp_reads.sh \
-        scripts/dist_analysis.py
-
 # SRC DIRS
 SUBDIRS = deps/jellyfish-2.2.0 src tests scripts
 

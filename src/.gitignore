@@ -5,3 +5,4 @@
 /kat
 /*.am.autosave
 /.deps/
+/.libs/
