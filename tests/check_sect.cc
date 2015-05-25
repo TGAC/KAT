@@ -35,9 +35,9 @@ BOOST_AUTO_TEST_CASE( quick )
     args.both_strands = true;
     args.threads_arg = 1;
 
-    Sect<hash_query_t> sect(&args);
+    Sect sect(args);
 
-    sect.do_it();
+    sect.execute();
 
     BOOST_CHECK( true );
 
@@ -57,9 +57,9 @@ BOOST_AUTO_TEST_CASE( length_check )
     args.both_strands = true;
     args.threads_arg = 1;
 
-    Sect<hash_query_t> sect(&args);
+    Sect sect(args);
 
-    sect.do_it();
+    sect.execute();
 
     BOOST_CHECK( true );
 

@@ -32,11 +32,11 @@ BOOST_AUTO_TEST_CASE( COMP )
     args.output_prefix = "temp/comp_test";
     args.threads = 1;
 
-    Comp<hash_query_t> comp(&args);
+    Comp comp(args);
 
-    comp.do_it();
+    comp.execute();
 
-    SparseMatrix<uint64_t>* results = comp.getMainMatrix();
+    SM64 results = comp.getMainMatrix();
 
     BOOST_CHECK( true );
 }

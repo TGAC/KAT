@@ -28,6 +28,11 @@ using std::endl;
 using std::shared_ptr;
 using std::make_shared;
 
+#include <boost/filesystem/path.hpp>
+#include <boost/timer/timer.hpp>
+using boost::filesystem::path;
+using boost::timer::auto_cpu_timer;
+
 #include <jellyfish/err.hpp>
 #include <jellyfish/file_header.hpp>
 #include <jellyfish/mapped_file.hpp>
@@ -54,7 +59,7 @@ namespace kat {
     
     class JellyfishHelper {
     private:
-        string jfHashPath;
+        path jfHashPath;
         AccessMethod accessMethod;
         shared_ptr<ifstream> in;
         file_header header;
@@ -66,10 +71,10 @@ namespace kat {
 
     public:
 
-        JellyfishHelper(string _jfHashPath, AccessMethod _accessMethod) :
+        JellyfishHelper(path _jfHashPath, AccessMethod _accessMethod) :
             jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
 
-            in = make_shared<ifstream>(jfHashPath, std::ios::in | std::ios::binary);
+            in = make_shared<ifstream>(jfHashPath.c_str(), std::ios::in | std::ios::binary);
             header = file_header(*in);
 
             if (!in->good())
@@ -153,6 +158,66 @@ namespace kat {
 
         lha::region_iterator getSlice(int index, uint16_t nbSlices) {
             return hash->region_slice(index, nbSlices);            
-        }        
+        }
+
+        static bool isSequenceFile(const path& p) {
+            return p == "fastq" || p == "fq" || p == "fasta" || p == "fa" || p == "fna";
+        }
+        
+        static string jellyfishCountCmd(path input, string output, uint8_t merLen, uint16_t threads) {
+            
+            vector<path> paths;
+            paths.push_back(input);
+            return jellyfishCountCmd(paths, output, merLen, threads);
+        }
+        
+        static string jellyfishCountCmd(vector<path>& input, bool canonical, string output, uint8_t merLen, uint64_t hashSize, uint16_t threads) {
+            
+            string i;
+            for (path p : input) {
+                i += p.string();                
+                i += " ";
+            }
+            
+            return string("jellyfish count ") 
+                    + (canonical ? "-C " : "") 
+                    + "-m " + merLen + 
+                    " -s " + hashSize + 
+                    " -t " + threads + 
+                    " -o " + output + 
+                    " " + i;
+        }
+        
+        static void jellyfishCount(path& input, bool canonical, string output, uint8_t merLen, uint64_t hashSize, uint16_t threads) {
+            
+            executeJellyfishCount(jellyfishCountCmd(input, canonical, output, merLen, hashSize, threads));
+        }
+        
+        static void jellyfishCount(vector<path>& input, bool canonical, string output, uint8_t merLen, uint64_t hashSize, uint16_t threads) {
+            
+            executeJellyfishCount(jellyfishCountCmd(input, canonical, output, merLen, hashSize, threads));            
+        }
+        
+    protected:
+        
+        void executeJellyfishCount(const string& cmd, bool verbose) {
+            
+            if (verbose) {
+                auto_cpu_timer timer(1, "Kmer counting total runtime: %ws\n\n");
+            
+                cout << "Counting kmers...";
+                cout.flush();
+            }
+
+            int res = system(cmd);
+            
+            if (res != 0) {
+                BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
+                        "Could not find third jellyfish hash file at: ") + args.input3 + "; please check the path and try again."));
+            }
+
+            if (verbose)
+                cout << " done" << endl;
+        }
     };
 }

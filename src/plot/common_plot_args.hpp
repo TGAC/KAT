@@ -35,85 +35,12 @@ using std::ostringstream;
 namespace kat {
     const string DEFAULT_OUTPUT_TYPE = "png";
 
-    class BasePlotArgs : public BaseArgs {
+    class BasePlotArgs {
     private:
         bool title_mod;
         bool x_label_mod;
         bool y_label_mod;
 
-
-    protected:
-
-        // These methods override BaseArgs virtual methods
-
-        const string optionsDescription() const {
-            ostringstream help_str;
-
-            help_str << " -p, --output_type=string    The plot file type to create: png, ps, pdf.  Warning... if pdf is selected" << endl
-                    << "                             please ensure your gnuplot installation can export pdf files. (\"" << DEFAULT_OUTPUT_TYPE << "\")" << endl
-                    << " -o, --output=string         Output file (\"" << defaultOutputPrefix() << "." << DEFAULT_OUTPUT_TYPE << "\")" << endl
-                    << " -t, --title=string          Title for plot (\"" << defaultTitle() << "\")" << endl
-                    << " -i, --x_label=string        Label for the x-axis (\"" << defaultXLabel() << "\")" << endl
-                    << " -j, --y_label=string        Label for the y-axis (\"" << defaultYLabel() << "\")" << endl
-                    << " -w, --width=uint16          Width of canvas (" << defaultWidth() << ")" << endl
-                    << " -h, --height=uint16         Height of canvas (" << defaultHeight() << ")";
-
-            return help_str.str();
-        }
-
-        vector<option>* longOptions() {
-            static struct option long_options_array[] ={
-                {"output_type", required_argument, 0, 'p'},
-                {"output", required_argument, 0, 'o'},
-                {"title", required_argument, 0, 't'},
-                {"x_label", required_argument, 0, 'i'},
-                {"y_label", required_argument, 0, 'j'},
-                {"width", required_argument, 0, 'w'},
-                {"height", required_argument, 0, 'h'}
-            };
-
-            vector<option>* long_options = new vector<option>();
-
-            for (uint8_t i = 0; i < 7; i++) {
-                long_options->push_back(long_options_array[i]);
-            }
-
-            return long_options;
-        }
-
-        string shortOptions() {
-            return "o:p:t:i:j:w:h:";
-        }
-
-        void setOption(int c, string& option_arg) {
-
-            switch (c) {
-                case 'o':
-                    output_arg = string(option_arg);
-                    break;
-                case 'p':
-                    output_type = string(option_arg);
-                    break;
-                case 't':
-                    title = string(option_arg);
-                    title_mod = true;
-                    break;
-                case 'i':
-                    x_label = string(option_arg);
-                    x_label_mod = true;
-                    break;
-                case 'j':
-                    y_label = string(option_arg);
-                    y_label_mod = true;
-                    break;
-                case 'w':
-                    width = strToInt16(option_arg);
-                    break;
-                case 'h':
-                    height = strToInt16(option_arg);
-                    break;
-            }
-        }
 
         const string currentStatus() const {
             ostringstream status;

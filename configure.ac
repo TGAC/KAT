@@ -53,30 +53,6 @@ AC_PROG_LIBTOOL
 LT_INIT
 LT_PREREQ([2.4.2])
 
-######################################################################
-# Debug compilation support.
-######################################################################
-
-AC_MSG_CHECKING([whether to build with debug information])
-AC_ARG_ENABLE([debug],
-    [AS_HELP_STRING([--enable-debug],
-        [enable debug data generation (def=no)])],
-    [debugit="$enableval"],
-    [debugit=no])
-AC_MSG_RESULT([$debugit])
-
-# If in debug mode make a really slow binary with debug symbols, otherwise make a fast one without debug symbols.  Seeing as these are being treated the same we could put them on CPPFLAGS instead, but I like to keep CPPFLAGS reserved for include paths and use CXX and C FLAGS for compiler settings.
-if test x"$debugit" = x"yes"; then
-    AC_DEFINE([DEBUG],[],[Debug Mode])
-    AM_CXXFLAGS="-g -Wno-uninitialized -O0"
-    AM_CFLAGS="-g -Wno-uninitialized -O0"
-    
-else
-    AC_DEFINE([NDEBUG],[],[No-debug Mode])
-    AM_CXXFLAGS="-g -O3"
-    AM_CFLAGS="-g -O3"
-fi
-
 
 ######################################################################
 # Dependency checks
@@ -116,15 +92,13 @@ AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads
 AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])
 AX_BOOST_FILESYSTEM
 AX_BOOST_SYSTEM
-#AX_BOOST_TIMER
-#AX_BOOST_THREAD
+AX_BOOST_PROGRAM_OPTIONS
+AX_BOOST_TIMER
 AX_BOOST_UNIT_TEST_FRAMEWORK
 
 # Combine BOOST variables (apart for BOOST_TEST)
-BOOST_LDFLAGS="${BOOST_FILESYSTEM_LDFLAGS} ${BOOST_SYSTEM_LDFLAGS}"
-BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_SYSTEM_LIB}"
-#BOOST_LDFLAGS="${BOOST_FILESYSTEM_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LDFLAGS} ${BOOST_SYSTEM_LDFLAGS} ${BOOST_TIMER_LDFLAGS} ${BOOST_THREAD_LDFLAGS}"
-#BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB} ${BOOST_THREAD_LIB}"
+BOOST_LDFLAGS="${BOOST_FILESYSTEM_LDFLAGS} ${BOOST_PROGRAM_OPTIONS_LDFLAGS} ${BOOST_SYSTEM_LDFLAGS} ${BOOST_TIMER_LDFLAGS}"
+BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB}"
 
 AM_CXXFLAGS="-DCPLUSPLUS"
 AC_SUBST([AM_CXXFLAGS])
@@ -139,6 +113,6 @@ AM_LIBS="${BOOST_LIBS} ${PTHREAD_CFLAGS}"
 AC_SUBST([AM_LIBS])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile scripts/Makefile])
+AC_CONFIG_FILES([Makefile tests/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT

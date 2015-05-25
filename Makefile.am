@@ -1,6 +1,6 @@
 
 # Tells aclocal to put 'aclocal.m4' into the 'm4' directory
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # ADDITIONAL FILES TO INSTALL
 EXTRA_DIST = include \
@@ -35,6 +35,47 @@ deps/jellyfish-2.2.0/test-driver
 dist_noinst_SCRIPTS = autogen.sh clean.sh
 
 # SRC DIRS
-SUBDIRS = deps/jellyfish-2.2.0 src tests scripts
+SUBDIRS = deps/jellyfish-2.2.0
+
+AUTOMAKE_OPTIONS = subdir-objects
+
+# Apply for all
+CXXFLAGS = -g3 -O3 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=c++11 @AM_CXXFLAGS@
+CPPFLAGS = -DCPLUSPLUS -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
+LDFLAGS = @AM_LDFLAGS@
+LIBS = $(top_srcdir)/deps/jellyfish-2.2.0/libjellyfish-2.0.la @AM_LIBS@
+
+bin_PROGRAMS = kat
+
+kat_SOURCES = \
+                src/inc/gnuplot/gnuplot_i.cc \
+		src/inc/gnuplot/gnuplot_i.hpp \
+		src/inc/fstream_default.hpp \
+		src/inc/jellyfish_helper.hpp \
+		src/inc/matrix/sparse_matrix.hpp \
+		src/inc/matrix/threaded_sparse_matrix.hpp \
+		src/inc/matrix/matrix_metadata_extractor.hpp \
+                src/inc/matrix/matrix_metadata_extractor.cc \
+                src/inc/str_utils.hpp \
+                src/sect.hpp \
+		src/comp.hpp \
+		src/gcp.hpp \
+		src/histogram.hpp \
+		src/plot.hpp \
+		src/plot_density.hpp \
+		src/plot/spectra-cn/spectra_cn_plot_main.cc \
+		src/plot/spectra-cn/spectra_cn_plot_args.hpp \
+		src/plot/spectra-cn/spectra_cn_plot_main.hpp \
+                src/plot/profile/profile_plot_main.cc \
+                src/plot/profile/profile_plot_main.hpp \
+		src/plot/profile/profile_plot_args.hpp \
+		src/plot/spectra-hist/spectra_hist_plot_main.cc \
+		src/plot/spectra-hist/spectra_hist_plot_args.hpp \
+		src/plot/spectra-hist/spectra_hist_plot_main.hpp \
+		src/plot/spectra-mx/spectra_mx_plot_main.cc \
+		src/plot/spectra-mx/spectra_mx_plot_args.hpp \
+		src/plot/spectra-mx/spectra_mx_plot_main.hpp \
+                src/kat.cc \
+		src/kat_args.hpp
 
 

@@ -20,3 +20,5 @@
 /libjellyfish-2.0.la
 /.libs/
 /bin/
+*.la
+*.log
