@@ -36,7 +36,7 @@ void mme::trim(string& str) {
         str.erase(str.begin(), str.end());
 }
 
-int mme::getNumeric(const string& path, const string& key) {
+int mme::getNumeric(const path& path, const string& key) {
     string line;
     ifstream infile;
     infile.open(path.c_str());
@@ -57,7 +57,7 @@ int mme::getNumeric(const string& path, const string& key) {
     return val;
 }
 
-string mme::getString(const string& path, const string& key) {
+string mme::getString(const path& path, const string& key) {
     string line;
     ifstream infile;
     infile.open(path.c_str());

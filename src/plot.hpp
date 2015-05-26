@@ -22,6 +22,7 @@
 using std::string;
 using std::vector;
 
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
@@ -29,91 +30,21 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include "plot_density.hpp"
+#include "plot_profile.hpp"
+#include "plot_spectra_cn.hpp"
+#include "plot_spectra_hist.hpp"
+#include "plot_spectra_mx.hpp"
+using kat::PlotDensity;
+using kat::PlotProfile;
+using kat::PlotSpectraCn;
+using kat::PlotSpectraHist;
+using kat::PlotSpectraMx;
+
 namespace kat {
     
     typedef boost::error_info<struct KatPlotError,string> KatPlotErrorInfo;
     struct KatPlotException: virtual boost::exception, virtual std::exception { };
-    
-    class BasePlotArgs {
-    private:
-        bool title_mod;
-        bool x_label_mod;
-        bool y_label_mod;
-
-
-        const string currentStatus() const {
-            ostringstream status;
-
-            status << "Output type: " << output_type.c_str() << endl;
-            status << "Output file specified: " << output_arg.c_str() << endl;
-            status << "Plot title: " << title << endl;
-            status << "X Label: " << x_label << endl;
-            status << "Y Label: " << y_label << endl;
-            status << "Width: " << width << endl;
-            status << "Height: " << height << endl;
-
-            return status.str();
-        }
-    public:
-        string output_type;
-        string output_arg;
-        string title;
-        string x_label;
-        string y_label;
-        uint16_t width;
-        uint16_t height;
-
-        /**
-         * @brief BasePlotArgs Constructor.  Requires the number of trailing arguments to be specified for this plotting tool.
-         * @param min_args
-         */
-        BasePlotArgs(uint16_t min_args) : BaseArgs(min_args), output_type(DEFAULT_OUTPUT_TYPE), output_arg("") {
-            title_mod = false;
-            x_label_mod = false;
-            y_label_mod = false;
-        }
-
-        /**
-         * @brief ~BasePlotArgs Virtual destructor makes this class abstract
-         */
-        virtual ~BasePlotArgs() {
-        }
-
-
-        // **************************************************
-        // Default values for properties which must be defined
-        // by the child class
-
-        virtual const string defaultOutputPrefix() const = 0;
-        virtual const string defaultTitle() const = 0;
-        virtual const string defaultXLabel() const = 0;
-        virtual const string defaultYLabel() const = 0;
-        virtual const uint16_t defaultWidth() const = 0;
-        virtual const uint16_t defaultHeight() const = 0;
-
-        /**
-         * @brief determineOutputPath Work out the output path to use (either user specified or auto generated)
-         * @return
-         */
-        string determineOutputPath() {
-            std::ostringstream output_str;
-            output_str << defaultOutputPrefix() << "." << output_type;
-            return output_arg.empty() ? output_str.str() : output_arg;
-        }
-
-        const bool titleModified() {
-            return title_mod;
-        }
-
-        const bool xLabelModified() {
-            return x_label_mod;
-        }
-
-        const bool yLabelModified() {
-            return y_label_mod;
-        }
-
-    };
     
     class Plot {
     
@@ -128,7 +59,7 @@ namespace kat {
         };
         
 
-        PlotMode parseMode(string mode) {
+        static PlotMode parseMode(const string& mode) {
 
             string upperMode = boost::to_upper_copy(mode);
 
@@ -153,7 +84,7 @@ namespace kat {
             }
         }
         
-        const string helpMessage() const {
+        static string helpMessage() {
             return string("Usage: kat plot <mode>\n\n") +
                     "Create K-mer Plots\n\n" +
                     "First argument should be the plot mode you wish to use:\n" \
@@ -197,6 +128,10 @@ namespace kat {
             p.add("mode", 1);
             p.add("others", 100);
 
+            // Combine non-positional options
+            po::options_description cmdline_options;
+            cmdline_options.add(generic_options).add(hidden_options);
+        
             // Parse command line
             po::variables_map vm;
             po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(p).allow_unregistered().run(), vm);
@@ -208,7 +143,7 @@ namespace kat {
                 return 1;
             }
         
-            Mode mode = parseMode(modeStr);
+            Plot::PlotMode mode = Plot::parseMode(modeStr);
         
             const int modeArgC = argc-1;
             char** modeArgV = argv+1;
@@ -226,7 +161,7 @@ namespace kat {
             case SPECTRA_HIST:
                 PlotSpectraHist::main(modeArgC, modeArgV);
                 break;
-            case SPECTRA_MX
+            case SPECTRA_MX:
                 PlotSpectraMx::main(modeArgC, modeArgV);            
                 break;
             default:

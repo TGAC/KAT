@@ -24,6 +24,11 @@
 #include <fstream>
 #include <string>
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+namespace bfs = boost::filesystem;
+using bfs::path;
+
 #include <str_utils.hpp>
 
 using std::cout;
@@ -56,7 +61,7 @@ public:
      * @brief SparseMatrix Loads a sparse matrix from file.  NOTE, matrix must contain uint64_t!!
      * @param file_path path to the file containing the sparse matrix
      */
-    SparseMatrix(string file_path) {
+    SparseMatrix(const path& file_path) {
         ifstream infile;
         infile.open(file_path.c_str());
 

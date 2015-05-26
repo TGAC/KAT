@@ -33,6 +33,7 @@ using std::shared_ptr;
 using std::make_shared;
 using std::thread;
 
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
@@ -47,6 +48,7 @@ using bfs::path;
 #include <matrix/threaded_sparse_matrix.hpp>
 
 #include <jellyfish_helper.hpp>
+using kat::JellyfishHelper;
 
 
 typedef boost::error_info<struct CompError,string> CompErrorInfo;
@@ -177,7 +179,7 @@ namespace kat {
         path input1;
         path input2;
         path input3;
-        string outputPrefix;
+        path outputPrefix;
         double d1Scale;
         double d2Scale;
         uint16_t d1Bins;
@@ -219,26 +221,161 @@ namespace kat {
         ~Comp() {
         }
 
-        
+        bool isCanonical1() const {
+            return canonical1;
+        }
+
+        void setCanonical1(bool canonical1) {
+            this->canonical1 = canonical1;
+        }
+
+        bool isCanonical2() const {
+            return canonical2;
+        }
+
+        void setCanonical2(bool canonical2) {
+            this->canonical2 = canonical2;
+        }
+
+        bool isCanonical3() const {
+            return canonical3;
+        }
+
+        void setCanonical3(bool canonical3) {
+            this->canonical3 = canonical3;
+        }
+
+        uint16_t getD1Bins() const {
+            return d1Bins;
+        }
+
+        void setD1Bins(uint16_t d1Bins) {
+            this->d1Bins = d1Bins;
+        }
+
+        double getD1Scale() const {
+            return d1Scale;
+        }
+
+        void setD1Scale(double d1Scale) {
+            this->d1Scale = d1Scale;
+        }
+
+        uint16_t getD2Bins() const {
+            return d2Bins;
+        }
+
+        void setD2Bins(uint16_t d2Bins) {
+            this->d2Bins = d2Bins;
+        }
+
+        double getD2Scale() const {
+            return d2Scale;
+        }
+
+        void setD2Scale(double d2Scale) {
+            this->d2Scale = d2Scale;
+        }
+
+        uint64_t getHashSize1() const {
+            return hashSize1;
+        }
+
+        void setHashSize1(uint64_t hashSize1) {
+            this->hashSize1 = hashSize1;
+        }
+
+        uint64_t getHashSize2() const {
+            return hashSize2;
+        }
+
+        void setHashSize2(uint64_t hashSize2) {
+            this->hashSize2 = hashSize2;
+        }
+
+        uint64_t getHashSize3() const {
+            return hashSize3;
+        }
+
+        void setHashSize3(uint64_t hashSize3) {
+            this->hashSize3 = hashSize3;
+        }
+
+        path getInput1() const {
+            return input1;
+        }
+
+        void setInput1(path input1) {
+            this->input1 = input1;
+        }
+
+        path getInput2() const {
+            return input2;
+        }
+
+        void setInput2(path input2) {
+            this->input2 = input2;
+        }
+
+        path getInput3() const {
+            return input3;
+        }
+
+        void setInput3(path input3) {
+            this->input3 = input3;
+        }
+
+        uint8_t getMerLen() const {
+            return merLen;
+        }
+
+        void setMerLen(uint8_t merLen) {
+            this->merLen = merLen;
+        }
+
+        path getOutputPrefix() const {
+            return outputPrefix;
+        }
+
+        void setOutputPrefix(path outputPrefix) {
+            this->outputPrefix = outputPrefix;
+        }
+
+        uint16_t getThreads() const {
+            return threads;
+        }
+
+        void setThreads(uint16_t threads) {
+            this->threads = threads;
+        }
+
+        bool isVerbose() const {
+            return verbose;
+        }
+
+        void setVerbose(bool verbose) {
+            this->verbose = verbose;
+        }
+
         
         void execute() {
 
             // Check input file exists
             if (!bfs::exists(input1) && !bfs::symbolic_link_exists(input1)) {
                 BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                        "Could not find first input file at: ") + input1 + "; please check the path and try again."));
+                        "Could not find first input file at: ") + input1.string() + "; please check the path and try again."));
             }
 
             // Check input file exists
             if (!bfs::exists(input2) && !bfs::symbolic_link_exists(input2)) {
                 BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                        "Could not find second jellyfish hash file at: ") + args.input2 + "; please check the path and try again."));
+                        "Could not find second jellyfish hash file at: ") + input2.string() + "; please check the path and try again."));
             }
 
             // Check input file exists
             if (!input3.empty() && !bfs::exists(input3) && !bfs::symbolic_link_exists(input3)) {
                 BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                        "Could not find third jellyfish hash file at: ") + args.input3 + "; please check the path and try again."));
+                        "Could not find third jellyfish hash file at: ") + input3.string() + "; please check the path and try again."));
             }
             
             // Create the final K-mer counter matrices
@@ -275,50 +412,54 @@ namespace kat {
             path i2 = input2;
             path i3 = input3;
             
+            string merLenStr = lexical_cast<string>(merLen);
+            
             if (JellyfishHelper::isSequenceFile(i1Ext)) {
                 
                 cout << "Input 1 is a sequence file.  Executing jellyfish to count kmers." << endl;
                 
-                i1 = path(outputPrefix + string(".jf") + merLen;
+                i1 = path(outputPrefix.string() + string(".jf") + merLenStr);
                 
-                JellyfishHelper::jellyfishCount(input1, canonical1, i1, merLen, hashSize1, threads);
+                JellyfishHelper::jellyfishCount(input1, i1, merLen, hashSize1, threads, canonical1, true);
             }
             
             if (JellyfishHelper::isSequenceFile(i2Ext)) {
                 
                 cout << "Input 2 is a sequence file.  Executing jellyfish to count kmers." << endl;
                 
-                i2 += string(".jf") + merLen;
+                i2 += path(outputPrefix.string() + string(".jf") + merLenStr);
                 
-                JellyfishHelper::jellyfishCount(input1, canonical2, i2, merLen, hashSize2, threads);
+                JellyfishHelper::jellyfishCount(input1, i2, merLen, hashSize2, threads, canonical2, true);
             }
             
-            if (!input3.empty() && JellyfishHelper::isSequenceFile(i3Ext) {
+            if (!input3.empty() && JellyfishHelper::isSequenceFile(i3Ext)) {
                 
                 cout << "Input 3 is a sequence file.  Executing jellyfish to count kmers." << endl;
                 
-                i3 += string(".jf") + merLen;
+                i3 += path(outputPrefix.string() + string(".jf") + merLenStr);
                 
-                JellyfishHelper::jellyfishCount(input1, canonical3, i3, merLen, hashSize3, threads);
+                JellyfishHelper::jellyfishCount(input1, i3, merLen, hashSize3, threads, canonical3, true);
             }
             
             
             // Load the hashes
-            jfh1 = make_shared<JellyfishHelper>(args.input1, AccessMethod::RANDOM);
-            jfh2 = make_shared<JellyfishHelper>(args.input2, AccessMethod::RANDOM);
-            jfh3 = !(args.input3.empty()) ?
-                    make_shared<JellyfishHelper>(args.input3, AccessMethod::RANDOM) :
+            jfh1 = make_shared<JellyfishHelper>(input1, AccessMethod::RANDOM);
+            jfh2 = make_shared<JellyfishHelper>(input2, AccessMethod::RANDOM);
+            jfh3 = !(input3.empty()) ?
+                    make_shared<JellyfishHelper>(input3, AccessMethod::RANDOM) :
                     nullptr;
 
             // Check K-mer lengths are the same for both hashes.  We can't continue if they are not.
             if (jfh1->getKeyLen() != jfh2->getKeyLen()) {
                 BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
                         "Cannot process hashes that were created with different K-mer lengths.  Hash1: ") +
-                        jfh1->getKeyLen() + ".  Hash2: " + jfh2->getKeyLen() + "."));
+                        lexical_cast<string>(jfh1->getKeyLen()) + 
+                        ".  Hash2: " + lexical_cast<string>(jfh2->getKeyLen()) + "."));
             } else if (jfh3 && (jfh3->getKeyLen() != jfh1->getKeyLen())) {
                 BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
                         "Cannot process hashes that were created with different K-mer lengths.  Hash1: ") +
-                        jfh1->getKeyLen() + ".  Hash3: " + jfh3->getKeyLen() + "."));
+                        lexical_cast<string>(jfh1->getKeyLen()) + 
+                        ".  Hash3: " + lexical_cast<string>(jfh3->getKeyLen()) + "."));
             }
 
             if (verbose)
@@ -370,23 +511,6 @@ namespace kat {
             return final_comp_counters;
         }
 
-        // Print Comp setup
-
-        void printVars(ostream &out) {
-
-            out << endl
-                    << "Comp parameters:" << endl
-                    << " - Hash 1: " << (jfh1 ? "mapped file configured" : "not specified") << endl
-                    << " - Hash 2: " << (jfh2 ? "mapped file configured" : "not specified") << endl
-                    << " - Hash 3: " << (jfh3 ? "mapped file configured" : "not specified") << endl
-                    << " - Threads: " << args.threads << endl
-                    << " - Dataset 1 scaling factor: " << args.d1_scale << endl
-                    << " - Dataset 2 scaling factor: " << args.d2_scale << endl
-                    << " - Dataset 1 bins: " << args.d1_bins << endl
-                    << " - Dataset 2 bins: " << args.d2_bins << endl
-                    << endl;
-        }
-
 
         // Print K-mer comparison matrix
 
@@ -395,8 +519,8 @@ namespace kat {
             SM64 mx = main_matrix->getFinalMatrix();
 
             out << mme::KEY_TITLE << "K-mer comparison plot" << endl
-                    << mme::KEY_X_LABEL << "K-mer multiplicity for: " << args.input1 << endl
-                    << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << args.input2 << endl
+                    << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input1 << endl
+                    << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << input2 << endl
                     << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl
                     << mme::KEY_NB_COLUMNS << mx->height() << endl
                     << mme::KEY_NB_ROWS << mx->width() << endl
@@ -411,8 +535,8 @@ namespace kat {
 
         void printEndsMatrix(ostream &out) {
 
-            out << "# Each row represents K-mer multiplicity for: " << args.input1 << endl;
-            out << "# Each column represents K-mer multiplicity for sequence ends: " << args.input3 << endl;
+            out << "# Each row represents K-mer multiplicity for: " << input1 << endl;
+            out << "# Each column represents K-mer multiplicity for sequence ends: " << input3 << endl;
 
             ends_matrix->getFinalMatrix()->printMatrix(out);
         }
@@ -421,8 +545,8 @@ namespace kat {
 
         void printMiddleMatrix(ostream &out) {
 
-            out << "# Each row represents K-mer multiplicity for: " << args.input1 << endl;
-            out << "# Each column represents K-mer multiplicity for sequence middles: " << args.input2 << endl;
+            out << "# Each row represents K-mer multiplicity for: " << input1 << endl;
+            out << "# Each column represents K-mer multiplicity for sequence middles: " << input2 << endl;
 
             middle_matrix->getFinalMatrix()->printMatrix(out);
         }
@@ -431,8 +555,8 @@ namespace kat {
 
         void printMixedMatrix(ostream &out) {
 
-            out << "# Each row represents K-mer multiplicity for hash file 1: " << args.input1 << endl;
-            out << "# Each column represents K-mer multiplicity for mixed: " << args.input2 << " and " << args.input3 << endl;
+            out << "# Each row represents K-mer multiplicity for hash file 1: " << input1 << endl;
+            out << "# Each column represents K-mer multiplicity for mixed: " << input2 << " and " << input3 << endl;
 
             mixed_matrix->getFinalMatrix()->printMatrix(out);
         }
@@ -472,7 +596,7 @@ namespace kat {
             shared_ptr<CompCounters> comp_counters = (*thread_comp_counters)[th_id];
 
             // Setup iterator for this thread's chunk of hash1
-            lha::region_iterator hash1Iterator = jfh1->getSlice(th_id, args.threads);
+            lha::region_iterator hash1Iterator = jfh1->getSlice(th_id, threads);
 
             // Go through this thread's slice for hash1
             while (hash1Iterator.next()) {
@@ -492,14 +616,14 @@ namespace kat {
                 comp_counters->updateSharedCounters(hash1_count, hash2_count);
 
                 // Scale counters to make the matrix look pretty
-                uint64_t scaled_hash1_count = scaleCounter(hash1_count, args.d1_scale);
-                uint64_t scaled_hash2_count = scaleCounter(hash2_count, args.d2_scale);
-                uint64_t scaled_hash3_count = scaleCounter(hash3_count, args.d2_scale);
+                uint64_t scaled_hash1_count = scaleCounter(hash1_count, d1Scale);
+                uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2Scale);
+                uint64_t scaled_hash3_count = scaleCounter(hash3_count, d2Scale);
 
                 // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
-                if (scaled_hash1_count >= args.d1_bins) scaled_hash1_count = args.d1_bins - 1;
-                if (scaled_hash2_count >= args.d2_bins) scaled_hash2_count = args.d2_bins - 1;
-                if (scaled_hash3_count >= args.d2_bins) scaled_hash3_count = args.d2_bins - 1;
+                if (scaled_hash1_count >= d1Bins) scaled_hash1_count = d1Bins - 1;
+                if (scaled_hash2_count >= d2Bins) scaled_hash2_count = d2Bins - 1;
+                if (scaled_hash3_count >= d2Bins) scaled_hash3_count = d2Bins - 1;
 
                 // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
                 thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
@@ -518,7 +642,7 @@ namespace kat {
             // Setup iterator for this thread's chunk of hash2
             // We setup hash2 for random access, so hopefully performance isn't too bad here...
             // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-            lha::region_iterator hash2Iterator = jfh2->getSlice(th_id, args.threads);
+            lha::region_iterator hash2Iterator = jfh2->getSlice(th_id, threads);
 
             // Iterate through this thread's slice of hash2
             while (hash2Iterator.next()) {
@@ -534,10 +658,10 @@ namespace kat {
                 // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
                 if (!hash1_count) {
                     // Scale counters to make the matrix look pretty
-                    uint64_t scaled_hash2_count = scaleCounter(hash2_count, args.d2_scale);
+                    uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2Scale);
 
                     // Modifies hash counts so that K-mer counts larger than MATRIX_SIZE are dumped in the last slot
-                    if (scaled_hash2_count >= args.d2_bins) scaled_hash2_count = args.d2_bins - 1;
+                    if (scaled_hash2_count >= d2Bins) scaled_hash2_count = d2Bins - 1;
 
                     // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
                     thread_matrix->inc(0, scaled_hash2_count, 1);
@@ -547,7 +671,7 @@ namespace kat {
             // Only update hash3 counters if hash3 was provided
             if (jfh3 != nullptr) {
                 // Setup iterator for this thread's chunk of hash3
-                lha::region_iterator hash3Iterator = jfh3->getSlice(th_id, args.threads);
+                lha::region_iterator hash3Iterator = jfh3->getSlice(th_id, threads);
 
                 // Iterate through this thread's slice of hash2
                 while (hash3Iterator.next()) {
@@ -581,7 +705,7 @@ namespace kat {
             }
 
             // Merge counters
-            for (int k = 0; k < args.threads; k++) {
+            for (int k = 0; k < threads; k++) {
                 shared_ptr<CompCounters> thread_comp_counter = (*thread_comp_counters)[k];
 
                 final_comp_counters->hash1_total += thread_comp_counter->hash1_total;
@@ -600,9 +724,9 @@ namespace kat {
             }
         }
         
-        static const string helpMessage() const {            
+        static string helpMessage() {            
         
-            return string(  string("Usage: kat comp [options] <input_1> <input_2> [<input_3>]\n\n") +
+            return string(  "Usage: kat comp [options] <input_1> <input_2> [<input_3>]\n\n") +
                             "Compares jellyfish K-mer count hashes.\n\n" \
                             "The most common use case for this tool is to compare two (or three) K-mer hashes.  The typical use case for " \
                             "this tool is to compare K-mers from two K-mer hashes both representing K-mer counts for reads.  However, " \
@@ -616,25 +740,19 @@ namespace kat {
         
     public:
         
-        static const double DEFAULT_D1_SCALE = 1.0;
-        static const double DEFAULT_D2_SCALE = 1.0;
-        static const uint16_t DEFAULT_THREADS = 1;
-        static const string DEFAULT_OUTPUT_PREFIX = "kat-comp";
-        static const uint16_t DEFAULT_D1_BINS = 1001;
-        static const uint16_t DEFAULT_D2_BINS = 1001;
-        static const uint64_t DEFAULT_HASH_SIZE = 10000000000;
         
         static int main(int argc, char *argv[]) {
             
             path input1;
             path input2;
             path input3;
-            string output_prefix;
+            path output_prefix;
             double d1_scale;
             double d2_scale;
             uint16_t d1_bins;
             uint16_t d2_bins;
             uint16_t threads;
+            uint8_t mer_len;
             bool canonical_1;
             bool canonical_2;
             bool canonical_3;
@@ -645,19 +763,19 @@ namespace kat {
             bool help;
         
             // Declare the supported options.
-            po::options_description generic_options(Sect::helpMessage());
+            po::options_description generic_options(Comp::helpMessage());
             generic_options.add_options()
-                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value(DEFAULT_OUTPUT_PREFIX), 
+                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-comp"), 
                         "Path prefix for files generated by this program.")
-                    ("threads,t", po::value<uint16_t>(&threads)->default_value(DEFAULT_THREADS),
+                    ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                         "The number of threads to use")
-                    ("d1_scale,x", po::value<uint16_t>(&d1_scale)->default_value(DEFAULT_D1_SCALE),
+                    ("d1_scale,x", po::value<double>(&d1_scale)->default_value(1.0),
                         "Scaling factor for the first dataset  - float multiplier")
-                    ("d2_scale,y", po::value<uint16_t>(&d2_scale)->default_value(DEFAULT_D2_SCALE),
+                    ("d2_scale,y", po::value<double>(&d2_scale)->default_value(1.0),
                         "Scaling factor for the second dataset  - float multiplier")
-                    ("d1_bins,i", po::value<uint16_t>(&d1_bins)->default_value(DEFAULT_D1_BINS),
+                    ("d1_bins,i", po::value<uint16_t>(&d1_bins)->default_value(1001),
                         "Number of bins for the first dataset.  i.e. number of rows in the matrix")
-                    ("d2_bins,j", po::value<uint16_t>(&d2_bins)->default_value(DEFAULT_D2_BINS),
+                    ("d2_bins,j", po::value<uint16_t>(&d2_bins)->default_value(1001),
                         "Number of bins for the second dataset.  i.e. number of rows in the matrix")
                     ("canonical1,c1", po::bool_switch(&canonical_1)->default_value(false),
                         "Whether the jellyfish hash for input 1 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
@@ -665,6 +783,8 @@ namespace kat {
                         "Whether the jellyfish hash for input 2 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
                     ("canonical1,c3", po::bool_switch(&canonical_3)->default_value(false),
                         "Whether the jellyfish hash for input 3 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.  Only applicable if you are using a third input.")
+                    ("mer_len,m", po::value<uint8_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
+                        "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
                     ("hash_size_1,h1", po::value<uint64_t>(&hash_size_1)->default_value(DEFAULT_HASH_SIZE),
                         "If kmer counting is required for input 1, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
                     ("hash_size_2,h2", po::value<uint64_t>(&hash_size_2)->default_value(DEFAULT_HASH_SIZE),
@@ -680,9 +800,9 @@ namespace kat {
             // in config file, but will not be shown to the user.
             po::options_description hidden_options("Hidden options");
             hidden_options.add_options()
-                    ("input_1,i1", po::value<path>(&input_1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-                    ("input_2,i2", po::value<path>(&input_2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-                    ("input_3,i3", po::value<path>(&input_3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+                    ("input_1,i1", po::value<path>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+                    ("input_2,i2", po::value<path>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+                    ("input_3,i3", po::value<path>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
                     ;
 
             // Positional option for the input bam file
@@ -716,12 +836,22 @@ namespace kat {
         
 
             // Create the sequence coverage object
-            Comp comp(args);
-
-            // Output comp parameters to stderr if requested
-            if (args.verbose)
-                comp.printVars(cerr);
-
+            Comp comp(input1, input2, input3);
+            comp.setOutputPrefix(output_prefix);
+            comp.setD1Scale(d1_scale);
+            comp.setD2Scale(d2_scale);
+            comp.setD1Bins(d1_bins);
+            comp.setD2Bins(d2_bins);
+            comp.setThreads(threads);
+            comp.setMerLen(mer_len);
+            comp.setCanonical1(canonical_1);
+            comp.setCanonical2(canonical_2);
+            comp.setCanonical3(canonical_3);
+            comp.setHashSize1(hash_size_1);
+            comp.setHashSize2(hash_size_2);
+            comp.setHashSize3(hash_size_3);
+            comp.setVerbose(verbose);
+            
             // Do the work
             comp.execute();
 
@@ -733,7 +863,7 @@ namespace kat {
             main_mx_out_stream.close();
 
             // Output ends matricies if required
-            if (!(args.input3.empty())) {
+            if (!(input3.empty())) {
                 // Ends matrix
                 std::ostringstream ends_mx_out_path;
                 ends_mx_out_path << output_prefix << "_ends.mx";

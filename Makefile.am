@@ -63,19 +63,10 @@ kat_SOURCES = \
 		src/histogram.hpp \
 		src/plot.hpp \
 		src/plot_density.hpp \
-		src/plot/spectra-cn/spectra_cn_plot_main.cc \
-		src/plot/spectra-cn/spectra_cn_plot_args.hpp \
-		src/plot/spectra-cn/spectra_cn_plot_main.hpp \
-                src/plot/profile/profile_plot_main.cc \
-                src/plot/profile/profile_plot_main.hpp \
-		src/plot/profile/profile_plot_args.hpp \
-		src/plot/spectra-hist/spectra_hist_plot_main.cc \
-		src/plot/spectra-hist/spectra_hist_plot_args.hpp \
-		src/plot/spectra-hist/spectra_hist_plot_main.hpp \
-		src/plot/spectra-mx/spectra_mx_plot_main.cc \
-		src/plot/spectra-mx/spectra_mx_plot_args.hpp \
-		src/plot/spectra-mx/spectra_mx_plot_main.hpp \
-                src/kat.cc \
-		src/kat_args.hpp
+		src/plot_spectra_cn.hpp \
+                src/plot_profile.hpp \
+		src/plot_spectra_hist.hpp \
+		src/plot_spectra_mx.hpp \
+                src/kat.cc
 
 

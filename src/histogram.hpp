@@ -30,6 +30,7 @@ using std::shared_ptr;
 using std::make_shared;
 using std::thread;
 
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
@@ -52,11 +53,13 @@ namespace kat {
         
         // Arguments from user
         vector<path>    inputs;
+        path            outputPrefix;
         uint16_t        threads;
         uint64_t        low;
         uint64_t        high;
         bool            canonical;
-        uint64_t        hash_size;            
+        uint8_t         merLen;
+        uint64_t        hashSize;            
         bool            verbose;
 
         // Jellyfish mapped file hash vars
@@ -79,12 +82,36 @@ namespace kat {
                 delete [] data;
         }
         
-        uint64_t getHash_size() const {
-            return hash_size;
+        bool isCanonical() const {
+            return canonical;
         }
 
-        void setHash_size(uint64_t hash_size) {
-            this->hash_size = hash_size;
+        void setCanonical(bool canonical) {
+            this->canonical = canonical;
+        }
+        
+        uint64_t getHashSize() const {
+            return hashSize;
+        }
+
+        void setHashSize(uint64_t hash_size) {
+            this->hashSize = hash_size;
+        }
+        
+        uint8_t getMerLen() const {
+            return merLen;
+        }
+
+        void setMerLen(uint8_t merLen) {
+            this->merLen = merLen;
+        }
+
+        path getOutputPrefix() const {
+            return outputPrefix;
+        }
+
+        void setOutputPrefix(path outputPrefix) {
+            this->outputPrefix = outputPrefix;
         }
 
         uint64_t getHigh() const {
@@ -141,39 +168,16 @@ namespace kat {
             // Some validation first
             if (high < low) {
                 BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
-                    "High count value must be >= to low count value.  High: ") + high + "; Low: " + low)); 
+                        "High count value must be >= to low count value.  High: ") + lexical_cast<string>(high) + 
+                        "; Low: " + lexical_cast<string>(low))); 
             }
             
-            if (inputs.empty()) {
-                BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
-                    "No input files provided"));
-            }
-            
-            if (countsFiles.size() == 1 && !JellyfishHelper::isSequenceFile(countsFiles[0].extension())) {
-                hashFile = countsFiles[0];                
-            }
-            else {
-                
-                for (path p : inputs) {
-                    if (!JellyfishHelper::isSequenceFile(p.extension())) {
-                        BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
-                            "You provided multiple sequence files to generate a kmer hash from, however some of the input files do not have a recognised sequence file extension: \".fa,.fasta,.fq,.fastq,.fna\""));
-                    }
-                    
-                    // Check input files exist
-                    if (!bfs::exists(p) && !bfs::symbolic_link_exists(p)) {
-                        BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
-                            "Could not find input file at: ") + p.string() + "; please check the path and try again."));                        
-                    }
-                }
-                
-                cout << "Provided one or more sequence files.  Executing jellyfish to count kmers." << endl;
-                
-                hashFile = path(outputPrefix + string(".jf") + merLen;
-                
-                JellyfishHelper::jellyfishCount(countsFiles, canonical, hashFile, merLen, hashSize1, threads);
-            }
-            
+            // Create jellyfish hash if required
+            hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
+            path hashOutput = JellyfishHelper::jellyfishCount(inputs, hashFile, merLen, hashSize, threads, canonical, true);
+            if (hashOutput != hashFile) {
+                bfs::create_symlink(hashOutput, hashFile);
+            }            
             
             // Setup handles to load hashes
             jfh = make_shared<JellyfishHelper>(hashFile, AccessMethod::SEQUENTIAL);
@@ -222,7 +226,7 @@ namespace kat {
     protected:
         
         uint64_t calcBase() {
-            return low > DEFAULT_HIST_LOW ? (1 >= low ? DEFAULT_HIST_LOW : low - 1) : DEFAULT_HIST_LOW;
+            return low > 1 ? (1 >= low ? 1 : low - 1) : 1;
         }
 
         uint64_t calcCeil() {
@@ -258,7 +262,7 @@ namespace kat {
             }
         }
         
-        static const string helpMessage() const {
+        static string helpMessage(){
             
             return string("Usage: kat hist [options] <jellyfish_hash>\n\n") +
                             "Create an histogram of k-mer occurrences in a sequence file.\n\n" +
@@ -274,20 +278,15 @@ namespace kat {
       
     public:
         
-        static const uint64_t DEFAULT_LOW = 1;
-        static const uint64_t DEFAULT_HIGH = 10000;
-        static const uint64_t DEFAULT_INC = 1;
-        static const uint16_t DEFAULT_THREADS = 1;
-        static const char* DEFAULT_OUTPUT = "kat.hist";
-        
         static int main(int argc, char *argv[]) {
             
             vector<path>    inputs;
-            path            output;
+            path            output_prefix;
             uint16_t        threads;
             uint64_t        low;
             uint64_t        high;
             bool            canonical;
+            uint8_t         mer_len;
             uint64_t        hash_size;            
             bool            verbose;
             bool            help;
@@ -295,16 +294,18 @@ namespace kat {
             // Declare the supported options.
             po::options_description generic_options(Histogram::helpMessage());
             generic_options.add_options()
-                    ("output,o", po::value<path>(&output)->default_value(DEFAULT_OUTPUT), 
+                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat.hist"), 
                         "Path prefix for files generated by this program.")
-                    ("threads,t", po::value<uint16_t>(&threads)->default_value(DEFAULT_THREADS),
+                    ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                         "The number of threads to use")
-                    ("low,l", po::value<uint64_t>(&low)->default_value(DEFAULT_LOW),
+                    ("low,l", po::value<uint64_t>(&low)->default_value(1),
                         "Low count value of histogram")    
-                    ("high,h", po::value<uint64_t>(&high)->default_value(DEFAULT_HIGH),
+                    ("high,h", po::value<uint64_t>(&high)->default_value(10000),
                         "High count value of histogram")    
                     ("canonical,c", po::bool_switch(&canonical)->default_value(false),
                         "Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
+                    ("mer_len,m", po::value<uint8_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
+                        "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
                     ("hash_size,s", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                         "If kmer counting is required for the input, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
                     ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
@@ -347,11 +348,12 @@ namespace kat {
         
             // Create the sequence coverage object
             Histogram histo(inputs);
-            histo.setThread(threads);
+            histo.setOutputPrefix(output_prefix);
+            histo.setThreads(threads);
             histo.setLow(low);
             histo.setHigh(high);
-            histo.setInc(inc);
             histo.setCanonical(canonical);
+            histo.setMerLen(mer_len);
             histo.setHashSize(hash_size);
             histo.setVerbose(verbose);
 
@@ -359,11 +361,15 @@ namespace kat {
             histo.execute();
 
             // Output the results
-            histo.print(out);
+            histo.print(cout);
 
-            // Close the output channel
-            out.close();
-
+            // Send main matrix to output file
+            std::ostringstream main_hist_out_path;
+            main_hist_out_path << output_prefix;
+            ofstream_default main_hist_out_stream(main_hist_out_path.str().c_str(), cout);
+            histo.print(main_hist_out_stream);
+            main_hist_out_stream.close();
+            
             return 0;
         }
     };

@@ -28,6 +28,7 @@
 
 #include <gnuplot/gnuplot_i.hpp>
 
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
@@ -43,58 +44,46 @@ using std::ifstream;
 using std::istringstream;
 using std::ostringstream;
 
-using kat::DensityPlotArgs;
 
 typedef boost::error_info<struct PlotDensityError,string> PlotDensityErrorInfo;
 struct PlotDensityException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
     
-    class PlotDensity : BasePlotArgs {
+    class PlotDensity {
     private:
         
-        // Internal
-        static bool x_label_mod = false;
-        static bool y_label_mod = false;
-        static bool z_label_mod = false;
-        static bool x_max_mod = false;
-        static bool y_max_mod = false;
-        static bool z_max_mod = false;
-
-        
-        static const string helpMessage() const {
-            return string("Usage: kat plot density [options] <matrix_file>\n\n) +"
+        static string helpMessage() {
+            return string("Usage: kat plot density [options] <matrix_file>\n\n") +
                     "Create K-mer Density Plots.\n\n" +
                     "Creates a scatter plot, where the density or \"heat\" at each point represents the number of distinct K-mers " \
                     "at that point.  Typically this is used to visualise a matrix produced by the \"kat comp\" tool to compare " \
                     "multiplicities from two K-mer hashes produced by different NGS reads, or to visualise the GC vs K-mer " \
                     "multiplicity matricies produced by the \"kat gcp\" tool.";
         }
+        
 
     public:
        
-        static const string DEFAULT_OUTPUT_TYPE = "png";
-        static const string DEFAULT_TITLE      = "Density plot";
-        static const uint16_t DEFAULT_WIDTH    = 1024;
-        static const uint16_t DEFAULT_HEIGHT   = 1024;        
-        static const string DEFAULT_X_LABEL    = "X";
-        static const string DEFAULT_Y_LABEL    = "Y";
-        static const string DEFAULT_Z_LABEL    = "Z";
-        static const int32_t DEFAULT_X_MAX     = 1000;
-        static const int32_t DEFAULT_Y_MAX     = 1000;
-        static const int64_t DEFAULT_Z_MAX     = 10000;
-
         static int main(int argc, char *argv[]) {
+            
+            const string DEFAULT_TITLE      = "Density plot";
+            const string DEFAULT_X_LABEL    = "X";
+            const string DEFAULT_Y_LABEL    = "Y";
+            const string DEFAULT_Z_LABEL    = "Z";
+            const uint32_t DEFAULT_X_MAX    = 1000;
+            const uint32_t DEFAULT_Y_MAX    = 1000;
+            const uint64_t DEFAULT_Z_MAX    = 10000;
             
             path        mx_file;           
             string      output_type;
-            string      output;
+            path        output;
             string      title;
             string      x_label;
             string      y_label;
+            string      z_label;
             uint16_t    width;
             uint16_t    height;
-            string      z_label;
             uint32_t    x_max;
             uint32_t    y_max;
             uint64_t    z_max;
@@ -104,7 +93,7 @@ namespace kat {
             // Declare the supported options.
             po::options_description generic_options(PlotDensity::helpMessage());
             generic_options.add_options()
-                    ("output_type,p", po::value<string>(&output_type)->default_value(DEFAULT_OUTPUT_TYPE), 
+                    ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                         "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
                     ("output,o", po::value<path>(&output)->required(),
                         "The path to the output file")
@@ -116,15 +105,15 @@ namespace kat {
                         "Label for the y-axis (value taken from matrix metadata if present)")
                     ("z_label,c", po::value<string>(&z_label)->default_value(DEFAULT_Z_LABEL),
                         "Label for the z-axis (value taken from matrix metadata if present)")
-                    ("x_max,x", po::value<int32_t>(&x_max)->default_value(DEFAULT_X_MAX),
+                    ("x_max,x", po::value<uint32_t>(&x_max)->default_value(DEFAULT_X_MAX),
                         "Maximum value for the x-axis (value taken from matrix metadata if present)")
-                    ("y_max,y", po::value<int32_t>(&y_max)->default_value(DEFAULT_Y_MAX),
+                    ("y_max,y", po::value<uint32_t>(&y_max)->default_value(DEFAULT_Y_MAX),
                         "Maximum value for the y-axis (value taken from matrix metadata if present)")
                     ("z_max,z", po::value<uint64_t>(&z_max)->default_value(DEFAULT_Z_MAX),
                         "Maximum value for the z-axis (value taken from matrix metadata if present)")
-                    ("width,w", po::value<uint16_t>(&width)->default_value(DEFAULT_WIDTH),
+                    ("width,w", po::value<uint16_t>(&width)->default_value(1024),
                         "Width of canvas")
-                    ("height,h", po::value<uint16_t>(&height)->default_value(DEFAULT_HEIGHT),
+                    ("height,h", po::value<uint16_t>(&height)->default_value(1024),
                         "Height of canvas")
                     ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                         "Print extra information.")
@@ -166,15 +155,15 @@ namespace kat {
             }
 
             // Get plotting properties, either from file, or user.  User args have precedence.
-            uint16_t x_range = x_max_mod ? x_max : mme::getNumeric(mx_file, mme::KEY_NB_COLUMNS);
-            uint16_t y_range = y_max_mod ? y_max : mme::getNumeric(mx_file, mme::KEY_NB_ROWS);
-            uint32_t z_range = z_max_mod ? z_max : mme::getNumeric(mx_file, mme::KEY_MAX_VAL) / 1000;        // Scale down from the max value to saturate the hot spots
+            uint16_t x_range = x_max != DEFAULT_X_MAX ? x_max : mme::getNumeric(mx_file, mme::KEY_NB_COLUMNS);
+            uint16_t y_range = y_max != DEFAULT_Y_MAX ? y_max : mme::getNumeric(mx_file, mme::KEY_NB_ROWS);
+            uint32_t z_range = z_max != DEFAULT_Z_MAX ? z_max : mme::getNumeric(mx_file, mme::KEY_MAX_VAL) / 1000;        // Scale down from the max value to saturate the hot spots
 
-            string x_label = x_label_mod ? x_label : mme::getString(mx_file, mme::KEY_X_LABEL);
-            string y_label = y_label_mod ? y_label : mme::getString(mx_file, mme::KEY_Y_LABEL);
-            string z_label = z_label_mod ? z_label : mme::getString(mx_file, mme::KEY_Z_LABEL);
+            string xl = !boost::equals(x_label, DEFAULT_X_LABEL) ? x_label : mme::getString(mx_file, mme::KEY_X_LABEL);
+            string yl = !boost::equals(y_label, DEFAULT_Y_LABEL) ? y_label : mme::getString(mx_file, mme::KEY_Y_LABEL);
+            string zl = !boost::equals(z_label, DEFAULT_Z_LABEL) ? z_label : mme::getString(mx_file, mme::KEY_Z_LABEL);
 
-            string title = titleModified() ? title : mme::getString(mx_file, mme::KEY_TITLE);
+            string t = !boost::equals(title, DEFAULT_TITLE) ? title : mme::getString(mx_file, mme::KEY_TITLE);
 
             bool transpose = mme::getNumeric(mx_file, mme::KEY_TRANSPOSE) == 0 ? false : true;
 
@@ -184,20 +173,16 @@ namespace kat {
             y_range = y_range < 0 ? DEFAULT_Y_MAX : y_range;
             z_range = z_range < 0 ? DEFAULT_Z_MAX : z_range;    // Saturate the hot spots a bit to show more detail around the edges
 
-            x_label = x_label.empty() ? defaultXLabel() : x_label;
-            y_label = y_label.empty() ? defaultYLabel() : y_label;
-            z_label = z_label.empty() ? DEFAULT_Z_LABEL : z_label;
+            xl = xl.empty() ? DEFAULT_X_LABEL : xl;
+            yl = yl.empty() ? DEFAULT_Y_LABEL : yl;
+            zl = zl.empty() ? DEFAULT_Z_LABEL : zl;
 
-            title = title.empty() ? defaultTitle() : title;
-
-            // Work out the output path to use (either user specified or auto generated)
-            string output_path = determineOutputPath();
-
+            t = t.empty() ? DEFAULT_TITLE : t;
 
             if (verbose)
             {
                 cerr << "Actual variables used to create plot:" << endl;
-                cerr << "Output Path: " << output_path << endl;
+                cerr << "Output Path: " << output << endl;
                 cerr << "X Range: " << x_range << endl;
                 cerr << "Y Range: " << y_range << endl;
                 cerr << "Z Range: " << z_range << endl;
@@ -211,7 +196,7 @@ namespace kat {
             // Start defining the plot
             Gnuplot density("lines");
 
-            density.configurePlot(output_type, output_path, width, height);
+            density.configurePlot(output_type, output.string(), width, height);
 
             density.set_title(title);
             density.set_xlabel(x_label);
@@ -237,7 +222,7 @@ namespace kat {
 
             // Transpose the matrix and store in ostream
             ostringstream data;
-            SparseMatrix<uint64_t> mx = SparseMatrix<uint64_t>(mx_file);
+            SparseMatrix<uint64_t> mx(mx_file);
             mx.printMatrix(data, transpose);
 
             // Plot the transposed matrix as image

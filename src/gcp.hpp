@@ -28,12 +28,15 @@ using std::make_shared;
 using std::thread;
 using std::vector;
 
+#include <boost/algorithm/string.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
+using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>
@@ -54,17 +57,20 @@ namespace kat {
 
         // Input args
         vector<path>    inputs;
+        path            outputPrefix;
         uint16_t        threads;
-        double          cvg_scale;
-        uint16_t        cvg_bins;
+        double          cvgScale;
+        uint16_t        cvgBins;
+        uint8_t         merLen;
         bool            canonical;
-        uint64_t        hash_size;            
+        uint64_t        hashSize;            
         bool            verbose;
         
         // 
         const uint64_t nb_slices;
         uint64_t slice_id;
-
+        path hashFile;
+        
         // Variables that live for the lifetime of this object
         shared_ptr<JellyfishHelper> jfh;
         
@@ -81,40 +87,96 @@ namespace kat {
         ~Gcp() {            
         }
 
+        bool isCanonical() const {
+            return canonical;
+        }
+
+        void setCanonical(bool canonical) {
+            this->canonical = canonical;
+        }
+
+        uint16_t getCvgBins() const {
+            return cvgBins;
+        }
+
+        void setCvgBins(uint16_t cvgBins) {
+            this->cvgBins = cvgBins;
+        }
+
+        double getCvgScale() const {
+            return cvgScale;
+        }
+
+        void setCvgScale(double cvgScale) {
+            this->cvgScale = cvgScale;
+        }
+
+        uint64_t getHashSize() const {
+            return hashSize;
+        }
+
+        void setHashSize(uint64_t hashSize) {
+            this->hashSize = hashSize;
+        }
+
+        vector<path> getInputs() const {
+            return inputs;
+        }
+
+        void setInputs(vector<path> inputs) {
+            this->inputs = inputs;
+        }
+
+        uint8_t getMerLen() const {
+            return merLen;
+        }
+
+        void setMerLen(uint8_t merLen) {
+            this->merLen = merLen;
+        }
+
+        path getOutputPrefix() const {
+            return outputPrefix;
+        }
+
+        void setOutputPrefix(path outputPrefix) {
+            this->outputPrefix = outputPrefix;
+        }
+
+        uint16_t getThreads() const {
+            return threads;
+        }
+
+        void setThreads(uint16_t threads) {
+            this->threads = threads;
+        }
+
+        bool isVerbose() const {
+            return verbose;
+        }
+
+        void setVerbose(bool verbose) {
+            this->verbose = verbose;
+        }
+
+        
         void execute() {
             
-            if (inputs.empty()) {
-                BOOST_THROW_EXCEPTION(GcpException() << GcpErrorInfo(string(
-                    "No input files provided"));
+            // Create jellyfish hash if required
+            hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
+            path hashOutput = JellyfishHelper::jellyfishCount(inputs, hashFile, merLen, hashSize, threads, canonical, true);
+            if (hashOutput != hashFile) {
+                bfs::create_symlink(hashOutput, hashFile);
             }
-            
-            for (path p : inputs) {
-                if (!JellyfishHelper::isSequenceFile(p.extension())) {
-                    BOOST_THROW_EXCEPTION(GcpException() << GcpErrorInfo(string(
-                        "You provided sequence files to generate a kmer hash from, however some of the input files do not have a recognised sequence file extension: \".fa,.fasta,.fq,.fastq,.fna\""));
-                }
-
-                // Check input files exist
-                if (!bfs::exists(countsFile) && !bfs::symbolic_link_exists(countsFile)) {
-                    BOOST_THROW_EXCEPTION(GcpException() << GcpErrorInfo(string(
-                        "Could not find input file at: ") + p.string() + "; please check the path and try again."));                        
-                }
-            }
-
-            cout << "Provided one or more sequence files.  Executing jellyfish to count kmers." << endl;
-
-            hashFile = path(outputPrefix + string(".jf") + merLen;
-
-            JellyfishHelper::jellyfishCount(countsFiles, canonical, hashFile, merLen, hashSize1, threads);
-            
+                       
             // Setup output stream for jellyfish initialisation
             std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
             // Setup handle to jellyfish hash
-            jfh = make_shared<JellyfishHelper>(hash, AccessMethod::SEQUENTIAL);
+            jfh = make_shared<JellyfishHelper>(hashFile, AccessMethod::SEQUENTIAL);
             
             // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
-            gcp_mx = make_shared<ThreadedSparseMatrix>(jfh->getKeyLen(), cvg_bins + 1, threads);
+            gcp_mx = make_shared<ThreadedSparseMatrix>(jfh->getKeyLen(), cvgBins + 1, threads);
 
             // Process batch with worker threads
             // Process each sequence is processed in a different thread.
@@ -125,19 +187,13 @@ namespace kat {
             gcp_mx->mergeThreadedMatricies();
         }
         
-        void printVars(ostream &out) {
-            out << "GCP parameters:" << endl;
-            out << " - Hash File Path: " << db_arg << endl;
-            out << " - Hash: " << (jfh != nullptr ? "loaded" : "not loaded") << endl;
-            out << " - Threads: " << threads << endl;
-        }
 
         // Print K-mer comparison matrix
 
         void printMainMatrix(ostream &out) {
             SM64 mx = gcp_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << db_arg << endl;
+            out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << hashFile << endl;
             out << mme::KEY_X_LABEL << "K-mer multiplicity" << endl;
             out << mme::KEY_Y_LABEL << "GC count" << endl;
             out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
@@ -184,17 +240,17 @@ namespace kat {
                     }
 
                     // Apply scaling factor
-                    uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * cvg_scale);
+                    uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * cvgScale);
 
-                    if (cvg_pos > cvg_bins)
-                        mx->inc(g_or_c, cvg_bins, 1);
+                    if (cvg_pos > cvgBins)
+                        mx->inc(g_or_c, cvgBins, 1);
                     else
                         mx->inc(g_or_c, cvg_pos, 1);
                 }
             }
         }
 
-        const static string helpMessage() const {
+        static const string helpMessage() {
              return string("Usage: kat gcp <jellyfish_hash>\n\n") +
                             "Compares GC content and K-mer coverage within a single jellyfish hash." +
                             "This tool takes a single jellyfish hash as input and then counts the GC nucleotides for each distinct K-mer " \
@@ -204,21 +260,16 @@ namespace kat {
         }
         
     public:
-        
-        static const string DEFAULT_OUTPUT_PREFIX = "kat-gcp";
-        static const uint16_t DEFAULT_THREADS = 1;
-        static const double DEFAULT_CVG_SCALE = 1.0;
-        static const uint16_t DEFAULT_CVG_BINS = 1000;
-        static const uint64_t DEFAULT_HASH_SIZE = 10000000000;
-        
+          
         static int main(int argc, char *argv[]) {
             
             vector<path>    inputs;
-            string          output_prefix;
+            path            output_prefix;
             uint16_t        threads;
             double          cvg_scale;
             uint16_t        cvg_bins;
             bool            canonical;
+            uint8_t         mer_len;
             uint64_t        hash_size;            
             bool            verbose;
             bool            help;
@@ -226,16 +277,18 @@ namespace kat {
             // Declare the supported options.
             po::options_description generic_options(Gcp::helpMessage());
             generic_options.add_options()
-                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value(DEFAULT_OUTPUT_PREFIX), 
+                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-gcp"), 
                         "Path prefix for files generated by this program.")
-                    ("threads,t", po::value<uint16_t>(&threads)->default_value(DEFAULT_THREADS),
+                    ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                         "The number of threads to use")
-                    ("cvg_scale,x", po::value<double>(&cvg_scale)->default_value(DEFAULT_CVG_SCALE),
+                    ("cvg_scale,x", po::value<double>(&cvg_scale)->default_value(1.0),
                         "Number of bins for the gc data when creating the contamination matrix.")
-                    ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(DEFAULT_CVG_BINS),
+                    ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(1000),
                         "Number of bins for the cvg data when creating the contamination matrix.")
                     ("canonical,c", po::bool_switch(&canonical)->default_value(false),
                         "IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
+                    ("mer_len,m", po::value<uint8_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
+                        "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
                     ("hash_size,s", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                         "If kmer counting is required for the input, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
                     ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
@@ -278,11 +331,14 @@ namespace kat {
         
             // Create the sequence coverage object
             Gcp gcp(inputs, threads);
-
-            // Output seqcvg parameters to stderr if requested
-            if (verbose)
-                gcp.printVars(cerr);
-
+            gcp.setCanonical(canonical);
+            gcp.setCvgBins(cvg_bins);
+            gcp.setCvgScale(cvg_scale);
+            gcp.setHashSize(hash_size);
+            gcp.setMerLen(mer_len);
+            gcp.setOutputPrefix(output_prefix);
+            gcp.setVerbose(verbose);
+            
             // Do the work (outputs data to files as it goes)
             gcp.execute();
 

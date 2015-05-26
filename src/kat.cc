@@ -20,19 +20,27 @@
 #endif
 
 #include <string.h>
+#include <exception>
 #include <iostream>
+using std::exception;
 using std::string;
 
 #include <boost/exception/all.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-#include "sect.hpp"
 #include "comp.hpp"
 #include "gcp.hpp"
 #include "histogram.hpp"
 #include "plot.hpp"
+#include "sect.hpp"
 //#include "filter.hpp"
+using kat::Comp;
+using kat::Gcp;
+using kat::Histogram;
+using kat::Plot;
+using kat::Sect;
+
 
 typedef boost::error_info<struct KatError,string> KatErrorInfo;
 struct KatException: virtual boost::exception, virtual std::exception { };

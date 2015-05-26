@@ -37,12 +37,15 @@ using std::thread;
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
+using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>
@@ -54,13 +57,15 @@ typedef boost::error_info<struct SectError,string> SectErrorInfo;
 struct SectException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
-    const uint16_t BATCH_SIZE = 1024;
-
+    
+    
     class Sect {
     private:
 
+        static const uint16_t BATCH_SIZE = 1024;
+
         // Input args
-        vector<path>    countsFile;
+        vector<path>    countsFiles;
         path            seqFile;
         path            outputPrefix;
         uint16_t        gcBins;
@@ -68,9 +73,10 @@ namespace kat {
         bool            cvgLogscale;
         uint16_t        threads;
         bool            canonical;
+        uint8_t         merLen;
+        uint64_t        hashSize;
         bool            noCountStats;
         bool            median;
-        uint16_t        threads;
         bool            verbose;
             
         // Chunking vars
@@ -81,6 +87,7 @@ namespace kat {
         shared_ptr<ThreadedSparseMatrix> contamination_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
         uint32_t offset;
         uint16_t recordsInBatch;
+        path hashFile;
 
         // Variables that are refreshed for each batch
         seqan::StringSet<seqan::CharString> names;
@@ -94,8 +101,6 @@ namespace kat {
 
     public:
 
-        static const uint64_t DEFAULT_HASH_SIZE = 10000000000;
-        
         Sect(const vector<path> _counts_files, const path _seq_file, const uint16_t _threads) :
             countsFiles(_counts_files), seqFile(_seq_file), threads(_threads),
             bucket_size(BATCH_SIZE / threads),
@@ -113,20 +118,30 @@ namespace kat {
         ~Sect() {
         }
 
+        vector<path> getCountsFiles() const {
+            return countsFiles;
+        }
+
+        void setCountsFiles(vector<path> countsFiles) {
+            this->countsFiles = countsFiles;
+        }
+
+        
+        path getOutputPrefix() const {
+            return outputPrefix;
+        }
+
+        void setOutputPrefix(path outputPrefix) {
+            this->outputPrefix = outputPrefix;
+        }
+
+        
         bool isCanonical() const {
             return canonical;
         }
 
         void setCanonical(bool canonical) {
             this->canonical = canonical;
-        }
-
-        path getCountsFile() const {
-            return countsFile;
-        }
-
-        void setCountsFile(path counts_file) {
-            this->countsFile = counts_file;
         }
 
         uint16_t getCvgBins() const {
@@ -184,6 +199,22 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
+        
+        uint64_t getHashSize() const {
+            return hashSize;
+        }
+
+        void setHashSize(uint64_t hashSize) {
+            this->hashSize = hashSize;
+        }
+
+        uint8_t getMerLen() const {
+            return merLen;
+        }
+
+        void setMerLen(uint8_t merLen) {
+            this->merLen = merLen;
+        }
 
         bool isVerbose() const {
             return verbose;
@@ -198,39 +229,14 @@ namespace kat {
             
             if (!bfs::exists(seqFile) && !bfs::symbolic_link_exists(seqFile)) {
                 BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
-                        "Could not find sequence file at: " + seqFile + "; please check the path and try again."));
+                        "Could not find sequence file at: " + seqFile.string() + "; please check the path and try again.")));
             }
             
-            if (countsFiles.empty()) {
-                BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
-                    "No input files provided"));
-            }
-            
-            path hashFile;
-            
-            if (countsFiles.size() == 1 && !JellyfishHelper::isSequenceFile(countsFiles[0].extension())) {
-                hashFile = countsFiles[0];                
-            }
-            else {
-                
-                for (path p : countsFiles) {
-                    if (!JellyfishHelper::isSequenceFile(p.extension())) {
-                        BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
-                            "You provided multiple sequence files to generate a kmer hash from, however some of the input files do not have a recognised sequence file extension: \".fa,.fasta,.fq,.fastq,.fna\""));
-                    }
-                    
-                    // Check input files exist
-                    if (!bfs::exists(p) && !bfs::symbolic_link_exists(p)) {
-                        BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
-                            "Could not find input file at: ") + p.string() + "; please check the path and try again."));                        
-                    }
-                }
-                
-                cout << "Provided one or more sequence files.  Executing jellyfish to count kmers." << endl;
-                
-                hashFile = path(outputPrefix + string(".jf") + merLen;
-                
-                JellyfishHelper::jellyfishCount(countsFiles, canonical, hashFile, merLen, hashSize1, threads);
+            // Create jellyfish hash if required
+            hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
+            path hashOutput = JellyfishHelper::jellyfishCount(countsFiles, hashFile, merLen, hashSize, threads, canonical, true);
+            if (hashOutput != hashFile) {
+                bfs::create_symlink(hashOutput, hashFile);
             }
             
             // Setup handle to jellyfish hash
@@ -250,7 +256,7 @@ namespace kat {
             std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
             // Open file, create RecordReader and check all is well
-            seqan::SeqFileIn reader(seq_file.c_str());
+            seqan::SeqFileIn reader(seqFile.c_str());
 
             // Setup output streams for files
             if (verbose)
@@ -258,15 +264,15 @@ namespace kat {
 
             // Sequence K-mer counts output stream
             ofstream_default* count_path_stream = NULL;
-            if (!no_count_stats) {
+            if (!noCountStats) {
                 std::ostringstream count_path;
-                count_path << output_prefix << "_counts.cvg";
+                count_path << outputPrefix << "_counts.cvg";
                 count_path_stream = new ofstream_default(count_path.str().c_str(), cout);
             }
 
             // Average sequence coverage and GC% scores output stream
             std::ostringstream cvg_gc_path;
-            cvg_gc_path << output_prefix << "_stats.csv";
+            cvg_gc_path << outputPrefix << "_stats.csv";
             ofstream_default cvg_gc_stream(cvg_gc_path.str().c_str(), cout);
             cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
 
@@ -296,7 +302,7 @@ namespace kat {
                 startAndJoinThreads();
 
                 // Output counts for this batch if (not not) requested
-                if (!no_count_stats)
+                if (!noCountStats)
                     printCounts(*count_path_stream);
 
                 // Output stats
@@ -313,7 +319,7 @@ namespace kat {
             }
 
             // Close output streams
-            if (!no_count_stats) {
+            if (!noCountStats) {
                 count_path_stream->close();
                 delete count_path_stream;
             }
@@ -325,9 +331,9 @@ namespace kat {
 
             // Send contamination matrix to file
             std::ostringstream contamination_mx_path;
-            contamination_mx_path << output_prefix << "_contamination.mx";
+            contamination_mx_path << outputPrefix << "_contamination.mx";
             ofstream_default contamination_mx_stream(contamination_mx_path.str().c_str(), cout);
-            printContaminationMatrix(contamination_mx_stream, seq_file.c_str());
+            printContaminationMatrix(contamination_mx_stream, seqFile.c_str());
             contamination_mx_stream.close();
 
             // If there was a problem reading the data notify the user, otherwise output
@@ -336,17 +342,6 @@ namespace kat {
                 cerr << "ERROR: SECT could not analyse all sequences in the provided sequence file." << endl;
                 resultCode = 1;
             }
-        }
-
-        
-
-        void printVars(std::ostream &out) {
-            out << "SECT parameters:" << endl;
-            out << " - Sequence File Path: " << seq_file << endl;
-            out << " - Hash File Path: " << counts_file << endl;
-            out << " - Threads: " << threads << endl;
-            out << " - Bucket size: " << bucket_size << endl;
-            out << " - Remaining: " << remaining << endl << endl;
         }
 
         int getResultCode() {
@@ -446,7 +441,7 @@ namespace kat {
         void printContaminationMatrix(std::ostream &out, const char* seqFile) {
             SM64 mx = contamination_mx->getFinalMatrix();
 
-            out << mme::KEY_TITLE << "Contamination Plot for " << seqFile << " and " << jellyfish_hash << endl;
+            out << mme::KEY_TITLE << "Contamination Plot for " << seqFile << " and " << hashFile << endl;
             out << mme::KEY_X_LABEL << "GC%" << endl;
             out << mme::KEY_Y_LABEL << "Average K-mer Coverage" << endl;
             out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;
@@ -568,19 +563,19 @@ namespace kat {
             double gc_perc = ((double) (gs + cs)) / ((double) (seqLength - ns));
             (*gcs)[index] = gc_perc;
 
-            double log_cvg = args.cvg_logscale ? log10(average_cvg) : average_cvg;
+            double log_cvg = cvgLogscale ? log10(average_cvg) : average_cvg;
 
             // Assume log_cvg 5 is max value
-            double compressed_cvg = args.cvg_logscale ? log_cvg * (args.cvg_bins / 5.0) : average_cvg * 0.1;
+            double compressed_cvg = cvgLogscale ? log_cvg * (cvgBins / 5.0) : average_cvg * 0.1;
 
-            uint16_t x = gc_perc * args.gc_bins; // Convert double to 1.dp
-            uint16_t y = compressed_cvg >= args.cvg_bins ? args.cvg_bins - 1 : compressed_cvg; // Simply cap the y value
+            uint16_t x = gc_perc * gcBins; // Convert double to 1.dp
+            uint16_t y = compressed_cvg >= cvgBins ? cvgBins - 1 : compressed_cvg; // Simply cap the y value
 
             // Add bases to matrix
             contamination_mx->getThreadMatrix(th_id)->inc(x, y, seqLength);
         }
         
-        static const string helpMessage() const {            
+        static string helpMessage() {            
         
             return string(  "Usage: kat sect [options] <sequence_file> <counts_file>\n\n") +
                             "Estimates coverage levels for a collection of sequences using jellyfish K-mer counts.\n\n" \
@@ -603,6 +598,7 @@ namespace kat {
             bool            cvg_logscale;
             uint16_t        threads;
             bool            canonical;
+            uint8_t         mer_len;
             uint64_t        hash_size;
             bool            no_count_stats;
             bool            mean;
@@ -612,18 +608,20 @@ namespace kat {
             // Declare the supported options.
             po::options_description generic_options(Sect::helpMessage());
             generic_options.add_options()
-                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value(DEFAULT_OUTPUT_PREFIX), 
+                    ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-sect"), 
                         "Path prefix for files generated by this program.")
-                    ("gc_bins,x", po::value<uint16_t>(&gc_bins)->default_value(DEFAULT_GC_BINS),
+                    ("gc_bins,x", po::value<uint16_t>(&gc_bins)->default_value(1001),
                         "Number of bins for the gc data when creating the contamination matrix.")
-                    ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(DEFAULT_CVG_BINS),
+                    ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(1001),
                         "Number of bins for the cvg data when creating the contamination matrix.")
                     ("cvg_logscale,l", po::bool_switch(&cvg_logscale)->default_value(false),
                         "Compresses cvg scores into logscale for determining the cvg bins within the contamination matrix. Otherwise compresses cvg scores by a factor of 0.1 into the available bins.")
-                    ("threads,t", po::value<uint16_t>(&threads)->default_value(DEFAULT_THREADS),
+                    ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                         "The number of threads to use")
                     ("canonical,c", po::bool_switch(&canonical)->default_value(false),
                         "IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
+                    ("mer_len,m", po::value<uint8_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
+                        "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
                     ("hash_size,s", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                         "If kmer counting is required for the input, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
                     ("no_count_stats,n", po::bool_switch(&no_count_stats)->default_value(false),
@@ -678,13 +676,11 @@ namespace kat {
             sect.setCvgBins(cvg_bins);
             sect.setCvgLogscale(cvg_logscale);
             sect.setCanonical(canonical);
+            sect.setMerLen(mer_len);
+            sect.setHashSize(hash_size);
             sect.setNoCountStats(no_count_stats);
             sect.setMedian(!mean);
             sect.setVerbose(verbose);
-
-            // Output sect parameters to stderr if requested
-            if (verbose)
-                sect.printVars(cout);
 
             // Do the work (outputs data to files as it goes)
             sect.execute();

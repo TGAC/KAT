@@ -19,9 +19,14 @@
 
 #include <string.h>
 #include <stdint.h>
-
 using std::string;
 
+#include <boost/filesystem.hpp>
+#include <boost/filesystem/path.hpp>
+#include <boost/program_options.hpp>
+namespace po = boost::program_options;
+namespace bfs = boost::filesystem;
+using bfs::path;
 
 namespace mme {
     const string KEY_NB_COLUMNS = "# Columns:";
@@ -35,7 +40,7 @@ namespace mme {
     const string MX_META_END = "###";
 
     void trim(string& str);
-    int getNumeric(const string& path, const string& key);
-    string getString(const string& path, const string& key);
+    int getNumeric(const path& path, const string& key);
+    string getString(const path& path, const string& key);
 }
 
