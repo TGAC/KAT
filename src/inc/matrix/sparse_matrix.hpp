@@ -47,6 +47,8 @@ public:
     typedef map<size_t, T> col_t;
     typedef typename col_t::iterator col_iter;
 
+    SparseMatrix() : SparseMatrix(0) {}
+    
     SparseMatrix(size_t i) {
         m = i;
         n = i;
@@ -219,11 +221,6 @@ public:
                 out << endl;
             }
         }
-    }
-
-protected:
-
-    SparseMatrix() {
     }
 
 private:

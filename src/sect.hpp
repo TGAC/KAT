@@ -464,11 +464,11 @@ namespace kat {
             out << mme::KEY_Z_LABEL << "Base Count per bin" << endl;
             out << mme::KEY_NB_COLUMNS << gcBins << endl;
             out << mme::KEY_NB_ROWS << cvgBins << endl;
-            out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
+            out << mme::KEY_MAX_VAL << mx.getMaxVal() << endl;
             out << mme::KEY_TRANSPOSE << "0" << endl;
             out << mme::MX_META_END << endl;
 
-            contamination_mx->getFinalMatrix()->printMatrix(out);
+            mx.printMatrix(out);
         }
 
         // This method won't be optimal in most cases... Fasta files are normally sorted by length (largest first)
@@ -589,7 +589,7 @@ namespace kat {
             uint16_t y = compressed_cvg >= cvgBins ? cvgBins - 1 : compressed_cvg; // Simply cap the y value
 
             // Add bases to matrix
-            contamination_mx->getThreadMatrix(th_id)->inc(x, y, seqLength);
+            contamination_mx->incTM(th_id, x, y, seqLength);
         }
         
         static string helpMessage() {            

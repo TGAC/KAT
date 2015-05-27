@@ -197,13 +197,13 @@ namespace kat {
             out << mme::KEY_X_LABEL << "K-mer multiplicity" << endl;
             out << mme::KEY_Y_LABEL << "GC count" << endl;
             out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
-            out << mme::KEY_NB_COLUMNS << mx->height() << endl;
-            out << mme::KEY_NB_ROWS << mx->width() << endl;
-            out << mme::KEY_MAX_VAL << mx->getMaxVal() << endl;
+            out << mme::KEY_NB_COLUMNS << mx.height() << endl;
+            out << mme::KEY_NB_ROWS << mx.width() << endl;
+            out << mme::KEY_MAX_VAL << mx.getMaxVal() << endl;
             out << mme::KEY_TRANSPOSE << "0" << endl;
             out << mme::MX_META_END << endl;
 
-            mx->printMatrix(out);
+            mx.printMatrix(out);
         }
         
     protected:
@@ -222,8 +222,7 @@ namespace kat {
         }
 
         void start(int th_id) {
-            SM64 mx = gcp_mx->getThreadMatrix(th_id);
-
+            
             for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
                 lha::region_iterator it = jfh->getSlice(i, nb_slices);
                 while (it.next()) {
@@ -243,9 +242,9 @@ namespace kat {
                     uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * cvgScale);
 
                     if (cvg_pos > cvgBins)
-                        mx->inc(g_or_c, cvgBins, 1);
+                        gcp_mx->incTM(th_id, g_or_c, cvgBins, 1);
                     else
-                        mx->inc(g_or_c, cvg_pos, 1);
+                        gcp_mx->incTM(th_id, g_or_c, cvg_pos, 1);
                 }
             }
         }

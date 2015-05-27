@@ -40,7 +40,7 @@ SUBDIRS = deps/jellyfish-2.2.0
 AUTOMAKE_OPTIONS = subdir-objects
 
 # Apply for all
-CXXFLAGS = -g3 -O3 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=c++11 @AM_CXXFLAGS@
+CXXFLAGS = -g -O0 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=c++11 @AM_CXXFLAGS@
 CPPFLAGS = -DCPLUSPLUS -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
 LDFLAGS = @AM_LDFLAGS@
 LIBS = $(top_srcdir)/deps/jellyfish-2.2.0/libjellyfish-2.0.la @AM_LIBS@

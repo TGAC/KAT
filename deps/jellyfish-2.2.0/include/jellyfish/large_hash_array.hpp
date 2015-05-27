@@ -984,7 +984,7 @@ public:
 
 protected:
   word* alloc_data(size_t s) {
-    assert(bytes_ == s);
+    //assert(bytes_ == s);
     return (word*)ptr_;
   }
 };

@@ -23,6 +23,7 @@
 #include <vector>
 #include <math.h>
 #include <memory>
+#include <mutex>
 #include <thread>
 using std::vector;
 using std::string;
@@ -72,11 +73,13 @@ namespace kat {
         uint64_t shared_hash2_total;
         uint64_t shared_distinct;
 
-        const char* hash1_path;
-        const char* hash2_path;
-        const char* hash3_path;
+        path hash1_path;
+        path hash2_path;
+        path hash3_path;
 
-        CompCounters(const char* _hash1_path, const char* _hash2_path, const char* _hash3_path) :
+        CompCounters() : CompCounters("", "", "") {}
+        
+        CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path) :
         hash1_path(_hash1_path), hash2_path(_hash2_path), hash3_path(_hash3_path) {
 
             hash1_total = 0;
@@ -92,6 +95,25 @@ namespace kat {
             shared_hash1_total = 0;
             shared_hash2_total = 0;
             shared_distinct = 0;
+        }
+        
+        CompCounters(const CompCounters& o) {
+            hash1_path = path(o.hash1_path);
+            hash2_path = path(o.hash2_path);
+            hash3_path = path(o.hash3_path);
+            hash1_total = o.hash1_total;
+            hash2_total = o.hash2_total;
+            hash3_total = o.hash3_total;
+            hash1_distinct = o.hash1_distinct;
+            hash2_distinct = o.hash2_distinct;
+            hash3_distinct = o.hash3_distinct;
+            hash1_only_total = o.hash1_only_total;
+            hash2_only_total = o.hash2_only_total;
+            hash1_only_distinct = o.hash1_only_distinct;
+            hash2_only_distinct = o.hash2_only_distinct;
+            shared_hash1_total = o.shared_hash1_total;
+            shared_hash2_total = o.shared_hash2_total;
+            shared_distinct = o.shared_distinct;
         }
 
         void updateHash1Counters(uint64_t hash1_count, uint64_t hash2_count) {
@@ -209,7 +231,9 @@ namespace kat {
         shared_ptr<CompCounters> final_comp_counters;
 
         // Thread specific data
-        shared_ptr<vector<shared_ptr<CompCounters> > > thread_comp_counters;
+        shared_ptr<vector<CompCounters> > thread_comp_counters;
+        
+        std::mutex mu;
 
 
     public:
@@ -232,7 +256,7 @@ namespace kat {
             hashSize1 = DEFAULT_HASH_SIZE;
             hashSize2 = DEFAULT_HASH_SIZE;
             hashSize3 = DEFAULT_HASH_SIZE;
-            verbose = false;
+            verbose = false;            
         }
 
         ~Comp() {
@@ -396,8 +420,7 @@ namespace kat {
             }
             
             // Create the final K-mer counter matrices
-            main_matrix = shared_ptr<ThreadedSparseMatrix>(
-                    new ThreadedSparseMatrix(d1Bins, d2Bins, threads));
+            main_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
 
             // Initialise extra matrices for hash3 (only allocates space if required)
             if (!input3.empty()) {
@@ -412,18 +435,19 @@ namespace kat {
                     input1.c_str(), input2.c_str(), input3.c_str());
 
             // Create the comp counters for each thread
-            thread_comp_counters = make_shared<vector<shared_ptr<CompCounters>>>(threads);
+            thread_comp_counters = make_shared<vector<CompCounters>>(threads);
             for (int i = 0; i < threads; i++) {
-                thread_comp_counters->push_back(make_shared<CompCounters>(
-                        input1.c_str(), input2.c_str(), input3.c_str()));
+                thread_comp_counters->at(i).hash1_path = input1;
+                thread_comp_counters->at(i).hash2_path = input2;
+                thread_comp_counters->at(i).hash3_path = input3;
             }
 
             std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
             // Count kmers if necessary
-            path i1Ext = input1.extension();
-            path i2Ext = input2.extension();
-            path i3Ext = !input3.empty() ? input3.extension() : path();
+            string i1Ext = input1.extension().string();
+            string i2Ext = input2.extension().string();
+            string i3Ext = !input3.empty() ? input3.extension().string() : "";
             
             path i1 = input1;
             path i2 = input2;
@@ -435,7 +459,7 @@ namespace kat {
                 
                 cout << "Input 1 is a sequence file.  Executing jellyfish to count kmers." << endl;
                 
-                i1 = path(outputPrefix.string() + string(".jf") + merLenStr);
+                i1 = path(outputPrefix.string() + "-input1.jf" + merLenStr);
                 
                 JellyfishHelper::jellyfishCount(input1, i1, merLen, hashSize1, threads, canonical1, true);
             }
@@ -444,26 +468,26 @@ namespace kat {
                 
                 cout << "Input 2 is a sequence file.  Executing jellyfish to count kmers." << endl;
                 
-                i2 += path(outputPrefix.string() + string(".jf") + merLenStr);
+                i2 = path(outputPrefix.string() + "-input2.jf" + merLenStr);
                 
-                JellyfishHelper::jellyfishCount(input1, i2, merLen, hashSize2, threads, canonical2, true);
+                JellyfishHelper::jellyfishCount(input2, i2, merLen, hashSize2, threads, canonical2, true);
             }
             
             if (!input3.empty() && JellyfishHelper::isSequenceFile(i3Ext)) {
                 
                 cout << "Input 3 is a sequence file.  Executing jellyfish to count kmers." << endl;
                 
-                i3 += path(outputPrefix.string() + string(".jf") + merLenStr);
+                i3 = path(outputPrefix.string() + "-input3.jf" + merLenStr);
                 
-                JellyfishHelper::jellyfishCount(input1, i3, merLen, hashSize3, threads, canonical3, true);
+                JellyfishHelper::jellyfishCount(input3, i3, merLen, hashSize3, threads, canonical3, true);
             }
             
             
             // Load the hashes
-            jfh1 = make_shared<JellyfishHelper>(input1, AccessMethod::RANDOM);
-            jfh2 = make_shared<JellyfishHelper>(input2, AccessMethod::RANDOM);
+            jfh1 = make_shared<JellyfishHelper>(i1, AccessMethod::RANDOM, verbose);
+            jfh2 = make_shared<JellyfishHelper>(i2, AccessMethod::RANDOM, verbose);
             jfh3 = !(input3.empty()) ?
-                    make_shared<JellyfishHelper>(input3, AccessMethod::RANDOM) :
+                    make_shared<JellyfishHelper>(i3, AccessMethod::RANDOM, verbose) :
                     nullptr;
 
             // Check K-mer lengths are the same for both hashes.  We can't continue if they are not.
@@ -539,13 +563,13 @@ namespace kat {
                     << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input1 << endl
                     << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << input2 << endl
                     << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl
-                    << mme::KEY_NB_COLUMNS << mx->height() << endl
-                    << mme::KEY_NB_ROWS << mx->width() << endl
-                    << mme::KEY_MAX_VAL << mx->getMaxVal() << endl
+                    << mme::KEY_NB_COLUMNS << mx.height() << endl
+                    << mme::KEY_NB_ROWS << mx.width() << endl
+                    << mme::KEY_MAX_VAL << mx.getMaxVal() << endl
                     << mme::KEY_TRANSPOSE << "1" << endl
                     << mme::MX_META_END << endl;
 
-            mx->printMatrix(out);
+            mx.printMatrix(out);
         }
 
         // Print K-mer comparison matrix
@@ -555,7 +579,7 @@ namespace kat {
             out << "# Each row represents K-mer multiplicity for: " << input1 << endl;
             out << "# Each column represents K-mer multiplicity for sequence ends: " << input3 << endl;
 
-            ends_matrix->getFinalMatrix()->printMatrix(out);
+            ends_matrix->getFinalMatrix().printMatrix(out);
         }
 
         // Print K-mer comparison matrix
@@ -565,7 +589,7 @@ namespace kat {
             out << "# Each row represents K-mer multiplicity for: " << input1 << endl;
             out << "# Each column represents K-mer multiplicity for sequence middles: " << input2 << endl;
 
-            middle_matrix->getFinalMatrix()->printMatrix(out);
+            middle_matrix->getFinalMatrix().printMatrix(out);
         }
 
         // Print K-mer comparison matrix
@@ -575,7 +599,7 @@ namespace kat {
             out << "# Each row represents K-mer multiplicity for hash file 1: " << input1 << endl;
             out << "# Each column represents K-mer multiplicity for mixed: " << input2 << " and " << input3 << endl;
 
-            mixed_matrix->getFinalMatrix()->printMatrix(out);
+            mixed_matrix->getFinalMatrix().printMatrix(out);
         }
 
         // Print K-mer statistics
@@ -606,12 +630,6 @@ namespace kat {
         
         void start(int th_id) {
 
-            // Get handle to sparse matrix for this thread
-            shared_ptr<SparseMatrix<uint64_t> > thread_matrix = main_matrix->getThreadMatrix(th_id);
-
-            // Get handle on this thread's comp counter
-            shared_ptr<CompCounters> comp_counters = (*thread_comp_counters)[th_id];
-
             // Setup iterator for this thread's chunk of hash1
             lha::region_iterator hash1Iterator = jfh1->getSlice(th_id, threads);
 
@@ -627,10 +645,10 @@ namespace kat {
                 uint64_t hash3_count = jfh3 != nullptr ? jfh3->getCount(hash1Iterator.key()) : 0;
 
                 // Increment hash1's unique counters
-                comp_counters->updateHash1Counters(hash1_count, hash2_count);
+                thread_comp_counters->at(th_id).updateHash1Counters(hash1_count, hash2_count);
 
                 // Increment shared counters
-                comp_counters->updateSharedCounters(hash1_count, hash2_count);
+                thread_comp_counters->at(th_id).updateSharedCounters(hash1_count, hash2_count);
 
                 // Scale counters to make the matrix look pretty
                 uint64_t scaled_hash1_count = scaleCounter(hash1_count, d1Scale);
@@ -643,16 +661,16 @@ namespace kat {
                 if (scaled_hash3_count >= d2Bins) scaled_hash3_count = d2Bins - 1;
 
                 // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
-                thread_matrix->inc(scaled_hash1_count, scaled_hash2_count, 1);
+                main_matrix->incTM(th_id, scaled_hash1_count, scaled_hash2_count, 1);
 
                 // Update hash 3 related matricies if hash 3 was provided
                 if (jfh3 != nullptr) {
                     if (scaled_hash2_count == scaled_hash3_count)
-                        ends_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                        ends_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
                     else if (scaled_hash3_count > 0)
-                        mixed_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                        mixed_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
                     else
-                        middle_matrix->getThreadMatrix(th_id)->inc(scaled_hash1_count, scaled_hash3_count, 1);
+                        middle_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
                 }
             }
 
@@ -670,7 +688,7 @@ namespace kat {
                 uint64_t hash1_count = jfh1->getCount(hash2Iterator.key());
 
                 // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
-                comp_counters->updateHash2Counters(hash1_count, hash2_count);
+                thread_comp_counters->at(th_id).updateHash2Counters(hash1_count, hash2_count);
 
                 // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
                 if (!hash1_count) {
@@ -681,7 +699,7 @@ namespace kat {
                     if (scaled_hash2_count >= d2Bins) scaled_hash2_count = d2Bins - 1;
 
                     // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
-                    thread_matrix->inc(0, scaled_hash2_count, 1);
+                    main_matrix->incTM(th_id, 0, scaled_hash2_count, 1);
                 }
             }
 
@@ -697,7 +715,7 @@ namespace kat {
                     uint64_t hash3_count = hash3Iterator.val();
 
                     // Increment hash3's unique counters (don't bother with shared counters... we've already done this)
-                    comp_counters->updateHash3Counters(hash3_count);
+                    thread_comp_counters->at(th_id).updateHash3Counters(hash3_count);
                 }
             }
         }
@@ -723,21 +741,20 @@ namespace kat {
 
             // Merge counters
             for (int k = 0; k < threads; k++) {
-                shared_ptr<CompCounters> thread_comp_counter = (*thread_comp_counters)[k];
-
-                final_comp_counters->hash1_total += thread_comp_counter->hash1_total;
-                final_comp_counters->hash2_total += thread_comp_counter->hash2_total;
-                final_comp_counters->hash3_total += thread_comp_counter->hash3_total;
-                final_comp_counters->hash1_distinct += thread_comp_counter->hash1_distinct;
-                final_comp_counters->hash2_distinct += thread_comp_counter->hash2_distinct;
-                final_comp_counters->hash3_distinct += thread_comp_counter->hash3_distinct;
-                final_comp_counters->hash1_only_total += thread_comp_counter->hash1_only_total;
-                final_comp_counters->hash2_only_total += thread_comp_counter->hash2_only_total;
-                final_comp_counters->hash1_only_distinct += thread_comp_counter->hash1_only_distinct;
-                final_comp_counters->hash2_only_distinct += thread_comp_counter->hash2_only_distinct;
-                final_comp_counters->shared_hash1_total += thread_comp_counter->shared_hash1_total;
-                final_comp_counters->shared_hash2_total += thread_comp_counter->shared_hash2_total;
-                final_comp_counters->shared_distinct += thread_comp_counter->shared_distinct;
+                
+                final_comp_counters->hash1_total += thread_comp_counters->at(k).hash1_total;
+                final_comp_counters->hash2_total += thread_comp_counters->at(k).hash2_total;
+                final_comp_counters->hash3_total += thread_comp_counters->at(k).hash3_total;
+                final_comp_counters->hash1_distinct += thread_comp_counters->at(k).hash1_distinct;
+                final_comp_counters->hash2_distinct += thread_comp_counters->at(k).hash2_distinct;
+                final_comp_counters->hash3_distinct += thread_comp_counters->at(k).hash3_distinct;
+                final_comp_counters->hash1_only_total += thread_comp_counters->at(k).hash1_only_total;
+                final_comp_counters->hash2_only_total += thread_comp_counters->at(k).hash2_only_total;
+                final_comp_counters->hash1_only_distinct += thread_comp_counters->at(k).hash1_only_distinct;
+                final_comp_counters->hash2_only_distinct += thread_comp_counters->at(k).hash2_only_distinct;
+                final_comp_counters->shared_hash1_total += thread_comp_counters->at(k).shared_hash1_total;
+                final_comp_counters->shared_hash2_total += thread_comp_counters->at(k).shared_hash2_total;
+                final_comp_counters->shared_distinct += thread_comp_counters->at(k).shared_distinct;
             }
         }
         
@@ -874,40 +891,30 @@ namespace kat {
             comp.execute();
 
             // Send main matrix to output file
-            std::ostringstream main_mx_out_path;
-            main_mx_out_path << output_prefix << "_main.mx";
-            ofstream_default main_mx_out_stream(main_mx_out_path.str().c_str(), cout);
+            ofstream_default main_mx_out_stream(string(output_prefix.string() + "_main.mx").c_str(), cout);
             comp.printMainMatrix(main_mx_out_stream);
             main_mx_out_stream.close();
 
             // Output ends matricies if required
             if (!(input3.empty())) {
                 // Ends matrix
-                std::ostringstream ends_mx_out_path;
-                ends_mx_out_path << output_prefix << "_ends.mx";
-                ofstream_default ends_mx_out_stream(ends_mx_out_path.str().c_str(), cout);
+                ofstream_default ends_mx_out_stream(string(output_prefix.string() + "_ends.mx").c_str(), cout);
                 comp.printEndsMatrix(ends_mx_out_stream);
                 ends_mx_out_stream.close();
 
                 // Middle matrix
-                std::ostringstream middle_mx_out_path;
-                middle_mx_out_path << output_prefix << "_middle.mx";
-                ofstream_default middle_mx_out_stream(middle_mx_out_path.str().c_str(), cout);
+                ofstream_default middle_mx_out_stream(string(output_prefix.string() + "_middle.mx").c_str(), cout);
                 comp.printMiddleMatrix(middle_mx_out_stream);
                 middle_mx_out_stream.close();
 
                 // Mixed matrix
-                std::ostringstream mixed_mx_out_path;
-                mixed_mx_out_path << output_prefix << "_mixed.mx";
-                ofstream_default mixed_mx_out_stream(mixed_mx_out_path.str().c_str(), cout);
+                ofstream_default mixed_mx_out_stream(string(output_prefix.string() + "_mixed.mx").c_str(), cout);
                 comp.printMixedMatrix(mixed_mx_out_stream);
                 mixed_mx_out_stream.close();
             }
 
             // Send K-mer statistics to file
-            std::ostringstream stats_out_path;
-            stats_out_path << output_prefix << ".stats";
-            ofstream_default stats_out_stream(stats_out_path.str().c_str(), cout);
+            ofstream_default stats_out_stream(string(output_prefix.string() + ".stats").c_str(), cout);
             comp.printCounters(stats_out_stream);
             stats_out_stream.close();
 

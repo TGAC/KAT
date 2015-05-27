@@ -23,7 +23,7 @@ using std::shared_ptr;
 
 #include "sparse_matrix.hpp"
 
-typedef shared_ptr<SparseMatrix<uint64_t> > SM64;
+typedef SparseMatrix<uint64_t> SM64;
 
 class ThreadedSparseMatrix {
 private:
@@ -39,11 +39,11 @@ public:
 
     ThreadedSparseMatrix(uint16_t _width, uint16_t _height, uint16_t _threads) :
     width(_width), height(_height), threads(_threads) {
-        final_matrix = SM64(new SparseMatrix<uint64_t>(width, height));
+        final_matrix = SM64(width, height);
         threaded_matricies = vector<SM64>(threads);
 
         for (int i = 0; i < threads; i++) {
-            threaded_matricies.push_back(SM64(new SparseMatrix<uint64_t>(width, height)));
+            threaded_matricies[i] = SM64(width, height);
         }
     }
 
@@ -63,12 +63,16 @@ public:
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
                 for (int k = 0; k < threads; k++) {
-                    final_matrix->inc(i, j, threaded_matricies[k]->get(i, j));
+                    final_matrix.inc(i, j, threaded_matricies[k].get(i, j));
                 }
             }
         }
 
         return final_matrix;
+    }
+    
+    uint64_t incTM(uint16_t index, size_t i, size_t j, uint64_t val) {
+        return threaded_matricies[index].inc(i, j, val);
     }
 
 };
