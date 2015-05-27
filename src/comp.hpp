@@ -194,6 +194,55 @@ namespace kat {
             out << " - Distinct shared K-mers: " << shared_distinct << endl << endl;
         }
     };
+    
+    class ThreadedCompCounters {
+    private: 
+        uint16_t threads;
+
+        CompCounters final_matrix;
+        shared_ptr<vector<shared_ptr<CompCounters>>> threaded_counters;
+        
+    public:
+        ThreadedCompCounters(uint16_t _threads, const path& _hash1_path, const path& _hash2_path, const path& _hash3_path) : 
+            threads(_threads) {
+            
+            threaded_counters = make_shared<vector<shared_ptr<CompCounters>>>();
+            
+            final_matrix.hash1_path = _hash1_path;
+            final_matrix.hash2_path = _hash2_path;
+            final_matrix.hash3_path = _hash3_path;
+        }
+                
+        void printCounts(ostream &out) {
+            final_matrix.printCounts(out);
+        }
+        
+        void add(shared_ptr<CompCounters> cc) {
+            threaded_counters->push_back(cc);
+        }
+        
+        void merge() {
+
+            // Merge counters
+            for (int k = 0; k < threads; k++) {
+                
+                final_matrix.hash1_total += threaded_counters->at(k)->hash1_total;
+                final_matrix.hash2_total += threaded_counters->at(k)->hash2_total;
+                final_matrix.hash3_total += threaded_counters->at(k)->hash3_total;
+                final_matrix.hash1_distinct += threaded_counters->at(k)->hash1_distinct;
+                final_matrix.hash2_distinct += threaded_counters->at(k)->hash2_distinct;
+                final_matrix.hash3_distinct += threaded_counters->at(k)->hash3_distinct;
+                final_matrix.hash1_only_total += threaded_counters->at(k)->hash1_only_total;
+                final_matrix.hash2_only_total += threaded_counters->at(k)->hash2_only_total;
+                final_matrix.hash1_only_distinct += threaded_counters->at(k)->hash1_only_distinct;
+                final_matrix.hash2_only_distinct += threaded_counters->at(k)->hash2_only_distinct;
+                final_matrix.shared_hash1_total += threaded_counters->at(k)->shared_hash1_total;
+                final_matrix.shared_hash2_total += threaded_counters->at(k)->shared_hash2_total;
+                final_matrix.shared_distinct += threaded_counters->at(k)->shared_distinct;
+            }
+        }
+    
+    };
 
     class Comp {
     private:
@@ -228,10 +277,7 @@ namespace kat {
         shared_ptr<ThreadedSparseMatrix> mixed_matrix;
 
         // Final data (created by merging thread results)
-        shared_ptr<CompCounters> final_comp_counters;
-
-        // Thread specific data
-        shared_ptr<vector<CompCounters> > thread_comp_counters;
+        shared_ptr<ThreadedCompCounters> comp_counters;
         
         std::mutex mu;
 
@@ -430,17 +476,8 @@ namespace kat {
                 mixed_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
             }
 
-            // Create the final comp counters
-            final_comp_counters = make_shared<CompCounters>(
-                    input1.c_str(), input2.c_str(), input3.c_str());
-
             // Create the comp counters for each thread
-            thread_comp_counters = make_shared<vector<CompCounters>>(threads);
-            for (int i = 0; i < threads; i++) {
-                thread_comp_counters->at(i).hash1_path = input1;
-                thread_comp_counters->at(i).hash2_path = input2;
-                thread_comp_counters->at(i).hash3_path = input3;
-            }
+            comp_counters = make_shared<ThreadedCompCounters>(threads, input1, input2, input3);
 
             std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
@@ -513,11 +550,22 @@ namespace kat {
 
             if (verbose)
                 cerr << "done." << endl
-                    << "Merging results...";
+                    << "Merging matrices...";
 
             // Merge results from the threads
-            merge();
+            main_matrix->mergeThreadedMatricies();
+            if (jfh3 != nullptr) {
+                ends_matrix->mergeThreadedMatricies();
+                middle_matrix->mergeThreadedMatricies();
+                mixed_matrix->mergeThreadedMatricies();
+            }
+            
+            if (verbose)
+                cerr << "done." << endl
+                    << "Merging counters...";
 
+            comp_counters->merge();
+            
             if (verbose)
                 cerr << "done." << endl;
         }
@@ -545,14 +593,7 @@ namespace kat {
             return mixed_matrix ? mixed_matrix->getFinalMatrix() : NULL;
         }
 
-        // Final data (created by merging thread results)
-
-        shared_ptr<CompCounters> getCompCounters() {
-
-            return final_comp_counters;
-        }
-
-
+        
         // Print K-mer comparison matrix
 
         void printMainMatrix(ostream &out) {
@@ -606,7 +647,7 @@ namespace kat {
 
         void printCounters(ostream &out) {
 
-            final_comp_counters->printCounts(out);
+            comp_counters->printCounts(out);
         }
 
 
@@ -630,6 +671,8 @@ namespace kat {
         
         void start(int th_id) {
 
+            shared_ptr<CompCounters> cc = make_shared<CompCounters>(input1, input2, input3);
+            
             // Setup iterator for this thread's chunk of hash1
             lha::region_iterator hash1Iterator = jfh1->getSlice(th_id, threads);
 
@@ -645,10 +688,10 @@ namespace kat {
                 uint64_t hash3_count = jfh3 != nullptr ? jfh3->getCount(hash1Iterator.key()) : 0;
 
                 // Increment hash1's unique counters
-                thread_comp_counters->at(th_id).updateHash1Counters(hash1_count, hash2_count);
+                cc->updateHash1Counters(hash1_count, hash2_count);
 
                 // Increment shared counters
-                thread_comp_counters->at(th_id).updateSharedCounters(hash1_count, hash2_count);
+                cc->updateSharedCounters(hash1_count, hash2_count);
 
                 // Scale counters to make the matrix look pretty
                 uint64_t scaled_hash1_count = scaleCounter(hash1_count, d1Scale);
@@ -688,7 +731,7 @@ namespace kat {
                 uint64_t hash1_count = jfh1->getCount(hash2Iterator.key());
 
                 // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
-                thread_comp_counters->at(th_id).updateHash2Counters(hash1_count, hash2_count);
+                cc->updateHash2Counters(hash1_count, hash2_count);
 
                 // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
                 if (!hash1_count) {
@@ -715,9 +758,13 @@ namespace kat {
                     uint64_t hash3_count = hash3Iterator.val();
 
                     // Increment hash3's unique counters (don't bother with shared counters... we've already done this)
-                    thread_comp_counters->at(th_id).updateHash3Counters(hash3_count);
+                    cc->updateHash3Counters(hash3_count);
                 }
             }
+            
+            mu.lock();
+            comp_counters->add(cc);
+            mu.unlock();
         }
 
         // Scale counters to make the matrix look pretty
@@ -729,34 +776,6 @@ namespace kat {
 
         // Combines each threads matrix into a single matrix
 
-        void merge() {
-
-            main_matrix->mergeThreadedMatricies();
-
-            if (jfh3 != nullptr) {
-                ends_matrix->mergeThreadedMatricies();
-                middle_matrix->mergeThreadedMatricies();
-                mixed_matrix->mergeThreadedMatricies();
-            }
-
-            // Merge counters
-            for (int k = 0; k < threads; k++) {
-                
-                final_comp_counters->hash1_total += thread_comp_counters->at(k).hash1_total;
-                final_comp_counters->hash2_total += thread_comp_counters->at(k).hash2_total;
-                final_comp_counters->hash3_total += thread_comp_counters->at(k).hash3_total;
-                final_comp_counters->hash1_distinct += thread_comp_counters->at(k).hash1_distinct;
-                final_comp_counters->hash2_distinct += thread_comp_counters->at(k).hash2_distinct;
-                final_comp_counters->hash3_distinct += thread_comp_counters->at(k).hash3_distinct;
-                final_comp_counters->hash1_only_total += thread_comp_counters->at(k).hash1_only_total;
-                final_comp_counters->hash2_only_total += thread_comp_counters->at(k).hash2_only_total;
-                final_comp_counters->hash1_only_distinct += thread_comp_counters->at(k).hash1_only_distinct;
-                final_comp_counters->hash2_only_distinct += thread_comp_counters->at(k).hash2_only_distinct;
-                final_comp_counters->shared_hash1_total += thread_comp_counters->at(k).shared_hash1_total;
-                final_comp_counters->shared_hash2_total += thread_comp_counters->at(k).shared_hash2_total;
-                final_comp_counters->shared_distinct += thread_comp_counters->at(k).shared_distinct;
-            }
-        }
         
         static string helpMessage() {            
         
