@@ -88,18 +88,19 @@ namespace kat {
             return string("Usage: kat plot <mode>\n\n") +
                     "Create K-mer Plots\n\n" +
                     "First argument should be the plot mode you wish to use:\n" \
-                    "  - density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
+                    "  * density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
                     "                     used to compare two K-mer hashes produced by different NGS reads.\n" \
-                    "  - profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
+                    "  * profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
                     "                     coverage from the \"sect\" tool\n" \
-                    "  - spectra-cn:      Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
+                    "  * spectra-cn:      Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
                     "                     this is used to compare a jellyfish hash produced from a read set to a jellyfish hash\n" \
                     "                     produced from an assembly. The plot shows the amount of distinct K-mers absent, as well\n" \
                     "                     as the copy number variation present within the assembly.\n" \
-                    "  - spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either by jellyfish-\n" \
+                    "  * spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either by jellyfish-\n" \
                     "                     histo or kat-histo.\n" \
-                    "  - spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived from\n" \
-                    "                     selected rows or columns in a matrix produced by the \"comp\".";
+                    "  * spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived from\n" \
+                    "                     selected rows or columns in a matrix produced by the \"comp\".\n\n" \
+                    "Options";
         }
         
     public:
@@ -110,7 +111,7 @@ namespace kat {
             bool help;
         
             // Declare the supported options.
-            po::options_description generic_options(Plot::helpMessage());
+            po::options_description generic_options(Plot::helpMessage(), 100);
             generic_options.add_options()
                     ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
                     ;

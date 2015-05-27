@@ -137,10 +137,11 @@ namespace kat {
         
         static string helpMessage() {
             return string("Usage: kat plot spectra-cn [options] <matrix_file>\n\n") +
-                    "Creates a stacked histogram showing the level of duplication in an assembly.\n\n +"
+                    "Creates a stacked histogram showing the level of duplication in an assembly.\n\n" \
                     "Shows K-mer duplication levels, which correspond to copy number variation within an assembly by comparing " \
                     "K-mers found in sequenced reads, to K-mers found in an assembly of those reads. Uses matrix output from the " \
-                    "\"kat comp\" tool.";
+                    "\"kat comp\" tool.\n\n" \
+                    "Options";
         }
 
     public:
@@ -169,11 +170,11 @@ namespace kat {
             bool        help;
         
             // Declare the supported options.
-            po::options_description generic_options(PlotSpectraCn::helpMessage());
+            po::options_description generic_options(PlotSpectraCn::helpMessage(), 100);
             generic_options.add_options()
                     ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                         "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-                    ("output,o", po::value<path>(&output)->required(),
+                    ("output,o", po::value<path>(&output),
                         "The path to the output file")
                     ("title,t", po::value<string>(&title)->default_value(DEFAULT_TITLE),
                         "Title for plot")

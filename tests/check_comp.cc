@@ -15,28 +15,28 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
-#include <../src/comp/comp_args.hpp>
-#include <../src/comp/comp.hpp>
+#define BOOST_TEST_DYN_LINK
+#ifdef STAND_ALONE
 #define BOOST_TEST_MODULE COMP
-#include <boost/test/included/unit_test.hpp>
+#endif
+#include <boost/test/unit_test.hpp>
 
-using kat::CompArgs;
+#include <../src/comp.hpp>
+
 using kat::Comp;
 
-BOOST_AUTO_TEST_CASE( COMP )
+BOOST_AUTO_TEST_SUITE(COMP)
+
+BOOST_AUTO_TEST_CASE( COMP1 )
 {
-    CompArgs args;
-
-    args.db1_path = "data/comp_test_1.jf31_0";
-    args.db2_path = "data/comp_test_2.jf31_0";
-    args.output_prefix = "temp/comp_test";
-    args.threads = 1;
-
-    Comp comp(args);
-
+    Comp comp("data/comp_test_1.jf31_0", "data/comp_test_2.jf31_0");
+    comp.setOutputPrefix("temp/comp_test");
+    
     comp.execute();
 
     SM64 results = comp.getMainMatrix();
 
     BOOST_CHECK( true );
 }
+
+BOOST_AUTO_TEST_SUITE_END()

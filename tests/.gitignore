@@ -1,4 +1,5 @@
 /.deps/
+/.libs/
 /*.log
 /*.o
 /*.trs
@@ -6,3 +7,4 @@
 /check_comp
 /check_sect
 *.dirstamp
+/check_kat

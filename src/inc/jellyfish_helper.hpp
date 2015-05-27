@@ -23,6 +23,7 @@
 using std::ifstream;
 using std::ostream;
 using std::string;
+using std::cout;
 using std::cerr;
 using std::endl;
 using std::shared_ptr;
@@ -55,7 +56,7 @@ typedef jellyfish::large_hash::array_raw<mer_dna> lha;
 namespace kat {
 
     const uint64_t DEFAULT_HASH_SIZE = 10000000000;
-    const uint8_t DEFAULT_MER_LEN = 27;
+    const uint16_t DEFAULT_MER_LEN = 27;
         
     
     typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;

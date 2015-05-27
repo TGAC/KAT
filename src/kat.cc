@@ -85,16 +85,17 @@ Mode parseMode(string mode) {
  const string helpMessage() {
      return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
                     "The First argument should be the tool/mode you wish to use:\n\n" \
-                    "   - sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using\n" \
+                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using\n" \
                     "             K-mers from a jellyfish hash.\n" \
-                    "   - comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
-                    "   - gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
+                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
+                    "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
                     "             count.\n" \
-                    "   - hist:   Create an histogram of k-mer occurrences from a jellyfish hash.  Adds metadata in output for easy\n" \
-                    "             plotting.\n" \
-                    "   - filter: Filter out kmers, or sequences containing kmers\n" \
-                    "   - plot:   Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
-                    "             Requires gnuplot.";
+                    "   * hist:   Create an histogram of k-mer occurrences from a jellyfish hash.  Similar to jellyfish histogram\n" \
+                    "             sub command but adds metadata in output for easy plotting, also actually runs multi-threaded.\n" \
+                    "   * filter: Filter out kmers, or sequences containing kmers\n" \
+                    "   * plot:   Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
+                    "             Requires gnuplot.\n\n" \
+                    "Options";
         }
 
 
@@ -112,7 +113,7 @@ int main(int argc, char *argv[])
         bool help;
     
         // Declare the supported options.
-        po::options_description generic_options(helpMessage());
+        po::options_description generic_options(helpMessage(), 100);
         generic_options.add_options()
                 ("version", po::bool_switch(&version)->default_value(false), "Print version string")
                 ("help", po::bool_switch(&help)->default_value(false), "Produce help message")
@@ -155,7 +156,7 @@ int main(int argc, char *argv[])
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "2.0.0"
 #endif
-        cout << PACKAGE_NAME << " V" << PACKAGE_VERSION << endl;
+        cout << PACKAGE_NAME << " V" << PACKAGE_VERSION << endl << endl;
         
         if (version) {    
             return 0;

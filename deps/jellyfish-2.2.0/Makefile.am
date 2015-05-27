@@ -148,7 +148,7 @@ EXTRA_DIST += $(TESTS)
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
-	-cd tests; rm -f *
+	-cd tests; rm -f *.log *.trs *.bc *.histo *.jf *.md5sum *.timing *.dump *.stats *.fa *.fq *.fa.gz bloom_counter_commands large_key_m100_2M_ordered large_key_m100_2k_disk_ordered large_key_m100_2k_ordered multi_file_fail_cmds multi_file_gunzip_cmds parallel_hashing_query_one_count
 
 tests/parallel_hashing.log: tests/generate_sequence.log
 tests/subset_hashing.log: tests/generate_sequence.log

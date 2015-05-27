@@ -57,7 +57,8 @@ namespace kat {
                     "Creates K-mer Spectra Plot from one or more histograms.\n\n" +
                     "Produces K-mer spectras from \"kat hist\" or \"jellyfish histo\" output.  This tool is designed to plot line " \
                     "graphs of one or more histograms.  The idea is to be able to compare total K-mer counts between different " \
-                    "datasets.";
+                    "datasets.\n\n" \
+                    "Options";
         }
         
     public:
@@ -88,11 +89,11 @@ namespace kat {
             bool        help;
         
             // Declare the supported options.
-            po::options_description generic_options(PlotSpectraHist::helpMessage());
+            po::options_description generic_options(PlotSpectraHist::helpMessage(), 100);
             generic_options.add_options()
                     ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                         "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-                    ("output,o", po::value<path>(&output)->required(),
+                    ("output,o", po::value<path>(&output),
                         "The path to the output file")
                     ("title,t", po::value<string>(&title)->default_value(DEFAULT_TITLE),
                         "Title for plot")

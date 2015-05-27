@@ -193,7 +193,8 @@ namespace kat {
                     "identified with the \"--list\" option.  Each element in the list should start with either a 'c' or a 'r' " \
                     "indicating whether or not the column or row is requested.  Then the element should contain a number " \
                     "indicating which column or row to select.  For example: \"--list c0,r1\" will select column 0 and row 1. " \
-                    "Note: spaces are not tolerated in this list.";
+                    "Note: spaces are not tolerated in this list.\n\n" \
+                    "Options";
         }
 
         
@@ -230,11 +231,11 @@ namespace kat {
             bool        help;
         
             // Declare the supported options.
-            po::options_description generic_options(PlotSpectraMx::helpMessage());
+            po::options_description generic_options(PlotSpectraMx::helpMessage(), 100);
             generic_options.add_options()
                     ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                         "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-                    ("output,o", po::value<path>(&output)->required(),
+                    ("output,o", po::value<path>(&output),
                         "The path to the output file")
                     ("title,t", po::value<string>(&title)->default_value(DEFAULT_TITLE),
                         "Title for plot")

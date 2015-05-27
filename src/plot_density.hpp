@@ -59,7 +59,8 @@ namespace kat {
                     "Creates a scatter plot, where the density or \"heat\" at each point represents the number of distinct K-mers " \
                     "at that point.  Typically this is used to visualise a matrix produced by the \"kat comp\" tool to compare " \
                     "multiplicities from two K-mer hashes produced by different NGS reads, or to visualise the GC vs K-mer " \
-                    "multiplicity matricies produced by the \"kat gcp\" tool.";
+                    "multiplicity matricies produced by the \"kat gcp\" tool.\n\n" \
+                    "Options";
         }
         
 
@@ -91,11 +92,11 @@ namespace kat {
             bool        help;
         
             // Declare the supported options.
-            po::options_description generic_options(PlotDensity::helpMessage());
+            po::options_description generic_options(PlotDensity::helpMessage(), 100);
             generic_options.add_options()
                     ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                         "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-                    ("output,o", po::value<path>(&output)->required(),
+                    ("output,o", po::value<path>(&output),
                         "The path to the output file")
                     ("title,t", po::value<string>(&title)->default_value(DEFAULT_TITLE),
                         "Title for plot")

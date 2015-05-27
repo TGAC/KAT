@@ -161,8 +161,9 @@ namespace kat {
         
         static string helpMessage() {
             return string("Usage: kat plot profile [options] <sect_profile_file>\n\n") + 
-                    "Create Sequence Coverage Plot.\n\n" +
-                    "Shows K-mer coverage level across an sequence.";
+                    "Create Sequence Coverage Plot.\n\n" \
+                    "Shows K-mer coverage level across an sequence.\n\n" \
+                    "Options";
         }
 
         static string autoTitle(string& title, string& header)
@@ -201,11 +202,11 @@ namespace kat {
             bool        help;
 
             // Declare the supported options.
-            po::options_description generic_options(PlotProfile::helpMessage());
+            po::options_description generic_options(PlotProfile::helpMessage(), 100);
             generic_options.add_options()
                     ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                         "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-                    ("output,o", po::value<path>(&output)->required(),
+                    ("output,o", po::value<path>(&output),
                         "The path to the output file")
                     ("title,t", po::value<string>(&title)->default_value(DEFAULT_TITLE),
                         "Title for plot")
