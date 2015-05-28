@@ -15,18 +15,19 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
+#define BOOST_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
-#ifdef STAND_ALONE
-#define BOOST_TEST_MODULE SECT
-#endif
+#define BOOST_TEST_MODULE KAT_SECT
+#define BOOST_TEST_LOG_LEVEL all
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
 
 
 
 #include "../src/sect.hpp"
 using kat::Sect;
 
-BOOST_AUTO_TEST_SUITE( SECT )
+BOOST_AUTO_TEST_SUITE( KAT_SECT )
 
 BOOST_AUTO_TEST_CASE( quick )
 {

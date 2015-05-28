@@ -15,17 +15,22 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
+#define BOOST_TEST_MAIN
 #define BOOST_TEST_DYN_LINK
-#ifdef STAND_ALONE
-#define BOOST_TEST_MODULE COMP
-#endif
+#define BOOST_TEST_MODULE KAT_COMP
+#define BOOST_TEST_LOG_LEVEL all
 #include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
+
+#include <thread>
+using std::thread;
 
 #include <../src/comp.hpp>
-
 using kat::Comp;
+using kat::ThreadedCompCounters;
+using kat::CompCounters;
 
-BOOST_AUTO_TEST_SUITE(COMP)
+BOOST_AUTO_TEST_SUITE( KAT_COMP )
 
 BOOST_AUTO_TEST_CASE( COMP1 )
 {
@@ -37,6 +42,50 @@ BOOST_AUTO_TEST_CASE( COMP1 )
     SM64 results = comp.getMainMatrix();
 
     BOOST_CHECK( true );
+}
+
+void addTcc(ThreadedCompCounters& tcc) {
+    shared_ptr<CompCounters> cc = make_shared<CompCounters>();
+    
+    cc->updateHash1Counters(10, 2);
+    cc->updateHash1Counters(20, 4);
+    cc->updateHash2Counters(0, 3);
+    
+    tcc.add(cc);
+}
+
+BOOST_AUTO_TEST_CASE( THREADED_COUNTERS )
+{
+    const uint16_t threads = 2;
+    
+    ThreadedCompCounters tcc("path1", "path2", "path3");
+    
+    shared_ptr<CompCounters> cc1 = make_shared<CompCounters>();
+    
+    cc1->updateHash1Counters(10, 2);
+    cc1->updateHash1Counters(20, 4);
+    cc1->updateHash2Counters(0, 3);
+    
+    tcc.add(cc1);
+    
+    shared_ptr<CompCounters> cc2 = make_shared<CompCounters>();
+    
+    cc2->updateHash1Counters(10, 2);
+    cc2->updateHash1Counters(20, 4);
+    cc2->updateHash2Counters(0, 3);
+    
+    tcc.add(cc2);
+    
+    tcc.merge();
+    
+    BOOST_CHECK( tcc.size() == 2 );
+    BOOST_CHECK( tcc.getFinalMatrix()->hash1_path == path("path1"));
+    BOOST_CHECK( tcc.getThreadedMatrixAt(0)->hash1_path == path("path1"));
+    BOOST_CHECK( tcc.getFinalMatrix()->hash1_distinct == 4);
+    BOOST_CHECK( tcc.getThreadedMatrixAt(0)->hash1_distinct == 2);
+    BOOST_CHECK( tcc.getThreadedMatrixAt(1)->hash1_distinct == 2);
+    BOOST_CHECK( tcc.getFinalMatrix()->hash1_total == 60);
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()
