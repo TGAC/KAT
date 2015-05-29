@@ -113,5 +113,5 @@ AC_SUBST([AM_LIBS])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile tests/Makefile])
-AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0 tests])
+AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT

@@ -51,14 +51,15 @@ kat_SOURCES = \
                 src/inc/gnuplot/gnuplot_i.cc \
 		src/inc/gnuplot/gnuplot_i.hpp \
 		src/inc/fstream_default.hpp \
-		src/inc/jellyfish_helper.hpp \
 		src/inc/matrix/sparse_matrix.hpp \
 		src/inc/matrix/threaded_sparse_matrix.hpp \
 		src/inc/matrix/matrix_metadata_extractor.hpp \
                 src/inc/matrix/matrix_metadata_extractor.cc \
                 src/inc/str_utils.hpp \
-                src/sect.hpp \
-		src/comp.hpp \
+                src/inc/kat_fs.hpp \
+                src/jellyfish_helper.cc \
+		src/sect.hpp \
+		src/comp.cc \
 		src/gcp.hpp \
 		src/histogram.hpp \
 		src/plot.hpp \

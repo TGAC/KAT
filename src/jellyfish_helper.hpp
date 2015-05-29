@@ -20,6 +20,7 @@
 #include <string.h>
 #include <iostream>
 #include <memory>
+#include <vector>
 using std::ifstream;
 using std::ostream;
 using std::string;
@@ -28,9 +29,12 @@ using std::cerr;
 using std::endl;
 using std::shared_ptr;
 using std::make_shared;
+using std::vector;
 
+#include <boost/exception/all.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/lexical_cast.hpp>
 #include <boost/timer/timer.hpp>
 using boost::filesystem::path;
 using boost::lexical_cast;
@@ -52,15 +56,13 @@ typedef jellyfish::large_hash::array_raw<mer_dna> lha;
 
 #include <fstream_default.hpp>
 
+typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;
+struct JellyfishException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
 
     const uint64_t DEFAULT_HASH_SIZE = 10000000000;
     const uint16_t DEFAULT_MER_LEN = 27;
-        
-    
-    typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;
-    struct JellyfishException: virtual boost::exception, virtual std::exception { };
     
     enum AccessMethod {
         SEQUENTIAL,
@@ -80,92 +82,26 @@ namespace kat {
 
     public:
 
-        JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod) :
-            JellyfishHelper(_jfHashPath, _accessMethod, false) {}
+        static path jellyfishExe;
         
-        JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod, bool verbose) :
-            jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
-
-            in = make_shared<ifstream>(jfHashPath.c_str(), std::ios::in | std::ios::binary);
-            header = file_header(*in);
-
-            if (!in->good()) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Failed to parse header of file: ") + jfHashPath.string()));
-            }
-
-            mer_dna::k(header.key_len() / 2);
-
-            // Output jellyfish hash details if requested
-            if (verbose) {
-                header.write(cerr);
-                cerr << endl;
-            }
-
-            if (header.format() == "bloomcounter") {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "KAT does not currently support bloom counted kmer hashes.  Please create a binary hash with jellyfish and use that instead.")));
-            } else if (header.format() == binary_dumper::format) {
-
-                // Create a binary reader for the input file, configured using the header properties
-                reader = make_shared<binary_reader>(*in, &header);
-
-                // Create a binary map for the input file
-                map = make_shared<mapped_file>(jfHashPath.c_str());
-
-                if (accessMethod == SEQUENTIAL) {
-                    map->sequential();
-                }
-                else {
-                    map->random();
-                }
-                
-                map->load();
-                
-                query = make_shared<binary_query>(
-                        map->base() + header.offset(), 
-                        header.key_len(), 
-                        header.counter_len(), 
-                        header.matrix(),
-                        header.size() - 1, 
-                        map->length() - header.offset());
-
-                hash = make_shared<lha>(
-                        map->base() + header.offset(),
-                        1 << (map->length() - header.offset()),
-                        1 << (map->length() - header.offset()),
-                        header.key_len(),
-                        header.counter_len(),
-                        header.max_reprobe(),
-                        header.matrix(1));
+        JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod);
         
-                
-            } else if (header.format() == text_dumper::format) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.")));
-            } else {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Unknown format '") + header.format() + "'"));
-            }
+        JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod, bool verbose);
 
-        }
-
-        virtual ~JellyfishHelper() {
-
-            if (in)
-                in->close();
-        }
+        virtual ~JellyfishHelper();
 
         unsigned int getKeyLen() {
             return header.key_len();
         }
 
-        uint64_t getCount(const mer_dna& kmer) {
-            return (*query)[kmer.get_canonical()];
-        }
+        uint64_t getCount(const mer_dna& kmer);
         
         shared_ptr<binary_reader> getReader() {
             return reader;
+        }
+        
+        file_header getHeader() {
+            return header;
         }
 
         lha::region_iterator getSlice(int index, uint16_t nbSlices) {
@@ -187,22 +123,7 @@ namespace kat {
             return jellyfishCountCmd(paths, output, merLen, hashSize, threads, canonical);
         }
         
-        static string jellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
-            
-            string i;
-            for (path p : input) {
-                i += p.string();                
-                i += " ";
-            }
-            
-            return string("jellyfish count ") 
-                    + (canonical ? "-C " : "") 
-                    + "-m " + lexical_cast<string>(merLen) + 
-                    " -s " + lexical_cast<string>(hashSize) + 
-                    " -t " + lexical_cast<string>(threads) + 
-                    " -o " + output.string() + 
-                    " " + i;
-        }
+        static string jellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical);
         
         static path jellyfishCount(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
             
@@ -212,61 +133,10 @@ namespace kat {
             return jellyfishCount(paths, output, merLen, hashSize, threads, canonical, verbose);
         }
         
-        static path jellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
-            
-            if (inputs.empty()) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "No input files provided")));
-            }
-            
-            if (inputs.size() == 1 && !JellyfishHelper::isSequenceFile(inputs[0].extension().string())) {
-                // No need to jellyfish count, input is already a jellyfish hash
-                return inputs[0];                
-            }
-            else {
-                
-                for (path p : inputs) {
-                    if (!JellyfishHelper::isSequenceFile(p.extension().string())) {
-                        BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                            "You provided multiple sequence files to generate a kmer hash from, however some of the input files do not have a recognised sequence file extension: \".fa,.fasta,.fq,.fastq,.fna\"")));
-                    }
-                    
-                    // Check input files exist
-                    if (!bfs::exists(p) && !bfs::symbolic_link_exists(p)) {
-                        BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                            "Could not find input file at: ") + p.string() + "; please check the path and try again."));                        
-                    }
-                }
-                
-                if (verbose)
-                    cout << "Provided one or more sequence files.  Executing jellyfish to count kmers." << endl;
-                
-                executeJellyfishCount(jellyfishCountCmd(inputs, output, merLen, hashSize, threads, canonical), verbose);            
-            
-                return output;
-            }
-        }
+        static path jellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose);
         
     protected:
         
-        static void executeJellyfishCount(const string& cmd, bool verbose) {
-            
-            auto_cpu_timer timer(1, "Kmer counting total runtime: %ws\n\n");
-            
-            if (verbose) {                
-                cout << "Counting kmers...";
-                cout.flush();
-            }
-
-            int res = system(cmd.c_str());
-            
-            if (res != 0) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                        "Problem executing jellyfish count.  Non-0 return code.  Return code: ") + lexical_cast<string>(res)));
-            }
-
-            if (verbose)
-                cout << " done" << endl;
-        }
+        static void executeJellyfishCount(const string& cmd, bool verbose);
     };
 }

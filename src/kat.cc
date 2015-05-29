@@ -35,11 +35,13 @@ namespace po = boost::program_options;
 #include "plot.hpp"
 #include "sect.hpp"
 //#include "filter.hpp"
+#include "kat_fs.hpp"
 using kat::Comp;
 using kat::Gcp;
 using kat::Histogram;
 using kat::Plot;
 using kat::Sect;
+using kat::KatFS;
 
 
 typedef boost::error_info<struct KatError,string> KatErrorInfo;
@@ -161,7 +163,12 @@ int main(int argc, char *argv[])
         if (version) {    
             return 0;
         }
-                
+        
+        KatFS fs(argv[0]);
+        kat::JellyfishHelper::jellyfishExe = fs.GetJellyfishExe();
+        
+        //cout << fs << endl;
+        
         Mode mode = parseMode(modeStr);
         
         const int modeArgC = argc-1;
