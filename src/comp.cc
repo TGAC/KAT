@@ -312,13 +312,15 @@ void kat::Comp::execute() {
         JellyfishHelper::jellyfishCount(input3, i3, merLen, hashSize3, threads, canonical3, true);
     }
 
-    // Load the hashes
+    // Load the hashes into memory
     jfh1 = make_shared<JellyfishHelper>(i1, AccessMethod::RANDOM, verbose);
     jfh2 = make_shared<JellyfishHelper>(i2, AccessMethod::RANDOM, verbose);
-    jfh3 = !(input3.empty()) ?
+    jfh3 = !input3.empty() ?
             make_shared<JellyfishHelper>(i3, AccessMethod::RANDOM, verbose) :
             nullptr;
-
+    
+    loadHashes();
+    
     // Check K-mer lengths are the same for both hashes.  We can't continue if they are not.
     if (jfh1->getKeyLen() != jfh2->getKeyLen()) {
         BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
@@ -332,17 +334,14 @@ void kat::Comp::execute() {
                 ".  Hash3: " + lexical_cast<string>(jfh3->getKeyLen()) + "."));
     }
 
-    if (verbose)
-        cerr << endl
-            << "All hashes loaded successfully." << endl
-            << "Starting threads...";
-
+    
     // Run the threads
     startAndJoinThreads();
 
-    if (verbose)
-        cerr << "done." << endl
-            << "Merging matrices...";
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Merging data returned from each thread...";
+    cout.flush();
 
     // Merge results from the threads
     main_matrix->mergeThreadedMatricies();
@@ -352,16 +351,29 @@ void kat::Comp::execute() {
         mixed_matrix->mergeThreadedMatricies();
     }
 
-    if (verbose)
-        cerr << "done." << endl
-            << "Merging counters...";
-
     comp_counters->merge();
 
-    if (verbose)
-        cerr << "done." << endl;
+    cout << "done.";
+    cout.flush();
 }
-        
+      
+
+void kat::Comp::loadHashes() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Loading hashes into memory...";
+    cout.flush();
+    
+    jfh1->load();
+    jfh2->load();
+    if (!input3.empty()) {
+        jfh3->load();
+    }
+    
+    cout << " done.";
+    cout.flush();
+}
         
 // Print K-mer comparison matrix
 
@@ -422,6 +434,11 @@ void kat::Comp::printCounters(ostream &out) {
         
 void kat::Comp::startAndJoinThreads() {
 
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Comparing hashes with " << threads << " threads ...";
+    cout.flush();
+    
     thread t[threads];
 
     for(int i = 0; i < threads; i++) {
@@ -431,6 +448,9 @@ void kat::Comp::startAndJoinThreads() {
     for(int i = 0; i < threads; i++){
         t[i].join();
     }
+    
+    cout << " done.";
+    cout.flush();
 }
 
 void kat::Comp::start(int th_id) {
@@ -438,7 +458,7 @@ void kat::Comp::start(int th_id) {
     shared_ptr<CompCounters> cc = make_shared<CompCounters>();
 
     // Setup iterator for this thread's chunk of hash1
-    lha::region_iterator hash1Iterator = jfh1->getSlice(th_id, threads);
+    lha::region_iterator hash1Iterator = jfh1->getRegionSlice(th_id, threads);
 
     // Go through this thread's slice for hash1
     while (hash1Iterator.next()) {
@@ -484,7 +504,7 @@ void kat::Comp::start(int th_id) {
     // Setup iterator for this thread's chunk of hash2
     // We setup hash2 for random access, so hopefully performance isn't too bad here...
     // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-    lha::region_iterator hash2Iterator = jfh2->getSlice(th_id, threads);
+    lha::region_iterator hash2Iterator = jfh2->getRegionSlice(th_id, threads);
 
     // Iterate through this thread's slice of hash2
     while (hash2Iterator.next()) {
@@ -513,7 +533,7 @@ void kat::Comp::start(int th_id) {
     // Only update hash3 counters if hash3 was provided
     if (jfh3 != nullptr) {
         // Setup iterator for this thread's chunk of hash3
-        lha::region_iterator hash3Iterator = jfh3->getSlice(th_id, threads);
+        lha::region_iterator hash3Iterator = jfh3->getRegionSlice(th_id, threads);
 
         // Iterate through this thread's slice of hash2
         while (hash3Iterator.next()) {

@@ -52,7 +52,7 @@ using boost::timer::auto_cpu_timer;
 using jellyfish::mer_dna;
 using jellyfish::file_header;
 using jellyfish::mapped_file;
-typedef jellyfish::large_hash::array_raw<mer_dna> lha;
+typedef jellyfish::large_hash::array<mer_dna> lha;
 
 #include <fstream_default.hpp>
 
@@ -69,6 +69,13 @@ namespace kat {
         RANDOM
     };
     
+    struct HashProperties {
+        size_t fileSizeBytes;
+        size_t arraySizeBytes;
+        size_t blockSize;
+        size_t nbBlocks;
+    };
+    
     class JellyfishHelper {
     private:
         path jfHashPath;
@@ -78,8 +85,8 @@ namespace kat {
         shared_ptr<binary_reader> reader;
         shared_ptr<mapped_file> map;
         shared_ptr<binary_query> query;
-        shared_ptr<lha> hash;        
-
+        shared_ptr<lha> hash; 
+        
     public:
 
         static path jellyfishExe;
@@ -90,6 +97,8 @@ namespace kat {
 
         virtual ~JellyfishHelper();
 
+        void load();
+        
         unsigned int getKeyLen() {
             return header.key_len();
         }
@@ -103,10 +112,15 @@ namespace kat {
         file_header getHeader() {
             return header;
         }
-
-        lha::region_iterator getSlice(int index, uint16_t nbSlices) {
+        
+        lha::eager_iterator getEagerSlice(int index, uint16_t nbSlices) {
+            return hash->eager_slice(index, nbSlices);            
+        }
+        
+        lha::region_iterator getRegionSlice(int index, uint16_t nbSlices) {
             return hash->region_slice(index, nbSlices);            
         }
+
 
         static bool isSequenceFile(const string& p) {
             return  boost::iequals(p, ".fastq") || 

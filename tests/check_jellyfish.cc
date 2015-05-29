@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE( TEST_READER ) {
 
 BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
     
-    JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL);
+    JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL, true);
     
     file_header header = jfh.getHeader();
     unsigned int klen = header.key_len();
@@ -68,15 +68,8 @@ BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
     unsigned int offset = header.offset();
     unsigned int hashes = header.nb_hashes();
     size_t s = header.size();
-    
-    cout << "Key length: " << klen << endl;
-    cout << "Value length: " << vlen << endl;
-    cout << "Counter length: " << clen << endl;
-    cout << "Max reprobe: " << mr << endl;
-    cout << "Offset: " << offset << endl;
-    cout << "Hashes: " << hashes << endl;
-    cout << "Size: " << s << endl;
-    
+    string format = header.format();
+       
     BOOST_CHECK_EQUAL( klen, 54 );
     BOOST_CHECK_EQUAL( vlen, 7 );
     BOOST_CHECK_EQUAL( clen, 4 );
@@ -84,6 +77,7 @@ BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
     BOOST_CHECK_EQUAL( offset, 1368 );
     BOOST_CHECK_EQUAL( hashes, 0 );
     BOOST_CHECK_EQUAL( s, 131072 );
+    BOOST_CHECK_EQUAL( format, "binary/sorted" );
     
     
 }
@@ -91,8 +85,7 @@ BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
 BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
     
     JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL);
-    unsigned int keylen = jfh.getKeyLen();
-    
+    jfh.load();
     mer_dna kStart("AGCTTTTCATTCTGACTGCAACGGGCA");
     mer_dna kEarly("GCATAGCGCACAGACAGATAAAAATTA");
     mer_dna kMiddle("AATGAAAAAGGCGAACTGGTGGTGCTT");
@@ -106,28 +99,33 @@ BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
     BOOST_CHECK_EQUAL( countStart, 3 );
     BOOST_CHECK_EQUAL( countEarly, 1 );
     BOOST_CHECK_EQUAL( countMiddle, 1 );
-    BOOST_CHECK_EQUAL( countEnd, 1 );
-    BOOST_CHECK_EQUAL( keylen, 54 );
+    BOOST_CHECK_EQUAL( countEnd, 1 );    
 }
 
 BOOST_AUTO_TEST_CASE( TEST_SLICE ) {
     
     JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL);
-    lha::region_iterator r1 = jfh.getSlice(1,2);
-    lha::region_iterator r2 = jfh.getSlice(2,2);
+    
+    jfh.load();
+    
+    lha::region_iterator r1 = jfh.getRegionSlice(0,2);
+    lha::region_iterator r2 = jfh.getRegionSlice(1,2);
     
     uint32_t r1Count = 0;
     while (r1.next()) {
         r1Count++;        
+        cout << "i1: pos - " << r1.pos() << "; id - " << r1.id() << "; key - " << r1.key() << "; val - " << r1.val() << endl;    
     }
     
     uint32_t r2Count = 0;
-    /*while (r2.next()) {
+    while (r2.next()) {
         r2Count++;        
-    }*/
+        cout << "i2: pos - " << r2.pos() << "; id - " << r2.id() << "; key - " << r2.key() << "; val - " << r2.val() << endl;    
+    }
    
-    BOOST_CHECK_EQUAL( r1Count, 200 );
-    BOOST_CHECK_EQUAL( r2Count, 200 );
+    size_t nb_records = r1Count + r2Count;
+    
+    BOOST_CHECK_EQUAL( nb_records, 1889 );
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -309,6 +309,7 @@ namespace kat {
         void execute();
         
 
+        
         // Threaded matrix data
 
         SM64 getMainMatrix() {
@@ -355,7 +356,7 @@ namespace kat {
 
     private:
 
-        
+        void loadHashes();
         
         void startAndJoinThreads();
         

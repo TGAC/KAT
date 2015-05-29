@@ -58,16 +58,16 @@ kat_SOURCES = \
                 src/inc/str_utils.hpp \
                 src/inc/kat_fs.hpp \
                 src/jellyfish_helper.cc \
-		src/sect.hpp \
 		src/comp.cc \
-		src/gcp.hpp \
-		src/histogram.hpp \
+		src/gcp.cc \
+		src/histogram.cc \
 		src/plot.hpp \
 		src/plot_density.hpp \
 		src/plot_spectra_cn.hpp \
                 src/plot_profile.hpp \
 		src/plot_spectra_hist.hpp \
 		src/plot_spectra_mx.hpp \
-                src/kat.cc
+                src/sect.hpp \
+		src/kat.cc
 
 

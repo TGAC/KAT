@@ -34,7 +34,7 @@ BOOST_AUTO_TEST_SUITE( KAT_COMP )
 
 BOOST_AUTO_TEST_CASE( COMP1 )
 {
-    Comp comp("data/comp_test_1.jf31_0", "data/comp_test_2.jf31_0");
+    Comp comp("data/ecoli.header.jf27", "data/ecoli.header.jf27");
     comp.setOutputPrefix("temp/comp_test");
     
     comp.execute();

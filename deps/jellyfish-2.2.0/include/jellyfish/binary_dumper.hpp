@@ -116,12 +116,7 @@ public:
     val_ = 0;
     is_.read((char*)&val_, val_len_);
     return is_.good();
-  }
-  
-  // ****************************************************************
-  // maplesond - Added to enable thread slicing functionality in KAT.
-  // ****************************************************************
-  shared_ptr<RectangularBinaryMatrix> getMatrix() const { return make_shared<RectangularBinaryMatrix>(m_); }
+  }  
 };
 
 template<typename Key, typename Val>

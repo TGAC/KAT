@@ -54,7 +54,7 @@ using jellyfish::mapped_file;
 using jellyfish::large_hash::reprobe_limit_t;
 using jellyfish::Offsets;
 using jellyfish::quadratic_reprobes;
-typedef jellyfish::large_hash::array_raw<mer_dna> lha;
+typedef jellyfish::large_hash::array<mer_dna> lha;
 
 #include <fstream_default.hpp>
 
@@ -81,7 +81,16 @@ kat::JellyfishHelper::JellyfishHelper(const path& _jfHashPath, AccessMethod _acc
 
     // Output jellyfish hash details if requested
     if (verbose) {
-        header.write(cerr);
+        cerr << "Jellyfish Header Info for : " << jfHashPath << endl;
+        cerr << " - Format: " << header.format() << endl;
+        cerr << " - Key length (bits): " << header.key_len() << endl;
+        cerr << " - Value length (bits): " << header.val_len() << endl;
+        cerr << " - Counter length (bytes): " << header.counter_len() << endl;
+        cerr << " - # Hashes: " << header.nb_hashes() << endl;
+        cerr << " - Max reprobe: " << header.max_reprobe() << endl;
+        cerr << " - Max reprobe offset: " << header.max_reprobe_offset() << endl;
+        cerr << " - Offset: " << header.offset() << endl;
+        cerr << " - Size: " << header.size() << endl;        
         cerr << endl;
     }
 
@@ -105,36 +114,52 @@ kat::JellyfishHelper::JellyfishHelper(const path& _jfHashPath, AccessMethod _acc
 
         map->load();
 
-        size_t dataSize = map->length() - header.offset();
-        cout << "Datasize: " << dataSize << endl;
+        const char* dataStart = map->base() + header.offset();
+        size_t fileSizeBytes = map->length() - header.offset();
         
-        query = make_shared<binary_query>(
-                map->base() + header.offset(), 
-                header.key_len(), 
-                header.counter_len(), 
-                header.matrix(),
-                header.size() - 1, 
-                dataSize);
+        size_t key_len = header.key_len() / 8 + (header.key_len() % 8 != 0);
+        size_t record_len = header.counter_len() + key_len;
+        size_t nbRecords = fileSizeBytes / record_len;
         
-        size_t lsize = jellyfish::ceilLog2(dataSize);
+        size_t hashSizeBytes = header.size() / record_len;
+        
+        
+        size_t lsize = jellyfish::ceilLog2(nbRecords * 2);
         size_t size_ = (size_t)1 << lsize;
-        size_t size_mask_ = size_ - 1;
-        
-        reprobe_limit_t reprobe_limit_(header.max_reprobe(), quadratic_reprobes, size_);
         unsigned int raw_key_len_ = (header.key_len() > lsize ? header.key_len() - lsize : 0);
+        reprobe_limit_t reprobe_limit_(header.max_reprobe(), quadratic_reprobes, size_);
         Offsets<uint64_t> offsets_(raw_key_len_ + jellyfish::bitsize(reprobe_limit_.val() + 1), header.val_len(), reprobe_limit_.val() + 1);
-        size_t size_bytes_(jellyfish::div_ceil(size_, (size_t)offsets_.block_len()) * offsets_.block_word_len() * sizeof(uint64_t));
+        size_t nbBlocks = jellyfish::div_ceil(size_, (size_t)offsets_.block_len());
+        size_t blockSize = offsets_.block_word_len() * sizeof(uint64_t);
+        size_t bytes = nbBlocks * blockSize;
         
+        if (verbose) {
+            cerr << "Hash properties:" << endl;
+            cerr << " - Entry start location: " << (uint64_t)dataStart << endl;
+            cerr << " - Data size (in file): " << fileSizeBytes << endl;
+            cerr << " - Array size: " << hashSizeBytes << endl;
+            cerr << " - Key length (bytes): " << key_len << endl;
+            cerr << " - Record size: " << record_len << endl;
+            cerr << " - # records: " << nbRecords << endl;
+            cerr << " - Array size: " << bytes << endl << endl;
+            
+            lha::usage_info ui(header.key_len(), header.val_len(), header.max_reprobe());
+            size_t memMb = (ui.mem(header.size()) / 1000000) + 1;
+            cerr << "Approximate amount of RAM required for handling this hash (MB): " << memMb << endl;            
+        }
+        
+        if(fileSizeBytes % record_len != 0) {
+            BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
+                "Size of database (") + lexical_cast<string>(fileSizeBytes) + 
+                    ") must be a multiple of the length of a record (" + lexical_cast<string>(record_len) + ")"));
+        }
         
         hash = make_shared<lha>(
-                map->base() + header.offset(),
-                size_bytes_,
-                dataSize,
-                header.key_len(),
+                size_,                  // Make hash bigger than the file data round up to next power of 2
+                header.key_len(),               
                 header.val_len(),
-                header.max_reprobe(),
-                header.matrix());
-
+                header.max_reprobe());
+        
 
     } else if (header.format() == text_dumper::format) {
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
@@ -152,11 +177,19 @@ kat::JellyfishHelper::~JellyfishHelper() {
         in->close();
 }
 
+void kat::JellyfishHelper::load() {
+    
+    uint32_t count = 0;
+    while (reader->next()) {
+        hash->add(reader->key(), reader->val());
+    }
+}
+
 uint64_t kat::JellyfishHelper::getCount(const mer_dna& kmer) {
-    mer_dna k = kmer;
-    if(header.canonical())
-        k.canonicalize();            
-    return (*query)[k];
+    const mer_dna k = header.canonical() ? kmer.get_canonical() : kmer;
+    uint64_t val = 0;
+    hash->get_val_for_key(k, &val);
+    return val;
 }
                 
 string kat::JellyfishHelper::jellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
