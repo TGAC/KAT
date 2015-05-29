@@ -319,7 +319,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
                 << seqLength << " and K-mer length is " << kmer << ". Setting sequence coverage to 0." << endl;
     } else {
 
-        shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts);
+        shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
 
         uint64_t sum = 0;
 
@@ -334,6 +334,8 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
                 mer_dna mer(merstr.c_str());
                 uint64_t count = jfh->getCount(mer);
                 sum += count;
+                
+                //cout << merstr << " " << count << endl;
 
                 (*seqCounts)[i] = count;
             }
@@ -354,7 +356,6 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
         }
 
         (*coverages)[index] = average_cvg;
-
     }
 
     // Add length
