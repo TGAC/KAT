@@ -86,7 +86,7 @@ void kat::Gcp::loadHashes() {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Loading hashes into memory...";
+    cout << "Loading hash into memory...";
     cout.flush();
     
     jfh->load();

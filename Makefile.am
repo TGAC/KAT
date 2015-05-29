@@ -67,7 +67,7 @@ kat_SOURCES = \
                 src/plot_profile.hpp \
 		src/plot_spectra_hist.hpp \
 		src/plot_spectra_mx.hpp \
-                src/sect.hpp \
+                src/sect.cc \
 		src/kat.cc
 
 
