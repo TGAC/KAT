@@ -18,6 +18,7 @@
 #include <string.h>
 #include <iostream>
 #include <memory>
+#include <thread>
 #include <vector>
 using std::ifstream;
 using std::ostream;
@@ -27,6 +28,7 @@ using std::cerr;
 using std::endl;
 using std::shared_ptr;
 using std::make_shared;
+using std::thread;
 using std::vector;
 
 #include <boost/algorithm/string.hpp>
@@ -46,7 +48,10 @@ using boost::timer::auto_cpu_timer;
 #include <jellyfish/jellyfish.hpp>
 #include <jellyfish/large_hash_array.hpp>
 #include <jellyfish/large_hash_iterator.hpp>
+#include <jellyfish/mer_iterator.hpp>
 #include <jellyfish/storage.hpp>
+#include <jellyfish/stream_manager.hpp>
+#include <jellyfish/mer_overlap_sequence_parser.hpp>
 
 using jellyfish::mer_dna;
 using jellyfish::file_header;
@@ -55,144 +60,241 @@ using jellyfish::large_hash::reprobe_limit_t;
 using jellyfish::Offsets;
 using jellyfish::quadratic_reprobes;
 typedef jellyfish::large_hash::array<mer_dna> lha;
+typedef jellyfish::stream_manager<vector<const char*>::const_iterator> StreamManager;
+typedef jellyfish::mer_overlap_sequence_parser<StreamManager> SequenceParser;
+typedef jellyfish::mer_iterator<SequenceParser, mer_dna> MerIterator;
 
-#include <fstream_default.hpp>
+#include <bits/stl_vector.h>
 
 #include "jellyfish_helper.hpp"
 using kat::JellyfishHelper;
 
 path kat::JellyfishHelper::jellyfishExe = "";
 
-kat::JellyfishHelper::JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod) :
-    JellyfishHelper(_jfHashPath, _accessMethod, false) {}
+/**
+ * Extracts the jellyfish hash file header
+ * @param jfHashPath Path to the jellyfish hash file
+ * @return The hash header
+ */
+file_header kat::JellyfishHelper::loadHashHeader(const path& jfHashPath) {
+    ifstream in(jfHashPath.c_str(), std::ios::in | std::ios::binary);
+    file_header header(in);    
+    in.close();    
+    return header;
+}
 
-kat::JellyfishHelper::JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod, bool verbose) :
-    jfHashPath(_jfHashPath), accessMethod(_accessMethod) {
+/**
+ * Output header in human-readable format
+ * @param header Jellyfish hash header
+ * @param out Output stream
+ */
+void kat::JellyfishHelper::printHeader(const file_header& header, ostream& out) {
+    
+    out << "Jellyfish Header Info:" << endl;
+    out << " - Cmdline:" << endl;
+    for (string s : header.cmdline()) {
+        out << "   - " << s << endl;
+    }
+    out << " - Format: " << header.format() << endl;
+    out << " - Key length (bits): " << header.key_len() << endl;
+    out << " - Value length (bits): " << header.val_len() << endl;
+    out << " - Counter length (bytes): " << header.counter_len() << endl;
+    out << " - # Hashes: " << header.nb_hashes() << endl;
+    out << " - Max reprobe: " << header.max_reprobe() << endl;
+    out << " - Max reprobe offset: " << header.max_reprobe_offset() << endl;
+    out << " - Offset: " << header.offset() << endl;
+    out << " - Size: " << header.size() << endl; 
+}
 
-    in = make_shared<ifstream>(jfHashPath.c_str(), std::ios::in | std::ios::binary);
-    header = file_header(*in);
+/**
+ * Loads an existing jellyfish hash into memory
+ * @param jfHashPath
+ * @param verbose
+ * @return 
+ */
+HashArrayPtr kat::JellyfishHelper::loadHash(const path& jfHashPath, bool verbose) {
+    
+    ifstream in(jfHashPath.c_str(), std::ios::in | std::ios::binary);
+    file_header header = file_header(in);
 
-    if (!in->good()) {
+    if (!in.good()) {
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
             "Failed to parse header of file: ") + jfHashPath.string()));
     }
-
-    mer_dna::k(header.key_len() / 2);
-
-    // Output jellyfish hash details if requested
+    
     if (verbose) {
-        cerr << "Jellyfish Header Info for : " << jfHashPath << endl;
-        cerr << " - Format: " << header.format() << endl;
-        cerr << " - Key length (bits): " << header.key_len() << endl;
-        cerr << " - Value length (bits): " << header.val_len() << endl;
-        cerr << " - Counter length (bytes): " << header.counter_len() << endl;
-        cerr << " - # Hashes: " << header.nb_hashes() << endl;
-        cerr << " - Max reprobe: " << header.max_reprobe() << endl;
-        cerr << " - Max reprobe offset: " << header.max_reprobe_offset() << endl;
-        cerr << " - Offset: " << header.offset() << endl;
-        cerr << " - Size: " << header.size() << endl;        
-        cerr << endl;
+        printHeader(header, cerr);
     }
-
-    if (header.format() == "bloomcounter") {
+    
+    if (header.format() == "bloomcounter") {        
+        in.close();
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
             "KAT does not currently support bloom counted kmer hashes.  Please create a binary hash with jellyfish and use that instead.")));
-    } else if (header.format() == binary_dumper::format) {
+    } else if (header.format() == text_dumper::format) {
+        in.close();
+        BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
+            "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.")));
+    } 
+    else if (header.format() == binary_dumper::format) {
 
-        // Create a binary reader for the input file, configured using the header properties
-        reader = make_shared<binary_reader>(*in, &header);
-
-        // Create a binary map for the input file
-        map = make_shared<mapped_file>(jfHashPath.c_str());
-
-        if (accessMethod == SEQUENTIAL) {
-            map->sequential();
-        }
-        else {
-            map->random();
-        }
-
-        map->load();
-
-        const char* dataStart = map->base() + header.offset();
-        size_t fileSizeBytes = map->length() - header.offset();
+        // Makes sure jellyfish knows what size kmers we are working with.  The actual kmer size,
+        // for our purposes, will be half of what the number of bits used to store it is.
+        uint16_t merLen = header.key_len() / 2;
         
+        mer_dna::k(merLen);
+        
+        // Create a binary reader for the input file, configured using the header properties
+        binary_reader reader(in, &header);
+        
+        // Create a binary map for the input file
+        mapped_file map(jfHashPath.c_str());
+        map.sequential();   // Prep for reading sequentially
+        map.load();         // Load
+
+        const char* dataStart = map.base() + header.offset();
+        size_t fileSizeBytes = map.length() - header.offset();
+
         size_t key_len = header.key_len() / 8 + (header.key_len() % 8 != 0);
         size_t record_len = header.counter_len() + key_len;
         size_t nbRecords = fileSizeBytes / record_len;
-        
         size_t hashSizeBytes = header.size() / record_len;
-        
-        
+
         size_t lsize = jellyfish::ceilLog2(nbRecords * 2);
         size_t size_ = (size_t)1 << lsize;
-        unsigned int raw_key_len_ = (header.key_len() > lsize ? header.key_len() - lsize : 0);
-        reprobe_limit_t reprobe_limit_(header.max_reprobe(), quadratic_reprobes, size_);
-        Offsets<uint64_t> offsets_(raw_key_len_ + jellyfish::bitsize(reprobe_limit_.val() + 1), header.val_len(), reprobe_limit_.val() + 1);
-        size_t nbBlocks = jellyfish::div_ceil(size_, (size_t)offsets_.block_len());
-        size_t blockSize = offsets_.block_word_len() * sizeof(uint64_t);
-        size_t bytes = nbBlocks * blockSize;
         
         if (verbose) {
-            cerr << "Hash properties:" << endl;
-            cerr << " - Entry start location: " << (uint64_t)dataStart << endl;
-            cerr << " - Data size (in file): " << fileSizeBytes << endl;
-            cerr << " - Array size: " << hashSizeBytes << endl;
-            cerr << " - Key length (bytes): " << key_len << endl;
-            cerr << " - Record size: " << record_len << endl;
-            cerr << " - # records: " << nbRecords << endl;
-            cerr << " - Array size: " << bytes << endl << endl;
-            
+            cerr << endl
+                 << "Hash properties:" << endl
+                 << " - Entry start location: " << (uint64_t)dataStart << endl
+                 << " - Data size (in file): " << fileSizeBytes << endl
+                 << " - Array size: " << hashSizeBytes << endl
+                 << " - Kmer length: " << merLen << endl
+                 << " - Key length (bytes): " << key_len << endl
+                 << " - Record size: " << record_len << endl
+                 << " - # records: " << nbRecords << endl << endl;
+
             lha::usage_info ui(header.key_len(), header.val_len(), header.max_reprobe());
             size_t memMb = (ui.mem(header.size()) / 1000000) + 1;
             cerr << "Approximate amount of RAM required for handling this hash (MB): " << memMb << endl;            
         }
-        
+
         if(fileSizeBytes % record_len != 0) {
+            in.close();
             BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
                 "Size of database (") + lexical_cast<string>(fileSizeBytes) + 
                     ") must be a multiple of the length of a record (" + lexical_cast<string>(record_len) + ")"));
         }
-        
-        hash = make_shared<lha>(
+
+        HashArrayPtr hash = make_shared<lha>(
                 size_,                  // Make hash bigger than the file data round up to next power of 2
                 header.key_len(),               
                 header.val_len(),
                 header.max_reprobe());
-        
 
-    } else if (header.format() == text_dumper::format) {
-        BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-            "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.")));
-    } else {
+        while (reader.next()) {
+            hash->add(reader.key(), reader.val());
+        }
+        
+        in.close();
+        
+        return hash;
+    }
+    else {
+        in.close();
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
             "Unknown format '") + header.format() + "'"));
     }
-
+   
 }
 
-kat::JellyfishHelper::~JellyfishHelper() {
+/**
+ * Simple count routine
+ * @param ary Hash array which contains the counted kmers
+ * @param parser The parser that handles the input stream and chunking
+ * @param canonical whether or not the kmers should be treated as canonical or not
+ */
+void kat::JellyfishHelper::countSlice(HashArrayCounter& ary, SequenceParser& parser, bool canonical) {
+    MerIterator mers(parser, canonical);
 
-    if (in)
-        in->close();
-}
-
-void kat::JellyfishHelper::load() {
-    
-    uint32_t count = 0;
-    while (reader->next()) {
-        hash->add(reader->key(), reader->val());
+    for( ; mers; ++mers) {
+        ary.add(*mers, 1);
     }
+
+    ary.done();
 }
 
-uint64_t kat::JellyfishHelper::getCount(const mer_dna& kmer) {
-    const mer_dna k = header.canonical() ? kmer.get_canonical() : kmer;
-    uint64_t val = 0;
-    hash->get_val_for_key(k, &val);
-    return val;
+/**
+* Counts kmers in the given sequence file (Fasta or Fastq) returning
+* a hash array of those kmers
+* @param seqFile Sequence file to count
+* @return The hash array
+*/
+HashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, uint16_t merLen, uint64_t hashSize, bool canonical, uint16_t threads) {
+    
+    jellyfish::file_header header;
+    header.fill_standard();
+    header.canonical(canonical);
+    
+    // Ensures jellyfish knows what kind of kmers we are working with
+    mer_dna::k(merLen);
+    
+    // Create hash.  Leave size doubling enabled.
+    HashArrayCounter ary(hashSize, merLen * 2, 4, threads);
+    
+    // Convert paths to a format jellyfish is happy with
+    vector<const char*> paths;
+    for(path p : seqFiles) {
+        paths.push_back(p.c_str());
+    }
+        
+    StreamManager streams(paths.begin(), paths.end(), 1);
+    
+    SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
+    
+    thread t[threads];
+
+    for(int i = 0; i < threads; i++) {
+        t[i] = thread(&kat::JellyfishHelper::countSlice, ary, parser, canonical);
+    }
+
+    for(int i = 0; i < threads; i++){
+        t[i].join();
+    }             
+    
+    return ary.ary();
+}
+/*
+void dumpHash() {
+    jellyfish::dumper_t<mer_array> > dumper;
+    dumper.reset(new binary_dumper(args.out_counter_len_arg, ary.key_len(), args.threads_arg, args.output_arg, &header));
+  ary.dumper(dumper.get());
+}*/
+
+/**
+* Returns whether or not the specified file path looks like it belongs to
+* a sequence file (either FastA or FastQ).  Gzipped sequence files are
+* also supported.
+* @param filename Path to file
+* @return Whether or not the file is a seqeunce file
+*/
+bool isSequenceFile(const path& filename) {
+
+   string ext = filename.extension().string();
+
+   if (boost::iequals(ext, ".gz")) {
+       string name = filename.filename().string();
+       string shortName = name.substr(0, name.length() - 3);
+       ext = path(shortName).extension().string();
+   }
+
+   return  boost::iequals(ext, ".fastq") || 
+           boost::iequals(ext, ".fq") || 
+           boost::iequals(ext, ".fasta") ||
+           boost::iequals(ext, ".fa") || 
+           boost::iequals(ext, ".fna");
 }
                 
-string kat::JellyfishHelper::jellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
+string kat::JellyfishHelper::createJellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
 
     string i;
     for (path p : input) {
@@ -214,7 +316,7 @@ string kat::JellyfishHelper::jellyfishCountCmd(const vector<path>& input, const 
 }
     
 
-path kat::JellyfishHelper::jellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
+path kat::JellyfishHelper::executeJellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
 
     if (inputs.empty()) {
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
@@ -243,7 +345,7 @@ path kat::JellyfishHelper::jellyfishCount(const vector<path>& inputs, const path
         if (verbose)
             cout << "Provided one or more sequence files.  Executing jellyfish to count kmers." << endl;
 
-        const string cmd = jellyfishCountCmd(inputs, output, merLen, hashSize, threads, canonical);
+        const string cmd = createJellyfishCountCmd(inputs, output, merLen, hashSize, threads, canonical);
         
         if (verbose) {
             cout << "Command issued: " << cmd << endl;

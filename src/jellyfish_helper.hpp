@@ -48,108 +48,107 @@ using boost::timer::auto_cpu_timer;
 #include <jellyfish/large_hash_array.hpp>
 #include <jellyfish/large_hash_iterator.hpp>
 #include <jellyfish/storage.hpp>
-
 using jellyfish::mer_dna;
 using jellyfish::file_header;
 using jellyfish::mapped_file;
 typedef jellyfish::large_hash::array<mer_dna> lha;
+typedef shared_ptr<file_header> HashHeaderPtr;
+typedef shared_ptr<binary_reader> HashReaderPtr;
+typedef shared_ptr<lha> HashArrayPtr;
 
-#include <fstream_default.hpp>
+#include <kat_hash_counter.hpp>
+typedef jellyfish::cooperative::kat_hash_counter<jellyfish::mer_dna> HashArrayCounter;
+
 
 typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;
 struct JellyfishException: virtual boost::exception, virtual std::exception { };
+
 
 namespace kat {
 
     const uint64_t DEFAULT_HASH_SIZE = 10000000000;
     const uint16_t DEFAULT_MER_LEN = 27;
     
-    enum AccessMethod {
-        SEQUENTIAL,
-        RANDOM
-    };
-    
-    struct HashProperties {
-        size_t fileSizeBytes;
-        size_t arraySizeBytes;
-        size_t blockSize;
-        size_t nbBlocks;
-    };
-    
     class JellyfishHelper {
-    private:
-        path jfHashPath;
-        AccessMethod accessMethod;
-        shared_ptr<ifstream> in;
-        file_header header;
-        shared_ptr<binary_reader> reader;
-        shared_ptr<mapped_file> map;
-        shared_ptr<binary_query> query;
-        shared_ptr<lha> hash; 
+
         
     public:
 
+        /**
+         * This can be set be the client as a record of the path to the jellyfish
+         * executable
+         */
         static path jellyfishExe;
         
-        JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod);
+        /**
+         * Loads an entire jellyfish hash into memory
+         * @param jfHashPath Path to the jellyfish hash file
+         * @param verbose Output additional information to cout
+         * @return The hash array
+         */
+        static HashArrayPtr loadHash(const path& jfHashPath, bool verbose);
         
-        JellyfishHelper(const path& _jfHashPath, AccessMethod _accessMethod, bool verbose);
-
-        virtual ~JellyfishHelper();
-
-        void load();
         
-        unsigned int getKeyLen() {
-            return header.key_len();
-        }
-
-        uint64_t getCount(const mer_dna& kmer);
+        /**
+         * Counts kmers in the given sequence file (Fasta or Fastq) returning
+         * a hash array of those kmers
+         * @param seqFile Sequence file to count
+         * @return The hash array
+         */
+        static HashArrayPtr countSeqFile(const vector<path>& seqFiles, uint16_t merLen, uint64_t hashSize, bool canonical, uint16_t threads);
         
-        shared_ptr<binary_reader> getReader() {
-            return reader;
-        }
+        /**
+        * Extracts the jellyfish hash file header
+        * @param jfHashPath Path to the jellyfish hash file
+        * @return The hash header
+        */
+        static file_header loadHashHeader(const path& jfHashPath);
         
-        file_header getHeader() {
-            return header;
-        }
+        /**
+        * Output header in human-readable format
+        * @param header Jellyfish hash header
+        * @param out Output stream
+        */
+        static void printHeader(const file_header& header, ostream& out);
         
-        lha::eager_iterator getEagerSlice(int index, uint16_t nbSlices) {
-            return hash->eager_slice(index, nbSlices);            
-        }
+ 
+        /**
+         * Returns whether or not the specified file path looks like it belongs to
+         * a sequence file (either FastA or FastQ).  Gzipped sequence files are
+         * also supported.
+         * @param filename Path to file
+         * @return Whether or not the file is a seqeunce file
+         */
+        static bool isSequenceFile(const path& filename);
         
-        lha::region_iterator getRegionSlice(int index, uint16_t nbSlices) {
-            return hash->region_slice(index, nbSlices);            
-        }
-
-
-        static bool isSequenceFile(const string& p) {
-            return  boost::iequals(p, ".fastq") || 
-                    boost::iequals(p, ".fq") || 
-                    boost::iequals(p, ".fasta") ||
-                    boost::iequals(p, ".fa") || 
-                    boost::iequals(p, ".fna");
-        }
-        
-        static string jellyfishCountCmd(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
+        static string createJellyfishCountCmd(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
             
             vector<path> paths;
             paths.push_back(input);
-            return jellyfishCountCmd(paths, output, merLen, hashSize, threads, canonical);
+            return createJellyfishCountCmd(paths, output, merLen, hashSize, threads, canonical);
         }
         
-        static string jellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical);
+        static string createJellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical);
         
-        static path jellyfishCount(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
+        static path executeJellyfishCount(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
             
             vector<path> paths;
             paths.push_back(input);
             
-            return jellyfishCount(paths, output, merLen, hashSize, threads, canonical, verbose);
+            return executeJellyfishCount(paths, output, merLen, hashSize, threads, canonical, verbose);
         }
         
-        static path jellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose);
+        static path executeJellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose);
         
     protected:
+
+        /**
+        * Simple count routine
+        * @param ary Hash array which contains the counted kmers
+        * @param parser The parser that handles the input stream and chunking
+        * @param canonical whether or not the kmers should be treated as canonical or not
+        */
+        static void countSlice(HashArrayCounter& ary, SequenceParser& parser, bool canonical);
         
         static void executeJellyfishCount(const string& cmd, bool verbose);
     };

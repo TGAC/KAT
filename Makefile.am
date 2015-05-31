@@ -57,6 +57,7 @@ kat_SOURCES = \
                 src/inc/matrix/matrix_metadata_extractor.cc \
                 src/inc/str_utils.hpp \
                 src/inc/kat_fs.hpp \
+		src/inc/kat_hash_counter.hpp \
                 src/jellyfish_helper.cc \
 		src/comp.cc \
 		src/gcp.cc \

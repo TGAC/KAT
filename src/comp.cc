@@ -291,7 +291,7 @@ void kat::Comp::execute() {
 
         i1 = path(outputPrefix.string() + "-input1.jf" + merLenStr);
 
-        JellyfishHelper::jellyfishCount(input1, i1, merLen, hashSize1, threads, canonical1, true);
+        JellyfishHelper::executeJellyfishCount(input1, i1, merLen, hashSize1, threads, canonical1, true);
     }
 
     if (JellyfishHelper::isSequenceFile(i2Ext)) {
@@ -300,7 +300,7 @@ void kat::Comp::execute() {
 
         i2 = path(outputPrefix.string() + "-input2.jf" + merLenStr);
 
-        JellyfishHelper::jellyfishCount(input2, i2, merLen, hashSize2, threads, canonical2, true);
+        JellyfishHelper::executeJellyfishCount(input2, i2, merLen, hashSize2, threads, canonical2, true);
     }
 
     if (!input3.empty() && JellyfishHelper::isSequenceFile(i3Ext)) {
@@ -309,7 +309,7 @@ void kat::Comp::execute() {
 
         i3 = path(outputPrefix.string() + "-input3.jf" + merLenStr);
 
-        JellyfishHelper::jellyfishCount(input3, i3, merLen, hashSize3, threads, canonical3, true);
+        JellyfishHelper::executeJellyfishCount(input3, i3, merLen, hashSize3, threads, canonical3, true);
     }
 
     // Load the hashes into memory

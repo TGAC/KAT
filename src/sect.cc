@@ -72,7 +72,7 @@ void kat::Sect::execute() {
 
     // Create jellyfish hash if required
     hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
-    path hashOutput = JellyfishHelper::jellyfishCount(countsFiles, hashFile, merLen, hashSize, threads, canonical, true);
+    path hashOutput = JellyfishHelper::executeJellyfishCount(countsFiles, hashFile, merLen, hashSize, threads, canonical, true);
     if (hashOutput != hashFile) {
         bfs::create_symlink(hashOutput, hashFile);
     }

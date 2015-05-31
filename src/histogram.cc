@@ -64,7 +64,7 @@ void kat::Histogram::execute() {
 
     // Create jellyfish hash if required
     hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
-    path hashOutput = JellyfishHelper::jellyfishCount(inputs, hashFile, merLen, hashSize, threads, canonical, true);
+    path hashOutput = JellyfishHelper::executeJellyfishCount(inputs, hashFile, merLen, hashSize, threads, canonical, true);
     if (hashOutput != hashFile) {
         bfs::create_symlink(hashOutput, hashFile);
     }            
