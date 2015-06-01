@@ -63,8 +63,8 @@ namespace kat {
         bool            verbose;
 
         // Jellyfish mapped file hash vars
-        shared_ptr<JellyfishHelper> jfh;
         path hashFile;
+        LargeHashArrayPtr hash;
         
         // Internal vars
         uint64_t base, ceil, inc, nb_buckets, nb_slices;

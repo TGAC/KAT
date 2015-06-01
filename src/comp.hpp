@@ -47,7 +47,6 @@ using bfs::path;
 #include <jellyfish_helper.hpp>
 using kat::JellyfishHelper;
 
-
 typedef boost::error_info<struct CompError,string> CompErrorInfo;
 struct CompException: virtual boost::exception, virtual std::exception { };
 
@@ -140,13 +139,13 @@ namespace kat {
         uint64_t hashSize1;
         uint64_t hashSize2;
         uint64_t hashSize3;
+        bool parallelIO;
+        bool dumpHashes;
         bool verbose;
 
         // Jellyfish mapped file hash vars
-        shared_ptr<JellyfishHelper> jfh1;
-        shared_ptr<JellyfishHelper> jfh2;
-        shared_ptr<JellyfishHelper> jfh3;
-
+        vector<LargeHashArrayPtr> hashes;
+        
         // Threaded matrix data
         shared_ptr<ThreadedSparseMatrix> main_matrix;
         shared_ptr<ThreadedSparseMatrix> ends_matrix;
@@ -296,6 +295,22 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
+        
+        bool isParallelIO() const {
+            return parallelIO;
+        }
+
+        void setParallelIO(bool parallelIO) {
+            this->parallelIO = parallelIO;
+        }
+
+        bool isDumpHashes() const {
+            return dumpHashes;
+        }
+
+        void setDumpHashes(bool dumpHashes) {
+            this->dumpHashes = dumpHashes;
+        }
 
         bool isVerbose() const {
             return verbose;
@@ -356,7 +371,9 @@ namespace kat {
 
     private:
 
-        void loadHashes();
+        HashCounterPtr count(path& input, int index);
+        
+        void loadHashes(vector<HashLoader>& loaders, vector<path>& hashes, uint16_t keyLenBits, bool load1, bool load2, bool load3);
         
         void startAndJoinThreads();
         

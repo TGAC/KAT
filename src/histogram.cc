@@ -27,6 +27,7 @@
 using std::shared_ptr;
 using std::make_shared;
 using std::thread;
+using std::ofstream;
 
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
@@ -70,12 +71,8 @@ void kat::Histogram::execute() {
     }            
 
     // Setup handles to load hashes
-    jfh = make_shared<JellyfishHelper>(hashFile, AccessMethod::SEQUENTIAL);
-
     loadHashes();
 
-    
-    
     data = vector<uint64_t>(nb_buckets, 0);
     threadedData = vector<shared_ptr<vector<uint64_t>>>();
     
@@ -91,8 +88,8 @@ void kat::Histogram::execute() {
 void kat::Histogram::print(std::ostream &out) {
     // Output header
     out << mme::KEY_TITLE << "K-mer spectra for: " << hashFile << endl;
-    out << mme::KEY_X_LABEL << "K" << jfh->getKeyLen() << " multiplicity: " << hashFile << endl;
-    out << mme::KEY_Y_LABEL << "Number of distinct K" << jfh->getKeyLen() << " mers" << endl;
+    out << mme::KEY_X_LABEL << "K" << merLen << " multiplicity: " << hashFile << endl;
+    out << mme::KEY_Y_LABEL << "Number of distinct K" << merLen << " mers" << endl;
     out << mme::MX_META_END << endl;
 
     uint64_t col = base;
@@ -109,7 +106,9 @@ void kat::Histogram::loadHashes() {
     cout << "Loading hash into memory...";
     cout.flush();
 
-    jfh->load();
+    HashLoader hl;
+    hash = hl.loadHash(hashFile, verbose);
+    merLen = hl.getMerLen();    
 
     cout << " done.";
     cout.flush();
@@ -156,7 +155,7 @@ void kat::Histogram::start(int th_id) {
     
     shared_ptr<vector<uint64_t>> hist = make_shared<vector<uint64_t>>(nb_buckets);
     
-    lha::region_iterator it = jfh->getRegionSlice(th_id, threads);
+    LargeHashArray::region_iterator it = hash->region_slice(th_id, threads);
     while (it.next()) {
         uint64_t val = it.val();
         if (val < base)
@@ -257,7 +256,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     //histo.print(cout);
 
     // Send main matrix to output file
-    ofstream_default main_hist_out_stream(string(output_prefix.string() + ".hist").c_str(), cout);
+    ofstream main_hist_out_stream(string(output_prefix.string() + ".hist").c_str());
     histo.print(main_hist_out_stream);
     main_hist_out_stream.close();
 

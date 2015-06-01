@@ -24,13 +24,13 @@
 
 #include <../src/jellyfish_helper.hpp>
 using kat::JellyfishHelper;
-using kat::AccessMethod;
+using kat::HashLoader;
 
 BOOST_AUTO_TEST_SUITE( KAT_JELLYFISH )
 
 BOOST_AUTO_TEST_CASE( TEST_JFCMD ) {
     
-    string cmd = JellyfishHelper::jellyfishCountCmd("input.fa", "output.jf27", 27, 100000, 4, true);
+    string cmd = JellyfishHelper::createJellyfishCountCmd("input.fa", "output.jf27", 27, 100000, 4, true);
     
     const string expected = "jellyfish count -C -m 27 -s 100000 -t 4 -o output.jf27 input.fa ";
     
@@ -41,26 +41,9 @@ BOOST_AUTO_TEST_CASE( TEST_JFCMD ) {
 }
 
 
-BOOST_AUTO_TEST_CASE( TEST_READER ) {
-    
-    JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL);
-    
-    shared_ptr<binary_reader> reader = jfh.getReader();
-    
-    uint32_t count = 0;
-    while (reader->next()) {
-        count++;
-        //cout << reader->val() << endl;
-    }
-    
-    BOOST_CHECK_EQUAL( count, 1889 );
-}
-
 BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
     
-    JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL, true);
-    
-    file_header header = jfh.getHeader();
+    file_header header = JellyfishHelper::loadHashHeader("data/ecoli.header.jf27");
     unsigned int klen = header.key_len();
     unsigned int vlen = header.val_len();    
     unsigned int clen = header.counter_len();
@@ -84,17 +67,18 @@ BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
 
 BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
     
-    JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL);
-    jfh.load();
+    HashLoader hl;
+    LargeHashArrayPtr hash = hl.loadHash("data/ecoli.header.jf27", false);
+    
     mer_dna kStart("AGCTTTTCATTCTGACTGCAACGGGCA");
     mer_dna kEarly("GCATAGCGCACAGACAGATAAAAATTA");
     mer_dna kMiddle("AATGAAAAAGGCGAACTGGTGGTGCTT");
     mer_dna kEnd("CTCACCAATGTACATGGCCTTAATCTG");
     
-    uint64_t countStart = jfh.getCount(kStart);
-    uint64_t countEarly = jfh.getCount(kEarly);
-    uint64_t countMiddle = jfh.getCount(kMiddle);
-    uint64_t countEnd = jfh.getCount(kEnd);
+    uint64_t countStart = JellyfishHelper::getCount(*hash, kStart, false);
+    uint64_t countEarly = JellyfishHelper::getCount(*hash, kEarly, false);
+    uint64_t countMiddle = JellyfishHelper::getCount(*hash, kMiddle, false);
+    uint64_t countEnd = JellyfishHelper::getCount(*hash, kEnd, false);
     
     BOOST_CHECK_EQUAL( countStart, 3 );
     BOOST_CHECK_EQUAL( countEarly, 1 );
@@ -104,23 +88,22 @@ BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
 
 BOOST_AUTO_TEST_CASE( TEST_SLICE ) {
     
-    JellyfishHelper jfh("data/ecoli.header.jf27", AccessMethod::SEQUENTIAL);
+    HashLoader hl;
+    LargeHashArrayPtr hash = hl.loadHash("data/ecoli.header.jf27", false);
     
-    jfh.load();
-    
-    lha::region_iterator r1 = jfh.getRegionSlice(0,2);
-    lha::region_iterator r2 = jfh.getRegionSlice(1,2);
+    LargeHashArray::region_iterator r1 = hash->region_slice(0,2);
+    LargeHashArray::region_iterator r2 = hash->region_slice(1,2);
     
     uint32_t r1Count = 0;
     while (r1.next()) {
         r1Count++;        
-        cout << "i1: pos - " << r1.pos() << "; id - " << r1.id() << "; key - " << r1.key() << "; val - " << r1.val() << endl;    
+        //cout << "i1: pos - " << r1.pos() << "; id - " << r1.id() << "; key - " << r1.key() << "; val - " << r1.val() << endl;    
     }
     
     uint32_t r2Count = 0;
     while (r2.next()) {
         r2Count++;        
-        cout << "i2: pos - " << r2.pos() << "; id - " << r2.id() << "; key - " << r2.key() << "; val - " << r2.val() << endl;    
+        //cout << "i2: pos - " << r2.pos() << "; id - " << r2.id() << "; key - " << r2.key() << "; val - " << r2.val() << endl;    
     }
    
     size_t nb_records = r1Count + r2Count;

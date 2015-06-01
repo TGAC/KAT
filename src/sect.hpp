@@ -73,7 +73,7 @@ namespace kat {
         bool            cvgLogscale;
         uint16_t        threads;
         bool            canonical;
-        uint16_t         merLen;
+        uint16_t        merLen;
         uint64_t        hashSize;
         bool            noCountStats;
         bool            median;
@@ -83,7 +83,7 @@ namespace kat {
         size_t bucket_size, remaining; 
 
         // Variables that live for the lifetime of this object
-        shared_ptr<JellyfishHelper> jfh;
+        LargeHashArrayPtr hash;
         shared_ptr<ThreadedSparseMatrix> contamination_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
         uint32_t offset;
         uint16_t recordsInBatch;

@@ -24,6 +24,7 @@
 using std::shared_ptr;
 using std::make_shared;
 using std::ostream;
+using std::ofstream;
 using std::thread;
 using std::vector;
 
@@ -39,6 +40,7 @@ using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>
+using kat::HashLoader;
 
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
@@ -57,13 +59,14 @@ void kat::Gcp::execute() {
     // Setup output stream for jellyfish initialisation
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
-    // Setup handle to jellyfish hash
-    jfh = make_shared<JellyfishHelper>(hashFile, AccessMethod::SEQUENTIAL);
-
+    // Load hash
     loadHashes();
     
+    // Calculate the mer length
+    size_t keyLen = JellyfishHelper::loadHashHeader(hashFile).key_len() / 2;    
+    
     // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
-    gcp_mx = make_shared<ThreadedSparseMatrix>(jfh->getKeyLen(), cvgBins + 1, threads);
+    gcp_mx = make_shared<ThreadedSparseMatrix>(keyLen, cvgBins + 1, threads);
 
     // Process batch with worker threads
     // Process each sequence is processed in a different thread.
@@ -89,7 +92,8 @@ void kat::Gcp::loadHashes() {
     cout << "Loading hash into memory...";
     cout.flush();
     
-    jfh->load();
+    HashLoader hl;
+    hash = hl.loadHash(hashFile, verbose);
     
     cout << " done.";
     cout.flush();
@@ -136,7 +140,7 @@ void kat::Gcp::startAndJoinThreads() {
 void kat::Gcp::start(int th_id) {
 
     for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
-        lha::region_iterator it = jfh->getRegionSlice(i, nb_slices);
+        LargeHashArray::region_iterator it = hash->region_slice(i, nb_slices);
         while (it.next()) {
             string kmer = it.key().to_str();
             uint64_t kmer_count = it.val();
@@ -243,7 +247,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
     gcp.execute();
 
     // Send main matrix to output file
-    ofstream_default main_mx_out_stream(string(output_prefix.string() + ".mx").c_str(), cout);
+    ofstream main_mx_out_stream(string(output_prefix.string() + ".mx").c_str());
     gcp.printMainMatrix(main_mx_out_stream);
     main_mx_out_stream.close();
 

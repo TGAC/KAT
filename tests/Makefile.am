@@ -21,5 +21,6 @@ check_comp_SOURCES =	../src/jellyfish_helper.cc \
 			check_comp.cc
 	
 check_sect_SOURCES =	../src/jellyfish_helper.cc \
+			../src/sect.cc \
 			check_sect.cc
 		    

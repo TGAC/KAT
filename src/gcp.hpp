@@ -71,8 +71,8 @@ namespace kat {
         uint64_t slice_id;
         path hashFile;
         
-        // Variables that live for the lifetime of this object
-        shared_ptr<JellyfishHelper> jfh;
+        // Hash Array
+        LargeHashArrayPtr hash;
         
         // Stores results
         shared_ptr<ThreadedSparseMatrix> gcp_mx; // Stores cumulative base count for each sequence where GC and CVG are binned

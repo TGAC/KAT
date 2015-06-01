@@ -30,6 +30,7 @@ using std::stringstream;
 using std::shared_ptr;
 using std::make_shared;
 using std::thread;
+using std::ofstream;
 
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
@@ -78,8 +79,6 @@ void kat::Sect::execute() {
     }
 
     // Setup handle to jellyfish hash
-    jfh = make_shared<JellyfishHelper>(hashFile, AccessMethod::RANDOM);
-
     loadHashes();
 
     // Setup space for storing output
@@ -103,13 +102,13 @@ void kat::Sect::execute() {
         *out_stream << endl;
 
     // Sequence K-mer counts output stream
-    shared_ptr<ofstream_default> count_path_stream = nullptr;
+    shared_ptr<ofstream> count_path_stream = nullptr;
     if (!noCountStats) {
-        count_path_stream = make_shared<ofstream_default>(string(outputPrefix.string() + "_counts.cvg").c_str(), cout);
+        count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "_counts.cvg").c_str());
     }
 
     // Average sequence coverage and GC% scores output stream
-    ofstream_default cvg_gc_stream(string(outputPrefix.string() + "_stats.csv").c_str(), cout);
+    ofstream cvg_gc_stream(string(outputPrefix.string() + "_stats.csv").c_str());
     cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
 
     // Processes sequences in batches of records to reduce memory requirements
@@ -168,7 +167,7 @@ void kat::Sect::execute() {
     cout << " done." << endl;
 
     // Send contamination matrix to file
-    ofstream_default contamination_mx_stream(string(outputPrefix.string() + "_contamination.mx").c_str(), cout);
+    ofstream contamination_mx_stream(string(outputPrefix.string() + "_contamination.mx").c_str());
     printContaminationMatrix(contamination_mx_stream, seqFile);
     contamination_mx_stream.close();            
 }
@@ -180,7 +179,9 @@ void kat::Sect::loadHashes() {
     cout << "Loading hash into memory...";
     cout.flush();
 
-    jfh->load();
+    HashLoader hl;
+    hash = hl.loadHash(hashFile, verbose);
+    merLen = hl.getMerLen();    
 
     cout << " done.";
     cout.flush();
@@ -299,8 +300,6 @@ void kat::Sect::processInterlaced(uint16_t th_id) {
 
 void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
-    unsigned int kmer = jfh->getKeyLen();
-
     // There's no substring functionality in SeqAn in this version (1.4.1).  So we'll just
     // use regular c++ string's for this bit.  The next version of SeqAn may offer substring
     // functionality, at which time I might change this code to make it run faster using
@@ -310,13 +309,13 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     string seq = ssSeq.str();
 
     uint64_t seqLength = seq.length();
-    uint64_t nbCounts = seqLength - kmer + 1;
+    uint64_t nbCounts = seqLength - merLen + 1;
     double average_cvg = 0.0;
 
-    if (seqLength < kmer) {
+    if (seqLength < merLen) {
 
         cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
-                << seqLength << " and K-mer length is " << kmer << ". Setting sequence coverage to 0." << endl;
+                << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
     } else {
 
         shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
@@ -325,14 +324,14 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
         for (uint64_t i = 0; i < nbCounts; i++) {
 
-            string merstr = seq.substr(i, kmer);
+            string merstr = seq.substr(i, merLen);
 
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
             if (merstr.find("N") != string::npos) {
                 (*seqCounts)[i] = 0;
             } else {
                 mer_dna mer(merstr.c_str());
-                uint64_t count = jfh->getCount(mer);
+                uint64_t count = JellyfishHelper::getCount(*hash, mer, canonical);
                 sum += count;
                 
                 //cout << merstr << " " << count << endl;
