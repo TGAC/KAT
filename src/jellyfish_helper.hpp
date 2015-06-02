@@ -67,7 +67,7 @@ typedef jellyfish::mer_iterator<SequenceParser, mer_dna> MerIterator;
 typedef jellyfish::cooperative::hash_counter<mer_dna> HashCounter;
 typedef shared_ptr<HashCounter> HashCounterPtr;
 typedef HashCounter::array LargeHashArray;
-typedef shared_ptr<LargeHashArray> LargeHashArrayPtr;
+typedef LargeHashArray* LargeHashArrayPtr;
 
 namespace kat {
 
@@ -81,6 +81,7 @@ namespace kat {
         LargeHashArrayPtr hash;
         bool canonical;
         uint16_t merLen;
+        file_header header;
         
     public:
         
@@ -88,6 +89,12 @@ namespace kat {
             hash = nullptr;
             canonical = false;
             merLen = 0;
+        }
+        
+        virtual ~HashLoader() {
+            
+            if (hash != nullptr)
+                delete hash;
         }
         
         /**
@@ -100,9 +107,11 @@ namespace kat {
         
         LargeHashArrayPtr getHash() { return hash; }
         
-        bool getCanonical() { return canonical; }
+        bool getCanonical() { return header.canonical(); }
         
         uint16_t getMerLen() { return merLen; }
+        
+        file_header getHeader() { return header; }
     };
     
     
@@ -119,7 +128,7 @@ namespace kat {
          */
         static path jellyfishExe;
         
-        static uint64_t getCount(LargeHashArray& hash, const mer_dna& kmer, bool canonical);
+        static uint64_t getCount(LargeHashArrayPtr hash, const mer_dna& kmer, bool canonical);
         
         /**
         * Simple count routine
@@ -135,10 +144,10 @@ namespace kat {
          * @param seqFile Sequence file to count
          * @return The hash array counter
          */
-        static HashCounterPtr countSeqFile(const path& p, uint16_t merLen, uint64_t hashSize, bool canonical, uint16_t threads) {
+        static LargeHashArrayPtr countSeqFile(const path& p, HashCounter& hashCounter, bool canonical, uint16_t threads) {
             vector<path> paths;
             paths.push_back(p);
-            return countSeqFile(paths, merLen, hashSize, canonical, threads);
+            return countSeqFile(paths, hashCounter, canonical, threads);
         }
 
         /**
@@ -147,11 +156,11 @@ namespace kat {
          * @param seqFile Sequence file to count
          * @return The hash array counter
          */
-        static HashCounterPtr countSeqFile(const vector<path>& paths, uint16_t merLen, uint64_t hashSize, bool canonical, uint16_t threads);
+        static LargeHashArrayPtr countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads);
 
         
         
-        
+        static void dumpHash(LargeHashArrayPtr ary, file_header& header,  uint16_t threads, path outputFile);
         
         /**
         * Extracts the jellyfish hash file header

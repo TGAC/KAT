@@ -21,14 +21,23 @@
 #define BOOST_TEST_LOG_LEVEL all
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_log.hpp>
+#include <boost/filesystem.hpp>
+using boost::filesystem::remove;
+
+#include <chrono>
+using std::chrono::system_clock;
+using std::chrono::duration;
+using std::chrono::duration_cast;
+template<typename DtnType>
+inline double as_seconds(DtnType dtn) { return duration_cast<duration<double>>(dtn).count(); }
 
 #include <../src/jellyfish_helper.hpp>
 using kat::JellyfishHelper;
 using kat::HashLoader;
 
-BOOST_AUTO_TEST_SUITE( KAT_JELLYFISH )
+BOOST_AUTO_TEST_SUITE(KAT_JELLYFISH)
 
-BOOST_AUTO_TEST_CASE( TEST_JFCMD ) {
+BOOST_AUTO_TEST_CASE(TEST_JFCMD) {
     
     string cmd = JellyfishHelper::createJellyfishCountCmd("input.fa", "output.jf27", 27, 100000, 4, true);
     
@@ -41,7 +50,7 @@ BOOST_AUTO_TEST_CASE( TEST_JFCMD ) {
 }
 
 
-BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
+BOOST_AUTO_TEST_CASE(TEST_HEADER) {
     
     file_header header = JellyfishHelper::loadHashHeader("data/ecoli.header.jf27");
     unsigned int klen = header.key_len();
@@ -65,7 +74,7 @@ BOOST_AUTO_TEST_CASE( TEST_HEADER ) {
     
 }
 
-BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
+BOOST_AUTO_TEST_CASE(TEST_QUERY) {
     
     HashLoader hl;
     LargeHashArrayPtr hash = hl.loadHash("data/ecoli.header.jf27", false);
@@ -75,10 +84,10 @@ BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
     mer_dna kMiddle("AATGAAAAAGGCGAACTGGTGGTGCTT");
     mer_dna kEnd("CTCACCAATGTACATGGCCTTAATCTG");
     
-    uint64_t countStart = JellyfishHelper::getCount(*hash, kStart, false);
-    uint64_t countEarly = JellyfishHelper::getCount(*hash, kEarly, false);
-    uint64_t countMiddle = JellyfishHelper::getCount(*hash, kMiddle, false);
-    uint64_t countEnd = JellyfishHelper::getCount(*hash, kEnd, false);
+    uint64_t countStart = JellyfishHelper::getCount(hash, kStart, false);
+    uint64_t countEarly = JellyfishHelper::getCount(hash, kEarly, false);
+    uint64_t countMiddle = JellyfishHelper::getCount(hash, kMiddle, false);
+    uint64_t countEnd = JellyfishHelper::getCount(hash, kEnd, false);
     
     BOOST_CHECK_EQUAL( countStart, 3 );
     BOOST_CHECK_EQUAL( countEarly, 1 );
@@ -86,7 +95,7 @@ BOOST_AUTO_TEST_CASE( TEST_QUERY ) {
     BOOST_CHECK_EQUAL( countEnd, 1 );    
 }
 
-BOOST_AUTO_TEST_CASE( TEST_SLICE ) {
+BOOST_AUTO_TEST_CASE(TEST_SLICE) {
     
     HashLoader hl;
     LargeHashArrayPtr hash = hl.loadHash("data/ecoli.header.jf27", false);
@@ -109,6 +118,70 @@ BOOST_AUTO_TEST_CASE( TEST_SLICE ) {
     size_t nb_records = r1Count + r2Count;
     
     BOOST_CHECK_EQUAL( nb_records, 1889 );
+}
+
+BOOST_AUTO_TEST_CASE(TEST_COUNT) {
+    
+    cout << "Start" << endl;
+    HashCounter hc(10000000, 27 * 2, 7, 1);
+    
+    cout << "HC created" << endl;
+    LargeHashArrayPtr hash = JellyfishHelper::countSeqFile("data/EcoliK12.fasta", hc, true, 1);
+    
+    cout << "Counted" << endl;
+    
+    mer_dna kStart("AGCTTTTCATTCTGACTGCAACGGGCA");
+    
+    uint64_t count = JellyfishHelper::getCount(hash, kStart, false);
+    
+    cout << "Kmer found" << endl;
+    
+    BOOST_CHECK_EQUAL( count, 1 );
+}
+
+/*BOOST_AUTO_TEST_CASE(TEST_TIME) {
+    
+    auto before_hash_count_lib = system_clock::now();
+    
+    HashCounter libCounter(10000000, 27 * 2, 7, 1);
+    LargeHashArrayPtr libHash = JellyfishHelper::countSeqFile("data/EcoliK12.fasta", libCounter, true, 1);
+    
+    auto after_hash_count_lib = system_clock::now();
+    
+    JellyfishHelper::executeJellyfishCount("data/EcoliK12.fasta", "temp.jf", 27, 10000000, 1, true, false);
+    
+    auto after_hash_count_sys = system_clock::now();
+        
+    cout << "Lib time: " << as_seconds(after_hash_count_lib - before_hash_count_lib) << endl
+         << "Sys time: " << as_seconds(after_hash_count_sys - after_hash_count_lib) << endl << endl;
+    
+    BOOST_CHECK( true );
+    
+    remove("temp.jf");
+}*/
+
+BOOST_AUTO_TEST_CASE(TEST_DUMP) {
+    
+    HashLoader hlBefore;
+    LargeHashArrayPtr hashBefore = hlBefore.loadHash("data/ecoli.header.jf27", false);
+    file_header header = hlBefore.getHeader();
+    
+    mer_dna kStart("AGCTTTTCATTCTGACTGCAACGGGCA");
+    uint64_t countBefore = JellyfishHelper::getCount(hashBefore, kStart, false);
+    
+    BOOST_CHECK_EQUAL( countBefore, 3 );
+    
+    JellyfishHelper::dumpHash(hashBefore, header, 2, "temp_dump.jf");
+    
+    BOOST_CHECK( boost::filesystem::exists("temp_dump.jf") );
+    
+    HashLoader hlAfter;
+    LargeHashArrayPtr hashAfter = hlAfter.loadHash("temp_dump.jf", false);
+    uint64_t countAfter = JellyfishHelper::getCount(hashAfter, kStart, false);
+    
+    BOOST_CHECK_EQUAL( countAfter, 3 );
+    
+    remove("temp_dump.jf");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

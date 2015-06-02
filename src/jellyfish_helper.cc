@@ -30,6 +30,7 @@ using bfs::path;
 using boost::lexical_cast;
 using boost::timer::auto_cpu_timer;
 
+#include <jellyfish/binary_dumper.hpp>
 #include <jellyfish/err.hpp>
 #include <jellyfish/file_header.hpp>
 #include <jellyfish/mapped_file.hpp>
@@ -95,7 +96,7 @@ void kat::JellyfishHelper::printHeader(const file_header& header, ostream& out) 
 LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose) {
     
     ifstream in(jfHashPath.c_str(), std::ios::in | std::ios::binary);
-    file_header header = file_header(in);
+    header = file_header(in);
 
     if (!in.good()) {
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
@@ -165,7 +166,7 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
                     ") must be a multiple of the length of a record (" + lexical_cast<string>(record_len) + ")"));
         }
 
-        LargeHashArrayPtr hash = make_shared<LargeHashArray>(
+        LargeHashArrayPtr hash = new LargeHashArray(
                 size_,                  // Make hash bigger than the file data round up to next power of 2
                 header.key_len(),               
                 header.val_len(),
@@ -177,8 +178,6 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
         
         in.close();
         
-        canonical = header.canonical();
-                
         return hash;
     }
     else {
@@ -189,10 +188,10 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
    
 }
 
-uint64_t kat::JellyfishHelper::getCount(LargeHashArray& hash, const mer_dna& kmer, bool canonical) {
+uint64_t kat::JellyfishHelper::getCount(LargeHashArrayPtr hash, const mer_dna& kmer, bool canonical) {
     const mer_dna k = canonical ? kmer.get_canonical() : kmer;
     uint64_t val = 0;
-    hash.get_val_for_key(k, &val);
+    hash->get_val_for_key(k, &val);
     return val;
 }
 
@@ -203,6 +202,9 @@ uint64_t kat::JellyfishHelper::getCount(LargeHashArray& hash, const mer_dna& kme
  * @param canonical whether or not the kmers should be treated as canonical or not
  */
 void kat::JellyfishHelper::countSlice(HashCounter& ary, SequenceParser& parser, bool canonical) {
+    
+    auto_cpu_timer timer(1, "Slice Time taken: %ws\n\n");        
+    
     MerIterator mers(parser, canonical);
 
     for( ; mers; ++mers) {
@@ -218,7 +220,7 @@ void kat::JellyfishHelper::countSlice(HashCounter& ary, SequenceParser& parser, 
 * @param seqFile Sequence file to count
 * @return The hash array
 */
-HashCounterPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, uint16_t merLen, uint64_t hashSize, bool canonical, uint16_t threads) {
+LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads) {
     
     // Convert paths to a format jellyfish is happy with
     vector<const char*> paths;
@@ -227,33 +229,35 @@ HashCounterPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, 
     }
     
     // Ensures jellyfish knows what kind of kmers we are working with
+    uint16_t merLen = hashCounter.key_len() / 2;
     mer_dna::k(merLen);
-    
-    // Create hash.  Leave size doubling enabled.
-    HashCounterPtr ary = make_shared<HashCounter>(hashSize, merLen * 2, 7, threads);
     
     StreamManager streams(paths.begin(), paths.end(), 1);
     
     SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
     
-    thread t[threads];
+    /*thread t[threads];
 
     for(int i = 0; i < threads; i++) {
-        t[i] = thread(&kat::JellyfishHelper::countSlice, std::ref(*ary), std::ref(parser), canonical);
+        t[i] = thread(&kat::JellyfishHelper::countSlice, std::ref(hashCounter), std::ref(parser), canonical);
     }
 
     for(int i = 0; i < threads; i++){
         t[i].join();
-    }             
+    } */ 
     
-    return ary;
+    countSlice(hashCounter, parser, canonical);
+    
+    return hashCounter.ary();
 }
-/*
-void dumpHash() {
-    jellyfish::dumper_t<mer_array> > dumper;
-    dumper.reset(new binary_dumper(args.out_counter_len_arg, ary.key_len(), args.threads_arg, args.output_arg, &header));
-  ary.dumper(dumper.get());
-}*/
+
+void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, uint16_t threads, path outputFile) {
+    
+    // Create the dumper
+    binary_dumper dumper(4, ary->key_len(), threads, outputFile.c_str(), &header);
+    dumper.one_file(true);
+    dumper.dump(ary);
+}
 
 /**
 * Returns whether or not the specified file path looks like it belongs to

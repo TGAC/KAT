@@ -331,7 +331,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
                 (*seqCounts)[i] = 0;
             } else {
                 mer_dna mer(merstr.c_str());
-                uint64_t count = JellyfishHelper::getCount(*hash, mer, canonical);
+                uint64_t count = JellyfishHelper::getCount(hash, mer, canonical);
                 sum += count;
                 
                 //cout << merstr << " " << count << endl;

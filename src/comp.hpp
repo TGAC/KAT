@@ -144,7 +144,11 @@ namespace kat {
         bool verbose;
 
         // Jellyfish mapped file hash vars
-        vector<LargeHashArrayPtr> hashes;
+        HashCounterPtr hashCounter1;
+        HashCounterPtr hashCounter2;
+        HashCounterPtr hashCounter3;
+        vector<LargeHashArrayPtr> hashes;   // Hashes will be stored and delete by the hashcounters declared above
+        vector<file_header> headers;
         
         // Threaded matrix data
         shared_ptr<ThreadedSparseMatrix> main_matrix;
@@ -371,7 +375,9 @@ namespace kat {
 
     private:
 
-        HashCounterPtr count(path& input, int index);
+        LargeHashArrayPtr count(path& input, HashCounter& hashCounter, int index);
+        
+        void dumpHashArrays(bool dump1, bool dump2, bool dump3);
         
         void loadHashes(vector<HashLoader>& loaders, vector<path>& hashes, uint16_t keyLenBits, bool load1, bool load2, bool load3);
         

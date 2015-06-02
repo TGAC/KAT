@@ -202,7 +202,10 @@ protected:
   }
 
   bool double_size(bool serial_thread) {
-    if(serial_thread) {// Allocate new array for size doubling
+    
+      printf("\nWarning: Specified hash size insufficent - attempting to double hash size...");
+      
+      if(serial_thread) {// Allocate new array for size doubling
       try {
         new_ary_   = new array(ary_->size() * 2, ary_->key_len(), ary_->val_len(),
                                ary_->max_reprobe(), ary_->reprobes());
@@ -236,6 +239,7 @@ protected:
 
     // Done. Last sync point
     size_barrier_.wait();
+    printf(" success!\n");
     return true;
   }
 };

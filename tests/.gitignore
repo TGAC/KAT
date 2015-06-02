@@ -8,7 +8,6 @@
 /check_sect
 *.dirstamp
 /check_kat
-/check_comp
-/check_sect
 /check_jellyfish
 
+callgrind.out.*
