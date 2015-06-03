@@ -56,9 +56,9 @@ path kat::JellyfishHelper::jellyfishExe = "";
  * @param jfHashPath Path to the jellyfish hash file
  * @return The hash header
  */
-file_header kat::JellyfishHelper::loadHashHeader(const path& jfHashPath) {
+shared_ptr<file_header> kat::JellyfishHelper::loadHashHeader(const path& jfHashPath) {
     ifstream in(jfHashPath.c_str(), std::ios::in | std::ios::binary);
-    file_header header(in);    
+    shared_ptr<file_header> header = make_shared<file_header>(in);    
     in.close();    
     return header;
 }

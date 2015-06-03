@@ -41,7 +41,9 @@ using bfs::path;
 #include <matrix/matrix_metadata_extractor.hpp>
 
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
+
+#include "input_handler.hpp"
+using kat::InputHandler;
 
 typedef boost::error_info<struct HistogramError,string> HistogramErrorInfo;
 struct HistogramException: virtual boost::exception, virtual std::exception { };
@@ -52,20 +54,15 @@ namespace kat {
     private:
         
         // Arguments from user
-        vector<path>    inputs;
+        InputHandler    input;
         path            outputPrefix;
         uint16_t        threads;
         uint64_t        low;
         uint64_t        high;
-        bool            canonical;
         uint16_t        merLen;
-        uint64_t        hashSize;            
+        bool            dumpHash;
         bool            verbose;
 
-        // Jellyfish mapped file hash vars
-        path hashFile;
-        LargeHashArrayPtr hash;
-        
         // Internal vars
         uint64_t base, ceil, inc, nb_buckets, nb_slices;
         vector<uint64_t> data;
@@ -80,19 +77,19 @@ namespace kat {
         }
         
         bool isCanonical() const {
-            return canonical;
+            return input.canonical;
         }
 
         void setCanonical(bool canonical) {
-            this->canonical = canonical;
+            this->input.canonical = canonical;
         }
         
         uint64_t getHashSize() const {
-            return hashSize;
+            return input.hashSize;
         }
 
         void setHashSize(uint64_t hash_size) {
-            this->hashSize = hash_size;
+            this->input.hashSize = hash_size;
         }
         
         uint16_t getMerLen() const {
@@ -127,14 +124,6 @@ namespace kat {
             this->inc = inc;
         }
 
-        vector<path> getInputs() const {
-            return inputs;
-        }
-
-        void setInputs(vector<path> inputs) {
-            this->inputs = inputs;
-        }
-
         uint64_t getLow() const {
             return low;
         }
@@ -150,6 +139,15 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
+        
+        bool isDumpHash() const {
+            return dumpHash;
+        }
+
+        void setDumpHash(bool dumpHash) {
+            this->dumpHash = dumpHash;
+        }
+
 
         bool isVerbose() const {
             return verbose;
@@ -176,11 +174,9 @@ namespace kat {
         
         void merge();
         
-        void loadHashes();
-        
-        void startAndJoinThreads();
+        void bin();
          
-        void start(int th_id);
+        void binSlice(int th_id);
         
         static string helpMessage(){
             

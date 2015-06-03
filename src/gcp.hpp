@@ -39,10 +39,13 @@ using bfs::path;
 using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
 
-#include <matrix/matrix_metadata_extractor.hpp>
-#include <matrix/threaded_sparse_matrix.hpp>
+#include "jellyfish_helper.hpp"
+#include "input_handler.hpp"
+using kat::InputHandler;
+
+#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include "inc/matrix/threaded_sparse_matrix.hpp"
 
 using std::ostream;
 
@@ -56,43 +59,31 @@ namespace kat {
     private:
 
         // Input args
-        vector<path>    inputs;
+        InputHandler    input;
         path            outputPrefix;
         uint16_t        threads;
         double          cvgScale;
         uint16_t        cvgBins;
         uint16_t        merLen;
-        bool            canonical;
-        uint64_t        hashSize;            
+        bool            dumpHash;
         bool            verbose;
-        
-        // 
-        const uint64_t nb_slices;
-        uint64_t slice_id;
-        path hashFile;
-        
-        // Hash Array
-        LargeHashArrayPtr hash;
         
         // Stores results
         shared_ptr<ThreadedSparseMatrix> gcp_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
 
     public:
 
-        Gcp(vector<path>& _inputs, uint16_t _threads) :
-        inputs(_inputs), threads(_threads), nb_slices(threads * 100) {
-            
-        }
+        Gcp(vector<path>& _inputs);
 
         virtual ~Gcp() {            
         }
 
         bool isCanonical() const {
-            return canonical;
+            return input.canonical;
         }
 
         void setCanonical(bool canonical) {
-            this->canonical = canonical;
+            this->input.canonical = canonical;
         }
 
         uint16_t getCvgBins() const {
@@ -112,19 +103,11 @@ namespace kat {
         }
 
         uint64_t getHashSize() const {
-            return hashSize;
+            return input.hashSize;
         }
 
         void setHashSize(uint64_t hashSize) {
-            this->hashSize = hashSize;
-        }
-
-        vector<path> getInputs() const {
-            return inputs;
-        }
-
-        void setInputs(vector<path> inputs) {
-            this->inputs = inputs;
+            this->input.hashSize = hashSize;
         }
 
         uint16_t getMerLen() const {
@@ -150,6 +133,14 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
+        
+        bool isDumpHash() const {
+            return dumpHash;
+        }
+
+        void setDumpHash(bool dumpHash) {
+            this->dumpHash = dumpHash;
+        }
 
         bool isVerbose() const {
             return verbose;
@@ -169,11 +160,11 @@ namespace kat {
         
     protected:
         
-        void startAndJoinThreads();
+        void analyse();
         
-        void loadHashes();
+        void analyseSlice(int th_id);
         
-        void start(int th_id);
+        void dumpHashArray();
 
         static const string helpMessage() {
              return string("Usage: kat gcp <jellyfish_hash>\n\n") +

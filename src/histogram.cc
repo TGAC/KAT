@@ -44,9 +44,20 @@ using bfs::path;
 
 #include "histogram.hpp"
 
-kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc)
-     : inputs(_inputs), low(_low), high(_high), inc(_inc) {
-         
+kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc) {
+    
+    input.input = _inputs;
+    input.index = 1;
+    input.hashSize = DEFAULT_HASH_SIZE;
+    input.canonical = false;
+    outputPrefix = "kat-hist";
+    low = _low;
+    high = _high;
+    inc = _inc;
+    merLen = DEFAULT_MER_LEN;
+    dumpHash = false;
+    threads = 1;
+    
     // Calculate other vars required for this run
     base = calcBase();
     ceil = calcCeil();
@@ -63,16 +74,18 @@ void kat::Histogram::execute() {
                 "; Low: " + lexical_cast<string>(low))); 
     }
 
-    // Create jellyfish hash if required
-    hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
-    path hashOutput = JellyfishHelper::executeJellyfishCount(inputs, hashFile, merLen, hashSize, threads, canonical, true);
-    if (hashOutput != hashFile) {
-        bfs::create_symlink(hashOutput, hashFile);
-    }            
-
-    // Setup handles to load hashes
-    loadHashes();
-
+    // Validate input
+    input.validateInput();
+    
+    // Either count or load input
+    if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
+        input.count(merLen, threads);
+    }
+    else {
+        input.loadHeader();
+        input.loadHash(true);                
+    }
+    
     data = vector<uint64_t>(nb_buckets, 0);
     threadedData = vector<shared_ptr<vector<uint64_t>>>();
     
@@ -80,15 +93,22 @@ void kat::Histogram::execute() {
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
     // Do the work
-    startAndJoinThreads();
+    bin();
     
+    // Dump any hashes that were previously counted to disk if requested
+    // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
+    if (dumpHash) {
+        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
+        input.dump(outputPath, threads, true);     
+    }
+    // Merge results
     merge();
 }
 
 void kat::Histogram::print(std::ostream &out) {
     // Output header
-    out << mme::KEY_TITLE << "K-mer spectra for: " << hashFile << endl;
-    out << mme::KEY_X_LABEL << "K" << merLen << " multiplicity: " << hashFile << endl;
+    out << mme::KEY_TITLE << "K-mer spectra for: " << input.pathString() << endl;
+    out << mme::KEY_X_LABEL << "K" << merLen << " multiplicity" << endl;
     out << mme::KEY_Y_LABEL << "Number of distinct K" << merLen << " mers" << endl;
     out << mme::MX_META_END << endl;
 
@@ -99,25 +119,10 @@ void kat::Histogram::print(std::ostream &out) {
 }
 
 
-void kat::Histogram::loadHashes() {
-
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
-
-    cout << "Loading hash into memory...";
-    cout.flush();
-
-    HashLoader hl;
-    hash = hl.loadHash(hashFile, verbose);
-    merLen = hl.getMerLen();    
-
-    cout << " done.";
-    cout.flush();
-}
-
 void kat::Histogram::merge() {
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Merging counts from each thread...";
+    cout << "Merging counts ...";
     cout.flush();
 
     for(size_t i = 0; i < nb_buckets; i++) {
@@ -130,32 +135,32 @@ void kat::Histogram::merge() {
     cout.flush();
 }
 
-void kat::Histogram::startAndJoinThreads() {
+void kat::Histogram::bin() {
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Counting kmers in hash with " << threads << " threads ...";
+    cout << "Bining kmers ...";
     cout.flush();
 
     thread t[threads];
 
     for(int i = 0; i < threads; i++) {
-        t[i] = thread(&Histogram::start, this, i);
+        t[i] = thread(&Histogram::binSlice, this, i);
     }
 
     for(int i = 0; i < threads; i++){
         t[i].join();
     }
 
-    cout << "done.";
+    cout << " done.";
     cout.flush();
 }
 
-void kat::Histogram::start(int th_id) {
+void kat::Histogram::binSlice(int th_id) {
     
     shared_ptr<vector<uint64_t>> hist = make_shared<vector<uint64_t>>(nb_buckets);
     
-    LargeHashArray::region_iterator it = hash->region_slice(th_id, threads);
+    LargeHashArray::region_iterator it = input.hash->region_slice(th_id, threads);
     while (it.next()) {
         uint64_t val = it.val();
         if (val < base)
@@ -179,7 +184,8 @@ int kat::Histogram::main(int argc, char *argv[]) {
     uint64_t        inc;
     bool            canonical;
     uint16_t        mer_len;
-    uint64_t        hash_size;            
+    uint64_t        hash_size; 
+    bool            dump_hash;
     bool            verbose;
     bool            help;
 
@@ -202,6 +208,8 @@ int kat::Histogram::main(int argc, char *argv[]) {
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,s", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
+            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
+                        "Dumps any jellyfish hashes to disk that were produced during this run.") 
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -247,6 +255,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     histo.setCanonical(canonical);
     histo.setMerLen(mer_len);
     histo.setHashSize(hash_size);
+    histo.setDumpHash(dump_hash);
     histo.setVerbose(verbose);
 
     // Do the work

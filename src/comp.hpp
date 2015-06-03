@@ -17,20 +17,15 @@
 
 #pragma once
 
-#include <iostream>
 #include <string.h>
 #include <stdint.h>
 #include <vector>
-#include <math.h>
 #include <memory>
 #include <mutex>
 using std::vector;
 using std::string;
-using std::cerr;
-using std::endl;
-using std::ostream;
 using std::shared_ptr;
-using std::make_shared;
+using std::mutex;
 
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
@@ -44,8 +39,10 @@ using bfs::path;
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
 
-#include <jellyfish_helper.hpp>
+#include "jellyfish_helper.hpp"
+#include "input_handler.hpp"
 using kat::JellyfishHelper;
+using kat::InputHandler;
 
 typedef boost::error_info<struct CompError,string> CompErrorInfo;
 struct CompException: virtual boost::exception, virtual std::exception { };
@@ -125,34 +122,9 @@ namespace kat {
     class Comp {
     private:
         
-        enum InputMode {
-            LOAD,
-            COUNT
-        };
-        
-        class CompInput {
-        public:
-            uint16_t index;
-            path input;
-            InputMode mode = InputMode::COUNT;
-            bool canonical = false;
-            uint64_t hashSize = DEFAULT_HASH_SIZE;
-            HashCounterPtr hashCounter = nullptr;
-            shared_ptr<HashLoader> hashLoader = nullptr;
-            LargeHashArrayPtr hash = nullptr;
-            file_header header;         // Only applicable if loaded
-            
-            void validateInput();   // Throws if input is not present.  Sets input mode.
-            void loadHeader();
-            void validateMerLen(uint16_t merLen);   // Throws if incorrect merlen
-            void count(uint16_t merLen, uint16_t threads);   // Uses the jellyfish library to count kmers in the input
-            void loadHash();
-            void dump(path& output, uint16_t threads);
-        };
-        
-        
+                
         // Args passed in
-        vector<CompInput> input;
+        vector<InputHandler> input;
         path outputPrefix;
         double d1Scale;
         double d2Scale;
@@ -239,11 +211,11 @@ namespace kat {
         }
 
         path getInput(uint16_t index) const {
-            return input[index].input;
+            return input[index].input[0];
         }
 
         void setInput(uint16_t index, path input) {
-            this->input[index].input = input;
+            this->input[index].input[0] = input;
         }
 
         uint8_t getMerLen() const {
@@ -345,13 +317,11 @@ namespace kat {
 
     private:
 
-        void dumpHashArrays();
-        
         void loadHashes();
         
-        void startAndJoinThreads();
+        void compare();
         
-        void start(int th_id);
+        void compareSlice(int th_id);
 
         // Scale counters to make the matrix look pretty
 

@@ -59,6 +59,7 @@ kat_SOURCES = \
                 src/inc/kat_fs.hpp \
 		src/inc/kat_hash_counter.hpp \
                 src/jellyfish_helper.cc \
+		src/input_handler.cc \
 		src/comp.cc \
 		src/gcp.cc \
 		src/histogram.cc \

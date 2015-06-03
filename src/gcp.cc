@@ -45,34 +45,58 @@ using kat::HashLoader;
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
 
+#include "input_handler.hpp"
+using kat::InputHandler;
+
 #include "gcp.hpp"
-        
+
+    
+kat::Gcp::Gcp(vector<path>& _inputs) {
+    
+    input.input = _inputs;
+    input.index = 1;
+    input.hashSize = DEFAULT_HASH_SIZE;
+    input.canonical = false;
+    outputPrefix = "kat-gcp";
+    cvgScale = 1.0;
+    cvgBins = 1000;
+    merLen = DEFAULT_MER_LEN;
+    dumpHash = false;
+    threads = 1;
+}
+ 
 void kat::Gcp::execute() {
 
-    // Create jellyfish hash if required
-    hashFile = path(outputPrefix.string() + ".jf" + lexical_cast<string>(merLen));
-    path hashOutput = JellyfishHelper::executeJellyfishCount(inputs, hashFile, merLen, hashSize, threads, canonical, true);
-    if (hashOutput != hashFile) {
-        bfs::create_symlink(hashOutput, hashFile);
-    }
-
+    // Validate input
+    input.validateInput();
+    
     // Setup output stream for jellyfish initialisation
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
-    // Load hash
-    loadHashes();
-    
-    // Calculate the mer length
-    size_t keyLen = JellyfishHelper::loadHashHeader(hashFile).key_len() / 2;    
+    // Either count or load input
+    if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
+        input.count(merLen, threads);
+    }
+    else {
+        input.loadHeader();
+        input.loadHash(true);                
+    }
     
     // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
-    gcp_mx = make_shared<ThreadedSparseMatrix>(keyLen, cvgBins + 1, threads);
+    gcp_mx = make_shared<ThreadedSparseMatrix>(input.header->key_len() / 2, cvgBins + 1, threads);
 
     // Process batch with worker threads
     // Process each sequence is processed in a different thread.
     // In each thread lookup each K-mer in the hash
-    startAndJoinThreads();
+    analyse();
 
+    // Dump any hashes that were previously counted to disk if requested
+    // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
+    if (dumpHash) {
+        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
+        input.dump(outputPath, threads, true);     
+    }
+    
     // Merge the contamination matrix
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
@@ -83,27 +107,12 @@ void kat::Gcp::execute() {
     cout << "done.";
     cout.flush();
 }
-        
-
-void kat::Gcp::loadHashes() {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
-
-    cout << "Loading hash into memory...";
-    cout.flush();
-    
-    HashLoader hl;
-    hash = hl.loadHash(hashFile, verbose);
-    
-    cout << " done.";
-    cout.flush();
-}
-
+   
 
 void kat::Gcp::printMainMatrix(ostream &out) {
     SM64 mx = gcp_mx->getFinalMatrix();
 
-    out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << hashFile << endl;
+    out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << input.pathString() << endl;
     out << mme::KEY_X_LABEL << "K-mer multiplicity" << endl;
     out << mme::KEY_Y_LABEL << "GC count" << endl;
     out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
@@ -116,7 +125,7 @@ void kat::Gcp::printMainMatrix(ostream &out) {
     mx.printMatrix(out);
 }
 
-void kat::Gcp::startAndJoinThreads() {
+void kat::Gcp::analyse() {
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
@@ -126,7 +135,7 @@ void kat::Gcp::startAndJoinThreads() {
     thread t[threads];
 
     for(int i = 0; i < threads; i++) {
-        t[i] = thread(&Gcp::start, this, i);
+        t[i] = thread(&Gcp::analyseSlice, this, i);
     }
 
     for(int i = 0; i < threads; i++){
@@ -137,31 +146,29 @@ void kat::Gcp::startAndJoinThreads() {
     cout.flush();
 }
 
-void kat::Gcp::start(int th_id) {
+void kat::Gcp::analyseSlice(int th_id) {
+   
+    LargeHashArray::region_iterator it = input.hash->region_slice(th_id, threads);
+    while (it.next()) {
+        string kmer = it.key().to_str();
+        uint64_t kmer_count = it.val();
 
-    for (size_t i = slice_id++; i < nb_slices; i = slice_id++) {
-        LargeHashArray::region_iterator it = hash->region_slice(i, nb_slices);
-        while (it.next()) {
-            string kmer = it.key().to_str();
-            uint64_t kmer_count = it.val();
+        uint16_t g_or_c = 0;
 
-            uint16_t g_or_c = 0;
+        for (uint16_t i = 0; i < kmer.length(); i++) {
+            char c = kmer[i];
 
-            for (uint16_t i = 0; i < kmer.length(); i++) {
-                char c = kmer[i];
-
-                if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
-                    g_or_c++;
-            }
-
-            // Apply scaling factor
-            uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * cvgScale);
-
-            if (cvg_pos > cvgBins)
-                gcp_mx->incTM(th_id, g_or_c, cvgBins, 1);
-            else
-                gcp_mx->incTM(th_id, g_or_c, cvg_pos, 1);
+            if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
+                g_or_c++;
         }
+
+        // Apply scaling factor
+        uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * cvgScale);
+
+        if (cvg_pos > cvgBins)
+            gcp_mx->incTM(th_id, g_or_c, cvgBins, 1);
+        else
+            gcp_mx->incTM(th_id, g_or_c, cvg_pos, 1);
     }
 }
 
@@ -174,7 +181,8 @@ int kat::Gcp::main(int argc, char *argv[]) {
     uint16_t        cvg_bins;
     bool            canonical;
     uint16_t        mer_len;
-    uint64_t        hash_size;            
+    uint64_t        hash_size;
+    bool            dump_hash;
     bool            verbose;
     bool            help;
 
@@ -189,12 +197,14 @@ int kat::Gcp::main(int argc, char *argv[]) {
                 "Number of bins for the gc data when creating the contamination matrix.")
             ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(1000),
                 "Number of bins for the cvg data when creating the contamination matrix.")
-            ("canonical,c", po::bool_switch(&canonical)->default_value(false),
+            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,s", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
+            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
+                        "Dumps any jellyfish hashes to disk that were produced during this run.") 
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -234,13 +244,15 @@ int kat::Gcp::main(int argc, char *argv[]) {
          << "------------------------" << endl << endl;
 
     // Create the sequence coverage object
-    Gcp gcp(inputs, threads);
+    Gcp gcp(inputs);
+    gcp.setThreads(threads);
     gcp.setCanonical(canonical);
     gcp.setCvgBins(cvg_bins);
     gcp.setCvgScale(cvg_scale);
     gcp.setHashSize(hash_size);
     gcp.setMerLen(mer_len);
     gcp.setOutputPrefix(output_prefix);
+    gcp.setDumpHash(dump_hash);
     gcp.setVerbose(verbose);
 
     // Do the work (outputs data to files as it goes)

@@ -71,7 +71,7 @@ typedef LargeHashArray* LargeHashArrayPtr;
 
 namespace kat {
 
-    const uint64_t DEFAULT_HASH_SIZE = 10000000000;
+    const uint64_t DEFAULT_HASH_SIZE = 100000000;
     const uint16_t DEFAULT_MER_LEN = 27;
     
     class HashLoader {
@@ -168,7 +168,7 @@ namespace kat {
         * @param jfHashPath Path to the jellyfish hash file
         * @return The hash header
         */
-        static file_header loadHashHeader(const path& jfHashPath);
+        static shared_ptr<file_header> loadHashHeader(const path& jfHashPath);
         
         /**
         * Output header in human-readable format
