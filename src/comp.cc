@@ -196,22 +196,93 @@ void kat::ThreadedCompCounters::add(shared_ptr<CompCounters> cc) {
 void kat::ThreadedCompCounters::merge() {
 
     // Merge counters
-    for (shared_ptr<CompCounters> cc : *threaded_counters) {
+    for (vector<shared_ptr<CompCounters>>::iterator itp = threaded_counters->begin();
+            itp != threaded_counters->end(); ++itp) {
 
-        final_matrix->hash1_total += cc->hash1_total;
-        final_matrix->hash2_total += cc->hash2_total;
-        final_matrix->hash3_total += cc->hash3_total;
-        final_matrix->hash1_distinct += cc->hash1_distinct;
-        final_matrix->hash2_distinct += cc->hash2_distinct;
-        final_matrix->hash3_distinct += cc->hash3_distinct;
-        final_matrix->hash1_only_total += cc->hash1_only_total;
-        final_matrix->hash2_only_total += cc->hash2_only_total;
-        final_matrix->hash1_only_distinct += cc->hash1_only_distinct;
-        final_matrix->hash2_only_distinct += cc->hash2_only_distinct;
-        final_matrix->shared_hash1_total += cc->shared_hash1_total;
-        final_matrix->shared_hash2_total += cc->shared_hash2_total;
-        final_matrix->shared_distinct += cc->shared_distinct;
+        shared_ptr<CompCounters> it = *itp;
+        
+        final_matrix->hash1_total += it->hash1_total;
+        final_matrix->hash2_total += it->hash2_total;
+        final_matrix->hash3_total += it->hash3_total;
+        final_matrix->hash1_distinct += it->hash1_distinct;
+        final_matrix->hash2_distinct += it->hash2_distinct;
+        final_matrix->hash3_distinct += it->hash3_distinct;
+        final_matrix->hash1_only_total += it->hash1_only_total;
+        final_matrix->hash2_only_total += it->hash2_only_total;
+        final_matrix->hash1_only_distinct += it->hash1_only_distinct;
+        final_matrix->hash2_only_distinct += it->hash2_only_distinct;
+        final_matrix->shared_hash1_total += it->shared_hash1_total;
+        final_matrix->shared_hash2_total += it->shared_hash2_total;
+        final_matrix->shared_distinct += it->shared_distinct;
     }
+}
+
+// ********* Comp Input ***********
+
+void kat::Comp::CompInput::validateInput() {
+    
+    // Check input file exists
+    if (!bfs::exists(input) && !bfs::symbolic_link_exists(input)) {
+        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
+                "Could not find input file ") + lexical_cast<string>(index) + " at: " + input.string() + "; please check the path and try again."));
+    }
+    
+    mode = JellyfishHelper::isSequenceFile(input) ? InputMode::COUNT : InputMode::LOAD;
+}
+
+void kat::Comp::CompInput::loadHeader() {
+    if (mode == InputMode::LOAD) {
+        header = JellyfishHelper::loadHashHeader(input);
+    }    
+}
+
+void kat::Comp::CompInput::validateMerLen(uint16_t merLen) {    
+    
+    if (mode == InputMode::LOAD) {
+        if (header.key_len() != merLen * 2) {
+
+            BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
+                "Cannot process hashes that were created with different K-mer lengths.  Expected: ") +
+                lexical_cast<string>(merLen) + 
+                ".  Key length was " + 
+                lexical_cast<string>(header.key_len() / 2) + 
+                " for : " + input.string()));
+        }
+    }
+}
+
+void kat::Comp::CompInput::count(uint16_t merLen, uint16_t threads) {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");      
+    
+    hashCounter = make_shared<HashCounter>(hashSize, merLen * 2, 7, threads);
+        
+    cout << "Input " << index << " is a sequence file.  Counting kmers for " << input.string() << " ...";
+    cout.flush();
+
+    hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads);
+    
+    // Create header for newly counted hash
+    header.fill_standard();
+    header.key_len(hashCounter->key_len());
+    header.counter_len(4);  // Hard code for now.
+    header.val_len(hashCounter->val_len());
+    header.canonical(canonical);
+    header.max_reprobe(hashCounter->reprobe_limit());    
+
+    cout << " done.";
+    cout.flush();    
+}
+
+void kat::Comp::CompInput::loadHash() {
+    hashLoader = make_shared<HashLoader>();
+    hashLoader->loadHash(input, false); 
+    hash = hashLoader->getHash();
+    canonical = hashLoader->getCanonical();
+}
+
+void kat::Comp::CompInput::dump(path& output, uint16_t threads) {    
+    JellyfishHelper::dumpHash(hash, header, threads, output);
 }
     
 // ********* Comp **********
@@ -222,52 +293,41 @@ kat::Comp::Comp() :
 kat::Comp::Comp(const path& _input1, const path& _input2) : 
     kat::Comp::Comp(_input1, _input2, path()) {}
         
-kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) : 
-    input1(_input1), input2(_input2), input3(_input3) {
+kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
+    input = !_input3.empty() ? vector<CompInput>(3) : vector<CompInput>(2);
+    input[0].input = _input1;
+    input[1].input = _input2;
+    input[0].index = 1;
+    input[1].index = 2;
+    if (!_input3.empty()) {
+        input[2].input = _input3;
+        input[2].index = 3;
+    }
+    
     outputPrefix = "kat-comp";
     d1Scale = 1.0;
     d2Scale = 1.0;
     d1Bins = 1001;
     d2Bins = 1001;
     threads = 1;
-    merLen = DEFAULT_MER_LEN;
-    canonical1 = false;
-    canonical2 = false;
-    canonical3 = false;
-    hashSize1 = DEFAULT_HASH_SIZE;
-    hashSize2 = DEFAULT_HASH_SIZE;
-    hashSize3 = DEFAULT_HASH_SIZE;
+    merLen = DEFAULT_MER_LEN;    
     parallelIO = false;
     dumpHashes = false;
-    hashes = vector<LargeHashArrayPtr>(3);
-    verbose = false;            
+    verbose = false;      
 }
 
 void kat::Comp::execute() {
 
-    // Check input file exists
-    if (!bfs::exists(input1) && !bfs::symbolic_link_exists(input1)) {
-        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                "Could not find first input file at: ") + input1.string() + "; please check the path and try again."));
+    // Check input files exist and determine input mode
+    for(uint16_t i = 0; i < input.size(); i++) {
+        input[i].validateInput();
     }
-
-    // Check input file exists
-    if (!bfs::exists(input2) && !bfs::symbolic_link_exists(input2)) {
-        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                "Could not find second jellyfish hash file at: ") + input2.string() + "; please check the path and try again."));
-    }
-
-    // Check input file exists
-    if (!input3.empty() && !bfs::exists(input3) && !bfs::symbolic_link_exists(input3)) {
-        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                "Could not find third jellyfish hash file at: ") + input3.string() + "; please check the path and try again."));
-    }
-
+    
     // Create the final K-mer counter matrices
     main_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
 
     // Initialise extra matrices for hash3 (only allocates space if required)
-    if (!input3.empty()) {
+    if (doThirdHash()) {
 
         ends_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
         middle_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
@@ -275,81 +335,64 @@ void kat::Comp::execute() {
     }
 
     // Create the comp counters for each thread
-    comp_counters = make_shared<ThreadedCompCounters>(input1, input2, input3);
+    comp_counters = input.size() == 3 ?
+            make_shared<ThreadedCompCounters>(input[0].input, input[1].input, input[2].input) :
+            make_shared<ThreadedCompCounters>(input[0].input, input[1].input);
 
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
     string merLenStr = lexical_cast<string>(merLen);
 
-    path hashOutPath1 = path(outputPrefix.string() + "-input1.jf" + merLenStr);
-    path hashOutPath2 = path(outputPrefix.string() + "-input2.jf" + merLenStr);
-    path hashOutPath3 = path(outputPrefix.string() + "-input3.jf" + merLenStr);
-    
-    vector<path> hashesToLoad;
-    bool load1 = false;
-    bool load2 = false;
-    bool load3 = false;
-    
-    hashes = vector<LargeHashArrayPtr>(3);
-    
-    // Count kmers in sequence files if necessary
-    if (JellyfishHelper::isSequenceFile(input1)) {
-        hashCounter1 = make_shared<HashCounter>(hashSize1, merLen * 2, 7, threads);
-        hashes[0] = count(input1, *hashCounter1, 1);
-    }
-    else {
-        hashesToLoad.push_back(input1);
-        load1 = true;
-    }
-
-    if (JellyfishHelper::isSequenceFile(input2)) {
-        hashCounter2 = make_shared<HashCounter>(hashSize2, merLen * 2, 7, threads);
-        hashes[1] = count(input2, *hashCounter2, 2);
-    }
-    else {
-        hashesToLoad.push_back(input2);
-        load2 = true;
-    }
-
-    if (!input3.empty() && JellyfishHelper::isSequenceFile(input3)) {
-        hashCounter3 = make_shared<HashCounter>(hashSize3, merLen * 2, 7, threads);
-        hashes[2] = count(input3, *hashCounter3, 3);
-    }
-    else if (!input3.empty()) {
-        hashesToLoad.push_back(input3);
-        load3 = true;
-    }
-
-    vector<HashLoader> hl(3);
-    
-    // Load any hashes if required (checking for sane mer lengths)
-    if (!hashesToLoad.empty()) {
-        
-        uint16_t keylenbits = merLen * 2;
-        if (load1 && load2 && (input3.empty() || load3)) {
-            file_header header = JellyfishHelper::loadHashHeader(hashesToLoad[0]);
-            keylenbits = header.key_len();            
+    // Count kmers in sequence files if necessary (sets load and hashes and hashcounters as appropriate)
+    for(int i = 0; i < input.size(); i++) {
+        if (input[i].mode == InputMode::COUNT) {
+            input[i].count(merLen, threads);
         }
-        
-        loadHashes(hl, hashesToLoad, keylenbits, load1, load2, load3);
     }
     
-    
-    if (dumpHashes) {
-        dumpHashArrays(load1, load2, load3);
+    // Check to see if user specified any hashes to load
+    bool anyLoad = false;
+    bool allLoad = true;
+    bool anyDump = false;
+    for(CompInput i : input) {
+        if (i.mode == InputMode::LOAD) {
+            anyLoad = true;            
+        }
+        else if (i.mode == InputMode::COUNT) {
+            anyDump = true;
+            allLoad = false;
+        }
     }
+
+    for(CompInput i : input) {
+        i.loadHeader();
+    }
+    
+    // If all hashes are loaded directly there is no requirement that the user needs
+    // to specify the merLen, so just set it to the merLen found in the header of the first input
+    if (allLoad) merLen = input[0].header.key_len() / 2;
+    
+    for(uint16_t i = 0; i < input.size(); i++) {
+        input[i].validateMerLen(merLen);
+    }
+    
+    // Load any hashes if necessary
+    if (anyLoad) loadHashes();
+     
+    // Dump any hashes that were previously counted to disk if requested
+    if (dumpHashes && anyDump) dumpHashArrays();     
     
     // Run the threads
     startAndJoinThreads();
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Merging data returned from each thread...";
+    cout << "Merging data returned from each thread ...";
     cout.flush();
 
     // Merge results from the threads
     main_matrix->mergeThreadedMatricies();
-    if (!input3.empty()) {
+    if (doThirdHash()) {
         ends_matrix->mergeThreadedMatricies();
         middle_matrix->mergeThreadedMatricies();
         mixed_matrix->mergeThreadedMatricies();
@@ -357,93 +400,74 @@ void kat::Comp::execute() {
 
     comp_counters->merge();
 
-    cout << "done.";
+    cout << " done.";
     cout.flush();
 }
       
-void kat::Comp::dumpHashArrays(bool dump1, bool dump2, bool dump3) {
+void kat::Comp::dumpHashArrays() {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
     
-    path dumpOutPath1(outputPrefix.string() + "-hash1.jf" + lexical_cast<string>(merLen));
-    path dumpOutPath2(outputPrefix.string() + "-hash2.jf" + lexical_cast<string>(merLen));
-    path dumpOutPath3(outputPrefix.string() + "-hash3.jf" + lexical_cast<string>(merLen));
-    
-    // create symlinks for all hashes that were already loaded
-    if (dump1) bfs::create_symlink(input1, dumpOutPath1);
-    if (dump2) bfs::create_symlink(input2, dumpOutPath2);
-    if (dump3) bfs::create_symlink(input3, dumpOutPath3);
-    
-    cout << "Dumping hashes to disk...";
+    cout << "Dumping hashes to disk ...";
     cout.flush();
     
-    if (!dump1) JellyfishHelper::dumpHash(hashes[0], headers[0], threads, dumpOutPath1);
-    if (!dump2) JellyfishHelper::dumpHash(hashes[1], headers[1], threads, dumpOutPath2);
-    if (!input3.empty() && !dump3) JellyfishHelper::dumpHash(hashes[2], headers[2], threads, dumpOutPath3);
-    
-    cout << " done.";
-    cout.flush();
-}
-
-void kat::Comp::loadHashes(vector<HashLoader>& loaders, vector<path>& h, uint16_t keyLenBits, bool load1, bool load2, bool load3) {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
-
-    for(path p : h) {
-        file_header header = JellyfishHelper::loadHashHeader(p);
-        if (header.key_len() != keyLenBits) {
-            
-            uint16_t ml = keyLenBits / 2;
-            
-            BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                "Cannot process hashes that were created with different K-mer lengths.  Expected: ") +
-                lexical_cast<string>(ml) + 
-                ".  Key length was " + 
-                lexical_cast<string>(header.key_len() / 2) + 
-                " for : " + p.string()));
+    for(uint16_t i = 0; i < input.size(); i++) {
+        
+        path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(merLen));
+        
+        // Remove anything that exists at the target location
+        if (bfs::is_symlink(outputPath) || bfs::exists(outputPath)) {
+            bfs::remove(outputPath.c_str());
+        }
+        
+        // Either dump or symlink as appropriate
+        if (input[i].mode == InputMode::COUNT) {
+            input[i].dump(outputPath, threads);
+        }
+        else {
+            bfs::create_symlink(input[i].input, outputPath);
         }
     }
     
+    cout << " done.";
+    cout.flush();
+}
+
+void kat::Comp::loadHashes() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
     
     cout << "Loading hashes into memory...";
-    cout.flush();
-    
-        
+    cout.flush();    
+
+    // If using parallel IO load hashes in parallel, otherwise do one at a time
     if (parallelIO) {
         
-        thread threads[3];
-        if (load1) threads[0] = thread(&HashLoader::loadHash, loaders[0], std::ref(input1), verbose);
-        if (load2) threads[1] = thread(&HashLoader::loadHash, loaders[1], std::ref(input2), verbose);
-        if (load3) threads[2] = thread(&HashLoader::loadHash, loaders[2], std::ref(input3), verbose);
+        thread threads[input.size()];
+        for(int i = 0; i < input.size(); i++) {
+            if (input[i].mode == InputMode::LOAD) {
+                threads[i] = thread(&kat::Comp::CompInput::loadHash, &input[i]);                
+            }
+        }
         
-        if (load1) { threads[0].join(); hashes[0] = loaders[0].getHash(); canonical1 = loaders[0].getCanonical(); }
-        if (load2) { threads[1].join(); hashes[1] = loaders[1].getHash(); canonical2 = loaders[1].getCanonical();}
-        if (load3) { threads[2].join(); hashes[2] = loaders[2].getHash(); canonical3 = loaders[2].getCanonical();}
+        for(int i = 0; i < input.size(); i++) {
+            if (input[i].mode == InputMode::LOAD) {
+                threads[i].join();                 
+            }
+        }        
     }
     else {
-        if (load1) { hashes[0] = loaders[0].loadHash(input1, verbose); canonical1 = loaders[0].getCanonical(); }
-        if (load2) { hashes[1] = loaders[1].loadHash(input2, verbose); canonical2 = loaders[1].getCanonical(); }
-        if (load3) { hashes[2] = loaders[2].loadHash(input3, verbose); canonical3 = loaders[2].getCanonical(); }
+        for(int i = 0; i < input.size(); i++) {
+            if (input[i].mode == InputMode::LOAD) {
+               input[i].loadHash();                
+            }
+        }        
     }
     
     cout << " done.";
     cout.flush();
 }
-    
 
-LargeHashArrayPtr kat::Comp::count(path& input, HashCounter& hashCounter, int index) {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");      
-    cout << "Input " << index << " is a sequence file.  Counting kmers for " << input.string() << " ...";
-    cout.flush();
-
-    LargeHashArrayPtr ary = JellyfishHelper::countSeqFile(input, hashCounter, canonical1, threads);
-    
-    cout << "done.";
-    cout.flush();
-    
-    return ary;
-}
 
 // Print K-mer comparison matrix
 
@@ -452,8 +476,8 @@ void kat::Comp::printMainMatrix(ostream &out) {
     SM64 mx = main_matrix->getFinalMatrix();
 
     out << mme::KEY_TITLE << "K-mer comparison plot" << endl
-            << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input1 << endl
-            << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << input2 << endl
+            << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input[0].input.string() << endl
+            << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << input[1].input.string() << endl
             << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl
             << mme::KEY_NB_COLUMNS << mx.height() << endl
             << mme::KEY_NB_ROWS << mx.width() << endl
@@ -468,8 +492,8 @@ void kat::Comp::printMainMatrix(ostream &out) {
 
 void kat::Comp::printEndsMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for: " << input1 << endl;
-    out << "# Each column represents K-mer multiplicity for sequence ends: " << input3 << endl;
+    out << "# Each row represents K-mer multiplicity for: " << input[0].input.string() << endl;
+    out << "# Each column represents K-mer multiplicity for sequence ends: " << input[2].input.string() << endl;
 
     ends_matrix->getFinalMatrix().printMatrix(out);
 }
@@ -478,8 +502,8 @@ void kat::Comp::printEndsMatrix(ostream &out) {
 
 void kat::Comp::printMiddleMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for: " << input1 << endl;
-    out << "# Each column represents K-mer multiplicity for sequence middles: " << input2 << endl;
+    out << "# Each row represents K-mer multiplicity for: " << input[0].input.string() << endl;
+    out << "# Each column represents K-mer multiplicity for sequence middles: " << input[1].input.string() << endl;
 
     middle_matrix->getFinalMatrix().printMatrix(out);
 }
@@ -488,8 +512,8 @@ void kat::Comp::printMiddleMatrix(ostream &out) {
 
 void kat::Comp::printMixedMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for hash file 1: " << input1 << endl;
-    out << "# Each column represents K-mer multiplicity for mixed: " << input2 << " and " << input3 << endl;
+    out << "# Each row represents K-mer multiplicity for hash file 1: " << input[0].input.string() << endl;
+    out << "# Each column represents K-mer multiplicity for mixed: " << input[1].input.string() << " and " << input[2].input.string() << endl;
 
     mixed_matrix->getFinalMatrix().printMatrix(out);
 }
@@ -528,7 +552,7 @@ void kat::Comp::start(int th_id) {
     shared_ptr<CompCounters> cc = make_shared<CompCounters>();
 
     // Setup iterator for this thread's chunk of hash1
-    LargeHashArray::region_iterator hash1Iterator = hashes[0]->region_slice(th_id, threads);
+    LargeHashArray::region_iterator hash1Iterator = input[0].hash->region_slice(th_id, threads);
 
     // Go through this thread's slice for hash1
     while (hash1Iterator.next()) {
@@ -536,10 +560,10 @@ void kat::Comp::start(int th_id) {
         uint64_t hash1_count = hash1Iterator.val();
 
         // Get the count for this K-mer in hash2 (assuming it exists... 0 if not)
-        uint64_t hash2_count = JellyfishHelper::getCount(hashes[0], hash1Iterator.key(), canonical1);
+        uint64_t hash2_count = JellyfishHelper::getCount(input[0].hash, hash1Iterator.key(), input[0].canonical);
 
         // Get the count for this K-mer in hash3 (assuming it exists... 0 if not)
-        uint64_t hash3_count = !input3.empty() ? JellyfishHelper::getCount(hashes[2], hash1Iterator.key(), canonical3) : 0;
+        uint64_t hash3_count = doThirdHash() ? JellyfishHelper::getCount(input[2].hash, hash1Iterator.key(), input[2].canonical) : 0;
 
         // Increment hash1's unique counters
         cc->updateHash1Counters(hash1_count, hash2_count);
@@ -561,7 +585,7 @@ void kat::Comp::start(int th_id) {
         main_matrix->incTM(th_id, scaled_hash1_count, scaled_hash2_count, 1);
 
         // Update hash 3 related matricies if hash 3 was provided
-        if (!input3.empty()) {
+        if (doThirdHash()) {
             if (scaled_hash2_count == scaled_hash3_count)
                 ends_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
             else if (scaled_hash3_count > 0)
@@ -574,7 +598,7 @@ void kat::Comp::start(int th_id) {
     // Setup iterator for this thread's chunk of hash2
     // We setup hash2 for random access, so hopefully performance isn't too bad here...
     // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-    LargeHashArray::region_iterator hash2Iterator = hashes[1]->region_slice(th_id, threads);
+    LargeHashArray::region_iterator hash2Iterator = input[1].hash->region_slice(th_id, threads);
 
     // Iterate through this thread's slice of hash2
     while (hash2Iterator.next()) {
@@ -582,7 +606,7 @@ void kat::Comp::start(int th_id) {
         uint64_t hash2_count = hash2Iterator.val();
 
         // Get the count for this K-mer in hash1 (assuming it exists... 0 if not)
-        uint64_t hash1_count = JellyfishHelper::getCount(hashes[0], hash2Iterator.key(), canonical1);
+        uint64_t hash1_count = JellyfishHelper::getCount(input[0].hash, hash2Iterator.key(), input[0].hash);
 
         // Increment hash2's unique counters (don't bother with shared counters... we've already done this)
         cc->updateHash2Counters(hash1_count, hash2_count);
@@ -601,9 +625,9 @@ void kat::Comp::start(int th_id) {
     }
 
     // Only update hash3 counters if hash3 was provided
-    if (!input3.empty()) {
+    if (doThirdHash()) {
         // Setup iterator for this thread's chunk of hash3
-        LargeHashArray::region_iterator hash3Iterator = hashes[2]->region_slice(th_id, threads);
+        LargeHashArray::region_iterator hash3Iterator = input[2].hash->region_slice(th_id, threads);
 
         // Iterate through this thread's slice of hash2
         while (hash3Iterator.next()) {
@@ -730,12 +754,12 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setD2Bins(d2_bins);
     comp.setThreads(threads);
     comp.setMerLen(mer_len);
-    comp.setCanonical1(canonical_1);
-    comp.setCanonical2(canonical_2);
-    comp.setCanonical3(canonical_3);
-    comp.setHashSize1(hash_size_1);
-    comp.setHashSize2(hash_size_2);
-    comp.setHashSize3(hash_size_3);
+    comp.setCanonical(0, canonical_1);
+    comp.setCanonical(1, canonical_2);
+    comp.setCanonical(2, canonical_3);
+    comp.setHashSize(0, hash_size_1);
+    comp.setHashSize(1, hash_size_2);
+    comp.setHashSize(2, hash_size_3);
     comp.setParallelIO(parallel_io);
     comp.setDumpHashes(dump_hashes);
     comp.setVerbose(verbose);

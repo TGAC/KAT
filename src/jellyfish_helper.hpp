@@ -98,7 +98,8 @@ namespace kat {
         }
         
         /**
-         * Loads an entire jellyfish hash into memory
+         * Loads an entire jellyfish hash into memory.  Results stored at the "hash" pointer variable,
+         * which is also returned from this function.
          * @param jfHashPath Path to the jellyfish hash file
          * @param verbose Output additional information to cout
          * @return The hash array

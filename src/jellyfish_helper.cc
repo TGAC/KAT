@@ -138,8 +138,7 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
         size_t key_len = header.key_len() / 8 + (header.key_len() % 8 != 0);
         size_t record_len = header.counter_len() + key_len;
         size_t nbRecords = fileSizeBytes / record_len;
-        size_t hashSizeBytes = header.size() / record_len;
-
+        
         size_t lsize = jellyfish::ceilLog2(nbRecords * 2);
         size_t size_ = (size_t)1 << lsize;
         
@@ -148,7 +147,6 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
                  << "Hash properties:" << endl
                  << " - Entry start location: " << (uint64_t)dataStart << endl
                  << " - Data size (in file): " << fileSizeBytes << endl
-                 << " - Array size: " << hashSizeBytes << endl
                  << " - Kmer length: " << merLen << endl
                  << " - Key length (bytes): " << key_len << endl
                  << " - Record size: " << record_len << endl
@@ -166,7 +164,7 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
                     ") must be a multiple of the length of a record (" + lexical_cast<string>(record_len) + ")"));
         }
 
-        LargeHashArrayPtr hash = new LargeHashArray(
+        hash = new LargeHashArray(
                 size_,                  // Make hash bigger than the file data round up to next power of 2
                 header.key_len(),               
                 header.val_len(),
@@ -203,8 +201,6 @@ uint64_t kat::JellyfishHelper::getCount(LargeHashArrayPtr hash, const mer_dna& k
  */
 void kat::JellyfishHelper::countSlice(HashCounter& ary, SequenceParser& parser, bool canonical) {
     
-    auto_cpu_timer timer(1, "Slice Time taken: %ws\n\n");        
-    
     MerIterator mers(parser, canonical);
 
     for( ; mers; ++mers) {
@@ -236,7 +232,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
     
     SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
     
-    /*thread t[threads];
+    thread t[threads];
 
     for(int i = 0; i < threads; i++) {
         t[i] = thread(&kat::JellyfishHelper::countSlice, std::ref(hashCounter), std::ref(parser), canonical);
@@ -244,9 +240,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
 
     for(int i = 0; i < threads; i++){
         t[i].join();
-    } */ 
-    
-    countSlice(hashCounter, parser, canonical);
+    }
     
     return hashCounter.ary();
 }
@@ -255,7 +249,7 @@ void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, 
     
     // Create the dumper
     binary_dumper dumper(4, ary->key_len(), threads, outputFile.c_str(), &header);
-    dumper.one_file(true);
+    //dumper.one_file(true);
     dumper.dump(ary);
 }
 

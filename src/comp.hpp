@@ -97,7 +97,9 @@ namespace kat {
         shared_ptr<vector<shared_ptr<CompCounters>>> threaded_counters;
         
     public:
-        
+        ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path) :
+           ThreadedCompCounters(_hash1_path, _hash2_path, path()) {}
+           
         ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path);                
         
         void printCounts(ostream &out);
@@ -122,10 +124,35 @@ namespace kat {
 
     class Comp {
     private:
+        
+        enum InputMode {
+            LOAD,
+            COUNT
+        };
+        
+        class CompInput {
+        public:
+            uint16_t index;
+            path input;
+            InputMode mode = InputMode::COUNT;
+            bool canonical = false;
+            uint64_t hashSize = DEFAULT_HASH_SIZE;
+            HashCounterPtr hashCounter = nullptr;
+            shared_ptr<HashLoader> hashLoader = nullptr;
+            LargeHashArrayPtr hash = nullptr;
+            file_header header;         // Only applicable if loaded
+            
+            void validateInput();   // Throws if input is not present.  Sets input mode.
+            void loadHeader();
+            void validateMerLen(uint16_t merLen);   // Throws if incorrect merlen
+            void count(uint16_t merLen, uint16_t threads);   // Uses the jellyfish library to count kmers in the input
+            void loadHash();
+            void dump(path& output, uint16_t threads);
+        };
+        
+        
         // Args passed in
-        path input1;
-        path input2;
-        path input3;
+        vector<CompInput> input;
         path outputPrefix;
         double d1Scale;
         double d2Scale;
@@ -133,23 +160,10 @@ namespace kat {
         uint16_t d2Bins;
         uint16_t threads;
         uint16_t merLen;
-        bool canonical1;
-        bool canonical2;
-        bool canonical3;
-        uint64_t hashSize1;
-        uint64_t hashSize2;
-        uint64_t hashSize3;
         bool parallelIO;
         bool dumpHashes;
         bool verbose;
 
-        // Jellyfish mapped file hash vars
-        HashCounterPtr hashCounter1;
-        HashCounterPtr hashCounter2;
-        HashCounterPtr hashCounter3;
-        vector<LargeHashArrayPtr> hashes;   // Hashes will be stored and delete by the hashcounters declared above
-        vector<file_header> headers;
-        
         // Threaded matrix data
         shared_ptr<ThreadedSparseMatrix> main_matrix;
         shared_ptr<ThreadedSparseMatrix> ends_matrix;
@@ -172,28 +186,16 @@ namespace kat {
 
         virtual ~Comp() {}
         
-        bool isCanonical1() const {
-            return canonical1;
+        bool doThirdHash() {
+            return input.size() == 3;
+        }
+        
+        bool isCanonical(uint16_t index) const {
+            return input[index].canonical;
         }
 
-        void setCanonical1(bool canonical1) {
-            this->canonical1 = canonical1;
-        }
-
-        bool isCanonical2() const {
-            return canonical2;
-        }
-
-        void setCanonical2(bool canonical2) {
-            this->canonical2 = canonical2;
-        }
-
-        bool isCanonical3() const {
-            return canonical3;
-        }
-
-        void setCanonical3(bool canonical3) {
-            this->canonical3 = canonical3;
+        void setCanonical(uint16_t index, bool canonical) {
+            this->input[index].canonical = canonical;
         }
 
         uint16_t getD1Bins() const {
@@ -228,52 +230,20 @@ namespace kat {
             this->d2Scale = d2Scale;
         }
 
-        uint64_t getHashSize1() const {
-            return hashSize1;
+        uint64_t getHashSize(uint16_t index) const {
+            return input[index].hashSize;
         }
 
-        void setHashSize1(uint64_t hashSize1) {
-            this->hashSize1 = hashSize1;
+        void setHashSize(uint16_t index, uint64_t hashSize) {
+            this->input[index].hashSize = hashSize;
         }
 
-        uint64_t getHashSize2() const {
-            return hashSize2;
+        path getInput(uint16_t index) const {
+            return input[index].input;
         }
 
-        void setHashSize2(uint64_t hashSize2) {
-            this->hashSize2 = hashSize2;
-        }
-
-        uint64_t getHashSize3() const {
-            return hashSize3;
-        }
-
-        void setHashSize3(uint64_t hashSize3) {
-            this->hashSize3 = hashSize3;
-        }
-
-        path getInput1() const {
-            return input1;
-        }
-
-        void setInput1(path input1) {
-            this->input1 = input1;
-        }
-
-        path getInput2() const {
-            return input2;
-        }
-
-        void setInput2(path input2) {
-            this->input2 = input2;
-        }
-
-        path getInput3() const {
-            return input3;
-        }
-
-        void setInput3(path input3) {
-            this->input3 = input3;
+        void setInput(uint16_t index, path input) {
+            this->input[index].input = input;
         }
 
         uint8_t getMerLen() const {
@@ -375,11 +345,9 @@ namespace kat {
 
     private:
 
-        LargeHashArrayPtr count(path& input, HashCounter& hashCounter, int index);
+        void dumpHashArrays();
         
-        void dumpHashArrays(bool dump1, bool dump2, bool dump3);
-        
-        void loadHashes(vector<HashLoader>& loaders, vector<path>& hashes, uint16_t keyLenBits, bool load1, bool load2, bool load3);
+        void loadHashes();
         
         void startAndJoinThreads();
         
