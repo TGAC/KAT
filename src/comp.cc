@@ -263,13 +263,17 @@ void kat::Comp::CompInput::count(uint16_t merLen, uint16_t threads) {
     hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads);
     
     // Create header for newly counted hash
+    header = file_header();
     header.fill_standard();
-    header.key_len(hashCounter->key_len());
+    header.update_from_ary(*hash);
     header.counter_len(4);  // Hard code for now.
-    header.val_len(hashCounter->val_len());
     header.canonical(canonical);
-    header.max_reprobe(hashCounter->reprobe_limit());    
-
+    header.format(binary_dumper::format);    
+    
+    /*char* cmdline[1];
+    cmdline[0] = new char[]("kat";)
+    header.set_cmdline(1, cmdline);*/
+    
     cout << " done.";
     cout.flush();    
 }
@@ -281,8 +285,18 @@ void kat::Comp::CompInput::loadHash() {
     canonical = hashLoader->getCanonical();
 }
 
-void kat::Comp::CompInput::dump(path& output, uint16_t threads) {    
+void kat::Comp::CompInput::dump(path& output, uint16_t threads) {
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");  
+    
+    cout << "Dumping hash " << index << " to " << output.string() << " ...";
+    cout.flush();
+    
+    //char* cmdline[] = {"kat_comp"};
+    //header.set_cmdline(1, cmdline);
     JellyfishHelper::dumpHash(hash, header, threads, output);
+    
+    cout << " done.";
+    cout.flush();
 }
     
 // ********* Comp **********
@@ -379,12 +393,15 @@ void kat::Comp::execute() {
     // Load any hashes if necessary
     if (anyLoad) loadHashes();
      
-    // Dump any hashes that were previously counted to disk if requested
-    if (dumpHashes && anyDump) dumpHashArrays();     
     
     // Run the threads
     startAndJoinThreads();
 
+    // Dump any hashes that were previously counted to disk if requested
+    // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
+    if (dumpHashes && anyDump) dumpHashArrays();     
+    
+    
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
     cout << "Merging data returned from each thread ...";
@@ -406,11 +423,6 @@ void kat::Comp::execute() {
       
 void kat::Comp::dumpHashArrays() {
     
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
-    
-    cout << "Dumping hashes to disk ...";
-    cout.flush();
-    
     for(uint16_t i = 0; i < input.size(); i++) {
         
         path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(merLen));
@@ -427,10 +439,7 @@ void kat::Comp::dumpHashArrays() {
         else {
             bfs::create_symlink(input[i].input, outputPath);
         }
-    }
-    
-    cout << " done.";
-    cout.flush();
+    }    
 }
 
 void kat::Comp::loadHashes() {
@@ -530,7 +539,7 @@ void kat::Comp::startAndJoinThreads() {
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Comparing hashes with " << threads << " threads ...";
+    cout << "Comparing hashes ...";
     cout.flush();
     
     thread t[threads];

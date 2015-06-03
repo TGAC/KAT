@@ -247,9 +247,11 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
 
 void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, uint16_t threads, path outputFile) {
     
+    //JellyfishHelper::printHeader(header, cout);
+    
     // Create the dumper
     binary_dumper dumper(4, ary->key_len(), threads, outputFile.c_str(), &header);
-    //dumper.one_file(true);
+    dumper.one_file(true);
     dumper.dump(ary);
 }
 
@@ -274,7 +276,8 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
            boost::iequals(ext, ".fq") || 
            boost::iequals(ext, ".fasta") ||
            boost::iequals(ext, ".fa") || 
-           boost::iequals(ext, ".fna");
+           boost::iequals(ext, ".fna") ||
+           boost::iequals(ext, ".fas");
 }
                 
 string kat::JellyfishHelper::createJellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
