@@ -55,13 +55,10 @@ kat::Gcp::Gcp(vector<path>& _inputs) {
     
     input.input = _inputs;
     input.index = 1;
-    input.hashSize = DEFAULT_HASH_SIZE;
-    input.canonical = false;
     outputPrefix = "kat-gcp";
     cvgScale = 1.0;
     cvgBins = 1000;
     merLen = DEFAULT_MER_LEN;
-    dumpHash = false;
     threads = 1;
 }
  
@@ -92,22 +89,31 @@ void kat::Gcp::execute() {
 
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
-    if (dumpHash) {
+    if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
         input.dump(outputPath, threads, true);     
     }
     
-    // Merge the contamination matrix
+    // Merge results
+    merge();
+    
+    // Send main matrix to output file
+    ofstream main_mx_out_stream(string(outputPrefix.string() + ".mx").c_str());
+    printMainMatrix(main_mx_out_stream);
+    main_mx_out_stream.close();
+}
+   
+void kat::Gcp::merge() {
+    
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Merging matrices from each thread ...";
+    cout << "Merging matrices ...";
     cout.flush(); 
     gcp_mx->mergeThreadedMatricies();
     
     cout << "done.";
     cout.flush();
 }
-   
 
 void kat::Gcp::printMainMatrix(ostream &out) {
     SM64 mx = gcp_mx->getFinalMatrix();
@@ -257,11 +263,6 @@ int kat::Gcp::main(int argc, char *argv[]) {
 
     // Do the work (outputs data to files as it goes)
     gcp.execute();
-
-    // Send main matrix to output file
-    ofstream main_mx_out_stream(string(output_prefix.string() + ".mx").c_str());
-    gcp.printMainMatrix(main_mx_out_stream);
-    main_mx_out_stream.close();
 
     return 0;
 }

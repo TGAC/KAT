@@ -60,7 +60,6 @@ namespace kat {
         uint64_t        low;
         uint64_t        high;
         uint16_t        merLen;
-        bool            dumpHash;
         bool            verbose;
 
         // Internal vars
@@ -141,11 +140,11 @@ namespace kat {
         }
         
         bool isDumpHash() const {
-            return dumpHash;
+            return input.dumpHash;
         }
 
         void setDumpHash(bool dumpHash) {
-            this->dumpHash = dumpHash;
+            this->input.dumpHash = dumpHash;
         }
 
 
@@ -180,9 +179,10 @@ namespace kat {
         
         static string helpMessage(){
             
-            return string("Usage: kat hist [options] <jellyfish_hash>\n\n") +
-                            "Create an histogram of k-mer occurrences in a sequence file.\n\n" +
-                            "Create an histogram with the number of k-mers having a given count. In bucket 'i' are tallied the k-mers " \
+            return string("Usage: kat hist [options] (<input>)+\n\n") +
+                            "Create an histogram of k-mer occurrences from the input.\n\n" +
+                            "Create an histogram with the number of k-mers having a given count, derived from the input, which can " \
+                            "take the form of a single jellyfish hash, or one or more FastA or FastQ files. In bucket 'i' are tallied the k-mers " \
                             "which have a count 'c' satisfying 'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by the " \
                             "low end point (low+i).\n" \
                             "The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal to " \

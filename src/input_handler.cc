@@ -89,7 +89,7 @@ void kat::InputHandler::count(uint16_t merLen, uint16_t threads) {
     
     hashCounter = make_shared<HashCounter>(hashSize, merLen * 2, 7, threads);
         
-    cout << "Input " << index << " is a sequence file.  Counting kmers for " << pathString() << " ...";
+    cout << "Input is a sequence file.  Counting kmers for " << pathString() << "...";
     cout.flush();
 
     hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads);
@@ -135,20 +135,15 @@ void kat::InputHandler::dump(const path& outputPath, uint16_t threads, bool verb
 
     // Either dump or symlink as appropriate
     if (mode == InputHandler::InputHandler::InputMode::COUNT) {
-        
-        if (verbose) {
-            auto_cpu_timer timer(1, "  Time taken: %ws\n\n");  
     
-            cout << "Dumping hash " << index << " to " << outputPath.string() << " ...";
-            cout.flush();
-        }
+        auto_cpu_timer timer(1, "  Time taken: %ws\n\n"); 
+        cout << "Dumping hash to " << outputPath.string() << " ...";
+        cout.flush();
 
         JellyfishHelper::dumpHash(hash, *header, threads, outputPath);
 
-        if (verbose) {
-            cout << " done.";
-            cout.flush();
-        }
+        cout << " done.";
+        cout.flush();
     }
     else {
         bfs::create_symlink(getSingleInput(), outputPath);

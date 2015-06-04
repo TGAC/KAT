@@ -48,7 +48,10 @@ using bfs::path;
 using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
+
+#include "jellyfish_helper.hpp"
+#include "input_handler.hpp"
+using kat::InputHandler;
 
 #include <matrix/matrix_metadata_extractor.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
@@ -65,16 +68,14 @@ namespace kat {
         static const uint16_t BATCH_SIZE = 1024;
 
         // Input args
-        vector<path>    countsFiles;
+        InputHandler    input;
         path            seqFile;
         path            outputPrefix;
         uint16_t        gcBins;
         uint16_t        cvgBins;
         bool            cvgLogscale;
         uint16_t        threads;
-        bool            canonical;
         uint16_t        merLen;
-        uint64_t        hashSize;
         bool            noCountStats;
         bool            median;
         bool            verbose;
@@ -99,37 +100,10 @@ namespace kat {
 
     public:
 
-        Sect(const path _counts_file, const path _seq_file) : 
-            Sect(vector<path>(), _seq_file) {            
-            countsFiles.push_back(_counts_file);            
-        }
+        Sect(const vector<path> _counts_files, const path _seq_file);
         
-        Sect(const vector<path> _counts_files, const path _seq_file) :
-            countsFiles(_counts_files), seqFile(_seq_file) {
-            outputPrefix = "kat-sect";
-            gcBins = 1001;
-            cvgBins = 1001;
-            cvgLogscale = false;
-            threads = 1;
-            canonical = false;
-            merLen = DEFAULT_MER_LEN;
-            hashSize = DEFAULT_HASH_SIZE;
-            noCountStats = false;
-            median = true;
-            verbose = false;
+        virtual ~Sect() {
         }
-
-        ~Sect() {
-        }
-
-        vector<path> getCountsFiles() const {
-            return countsFiles;
-        }
-
-        void setCountsFiles(vector<path> countsFiles) {
-            this->countsFiles = countsFiles;
-        }
-
         
         path getOutputPrefix() const {
             return outputPrefix;
@@ -138,14 +112,13 @@ namespace kat {
         void setOutputPrefix(path outputPrefix) {
             this->outputPrefix = outputPrefix;
         }
-
         
         bool isCanonical() const {
-            return canonical;
+            return input.canonical;
         }
 
         void setCanonical(bool canonical) {
-            this->canonical = canonical;
+            this->input.canonical = canonical;
         }
 
         uint16_t getCvgBins() const {
@@ -205,11 +178,11 @@ namespace kat {
         }
         
         uint64_t getHashSize() const {
-            return hashSize;
+            return input.hashSize;
         }
 
         void setHashSize(uint64_t hashSize) {
-            this->hashSize = hashSize;
+            this->input.hashSize = hashSize;
         }
 
         uint16_t getMerLen() const {
@@ -218,6 +191,14 @@ namespace kat {
 
         void setMerLen(uint16_t merLen) {
             this->merLen = merLen;
+        }
+        
+        bool isDumpHash() const {
+            return input.dumpHash;
+        }
+
+        void setDumpHash(bool dumpHash) {
+            this->input.dumpHash = dumpHash;
         }
 
         bool isVerbose() const {
@@ -234,11 +215,13 @@ namespace kat {
 
     private:
 
-        void loadHashes();
+        void processSeqFile();
         
-        void startAndJoinThreads();
+        void analyseBatch();
         
-        void start(int th_id);
+        void analyseBatchSlice(int th_id);
+        
+        void merge();
         
         void destroyBatchVars();
 
@@ -263,12 +246,14 @@ namespace kat {
         
         static string helpMessage() {            
         
-            return string(  "Usage: kat sect [options] <sequence_file> <counts_file>\n\n") +
-                            "Estimates coverage levels for a collection of sequences using jellyfish K-mer counts.\n\n" \
-                            "This tool will produce a fasta style file containing K-mer coverage counts mapped across each " \
-                            "sequence.  In addition, a space separated table file containing the mean coverage score and GC " \
+            return string(  "Usage: kat sect [options] <sequence_file> (<input>)+\n\n") +
+                            "Estimates coverage levels across sequences in the provided input sequence file.\n\n" \
+                            "This tool will produce a fasta style representation of the input sequence file containing " \
+                            "K-mer coverage counts mapped across each sequence.  K-mer coverage is determined from the " \
+                            "provided counts input file, which can be either one jellyfish hash, or one or more FastA / " \
+                            "FastQ files.  In addition, a space separated table file containing the mean coverage score and GC " \
                             "of each sequence is produced.  The row order is identical to the original sequence file.\n\n" \
-                            "Note: K-mers containing any Ns derived from sequences in the sequence file not be included.\n\n" \
+                            "NOTE: K-mers containing any Ns derived from sequences in the sequence file not be included.\n\n" \
                             "Options";
 
         }

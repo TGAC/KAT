@@ -248,8 +248,6 @@ kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
     d2Bins = 1001;
     threads = 1;
     merLen = DEFAULT_MER_LEN;    
-    parallelIO = false;
-    dumpHashes = false;
     verbose = false;      
 }
 
@@ -323,14 +321,49 @@ void kat::Comp::execute() {
 
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
-    if (dumpHashes) {
+    if (isDumpHashes()) {
         for(uint16_t i = 0; i < input.size(); i++) {        
             path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(merLen));
             input[i].dump(outputPath, threads, true);
         }    
+    }    
+    
+    
+    
+    // Send main matrix to output file
+    ofstream main_mx_out_stream(string(outputPrefix.string() + "_main.mx").c_str());
+    printMainMatrix(main_mx_out_stream);
+    main_mx_out_stream.close();
+
+    // Output ends matricies if required
+    if (doThirdHash()) {
+        // Ends matrix
+        ofstream ends_mx_out_stream(string(outputPrefix.string() + "_ends.mx").c_str());
+        printEndsMatrix(ends_mx_out_stream);
+        ends_mx_out_stream.close();
+
+        // Middle matrix
+        ofstream middle_mx_out_stream(string(outputPrefix.string() + "_middle.mx").c_str());
+        printMiddleMatrix(middle_mx_out_stream);
+        middle_mx_out_stream.close();
+
+        // Mixed matrix
+        ofstream mixed_mx_out_stream(string(outputPrefix.string() + "_mixed.mx").c_str());
+        printMixedMatrix(mixed_mx_out_stream);
+        mixed_mx_out_stream.close();
     }
-    
-    
+
+    // Send K-mer statistics to file
+    ofstream stats_out_stream(string(outputPrefix.string() + ".stats").c_str());
+    printCounters(stats_out_stream);
+    stats_out_stream.close();
+
+    // Send K-mer statistics to stdout as well
+    printCounters(cout);
+
+}
+
+void kat::Comp::merge() {
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
     cout << "Merging data returned from each thread ...";
@@ -358,7 +391,7 @@ void kat::Comp::loadHashes() {
     cout.flush();    
 
     // If using parallel IO load hashes in parallel, otherwise do one at a time
-    if (parallelIO) {
+    if (threads > 1) {
         
         thread threads[input.size()];
         
@@ -617,10 +650,8 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "If kmer counting is required for input 2, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
             ("hash_size_3,K", po::value<uint64_t>(&hash_size_3)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for input 3, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
-            ("parallel_io,p", po::bool_switch(&parallel_io)->default_value(false), 
-                        "Executes IO in parallel where possible.  This will improve performance if you have a storage system that performs well making many reads/writes simulateneously.  If you don't (i.e. you have a regular hard disk / SSD then leave this false.") 
             ("dump_hashes,d", po::bool_switch(&dump_hashes)->default_value(false), 
-                        "Dumps any jellyfish hashes to disk that were produced during this run.")        
+                "Dumps any jellyfish hashes to disk that were produced during this run.")        
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -680,44 +711,11 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setHashSize(0, hash_size_1);
     comp.setHashSize(1, hash_size_2);
     comp.setHashSize(2, hash_size_3);
-    comp.setParallelIO(parallel_io);
     comp.setDumpHashes(dump_hashes);
     comp.setVerbose(verbose);
     
     // Do the work
     comp.execute();
-
-    // Send main matrix to output file
-    ofstream main_mx_out_stream(string(output_prefix.string() + "_main.mx").c_str());
-    comp.printMainMatrix(main_mx_out_stream);
-    main_mx_out_stream.close();
-
-    // Output ends matricies if required
-    if (!input3.empty()) {
-        // Ends matrix
-        ofstream ends_mx_out_stream(string(output_prefix.string() + "_ends.mx").c_str());
-        comp.printEndsMatrix(ends_mx_out_stream);
-        ends_mx_out_stream.close();
-
-        // Middle matrix
-        ofstream middle_mx_out_stream(string(output_prefix.string() + "_middle.mx").c_str());
-        comp.printMiddleMatrix(middle_mx_out_stream);
-        middle_mx_out_stream.close();
-
-        // Mixed matrix
-        ofstream mixed_mx_out_stream(string(output_prefix.string() + "_mixed.mx").c_str());
-        comp.printMixedMatrix(mixed_mx_out_stream);
-        mixed_mx_out_stream.close();
-    }
-
-    // Send K-mer statistics to file
-    ofstream stats_out_stream(string(output_prefix.string() + ".stats").c_str());
-    comp.printCounters(stats_out_stream);
-    stats_out_stream.close();
-
-    // Send K-mer statistics to stdout as well
-    comp.printCounters(cout);
-
 
     return 0;
 }

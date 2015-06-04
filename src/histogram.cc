@@ -48,14 +48,11 @@ kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, u
     
     input.input = _inputs;
     input.index = 1;
-    input.hashSize = DEFAULT_HASH_SIZE;
-    input.canonical = false;
     outputPrefix = "kat-hist";
     low = _low;
     high = _high;
     inc = _inc;
     merLen = DEFAULT_MER_LEN;
-    dumpHash = false;
     threads = 1;
     
     // Calculate other vars required for this run
@@ -97,12 +94,17 @@ void kat::Histogram::execute() {
     
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
-    if (dumpHash) {
+    if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
         input.dump(outputPath, threads, true);     
     }
     // Merge results
     merge();
+    
+    // Send main matrix to output file
+    ofstream main_hist_out_stream(string(outputPrefix.string() + ".hist").c_str());
+    print(main_hist_out_stream);
+    main_hist_out_stream.close();
 }
 
 void kat::Histogram::print(std::ostream &out) {
@@ -202,7 +204,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
                 "High count value of histogram")    
             ("inc,i", po::value<uint64_t>(&inc)->default_value(1),
                 "Increment for each bin") 
-            ("canonical,c", po::bool_switch(&canonical)->default_value(false),
+            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
@@ -260,14 +262,6 @@ int kat::Histogram::main(int argc, char *argv[]) {
 
     // Do the work
     histo.execute();
-
-    // Output the results
-    //histo.print(cout);
-
-    // Send main matrix to output file
-    ofstream main_hist_out_stream(string(output_prefix.string() + ".hist").c_str());
-    histo.print(main_hist_out_stream);
-    main_hist_out_stream.close();
 
     return 0;
 }

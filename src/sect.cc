@@ -54,6 +54,22 @@ using boost::lexical_cast;
 
 #include "sect.hpp"
 
+kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
+    input.input = _counts_files;
+    input.index = 1;
+    seqFile = _seq_file;
+    outputPrefix = "kat-sect";
+    gcBins = 1001;
+    cvgBins = 1001;
+    cvgLogscale = false;
+    threads = 1;
+    merLen = DEFAULT_MER_LEN;
+    noCountStats = false;
+    median = true;
+    verbose = false;
+    contamination_mx = nullptr;
+}
+
         
 void kat::Sect::execute() {
 
@@ -65,38 +81,60 @@ void kat::Sect::execute() {
     bucket_size = BATCH_SIZE / threads;
     remaining = BATCH_SIZE % (bucket_size < 1 ? 1 : threads);
 
-    // Setup space for storing output
-    offset = 0;
-    recordsInBatch = 0;
-
-    contamination_mx = nullptr;
-
-    // Create jellyfish hash if required
-    hashFile = path(outputPrefix.string() + string(".jf") + lexical_cast<string>(merLen));
-    path hashOutput = JellyfishHelper::executeJellyfishCount(countsFiles, hashFile, merLen, hashSize, threads, canonical, true);
-    if (hashOutput != hashFile) {
-        bfs::create_symlink(hashOutput, hashFile);
+    // Validate input
+    input.validateInput();
+    
+    // Either count or load input
+    if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
+        input.count(merLen, threads);
+    }
+    else {
+        input.loadHeader();
+        input.loadHash(true);                
     }
 
-    // Setup handle to jellyfish hash
-    loadHashes();
+    contamination_mx = make_shared<ThreadedSparseMatrix>(gcBins, cvgBins, threads);
 
+    // Do the core of the work here
+    processSeqFile();
+
+    // Dump any hashes that were previously counted to disk if requested
+    // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
+    if (input.dumpHash) {
+        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
+        input.dump(outputPath, threads, true);     
+    }
+    
+    // Merge results from contamination matrix
+    merge();
+
+    // Send contamination matrix to file
+    ofstream contamination_mx_stream(string(outputPrefix.string() + "_contamination.mx").c_str());
+    printContaminationMatrix(contamination_mx_stream, seqFile);
+    contamination_mx_stream.close();            
+}
+
+void kat::Sect::processSeqFile() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");     
+    
+    cout << "Calculating kmer coverage across sequences ...";
+    cout.flush();
+    
     // Setup space for storing output
     offset = 0;
     recordsInBatch = 0;
 
     names = seqan::StringSet<seqan::CharString>();
     seqs = seqan::StringSet<seqan::Dna5String>();
-
-    contamination_mx = make_shared<ThreadedSparseMatrix>(gcBins, cvgBins, threads);
-
+    
+    // Open file, create RecordReader and check all is well
+    seqan::SeqFileIn reader(seqFile.c_str());
 
     // Setup output stream for jellyfish initialisation
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
-    // Open file, create RecordReader and check all is well
-    seqan::SeqFileIn reader(seqFile.c_str());
-
+    
     // Setup output streams for files
     if (verbose)
         *out_stream << endl;
@@ -110,7 +148,7 @@ void kat::Sect::execute() {
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "_stats.csv").c_str());
     cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
-
+    
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
         if (verbose)
@@ -132,7 +170,7 @@ void kat::Sect::execute() {
         // Process batch with worker threads
         // Process each sequence is processed in a different thread.
         // In each thread lookup each K-mer in the hash
-        startAndJoinThreads();
+        analyseBatch();
 
         // Output counts for this batch if (not not) requested
         if (!noCountStats)
@@ -159,40 +197,29 @@ void kat::Sect::execute() {
     seqan::close(reader);
 
     cvg_gc_stream.close();
-
-    // Merge the contamination matrix
-    cout << "Merging matrices...";
-    cout.flush();
-    contamination_mx->mergeThreadedMatricies();
-    cout << " done." << endl;
-
-    // Send contamination matrix to file
-    ofstream contamination_mx_stream(string(outputPrefix.string() + "_contamination.mx").c_str());
-    printContaminationMatrix(contamination_mx_stream, seqFile);
-    contamination_mx_stream.close();            
-}
-
-void kat::Sect::loadHashes() {
-
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
-
-    cout << "Loading hash into memory...";
-    cout.flush();
-
-    HashLoader hl;
-    hash = hl.loadHash(hashFile, verbose);
-    merLen = hl.getMerLen();    
-
+    
     cout << " done.";
     cout.flush();
 }
 
-void kat::Sect::startAndJoinThreads() {
+void kat::Sect::merge() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");     
+    
+    cout << "Merging matrices ...";
+    cout.flush();
+    
+    contamination_mx->mergeThreadedMatricies();
+    cout << " done.";
+    cout.flush();
+}
+
+void kat::Sect::analyseBatch() {
 
     thread t[threads];
 
     for(int i = 0; i < threads; i++) {
-        t[i] = thread(&Sect::start, this, i);
+        t[i] = thread(&Sect::analyseBatchSlice, this, i);
     }
 
     for(int i = 0; i < threads; i++){
@@ -200,7 +227,7 @@ void kat::Sect::startAndJoinThreads() {
     }            
 }
 
-void kat::Sect::start(int th_id) {
+void kat::Sect::analyseBatchSlice(int th_id) {
     // Check to see if we have useful work to do for this thread, return if not
     if (bucket_size < 1 && th_id >= recordsInBatch) {
         return;
@@ -300,10 +327,11 @@ void kat::Sect::processInterlaced(uint16_t th_id) {
 
 void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
-    // There's no substring functionality in SeqAn in this version (1.4.1).  So we'll just
-    // use regular c++ string's for this bit.  The next version of SeqAn may offer substring
-    // functionality, at which time I might change this code to make it run faster using
-    // SeqAn's datastructures.
+    // There's no substring functionality in SeqAn in this version (2.0.0).  So we'll just
+    // use regular c++ string's for this bit.  This conversion of strings:
+    // {Dna5String -> c++ string -> substring -> jellyfish mer_dna} is 
+    // inefficient. Reducing the number of conversions necessary will 
+    // make a big performance improvement here
     stringstream ssSeq;
     ssSeq << seqs[index];
     string seq = ssSeq.str();
@@ -330,8 +358,8 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
             if (merstr.find("N") != string::npos) {
                 (*seqCounts)[i] = 0;
             } else {
-                mer_dna mer(merstr.c_str());
-                uint64_t count = JellyfishHelper::getCount(hash, mer, canonical);
+                mer_dna mer(merstr);
+                uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
                 sum += count;
                 
                 //cout << merstr << " " << count << endl;
@@ -405,6 +433,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint64_t        hash_size;
     bool            no_count_stats;
     bool            mean;
+    bool            dump_hash;
     bool            verbose;
     bool            help;
 
@@ -421,7 +450,7 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "Compresses cvg scores into logscale for determining the cvg bins within the contamination matrix. Otherwise compresses cvg scores by a factor of 0.1 into the available bins.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use")
-            ("canonical,c", po::bool_switch(&canonical)->default_value(false),
+            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
@@ -430,7 +459,9 @@ int kat::Sect::main(int argc, char *argv[]) {
             ("no_count_stats,n", po::bool_switch(&no_count_stats)->default_value(false),
                 "Tells SECT not to output count stats.  Sometimes when using SECT on read files the output can get very large.  When flagged this just outputs summary stats for each sequence.")
             ("mean", po::bool_switch(&mean)->default_value(false),
-                "When calculating average sequence coverage, use mean rather than the median kmer frequency.")        
+                "When calculating average sequence coverage, use mean rather than the median kmer frequency.")   
+            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
+                        "Dumps any jellyfish hashes to disk that were produced during this run.") 
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -440,7 +471,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("seq_file,s", po::value<path>(&seq_file), "Path to the sequnce file to analyse for kmer coverage.")
+            ("seq_file,S", po::value<path>(&seq_file), "Path to the sequnce file to analyse for kmer coverage.")
             ("counts_files,i", po::value<std::vector<path>>(&counts_files), "Path(s) to the input files containing kmer counts.")
             ;
 
@@ -484,6 +515,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
     sect.setMedian(!mean);
+    sect.setDumpHash(dump_hash);
     sect.setVerbose(verbose);
 
     // Do the work (outputs data to files as it goes)

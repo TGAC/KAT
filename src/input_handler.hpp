@@ -39,6 +39,7 @@ namespace kat {
         InputMode mode = InputMode::COUNT;
         bool canonical = false;
         uint64_t hashSize = DEFAULT_HASH_SIZE;
+        bool dumpHash = false;
         HashCounterPtr hashCounter = nullptr;
         shared_ptr<HashLoader> hashLoader = nullptr;
         LargeHashArrayPtr hash = nullptr;

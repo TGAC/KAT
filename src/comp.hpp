@@ -133,7 +133,6 @@ namespace kat {
         uint16_t threads;
         uint16_t merLen;
         bool parallelIO;
-        bool dumpHashes;
         bool verbose;
 
         // Threaded matrix data
@@ -251,11 +250,13 @@ namespace kat {
         }
 
         bool isDumpHashes() const {
-            return dumpHashes;
+            return input[0].dumpHash;
         }
 
         void setDumpHashes(bool dumpHashes) {
-            this->dumpHashes = dumpHashes;
+            for(int i = 0; i < input.size(); i++) {
+                this->input[i].dumpHash = dumpHashes;
+            }
         }
 
         bool isVerbose() const {
@@ -323,15 +324,13 @@ namespace kat {
         
         void compareSlice(int th_id);
 
+        void merge();
+        
         // Scale counters to make the matrix look pretty
-
         uint64_t scaleCounter(uint64_t count, double scale_factor) {
 
             return count == 0 ? 0 : (uint64_t) ceil((double) count * scale_factor);
         }
-
-        // Combines each threads matrix into a single matrix
-
         
         static string helpMessage() {            
         

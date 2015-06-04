@@ -65,7 +65,6 @@ namespace kat {
         double          cvgScale;
         uint16_t        cvgBins;
         uint16_t        merLen;
-        bool            dumpHash;
         bool            verbose;
         
         // Stores results
@@ -135,11 +134,11 @@ namespace kat {
         }
         
         bool isDumpHash() const {
-            return dumpHash;
+            return input.dumpHash;
         }
 
         void setDumpHash(bool dumpHash) {
-            this->dumpHash = dumpHash;
+            this->input.dumpHash = dumpHash;
         }
 
         bool isVerbose() const {
@@ -164,12 +163,13 @@ namespace kat {
         
         void analyseSlice(int th_id);
         
-        void dumpHashArray();
-
+        void merge();
+        
         static const string helpMessage() {
-             return string("Usage: kat gcp <jellyfish_hash>\n\n") +
-                            "Compares GC content and K-mer coverage within a single jellyfish hash.\n\n" +
-                            "This tool takes a single jellyfish hash as input and then counts the GC nucleotides for each distinct K-mer " \
+             return string("Usage: kat gcp (<input>)+\n\n") +
+                            "Compares GC content and K-mer coverage from the input.\n\n" +
+                            "This tool takes in either a single jellyfish hash or one or more FastA or FastQ input files " \
+                            "and then counts the GC nucleotides for each distinct K-mer " \
                             "in the hash.  For each GC count and K-mer coverage level, the number of distinct K-mers are counted and " \
                             "stored in a matrix.  This matrix can be used to analyse biological content within the hash.  For example, " \
                             "it can be used to distinguish legitimate content from contamination, or unexpected content.\n\n" \
