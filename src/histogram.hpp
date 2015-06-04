@@ -161,6 +161,8 @@ namespace kat {
         
         void print(std::ostream &out);
         
+        void save();
+        
     protected:
         
         uint64_t calcBase() {

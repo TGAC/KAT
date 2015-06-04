@@ -290,18 +290,15 @@ void kat::Comp::execute() {
     bool anyLoad = false;
     bool allLoad = true;
     bool anyDump = false;
-    for(InputHandler i : input) {
-        if (i.mode == InputHandler::InputMode::LOAD) {
+    for(uint16_t i = 0; i < input.size(); i++) {
+        if (input[i].mode == InputHandler::InputMode::LOAD) {
+            input[i].loadHeader();
             anyLoad = true;            
         }
-        else if (i.mode == InputHandler::InputHandler::InputMode::COUNT) {
+        else if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
             anyDump = true;
             allLoad = false;
         }
-    }
-
-    for(InputHandler i : input) {
-        i.loadHeader();
     }
     
     // If all hashes are loaded directly there is no requirement that the user needs
@@ -327,28 +324,37 @@ void kat::Comp::execute() {
             input[i].dump(outputPath, threads, true);
         }    
     }    
+
+    // Merge results
+    merge();    
+}
+
+void kat::Comp::save() {
     
-    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Saving results to disk ...";
+    cout.flush();
     
     // Send main matrix to output file
-    ofstream main_mx_out_stream(string(outputPrefix.string() + "_main.mx").c_str());
+    ofstream main_mx_out_stream(string(outputPrefix.string() + "-main.mx").c_str());
     printMainMatrix(main_mx_out_stream);
     main_mx_out_stream.close();
 
-    // Output ends matricies if required
+    // Output ends matrices if required
     if (doThirdHash()) {
         // Ends matrix
-        ofstream ends_mx_out_stream(string(outputPrefix.string() + "_ends.mx").c_str());
+        ofstream ends_mx_out_stream(string(outputPrefix.string() + "-ends.mx").c_str());
         printEndsMatrix(ends_mx_out_stream);
         ends_mx_out_stream.close();
 
         // Middle matrix
-        ofstream middle_mx_out_stream(string(outputPrefix.string() + "_middle.mx").c_str());
+        ofstream middle_mx_out_stream(string(outputPrefix.string() + "-middle.mx").c_str());
         printMiddleMatrix(middle_mx_out_stream);
         middle_mx_out_stream.close();
 
         // Mixed matrix
-        ofstream mixed_mx_out_stream(string(outputPrefix.string() + "_mixed.mx").c_str());
+        ofstream mixed_mx_out_stream(string(outputPrefix.string() + "-mixed.mx").c_str());
         printMixedMatrix(mixed_mx_out_stream);
         mixed_mx_out_stream.close();
     }
@@ -358,9 +364,8 @@ void kat::Comp::execute() {
     printCounters(stats_out_stream);
     stats_out_stream.close();
 
-    // Send K-mer statistics to stdout as well
-    printCounters(cout);
-
+    cout << " done.";
+    cout.flush();
 }
 
 void kat::Comp::merge() {
@@ -505,15 +510,16 @@ void kat::Comp::compareSlice(int th_id) {
     shared_ptr<CompCounters> cc = make_shared<CompCounters>();
 
     // Setup iterator for this thread's chunk of hash1
-    LargeHashArray::region_iterator hash1Iterator = input[0].hash->region_slice(th_id, threads);
+    LargeHashArray::eager_iterator hash1Iterator = input[0].hash->eager_slice(th_id, threads);
 
     // Go through this thread's slice for hash1
     while (hash1Iterator.next()) {
+        
         // Get the current K-mer count for hash1
         uint64_t hash1_count = hash1Iterator.val();
 
         // Get the count for this K-mer in hash2 (assuming it exists... 0 if not)
-        uint64_t hash2_count = JellyfishHelper::getCount(input[0].hash, hash1Iterator.key(), input[0].canonical);
+        uint64_t hash2_count = JellyfishHelper::getCount(input[1].hash, hash1Iterator.key(), input[1].canonical);
 
         // Get the count for this K-mer in hash3 (assuming it exists... 0 if not)
         uint64_t hash3_count = doThirdHash() ? JellyfishHelper::getCount(input[2].hash, hash1Iterator.key(), input[2].canonical) : 0;
@@ -551,7 +557,7 @@ void kat::Comp::compareSlice(int th_id) {
     // Setup iterator for this thread's chunk of hash2
     // We setup hash2 for random access, so hopefully performance isn't too bad here...
     // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-    LargeHashArray::region_iterator hash2Iterator = input[1].hash->region_slice(th_id, threads);
+    LargeHashArray::eager_iterator hash2Iterator = input[1].hash->eager_slice(th_id, threads);
 
     // Iterate through this thread's slice of hash2
     while (hash2Iterator.next()) {
@@ -565,7 +571,7 @@ void kat::Comp::compareSlice(int th_id) {
         cc->updateHash2Counters(hash1_count, hash2_count);
 
         // Only bother updating thread matrix with K-mers not found in hash1 (we've already done the rest)
-        if (!hash1_count) {
+        if (hash1_count == 0) {
             // Scale counters to make the matrix look pretty
             uint64_t scaled_hash2_count = scaleCounter(hash2_count, d2Scale);
 
@@ -580,7 +586,7 @@ void kat::Comp::compareSlice(int th_id) {
     // Only update hash3 counters if hash3 was provided
     if (doThirdHash()) {
         // Setup iterator for this thread's chunk of hash3
-        LargeHashArray::region_iterator hash3Iterator = input[2].hash->region_slice(th_id, threads);
+        LargeHashArray::eager_iterator hash3Iterator = input[2].hash->eager_slice(th_id, threads);
 
         // Iterate through this thread's slice of hash2
         while (hash3Iterator.next()) {
@@ -646,9 +652,9 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size_1,H", po::value<uint64_t>(&hash_size_1)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for input 1, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
-            ("hash_size_2,J", po::value<uint64_t>(&hash_size_2)->default_value(DEFAULT_HASH_SIZE),
+            ("hash_size_2,I", po::value<uint64_t>(&hash_size_2)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for input 2, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
-            ("hash_size_3,K", po::value<uint64_t>(&hash_size_3)->default_value(DEFAULT_HASH_SIZE),
+            ("hash_size_3,J", po::value<uint64_t>(&hash_size_3)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for input 3, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
             ("dump_hashes,d", po::bool_switch(&dump_hashes)->default_value(false), 
                 "Dumps any jellyfish hashes to disk that were produced during this run.")        
@@ -717,5 +723,11 @@ int kat::Comp::main(int argc, char *argv[]) {
     // Do the work
     comp.execute();
 
+    // Save results to disk
+    comp.save();
+    
+    // Send K-mer statistics to stdout as well
+    comp.printCounters(cout);
+    
     return 0;
 }

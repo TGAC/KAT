@@ -69,13 +69,13 @@ namespace kat {
             else if (upperMode == string("PROFILE")) {
                 return PROFILE;
             }
-            else if (upperMode == string("SPECTRA_CN")) {
+            else if (upperMode == string("SPECTRA-CN")) {
                 return SPECTRA_CN;
             }
-            else if (upperMode == string("SPECTRA_HIST")) {
+            else if (upperMode == string("SPECTRA-HIST")) {
                 return SPECTRA_HIST;
             }
-            else if (upperMode == string("SPECTRA_MX")) {
+            else if (upperMode == string("SPECTRA-MX")) {
                 return SPECTRA_MX;
             }
             else {

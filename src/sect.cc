@@ -107,11 +107,22 @@ void kat::Sect::execute() {
     
     // Merge results from contamination matrix
     merge();
+}
 
+void kat::Sect::save() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Saving results to disk ...";
+    cout.flush();
+    
     // Send contamination matrix to file
-    ofstream contamination_mx_stream(string(outputPrefix.string() + "_contamination.mx").c_str());
+    ofstream contamination_mx_stream(string(outputPrefix.string() + "-contamination.mx").c_str());
     printContaminationMatrix(contamination_mx_stream, seqFile);
-    contamination_mx_stream.close();            
+    contamination_mx_stream.close();  
+    
+    cout << " done.";
+    cout.flush();
 }
 
 void kat::Sect::processSeqFile() {
@@ -142,11 +153,11 @@ void kat::Sect::processSeqFile() {
     // Sequence K-mer counts output stream
     shared_ptr<ofstream> count_path_stream = nullptr;
     if (!noCountStats) {
-        count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "_counts.cvg").c_str());
+        count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-counts.cvg").c_str());
     }
 
     // Average sequence coverage and GC% scores output stream
-    ofstream cvg_gc_stream(string(outputPrefix.string() + "_stats.csv").c_str());
+    ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
     cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements

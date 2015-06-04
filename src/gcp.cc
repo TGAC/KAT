@@ -97,12 +97,24 @@ void kat::Gcp::execute() {
     // Merge results
     merge();
     
+}
+   
+void kat::Gcp::save() {
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Saving results to disk ...";
+    cout.flush();
+    
     // Send main matrix to output file
     ofstream main_mx_out_stream(string(outputPrefix.string() + ".mx").c_str());
     printMainMatrix(main_mx_out_stream);
     main_mx_out_stream.close();
+    
+    cout << " done.";
+    cout.flush();
 }
-   
+
 void kat::Gcp::merge() {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
@@ -135,7 +147,7 @@ void kat::Gcp::analyse() {
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Analysing kmers in hash with " << threads << " threads ...";
+    cout << "Analysing kmers in hash ...";
     cout.flush();
     
     thread t[threads];
@@ -264,6 +276,9 @@ int kat::Gcp::main(int argc, char *argv[]) {
     // Do the work (outputs data to files as it goes)
     gcp.execute();
 
+    // Save results
+    gcp.save();
+    
     return 0;
 }
   

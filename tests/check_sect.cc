@@ -29,9 +29,12 @@ using kat::Sect;
 
 BOOST_AUTO_TEST_SUITE( KAT_SECT )
 
-BOOST_AUTO_TEST_CASE( quick )
+/*BOOST_AUTO_TEST_CASE( quick )
 {
-    Sect sect("data/sect_test.fa.jf31_0", "data/sect_test.fa");
+    vector<path> inputs;
+    inputs.push_back("data/sect_test.fa.jf31_0");
+    
+    Sect sect(inputs, "data/sect_test.fa");
     sect.setOutputPrefix("temp/sect_quick");
     sect.setCanonical(true);
     
@@ -43,11 +46,14 @@ BOOST_AUTO_TEST_CASE( quick )
     remove("temp/sect_quick_counts.cvg");
     remove("temp/sect_quick_contamination.mx");
     remove("temp/sect_quick_stats.csv");
-}
+}*/
 
 BOOST_AUTO_TEST_CASE( length_check )
 {
-    Sect sect("data/sect_test.fa.jf31_0", "data/sect_length_test.fa");
+    vector<path> inputs;
+    inputs.push_back("data/ecoli.header.jf27");
+    
+    Sect sect(inputs, "data/sect_length_test.fa");
     sect.setOutputPrefix("temp/sect_length");
     sect.setCanonical(true);
 

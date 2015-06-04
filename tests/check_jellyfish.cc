@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(TEST_JFCMD) {
 
 BOOST_AUTO_TEST_CASE(TEST_HEADER) {
     
-    file_header header = JellyfishHelper::loadHashHeader("data/ecoli.header.jf27");
+    file_header header = *(JellyfishHelper::loadHashHeader("data/ecoli.header.jf27"));
     unsigned int klen = header.key_len();
     unsigned int vlen = header.val_len();    
     unsigned int clen = header.counter_len();
@@ -89,10 +89,20 @@ BOOST_AUTO_TEST_CASE(TEST_QUERY) {
     uint64_t countMiddle = JellyfishHelper::getCount(hash, kMiddle, false);
     uint64_t countEnd = JellyfishHelper::getCount(hash, kEnd, false);
     
+    uint64_t countStartCan = JellyfishHelper::getCount(hash, kStart, true);
+    uint64_t countEarlyCan = JellyfishHelper::getCount(hash, kEarly, true);
+    uint64_t countMiddleCan = JellyfishHelper::getCount(hash, kMiddle, true);
+    uint64_t countEndCan = JellyfishHelper::getCount(hash, kEnd, true);
+   
     BOOST_CHECK_EQUAL( countStart, 3 );
     BOOST_CHECK_EQUAL( countEarly, 1 );
     BOOST_CHECK_EQUAL( countMiddle, 1 );
-    BOOST_CHECK_EQUAL( countEnd, 1 );    
+    BOOST_CHECK_EQUAL( countEnd, 1 ); 
+    
+    BOOST_CHECK_EQUAL( countStartCan, 3 );
+    BOOST_CHECK_EQUAL( countEarlyCan, 1 );
+    BOOST_CHECK_EQUAL( countMiddleCan, 0 );
+    BOOST_CHECK_EQUAL( countEndCan, 0 );  
 }
 
 BOOST_AUTO_TEST_CASE(TEST_SLICE) {

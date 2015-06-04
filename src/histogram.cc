@@ -101,11 +101,25 @@ void kat::Histogram::execute() {
     // Merge results
     merge();
     
+    
+}
+
+void kat::Histogram::save() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Saving results to disk ...";
+    cout.flush();
+    
     // Send main matrix to output file
-    ofstream main_hist_out_stream(string(outputPrefix.string() + ".hist").c_str());
+    ofstream main_hist_out_stream(outputPrefix.c_str());
     print(main_hist_out_stream);
     main_hist_out_stream.close();
+    
+    cout << " done.";
+    cout.flush();
 }
+
 
 void kat::Histogram::print(std::ostream &out) {
     // Output header
@@ -262,6 +276,9 @@ int kat::Histogram::main(int argc, char *argv[]) {
 
     // Do the work
     histo.execute();
+    
+    // Save results
+    histo.save();
 
     return 0;
 }

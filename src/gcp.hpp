@@ -157,6 +157,8 @@ namespace kat {
 
         void printMainMatrix(ostream &out);
         
+        void save();
+        
     protected:
         
         void analyse();

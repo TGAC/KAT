@@ -314,6 +314,8 @@ namespace kat {
         // Print K-mer statistics
 
         void printCounters(ostream &out);
+        
+        void save();
 
 
     private:
@@ -325,6 +327,8 @@ namespace kat {
         void compareSlice(int th_id);
 
         void merge();
+        
+        
         
         // Scale counters to make the matrix look pretty
         uint64_t scaleCounter(uint64_t count, double scale_factor) {

@@ -16,11 +16,13 @@ check_PROGRAMS = check_jellyfish check_comp check_sect
 check_jellyfish_SOURCES =   ../src/jellyfish_helper.cc \
 			    check_jellyfish.cc
 
-check_comp_SOURCES =	../src/jellyfish_helper.cc \
+check_comp_SOURCES =	../src/input_handler.cc \
+			../src/jellyfish_helper.cc \
 			../src/comp.cc \
 			check_comp.cc
 	
-check_sect_SOURCES =	../src/jellyfish_helper.cc \
+check_sect_SOURCES =	../src/input_handler.cc \
+			../src/jellyfish_helper.cc \
 			../src/sect.cc \
 			check_sect.cc
 		    

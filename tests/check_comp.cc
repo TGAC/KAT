@@ -32,9 +32,9 @@ using kat::CompCounters;
 
 BOOST_AUTO_TEST_SUITE( KAT_COMP )
 
-BOOST_AUTO_TEST_CASE( COMP1 )
+/*BOOST_AUTO_TEST_CASE( COMP1 )
 {
-    Comp comp("data/ecoli.header.jf27", "data/ecoli.header.jf27");
+    Comp comp("data/ecoli.header.jf27", "data/ecoli.header.2.jf27");
     comp.setOutputPrefix("temp/comp_test");
     
     comp.execute();
@@ -42,7 +42,7 @@ BOOST_AUTO_TEST_CASE( COMP1 )
     SM64 results = comp.getMainMatrix();
 
     BOOST_CHECK( true );
-}
+}*/
 
 void addTcc(ThreadedCompCounters& tcc) {
     shared_ptr<CompCounters> cc = make_shared<CompCounters>();
