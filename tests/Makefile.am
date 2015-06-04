@@ -9,12 +9,14 @@ LIBS=$(top_srcdir)/deps/jellyfish-2.2.0/libjellyfish-2.0.la @BOOST_UNIT_TEST_FRA
 
 TESTS_ENVIRONMENT=BOOST_TEST_REPORT_LEVEL=detailed BOOST_TEST_LOG_LEVEL=all
 
-TESTS = check_jellyfish check_comp check_sect
+TESTS = check_jellyfish check_spectrahelper check_comp check_sect
 
-check_PROGRAMS = check_jellyfish check_comp check_sect
+check_PROGRAMS = check_jellyfish check_spectrahelper check_comp check_sect
 
 check_jellyfish_SOURCES =   ../src/jellyfish_helper.cc \
 			    check_jellyfish.cc
+	
+check_spectrahelper_SOURCES =   check_spectra_helper.cc
 
 check_comp_SOURCES =	../src/input_handler.cc \
 			../src/jellyfish_helper.cc \

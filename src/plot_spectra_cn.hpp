@@ -33,8 +33,6 @@ using std::shared_ptr;
 using std::make_shared;
 using std::vector;
 
-#include <gnuplot/gnuplot_i.hpp>
-
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -43,6 +41,9 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include <gnuplot/gnuplot_i.hpp>
+#include "inc/spectra_helper.hpp"
+using kat::SpectraHelper;
 
 namespace kat {
     

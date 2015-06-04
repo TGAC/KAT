@@ -35,9 +35,6 @@ using std::ostringstream;
 using std::ifstream;
 using std::vector;
 
-#include <gnuplot/gnuplot_i.hpp>
-#include <str_utils.hpp>
-
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -45,6 +42,12 @@ using std::vector;
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
+
+#include <gnuplot/gnuplot_i.hpp>
+#include <str_utils.hpp>
+
+#include "inc/spectra_helper.hpp"
+using kat::SpectraHelper;
 
 namespace kat {
     
@@ -161,6 +164,24 @@ namespace kat {
             if (verbose)
                 cerr << "Input validated." << endl << "Setting up plot...";
 
+            // Determine auto ranges
+            Pos maxPos;
+            for(path hp : histo_paths) {
+                vector<Pos> hist;
+                SpectraHelper::loadHist(hp, hist);
+                Pos pos = SpectraHelper::findPeak(hist);
+                
+                if (pos.first > maxPos.first)
+                    maxPos.first = pos.first;
+                
+                if (pos.second > maxPos.second)
+                    maxPos.second = pos.second;
+            }
+            
+            uint32_t autoXMax = maxPos.first * 3;
+            uint32_t autoYMax = maxPos.second * 1.1;
+            
+            
             // Initialise gnuplot
             Gnuplot spectra_hist_plot = Gnuplot("lines");
 

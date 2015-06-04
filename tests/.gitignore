@@ -11,3 +11,4 @@
 /check_jellyfish
 
 callgrind.out.*
+/check_spectrahelper
