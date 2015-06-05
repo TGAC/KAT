@@ -61,16 +61,14 @@ kat_SOURCES = \
 		src/inc/kat_hash_counter.hpp \
                 src/jellyfish_helper.cc \
 		src/input_handler.cc \
+		src/plot_spectra_cn.cc \
+		src/plot_spectra_mx.cc \
+		src/plot_spectra_hist.cc \
+		src/plot.cc \
 		src/comp.cc \
 		src/gcp.cc \
 		src/histogram.cc \
-		src/plot.hpp \
-		src/plot_density.hpp \
-		src/plot_spectra_cn.hpp \
-                src/plot_profile.hpp \
-		src/plot_spectra_hist.hpp \
-		src/plot_spectra_mx.hpp \
-                src/sect.cc \
+		src/sect.cc \
 		src/kat.cc
 
 

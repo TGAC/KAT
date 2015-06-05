@@ -49,9 +49,13 @@ using bfs::path;
 
 #include "jellyfish_helper.hpp"
 #include "input_handler.hpp"
+#include "plot_spectra_cn.hpp"
+#include "plot_spectra_mx.hpp"
 using kat::JellyfishHelper;
 using kat::HashLoader;
 using kat::InputHandler;
+using kat::PlotSpectraCn;
+using kat::PlotSpectraMx;
 
 
 #include "comp.hpp"
@@ -247,7 +251,8 @@ kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
     d1Bins = 1001;
     d2Bins = 1001;
     threads = 1;
-    merLen = DEFAULT_MER_LEN;    
+    merLen = DEFAULT_MER_LEN; 
+    spectraMx = false;
     verbose = false;      
 }
 
@@ -371,7 +376,7 @@ void kat::Comp::save() {
 void kat::Comp::merge() {
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Merging data returned from each thread ...";
+    cout << "Merging results ...";
     cout.flush();
 
     // Merge results from the threads
@@ -604,6 +609,31 @@ void kat::Comp::compareSlice(int th_id) {
     mu.unlock();
 }
 
+void kat::Comp::plot() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Creating plot ...";
+    cout.flush();
+    
+    // Plot results
+    if (spectraMx) {
+        PlotSpectraMx psmx(getMxOutPath(), path(getMxOutPath().string() + ".spectra-mx.png"));
+        psmx.setTitle(string("Spectra MX Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
+        psmx.plot();
+    }
+    else {
+        PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn.png"));
+        pscn.setTitle(string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
+        pscn.setYLabel("# Distinct kmers");
+        pscn.setXLabel("Kmer multiplicity");
+        pscn.plot();
+    }
+    
+    cout << " done.";
+    cout.flush();
+}
+
 int kat::Comp::main(int argc, char *argv[]) {
 
     path input1;
@@ -624,6 +654,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     uint64_t hash_size_3;
     bool parallel_io;
     bool dump_hashes;
+    bool spectra_mx;
     bool verbose;
     bool help;
 
@@ -657,7 +688,9 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("hash_size_3,J", po::value<uint64_t>(&hash_size_3)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for input 3, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
             ("dump_hashes,d", po::bool_switch(&dump_hashes)->default_value(false), 
-                "Dumps any jellyfish hashes to disk that were produced during this run.")        
+                "Dumps any jellyfish hashes to disk that were produced during this run.")   
+            ("spectra_mx, p", po::bool_switch(&spectra_mx)->default_value(false),
+                "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -718,6 +751,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setHashSize(1, hash_size_2);
     comp.setHashSize(2, hash_size_3);
     comp.setDumpHashes(dump_hashes);
+    comp.setSpectraMx(spectra_mx);
     comp.setVerbose(verbose);
     
     // Do the work
@@ -725,6 +759,9 @@ int kat::Comp::main(int argc, char *argv[]) {
 
     // Save results to disk
     comp.save();
+    
+    // Plot results
+    comp.plot();
     
     // Send K-mer statistics to stdout as well
     comp.printCounters(cout);

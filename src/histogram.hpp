@@ -163,6 +163,8 @@ namespace kat {
         
         void save();
         
+        void plot();
+        
     protected:
         
         uint64_t calcBase() {

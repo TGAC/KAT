@@ -58,7 +58,7 @@ public:
         m = i;
         n = j;
     }
-
+    
     /**
      * @brief SparseMatrix Loads a sparse matrix from file.  NOTE, matrix must contain uint64_t!!
      * @param file_path path to the file containing the sparse matrix
@@ -166,6 +166,19 @@ public:
         }
         cout << endl;
     }
+    
+    void getRow(size_t row_idx, vector<T>& row) {
+        for (size_t i = 0; i < this->height(); i++) {
+            row.push_back(mat[i][row_idx]);
+        }        
+    }
+    
+    void getColumn(size_t col_idx, vector<T>& col) {
+        for (size_t i = 0; i < this->width(); i++) {
+            col.push_back(mat[col_idx][i]);
+        }        
+    }
+
 
     T sumColumn(size_t col_idx) {
         return sumColumn(col_idx, 0, this->width() - 1);

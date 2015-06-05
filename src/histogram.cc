@@ -44,6 +44,9 @@ using boost::lexical_cast;
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>
 
+#include "plot_spectra_hist.hpp"
+using kat::PlotSpectraHist;
+
 #include "histogram.hpp"
 
 kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc) {
@@ -192,6 +195,26 @@ void kat::Histogram::binSlice(int th_id) {
     threadedData.push_back(hist);
 }
 
+void kat::Histogram::plot() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Creating plot ...";
+    cout.flush();
+    
+    vector<path> pin;
+    pin.push_back(outputPrefix);
+    
+    PlotSpectraHist psh(pin, path(outputPrefix.string() + ".png"));
+    psh.setXLabel("Kmer multiplicity");
+    psh.setYLabel("# Distinct kmers");
+    psh.setTitle(string("Kmer spectra for ") + input.pathString());
+    psh.plot();
+    
+    cout << " done.";
+    cout.flush();
+}
+
 int kat::Histogram::main(int argc, char *argv[]) {
 
     vector<path>    inputs;
@@ -281,6 +304,9 @@ int kat::Histogram::main(int argc, char *argv[]) {
     
     // Save results
     histo.save();
+    
+    // Plot
+    histo.plot();
 
     return 0;
 }

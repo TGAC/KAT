@@ -37,6 +37,7 @@ using bfs::path;
 using boost::lexical_cast;
 
 typedef pair<uint32_t, uint64_t> Pos;
+typedef pair<uint32_t, uint32_t> Coord;
 
 namespace kat {
     
@@ -62,15 +63,18 @@ namespace kat {
             return 0;
         }
         
-        
         static Pos findPeak(const vector<Pos>& histo) {
+            return findPeak(histo, true);
+        }
+        
+        static Pos findPeak(const vector<Pos>& histo, bool findMin) {
             
             uint64_t previous = std::numeric_limits<uint64_t>::max();
             
-            Pos bestMax;
-            Pos lastMax;
+            Pos bestMax(0,0);
+            Pos lastMax(0,0);
             
-            for(uint32_t i = findFirstMin(histo); i < histo.size(); i++) {
+            for(uint32_t i = findMin ? findFirstMin(histo) : 0; i < histo.size(); i++) {
                 if (histo[i].second > previous) {
                     lastMax = histo[i];
                     bestMax = lastMax.second > bestMax.second ? lastMax : bestMax;
@@ -82,6 +86,26 @@ namespace kat {
             
             return bestMax;
         }
+        
+        /*static Coord findPeak(const SparseMatrix<uint64_t>& mx) {
+            
+            uint64_t previous = std::numeric_limits<uint64_t>::max();
+            
+            Coord bestMax;
+            Coord lastMax;
+            
+            for(uint32_t i = findFirstMin(mx); i < mx.size(); i++) {
+                if (mx[i].second > previous) {
+                    lastMax = mx[i];
+                    bestMax = lastMax.second > bestMax.second ? lastMax : bestMax;
+                }
+                else {
+                    previous = mx[i].second;                    
+                }
+            }
+            
+            return bestMax;
+        }*/
         
         
         static void loadHist(const path& histFile, vector<Pos>& histo) {
@@ -105,6 +129,7 @@ namespace kat {
                 }
             }
         }
+        
     };
 }
 

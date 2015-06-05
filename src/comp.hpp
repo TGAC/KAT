@@ -133,6 +133,7 @@ namespace kat {
         uint16_t threads;
         uint16_t merLen;
         bool parallelIO;
+        bool spectraMx;
         bool verbose;
 
         // Threaded matrix data
@@ -266,6 +267,15 @@ namespace kat {
         void setVerbose(bool verbose) {
             this->verbose = verbose;
         }
+        
+        bool isSpectraMx() const {
+            return spectraMx;
+        }
+
+        void setSpectraMx(bool spectraMx) {
+            this->spectraMx = spectraMx;
+        }
+
 
         
         void execute();
@@ -316,6 +326,10 @@ namespace kat {
         void printCounters(ostream &out);
         
         void save();
+        
+        path getMxOutPath() { return path(string(outputPrefix.string() + "-main.mx")); }
+        
+        void plot();
 
 
     private:
