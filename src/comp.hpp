@@ -133,7 +133,7 @@ namespace kat {
         uint16_t threads;
         uint16_t merLen;
         bool parallelIO;
-        bool spectraMx;
+        bool densityPlot;
         bool verbose;
 
         // Threaded matrix data
@@ -268,13 +268,14 @@ namespace kat {
             this->verbose = verbose;
         }
         
-        bool isSpectraMx() const {
-            return spectraMx;
+        bool isDensityPlot() const {
+            return densityPlot;
         }
 
-        void setSpectraMx(bool spectraMx) {
-            this->spectraMx = spectraMx;
+        void setDensityPlot(bool densityPlot) {
+            this->densityPlot = densityPlot;
         }
+
 
 
         

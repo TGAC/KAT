@@ -46,7 +46,9 @@ using kat::HashLoader;
 #include <matrix/threaded_sparse_matrix.hpp>
 
 #include "input_handler.hpp"
+#include "plot_density.hpp"
 using kat::InputHandler;
+using kat::PlotDensity;
 
 #include "gcp.hpp"
 
@@ -190,6 +192,24 @@ void kat::Gcp::analyseSlice(int th_id) {
     }
 }
 
+void kat::Gcp::plot() {
+    
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Creating plot ...";
+    cout.flush();
+    
+    PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx.png"));
+    pd.setXLabel("# Distinct kmers");
+    pd.setYLabel("GC count");
+    pd.setZLabel("Kmer multiplicity");
+    pd.setTitle(string("GC vs kmer heat map for ") + input.pathString());
+    pd.plot();
+    
+    cout << " done.";
+    cout.flush();
+}
+
 int kat::Gcp::main(int argc, char *argv[]) {
 
     vector<path>    inputs;
@@ -278,6 +298,9 @@ int kat::Gcp::main(int argc, char *argv[]) {
 
     // Save results
     gcp.save();
+    
+    // Plot results
+    gcp.plot();
     
     return 0;
 }

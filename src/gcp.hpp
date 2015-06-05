@@ -159,6 +159,8 @@ namespace kat {
         
         void save();
         
+        void plot();
+        
     protected:
         
         void analyse();

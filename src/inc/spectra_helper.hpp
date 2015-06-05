@@ -74,14 +74,13 @@ namespace kat {
             Pos bestMax(0,0);
             Pos lastMax(0,0);
             
-            for(uint32_t i = findMin ? findFirstMin(histo) : 0; i < histo.size(); i++) {
+            for(uint32_t i = findMin ? findFirstMin(histo) : 1; i < histo.size(); i++) {
                 if (histo[i].second > previous) {
                     lastMax = histo[i];
                     bestMax = lastMax.second > bestMax.second ? lastMax : bestMax;
                 }
-                else {
-                    previous = histo[i].second;                    
-                }
+                
+                previous = histo[i].second;                    
             }
             
             return bestMax;

@@ -50,12 +50,12 @@ using bfs::path;
 #include "jellyfish_helper.hpp"
 #include "input_handler.hpp"
 #include "plot_spectra_cn.hpp"
-#include "plot_spectra_mx.hpp"
+#include "plot_density.hpp"
 using kat::JellyfishHelper;
 using kat::HashLoader;
 using kat::InputHandler;
 using kat::PlotSpectraCn;
-using kat::PlotSpectraMx;
+using kat::PlotDensity;
 
 
 #include "comp.hpp"
@@ -252,7 +252,7 @@ kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
     d2Bins = 1001;
     threads = 1;
     merLen = DEFAULT_MER_LEN; 
-    spectraMx = false;
+    densityPlot = false;
     verbose = false;      
 }
 
@@ -617,10 +617,13 @@ void kat::Comp::plot() {
     cout.flush();
     
     // Plot results
-    if (spectraMx) {
-        PlotSpectraMx psmx(getMxOutPath(), path(getMxOutPath().string() + ".spectra-mx.png"));
-        psmx.setTitle(string("Spectra MX Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
-        psmx.plot();
+    if (densityPlot) {
+        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density.png"));
+        pd.setXLabel(string("# Distinct kmers for ") + input[0].pathString());
+        pd.setYLabel(string("# Distinct kmers for ") + input[1].pathString());
+        pd.setZLabel("Kmer multiplicity");
+        pd.setTitle(string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
+        pd.plot();
     }
     else {
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn.png"));
@@ -654,7 +657,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     uint64_t hash_size_3;
     bool parallel_io;
     bool dump_hashes;
-    bool spectra_mx;
+    bool density_plot;
     bool verbose;
     bool help;
 
@@ -689,7 +692,7 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "If kmer counting is required for input 3, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
             ("dump_hashes,d", po::bool_switch(&dump_hashes)->default_value(false), 
                 "Dumps any jellyfish hashes to disk that were produced during this run.")   
-            ("spectra_mx, p", po::bool_switch(&spectra_mx)->default_value(false),
+            ("density_plot,p", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
@@ -751,7 +754,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setHashSize(1, hash_size_2);
     comp.setHashSize(2, hash_size_3);
     comp.setDumpHashes(dump_hashes);
-    comp.setSpectraMx(spectra_mx);
+    comp.setDensityPlot(density_plot);
     comp.setVerbose(verbose);
     
     // Do the work
