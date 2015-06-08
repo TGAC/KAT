@@ -22,7 +22,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # machine if you want to regenerate 'the Makefile.in's.  If you're looking at this comment in the 'configure' 
 # script then this the am__api_version, will be set to whatever I used to create this file.  Or it might be 
 # whatever you used if you made it yourself with autoconf (or autoreconf, or the autogen.sh script)
-AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define])
+AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
 
 AM_SILENT_RULES([yes])
 

@@ -2,40 +2,36 @@
 # Tells aclocal to put 'aclocal.m4' into the 'm4' directory
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
+SEQAN_ARCHIVE = deps/seqan-library-2.0.0.tar.gz
+
+dist_pkgdata_DATA = $(SEQAN_ARCHIVE)
+
+install-data-hook:
+    cd $(DESTDIR)/deps; \
+    cat $(SEQAN_ARCHIVE) | gunzip | $(TAR) -H gnu --list > uninstall_manifest.txt; \
+    cat $(SEQAN_ARCHIVE) | gunzip | $(TAR) -H gnu --no-same-owner --extract; \
+    rm --force $(SEQAN_ARCHIVE); \
+    cat uninstall_manifest.txt | sed --expression='s/^\|$$/"/g' | xargs chmod a=rX,u+w
+
+uninstall-local:
+    cd $(DESTDIR)/deps; \
+    cat uninstall_manifest.txt | sed --expression='s/ /\\ /g' | xargs rm --force; \
+    rm --force uninstall_manifest.txt
+
 # ADDITIONAL FILES TO INSTALL
-EXTRA_DIST = include \
-README.md \
-COPYING \
-AUTHORS \
-deps/jellyfish-2.2.0/**.cc \
-deps/jellyfish-2.2.0/**.cpp \
-deps/jellyfish-2.2.0/**.hpp \
-deps/jellyfish-2.2.0/**.h \
-deps/jellyfish-2.2.0/**.i \
-deps/jellyfish-2.2.0/**.py \
-deps/jellyfish-2.2.0/**.pm \
-deps/jellyfish-2.2.0/**.t \
-deps/jellyfish-2.2.0/**.am \
-deps/jellyfish-2.2.0/**.sh \
-deps/jellyfish-2.2.0/**.in \
-deps/jellyfish-2.2.0/**.m4 \
-deps/jellyfish-2.2.0/doc/* \
-deps/jellyfish-2.2.0/README \
-deps/jellyfish-2.2.0/LICENSE \
-deps/jellyfish-2.2.0/configure \
-deps/jellyfish-2.2.0/config.guess \
-deps/jellyfish-2.2.0/configure.ac \
-deps/jellyfish-2.2.0/depcomp \
-deps/jellyfish-2.2.0/gtest.mk \
-deps/jellyfish-2.2.0/install-sh \
-deps/jellyfish-2.2.0/missing \
-deps/jellyfish-2.2.0/test-driver
+EXTRA_DIST =	README.md \
+		COPYING \
+		AUTHORS \
+		INSTALL \
+		ChangeLog \
+		deps/seqan-library-2.0.0
+
 
 # FILES NOT TO INSTALL
 dist_noinst_SCRIPTS = autogen.sh clean.sh
 
 # SRC DIRS
-SUBDIRS = deps/jellyfish-2.2.0
+SUBDIRS = deps/jellyfish-2.2.0 tests
 
 AUTOMAKE_OPTIONS = subdir-objects
 
@@ -47,19 +43,34 @@ LIBS = $(top_srcdir)/deps/jellyfish-2.2.0/libjellyfish-2.0.la @AM_LIBS@
 
 bin_PROGRAMS = kat
 
+katdir = $(top_srcdir)
+kat_HEADERS = \
+		src/inc/matrix/matrix_metadata_extractor.hpp \
+		src/jellyfish_helper.hpp \
+		src/input_handler.hpp \
+		src/plot_density.hpp \
+		src/plot_profile.hpp \
+		src/plot_spectra_cn.hpp \
+		src/plot_spectra_cn.hpp \
+		src/plot_spectra_mx.hpp \
+		src/plot_spectra_hist.hpp \
+		src/plot.hpp \
+		src/comp.hpp \
+		src/gcp.hpp \
+		src/histogram.hpp \
+		src/sect.hpp
+		
+
 kat_SOURCES = \
                 src/inc/gnuplot/gnuplot_i.cc \
 		src/inc/gnuplot/gnuplot_i.hpp \
-		src/inc/fstream_default.hpp \
 		src/inc/matrix/sparse_matrix.hpp \
 		src/inc/matrix/threaded_sparse_matrix.hpp \
-		src/inc/matrix/matrix_metadata_extractor.hpp \
                 src/inc/matrix/matrix_metadata_extractor.cc \
                 src/inc/str_utils.hpp \
 		src/inc/spectra_helper.hpp \
                 src/inc/kat_fs.hpp \
-		src/inc/kat_hash_counter.hpp \
-                src/jellyfish_helper.cc \
+		src/jellyfish_helper.cc \
 		src/input_handler.cc \
 		src/plot_density.cc \
 		src/plot_spectra_cn.cc \
