@@ -49,7 +49,7 @@ using jellyfish::quadratic_reprobes;
 #include "jellyfish_helper.hpp"
 using kat::JellyfishHelper;
 
-path kat::JellyfishHelper::jellyfishExe = "";
+path kat::JellyfishHelper::jellyfishExe = "jellyfish";
 
 /**
  * Extracts the jellyfish hash file header

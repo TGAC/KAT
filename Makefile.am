@@ -27,8 +27,11 @@ EXTRA_DIST =	README.md \
 		deps/seqan-library-2.0.0
 
 
-# FILES NOT TO INSTALL
+# Scripts NOT to install
 dist_noinst_SCRIPTS = autogen.sh clean.sh
+
+# Scripts to install
+dist_bin_SCRIPTS = scripts/dist_analysis.py
 
 # SRC DIRS
 SUBDIRS = deps/jellyfish-2.2.0 tests
@@ -49,8 +52,6 @@ kat_HEADERS = \
 		src/jellyfish_helper.hpp \
 		src/input_handler.hpp \
 		src/plot_density.hpp \
-		src/plot_profile.hpp \
-		src/plot_spectra_cn.hpp \
 		src/plot_spectra_cn.hpp \
 		src/plot_spectra_mx.hpp \
 		src/plot_spectra_hist.hpp \
@@ -73,6 +74,7 @@ kat_SOURCES = \
 		src/jellyfish_helper.cc \
 		src/input_handler.cc \
 		src/plot_density.cc \
+		src/plot_profile.hpp \
 		src/plot_spectra_cn.cc \
 		src/plot_spectra_mx.cc \
 		src/plot_spectra_hist.cc \
