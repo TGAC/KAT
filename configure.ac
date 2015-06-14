@@ -87,6 +87,18 @@ AC_CHECK_HEADERS([vector])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
+# Check for gnuplot on path.  Just emit a warning if not present.
+AC_CHECK_PROG(
+    [gnuplot_found], 
+    [gnuplot],
+    [yes], 
+    [no]
+)
+
+if test x"${gnuplot_found}" == x"no" ; then
+    AC_MSG_WARN([\n\nWARNING!!! Gnuplot not detected.  Gnuplot is required at KAT runtime in order to produce plots, although KAT will still work (minus plots) without it.\n\n])
+fi
+
 
 ## Check for boost
 AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])
@@ -96,6 +108,7 @@ AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_CHRONO
 AX_BOOST_TIMER
 AX_BOOST_UNIT_TEST_FRAMEWORK
+
 
 # Combine BOOST variables (apart for BOOST_TEST)
 BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB}"
