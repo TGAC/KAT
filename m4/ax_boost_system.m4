@@ -15,6 +15,7 @@
 #   This macro calls:
 #
 #     AC_SUBST(BOOST_SYSTEM_LIB)
+#     AC_SUBST(BOOST_SYSTEM_STATIC_LIB)
 #
 #   And sets:
 #
@@ -75,44 +76,76 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 			 CXXFLAGS=$CXXFLAGS_SAVE
              AC_LANG_POP([C++])
 		])
-		if test "x$ax_cv_boost_system" = "xyes"; then
-			AC_SUBST(BOOST_CPPFLAGS)
+		        if test "x$ax_cv_boost_system" = "xyes"; then
+            AC_SUBST(BOOST_CPPFLAGS)
 
-			AC_DEFINE(HAVE_BOOST_SYSTEM,,[define if the Boost::System library is available])
+            AC_DEFINE(HAVE_BOOST_SYSTEM,,[define if the Boost::System library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
 
-			LDFLAGS_SAVE=$LDFLAGS
+            LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_system_lib" = "x"; then
-                for libextension in `ls -r $BOOSTLIBDIR/libboost_system* 2>/dev/null | sed 's,.*/lib,,' | sed 's,\..*,,'` ; do
-                     ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
-                                 [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
-                                 [link_system="no"])
-				done
+                for libextension in `ls $BOOSTLIBDIR/libboost_system*.so* $BOOSTLIBDIR/libboost_system*.dylib* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_system.*\)\.so.*$;\1;' -e 's;^lib\(boost_system.*\)\.dylib.*$;\1;'` ; do
+                    ax_lib=${libextension}
+                    AC_CHECK_LIB($ax_lib, exit,
+                        [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
+                        [link_system="no"])
+                done
                 if test "x$link_system" != "xyes"; then
-                for libextension in `ls -r $BOOSTLIBDIR/boost_system* 2>/dev/null | sed 's,.*/,,' | sed -e 's,\..*,,'` ; do
-                     ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
-                                 [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
-                                 [link_system="no"])
-				done
+                    for libextension in `ls $BOOSTLIBDIR/boost_system*.dll* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^\(boost_system.*\)\.dll.*$;\1;'` ; do
+                        ax_lib=${libextension}
+                        AC_CHECK_LIB($ax_lib, exit,
+                            [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
+                            [link_system="no"])
+                    done
+                fi
+                for libextension in `ls $BOOSTLIBDIR/libboost_system*.a* 2>/dev/null` ; do
+                    ax_static_lib=${libextension}
+                    AC_CHECK_FILE($ax_static_lib,
+                        [BOOST_SYSTEM_STATIC_LIB="$ax_static_lib"; AC_SUBST(BOOST_SYSTEM_STATIC_LIB) link_system_static="yes"; break],
+                        [link_system_static="no"])
+                done
+
+                no_find="no"
+                if test "x$ax_lib" = "x"; then
+                    if test "x$ax_static_lib" = "x"; then
+                        no_find="yes"
+                    fi
+                fi
+
+                no_link="no"
+                if test "x$link_system" != "xyes"; then
+                    if test "x$link_system_static" != "xyes"; then
+                        no_link="yes"
+                    fi
                 fi
 
             else
-               for ax_lib in $ax_boost_user_system_lib boost_system-$ax_boost_user_system_lib; do
-				      AC_CHECK_LIB($ax_lib, exit,
-                                   [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
-                                   [link_system="no"])
-                  done
+                for ax_lib in $ax_boost_user_system_lib boost_system-$ax_boost_user_system_lib; do
+                    AC_CHECK_LIB($ax_lib, exit,
+                        [BOOST_SYSTEM_LIB="-l$ax_lib"; AC_SUBST(BOOST_SYSTEM_LIB) link_system="yes"; break],
+                        [link_system="no"])
+                done
 
             fi
             if test "x$ax_lib" = "x"; then
-                AC_MSG_ERROR(Could not find a version of the library!)
+                AC_MSG_WARN(Could not find a dynamic version of the library!)
+            elif test "x$ax_static_lib" = "x"; then
+                AC_MSG_WARN(Could not find a static version of the library!)
             fi
-			if test "x$link_system" = "xno"; then
-				AC_MSG_ERROR(Could not link against $ax_lib !)
-			fi
-		fi
+            if test "x$no_find" = "xyes"; then
+                AC_MSG_ERROR(Could not find any version of the library to link to)
+            fi
+
+            if test "x$link_system" = "xno"; then
+                AC_MSG_WARN(Could not dynamic link against $ax_lib !)
+            elif test "x$link_system_static" = "xno"; then
+                AC_MSG_WARN(Could not static link against $ax_static_lib!)
+            fi
+            if test "x$no_link" = "xyes"; then
+                AC_MSG_ERROR(Could not link against any boost-system lib)
+            fi
+
+        fi
 
 		CPPFLAGS="$CPPFLAGS_SAVED"
 	LDFLAGS="$LDFLAGS_SAVED"

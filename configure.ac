@@ -24,7 +24,7 @@ AC_CONFIG_MACRO_DIR([m4])
 # whatever you used if you made it yourself with autoconf (or autoreconf, or the autogen.sh script)
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
 
-AM_SILENT_RULES([yes])
+#AM_SILENT_RULES([yes])
 
 # Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
 AC_LANG_CPLUSPLUS
@@ -79,8 +79,8 @@ AC_CHECK_HEADERS([string.h])
 AC_CHECK_HEADERS([iostream])
 AC_CHECK_HEADERS([stdio.h])
 AC_CHECK_HEADERS([fstream])
+AC_CHECK_HEADERS([memory])
 AC_CHECK_HEADERS([vector])
-AC_CHECK_HEADERS([getopt.h])
 
 
 
@@ -93,25 +93,28 @@ AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost
 AX_BOOST_FILESYSTEM
 AX_BOOST_SYSTEM
 AX_BOOST_PROGRAM_OPTIONS
+AX_BOOST_CHRONO
 AX_BOOST_TIMER
 AX_BOOST_UNIT_TEST_FRAMEWORK
 
 # Combine BOOST variables (apart for BOOST_TEST)
 BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB}"
+BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
+AC_SUBST([BOOST_STATIC_LIBS])
 
 AM_CXXFLAGS="-DCPLUSPLUS"
 AC_SUBST([AM_CXXFLAGS])
 
-AM_CPPFLAGS="${BOOST_CPPFLAGS}"
+AM_CPPFLAGS="-DBOOST_CHRONO_HEADER_ONLY=1 ${BOOST_CPPFLAGS}"
 AC_SUBST([AM_CPPFLAGS])
 
-AM_LDFLAGS="${BOOST_LDFLAGS}"
+AM_LDFLAGS="-DBOOST_CHRONO_HEADER_ONLY=1 ${BOOST_LDFLAGS}"
 AC_SUBST([AM_LDFLAGS])
 
-AM_LIBS="${BOOST_LIBS} ${PTHREAD_CFLAGS}"
+AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS}"
 AC_SUBST([AM_LIBS])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT

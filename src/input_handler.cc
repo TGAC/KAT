@@ -14,6 +14,7 @@
 //  You should have received a copy of the GNU General Public License
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/timer/timer.hpp>
@@ -21,10 +22,8 @@ namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::timer::auto_cpu_timer;
 
-#include "jellyfish_helper.hpp"
-using kat::JellyfishHelper;
-
 #include "input_handler.hpp"
+using kat::JellyfishHelper;
 
 void kat::InputHandler::validateInput() {
     

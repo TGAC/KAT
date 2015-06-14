@@ -14,6 +14,8 @@
     along with Jellyfish.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#pragma once
+
 #include <iostream>
 #include <fstream>
 #include <stdexcept>

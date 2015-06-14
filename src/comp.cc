@@ -47,7 +47,6 @@ using bfs::path;
 #include <matrix/sparse_matrix.hpp>
 #include <matrix/threaded_sparse_matrix.hpp>
 
-#include "jellyfish_helper.hpp"
 #include "input_handler.hpp"
 #include "plot_spectra_cn.hpp"
 #include "plot_density.hpp"

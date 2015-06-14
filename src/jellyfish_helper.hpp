@@ -56,9 +56,6 @@ using jellyfish::mer_dna;
 using jellyfish::file_header;
 using jellyfish::mapped_file;
 
-typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;
-struct JellyfishException: virtual boost::exception, virtual std::exception { };
-
 typedef shared_ptr<file_header> HashHeaderPtr;
 typedef shared_ptr<binary_reader> HashReaderPtr;
 typedef jellyfish::stream_manager<vector<const char*>::const_iterator> StreamManager;
@@ -71,6 +68,9 @@ typedef LargeHashArray* LargeHashArrayPtr;
 
 namespace kat {
 
+    typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;
+    struct JellyfishException: virtual boost::exception, virtual std::exception { };
+    
     const uint64_t DEFAULT_HASH_SIZE = 100000000;
     const uint16_t DEFAULT_MER_LEN = 27;
     
@@ -112,7 +112,7 @@ namespace kat {
         
         uint16_t getMerLen() { return merLen; }
         
-        file_header getHeader() { return header; }
+        const file_header& getHeader() { return header; }
     };
     
     

@@ -39,3 +39,4 @@ Makefile.in
 /plot/
 /.deps/
 /.libs/
+*.hpp
