@@ -96,7 +96,7 @@ AC_CHECK_PROG(
 )
 
 if test x"${gnuplot_found}" == x"no" ; then
-    AC_MSG_WARN([\n\nWARNING!!! Gnuplot not detected.  Gnuplot is required at KAT runtime in order to produce plots, although KAT will still work (minus plots) without it.\n\n])
+    AC_MSG_WARN([WARNING!!! Gnuplot not detected.  Gnuplot is required at KAT runtime in order to produce plots, although KAT will still work (minus plots) without it.])
 fi
 
 
