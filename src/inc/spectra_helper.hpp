@@ -17,11 +17,14 @@
 
 #pragma once
 
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
+using std::cout;
+using std::endl;
 using std::ifstream;
 using std::istringstream;
 using std::getline;
@@ -49,9 +52,14 @@ namespace kat {
         
         static uint32_t findFirstMin(const vector<Pos>& histo) {
             
+            return findFirstMin(histo, false);
+        }
+        
+        static uint32_t findFirstMin(const vector<Pos>& histo, bool skipFirst) {
+            
             uint64_t previous = std::numeric_limits<uint64_t>::max();
             
-            for(uint32_t i = 0; i < histo.size(); i++) {
+            for(uint32_t i = skipFirst ? 1 : 0; i < histo.size(); i++) {
                 if (histo[i].second <= previous) {
                     previous = histo[i].second;                    
                 }
@@ -84,6 +92,40 @@ namespace kat {
             }
             
             return bestMax;
+        }
+        
+        static Pos lim97(const vector<Pos>& histo) {
+            
+            uint32_t xStart = findFirstMin(histo, true);
+
+            //cout << "minima: " << xStart << endl;            
+            
+            // No initial minima, so no way of easily working out what the xlim should be
+            if (xStart == 0) {
+                return Pos();
+            }
+            
+            uint64_t total = 0;
+            
+            for (uint32_t i = xStart; i < histo.size(); i++) {
+                total += histo[i].second;
+            }
+            
+            //cout << "total: " << total << endl;
+
+            
+            uint64_t cumulative = 0;
+            for (uint32_t i = xStart; i < histo.size(); i++) {
+                cumulative += histo[i].second;
+                double proportion = (double)cumulative / (double)total;   
+                
+                //cout << "proportion: " << proportion << endl;
+                if (proportion > 0.97) {
+                    return Pos(histo[i].first, cumulative);
+                }
+            }
+                        
+            return Pos();
         }
         
         /*static Coord findPeak(const SparseMatrix<uint64_t>& mx) {

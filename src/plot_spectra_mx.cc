@@ -54,7 +54,7 @@ using bfs::path;
 
 #include "plot_spectra_mx.hpp"
 
-void kat::PlotSpectraMx::plot() {
+bool kat::PlotSpectraMx::plot() {
 
     // Check input file exists
     if (!bfs::exists(mxFile) && !bfs::symbolic_link_exists(mxFile)) {
@@ -136,11 +136,17 @@ void kat::PlotSpectraMx::plot() {
 
     plot_str << "plot " << data ;
 
+    if (!spectra_mx_plot.is_valid()) {
+        return false;
+    }
+    
     spectra_mx_plot.cmd(plot_str.str());
 
     if (verbose)
         //cerr << "Data Plotted." << endl;
         cerr << "Plotted data: " << plot_str.str() << endl;
+    
+    return true;
 }
 
        

@@ -183,43 +183,38 @@ void kat::CompCounters::printCounts(ostream &out) {
 
 
 kat::ThreadedCompCounters::ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path) {
-
-    threaded_counters = make_shared<vector<shared_ptr<CompCounters>>>();
-    final_matrix = make_shared<CompCounters>(_hash1_path, _hash2_path, _hash3_path);            
+    final_matrix = CompCounters(_hash1_path, _hash2_path, _hash3_path);            
 }
                 
 void kat::ThreadedCompCounters::printCounts(ostream &out) {
-    final_matrix->printCounts(out);
+    final_matrix.printCounts(out);
 }
         
 void kat::ThreadedCompCounters::add(shared_ptr<CompCounters> cc) {
-    cc->hash1_path = final_matrix->hash1_path;
-    cc->hash2_path = final_matrix->hash2_path;
-    cc->hash3_path = final_matrix->hash3_path;
-    threaded_counters->push_back(cc);
+    cc->hash1_path = final_matrix.hash1_path;
+    cc->hash2_path = final_matrix.hash2_path;
+    cc->hash3_path = final_matrix.hash3_path;
+    threaded_counters.push_back(*cc);
 }
         
 void kat::ThreadedCompCounters::merge() {
 
     // Merge counters
-    for (vector<shared_ptr<CompCounters>>::iterator itp = threaded_counters->begin();
-            itp != threaded_counters->end(); ++itp) {
+    for (const auto& itp : threaded_counters) {
 
-        shared_ptr<CompCounters> it = *itp;
-        
-        final_matrix->hash1_total += it->hash1_total;
-        final_matrix->hash2_total += it->hash2_total;
-        final_matrix->hash3_total += it->hash3_total;
-        final_matrix->hash1_distinct += it->hash1_distinct;
-        final_matrix->hash2_distinct += it->hash2_distinct;
-        final_matrix->hash3_distinct += it->hash3_distinct;
-        final_matrix->hash1_only_total += it->hash1_only_total;
-        final_matrix->hash2_only_total += it->hash2_only_total;
-        final_matrix->hash1_only_distinct += it->hash1_only_distinct;
-        final_matrix->hash2_only_distinct += it->hash2_only_distinct;
-        final_matrix->shared_hash1_total += it->shared_hash1_total;
-        final_matrix->shared_hash2_total += it->shared_hash2_total;
-        final_matrix->shared_distinct += it->shared_distinct;
+        final_matrix.hash1_total += itp.hash1_total;
+        final_matrix.hash2_total += itp.hash2_total;
+        final_matrix.hash3_total += itp.hash3_total;
+        final_matrix.hash1_distinct += itp.hash1_distinct;
+        final_matrix.hash2_distinct += itp.hash2_distinct;
+        final_matrix.hash3_distinct += itp.hash3_distinct;
+        final_matrix.hash1_only_total += itp.hash1_only_total;
+        final_matrix.hash2_only_total += itp.hash2_only_total;
+        final_matrix.hash1_only_distinct += itp.hash1_only_distinct;
+        final_matrix.hash2_only_distinct += itp.hash2_only_distinct;
+        final_matrix.shared_hash1_total += itp.shared_hash1_total;
+        final_matrix.shared_hash2_total += itp.shared_hash2_total;
+        final_matrix.shared_distinct += itp.shared_distinct;
     }
 }
 
@@ -263,18 +258,18 @@ void kat::Comp::execute() {
     }
     
     // Create the final K-mer counter matrices
-    main_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
+    main_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
 
     // Initialise extra matrices for hash3 (only allocates space if required)
     if (doThirdHash()) {
 
-        ends_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
-        middle_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
-        mixed_matrix = make_shared<ThreadedSparseMatrix>(d1Bins, d2Bins, threads);
+        ends_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
+        middle_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
+        mixed_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
     }
 
     // Create the comp counters for each thread
-    comp_counters = make_shared<ThreadedCompCounters>(
+    comp_counters = ThreadedCompCounters(
             input[0].getSingleInput(), 
             input[1].getSingleInput(), 
             input.size() == 3 ? input[2].getSingleInput() : path());
@@ -379,14 +374,14 @@ void kat::Comp::merge() {
     cout.flush();
 
     // Merge results from the threads
-    main_matrix->mergeThreadedMatricies();
+    main_matrix.mergeThreadedMatricies();
     if (doThirdHash()) {
-        ends_matrix->mergeThreadedMatricies();
-        middle_matrix->mergeThreadedMatricies();
-        mixed_matrix->mergeThreadedMatricies();
+        ends_matrix.mergeThreadedMatricies();
+        middle_matrix.mergeThreadedMatricies();
+        mixed_matrix.mergeThreadedMatricies();
     }
 
-    comp_counters->merge();
+    comp_counters.merge();
 
     cout << " done.";
     cout.flush();
@@ -435,7 +430,7 @@ void kat::Comp::loadHashes() {
 
 void kat::Comp::printMainMatrix(ostream &out) {
 
-    SM64 mx = main_matrix->getFinalMatrix();
+    const SM64& mx = main_matrix.getFinalMatrix();
 
     out << mme::KEY_TITLE << "K-mer comparison plot" << endl
             << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input[0].getSingleInput().string() << endl
@@ -457,7 +452,7 @@ void kat::Comp::printEndsMatrix(ostream &out) {
     out << "# Each row represents K-mer multiplicity for: " << input[0].getSingleInput().string() << endl;
     out << "# Each column represents K-mer multiplicity for sequence ends: " << input[2].getSingleInput().string() << endl;
 
-    ends_matrix->getFinalMatrix().printMatrix(out);
+    ends_matrix.getFinalMatrix().printMatrix(out);
 }
 
 // Print K-mer comparison matrix
@@ -467,7 +462,7 @@ void kat::Comp::printMiddleMatrix(ostream &out) {
     out << "# Each row represents K-mer multiplicity for: " << input[0].getSingleInput().string() << endl;
     out << "# Each column represents K-mer multiplicity for sequence middles: " << input[1].getSingleInput().string() << endl;
 
-    middle_matrix->getFinalMatrix().printMatrix(out);
+    middle_matrix.getFinalMatrix().printMatrix(out);
 }
 
 // Print K-mer comparison matrix
@@ -477,14 +472,14 @@ void kat::Comp::printMixedMatrix(ostream &out) {
     out << "# Each row represents K-mer multiplicity for hash file 1: " << input[0].getSingleInput().string() << endl;
     out << "# Each column represents K-mer multiplicity for mixed: " << input[1].getSingleInput().string() << " and " << input[2].getSingleInput().string() << endl;
 
-    mixed_matrix->getFinalMatrix().printMatrix(out);
+    mixed_matrix.getFinalMatrix().printMatrix(out);
 }
 
 // Print K-mer statistics
 
 void kat::Comp::printCounters(ostream &out) {
 
-    comp_counters->printCounts(out);
+    comp_counters.printCounts(out);
 }
 
         
@@ -545,16 +540,16 @@ void kat::Comp::compareSlice(int th_id) {
         if (scaled_hash3_count >= d2Bins) scaled_hash3_count = d2Bins - 1;
 
         // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
-        main_matrix->incTM(th_id, scaled_hash1_count, scaled_hash2_count, 1);
+        main_matrix.incTM(th_id, scaled_hash1_count, scaled_hash2_count, 1);
 
         // Update hash 3 related matricies if hash 3 was provided
         if (doThirdHash()) {
             if (scaled_hash2_count == scaled_hash3_count)
-                ends_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
+                ends_matrix.incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
             else if (scaled_hash3_count > 0)
-                mixed_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
+                mixed_matrix.incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
             else
-                middle_matrix->incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
+                middle_matrix.incTM(th_id, scaled_hash1_count, scaled_hash3_count, 1);
         }
     }
 
@@ -583,7 +578,7 @@ void kat::Comp::compareSlice(int th_id) {
             if (scaled_hash2_count >= d2Bins) scaled_hash2_count = d2Bins - 1;
 
             // Increment the position in the matrix determined by the scaled counts found in hash1 and hash2
-            main_matrix->incTM(th_id, 0, scaled_hash2_count, 1);
+            main_matrix.incTM(th_id, 0, scaled_hash2_count, 1);
         }
     }
 
@@ -604,7 +599,7 @@ void kat::Comp::compareSlice(int th_id) {
     }
 
     mu.lock();
-    comp_counters->add(cc);
+    comp_counters.add(cc);
     mu.unlock();
 }
 
@@ -615,6 +610,8 @@ void kat::Comp::plot() {
     cout << "Creating plot ...";
     cout.flush();
     
+    bool res = true;
+    
     // Plot results
     if (densityPlot) {
         PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density.png"));
@@ -622,17 +619,23 @@ void kat::Comp::plot() {
         pd.setYLabel(string("# Distinct kmers for ") + input[1].pathString());
         pd.setZLabel("Kmer multiplicity");
         pd.setTitle(string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
-        pd.plot();
+        res = pd.plot();
     }
     else {
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn.png"));
         pscn.setTitle(string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
         pscn.setYLabel("# Distinct kmers");
         pscn.setXLabel("Kmer multiplicity");
-        pscn.plot();
+        res = pscn.plot();
     }
     
-    cout << " done.";
+    if (!res) {
+        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+    }
+    else {    
+        cout << " done.";
+    }
+    
     cout.flush();
 }
 

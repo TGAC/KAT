@@ -37,6 +37,8 @@ private:
 
 public:
 
+    ThreadedSparseMatrix() : ThreadedSparseMatrix(0, 0, 0) {};
+    
     ThreadedSparseMatrix(uint16_t _width, uint16_t _height, uint16_t _threads) :
     width(_width), height(_height), threads(_threads) {
         final_matrix = SM64(width, height);
@@ -50,15 +52,15 @@ public:
     virtual ~ThreadedSparseMatrix() {
     }
 
-    SM64 getFinalMatrix() {
+    const SM64& getFinalMatrix() const {
         return final_matrix;
     }
 
-    SM64 getThreadMatrix(uint16_t index) {
+    const SM64& getThreadMatrix(uint16_t index) const {
         return threaded_matricies[index];
     }
 
-    SM64 mergeThreadedMatricies() {
+    const SM64& mergeThreadedMatricies() {
         // Merge matrix
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {

@@ -24,10 +24,12 @@
 #include <fstream>
 #include <string>
 
+#include <boost/lexical_cast.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
+using boost::lexical_cast;
 
 #include <str_utils.hpp>
 
@@ -42,19 +44,22 @@ using std::map;
 template <class T>
 class SparseMatrix {
 public:
-    typedef map<size_t, map<size_t, T> > mat_t;
+    typedef map<uint32_t, map<uint32_t, T> > mat_t;
     typedef typename mat_t::iterator row_iter;
-    typedef map<size_t, T> col_t;
+    typedef map<uint32_t, T> col_t;
     typedef typename col_t::iterator col_iter;
+    
+    typedef boost::error_info<struct SparseMatrixError,string> SparseMatrixErrorInfo;
+    struct SparseMatrixException: virtual boost::exception, virtual std::exception { };
 
     SparseMatrix() : SparseMatrix(0) {}
     
-    SparseMatrix(size_t i) {
+    SparseMatrix(uint32_t i) {
         m = i;
         n = i;
     }
 
-    SparseMatrix(size_t i, size_t j) {
+    SparseMatrix(uint32_t i, uint32_t j) {
         m = i;
         n = j;
     }
@@ -93,51 +98,87 @@ public:
     }
 
     inline
-    T& operator()(size_t i, size_t j) {
-        if (i >= m || j >= n) throw;
+    const T& operator()(uint32_t i, uint32_t j) const {
+        if (i >= m || j >= n) {
+            BOOST_THROW_EXCEPTION(SparseMatrixException() << SparseMatrixErrorInfo(string(
+                    "Requested coords exceed limits of matrix.  Coords: ") +
+                    lexical_cast<string>(i) + "," + lexical_cast<string>(j) + ".  Limits: " +
+                    lexical_cast<string>(m) + "," + lexical_cast<string>(n)));
+        }
         return mat[i][j];
     }
 
     inline
-    T operator()(size_t i, size_t j) const {
-        if (i >= m || j >= n) throw;
+    T operator()(uint32_t i, uint32_t j) {
+        if (i >= m || j >= n) {
+            BOOST_THROW_EXCEPTION(SparseMatrixException() << SparseMatrixErrorInfo(string(
+                    "Requested coords exceed limits of matrix.  Coords: ") +
+                    lexical_cast<string>(i) + "," + lexical_cast<string>(j) + ".  Limits: " +
+                    lexical_cast<string>(m) + "," + lexical_cast<string>(n)));
+        }
         return mat[i][j];
     }
 
-    T inc(size_t i, size_t j, T val) {
-        mat[i][j] = mat[i][j] + val;
+    T inc(uint32_t i, uint32_t j, T val) {
+        mat[i][j] += val;
         return mat[i][j];
     }
 
-    T get(size_t i, size_t j) {
-        if (i >= m || j >= n) throw;
-        return mat[i][j];
+    T get(uint32_t i, uint32_t j) const {
+        if (i >= m || j >= n) {
+            BOOST_THROW_EXCEPTION(SparseMatrixException() << SparseMatrixErrorInfo(string(
+                    "Requested coords exceed limits of matrix.  Coords: ") +
+                    lexical_cast<string>(i) + "," + lexical_cast<string>(j) + ".  Limits: " +
+                    lexical_cast<string>(m) + "," + lexical_cast<string>(n)));
+        }
+        
+        map<uint32_t, map<uint32_t, uint64_t>>::const_iterator res1 = mat.find(i);
+        
+        if (res1 == mat.end()) {
+            return 0;
+        }
+        else {
+            map<uint32_t, uint64_t>::const_iterator res2 = res1->second.find(j); 
+           
+            if (res2 == res1->second.end()) {
+                return 0;
+            }
+            else {
+                return res2->second;
+            }
+        }
+            
     }
 
-    size_t width() {
+    uint32_t width() const {
         return m;
     }
 
-    size_t height() {
+    uint32_t height() const {
         return n;
     }
 
-    T getMaxVal() {
+    T getMaxVal() const {
         T maxVal = 0;
 
-        for (size_t i = 0; i < m; i++) {
-            for (size_t j = 0; j < n; j++) {
-                maxVal = maxVal < mat[i][j] ? mat[i][j] : maxVal;
+        for (uint32_t i = 0; i < m; i++) {
+            for (uint32_t j = 0; j < n; j++) {
+                T val = get(i,j);
+                maxVal = maxVal < val ? val : maxVal;
             }
         }
 
         return maxVal;
     }
 
-    std::vector<T> operator*(const std::vector<T>& x) { //Computes y=A*x
-        if (this->m != x.size()) throw;
+    vector<T> operator*(const vector<T>& x) { //Computes y=A*x
+        if (this->m != x.size()) {
+            BOOST_THROW_EXCEPTION(SparseMatrixException() << SparseMatrixErrorInfo(string(
+                    "Incompatible matrix provided for multiplication.  Provided matrix size is ") +
+                    lexical_cast<string>(x.size()) + " where as size of matrix managed by this object is " + lexical_cast<string>(m)));
+        }
 
-        std::vector<T> y(this->m);
+        vector<T> y(this->m);
         T sum;
 
         row_iter ii;
@@ -154,7 +195,7 @@ public:
         return y;
     }
 
-    void printMat() {
+    void printMat() const {
         row_iter ii;
         col_iter jj;
         for (ii = this->mat.begin(); ii != this->mat.end(); ii++) {
@@ -167,68 +208,68 @@ public:
         cout << endl;
     }
     
-    void getRow(size_t row_idx, vector<T>& row) {
-        for (size_t i = 0; i < this->height(); i++) {
+    void getRow(uint32_t row_idx, vector<T>& row) {
+        for (uint32_t i = 0; i < this->height(); i++) {
             row.push_back(mat[i][row_idx]);
         }        
     }
     
-    void getColumn(size_t col_idx, vector<T>& col) {
-        for (size_t i = 0; i < this->width(); i++) {
+    void getColumn(uint32_t col_idx, vector<T>& col) {
+        for (uint32_t i = 0; i < this->width(); i++) {
             col.push_back(mat[col_idx][i]);
         }        
     }
 
 
-    T sumColumn(size_t col_idx) {
+    T sumColumn(uint32_t col_idx) {
         return sumColumn(col_idx, 0, this->width() - 1);
     }
 
-    T sumColumn(size_t col_idx, size_t start, size_t end) {
+    T sumColumn(uint32_t col_idx, uint32_t start, uint32_t end) {
         T sum = 0;
-        for (size_t i = start; i <= end; i++) {
+        for (uint32_t i = start; i <= end; i++) {
             sum += mat[col_idx][i];
         }
 
         return sum;
     }
 
-    T sumRow(size_t row_idx) {
+    T sumRow(uint32_t row_idx) {
         return sumRow(row_idx, 0, this->height() - 1);
     }
 
-    T sumRow(size_t row_idx, size_t start, size_t end) {
+    T sumRow(uint32_t row_idx, uint32_t start, uint32_t end) {
         T sum = 0;
-        for (size_t i = start; i <= end; i++) {
+        for (uint32_t i = start; i <= end; i++) {
             sum += mat[i][row_idx];
         }
 
         return sum;
     }
 
-    void printMatrix(ostream &out) {
+    void printMatrix(ostream &out) const {
         printMatrix(out, false);
     }
 
-    void printMatrix(ostream &out, bool transpose) {
+    void printMatrix(ostream &out, bool transpose) const {
         if (transpose) {
             // Transpose matrix
-            for (size_t i = 0; i < n; i++) {
+            for (uint32_t i = 0; i < n; i++) {
 
-                out << mat[0][i];
+                out << get(0, i);
 
-                for (size_t j = 0; j < m; j++) {
-                    out << " " << mat[j][i];
+                for (uint32_t j = 0; j < m; j++) {
+                    out << " " << get(j, i);
                 }
 
                 out << endl;
             }
         } else {
-            for (size_t i = 0; i < m; i++) {
-                out << mat[i][0];
+            for (uint32_t i = 0; i < m; i++) {
+                out << get(i, 0);
 
-                for (size_t j = 1; j < n; j++) {
-                    out << " " << mat[i][j];
+                for (uint32_t j = 1; j < n; j++) {
+                    out << " " << get(i, j);
                 }
 
                 out << endl;
@@ -238,6 +279,6 @@ public:
 
 private:
     mat_t mat;
-    size_t m;
-    size_t n;
+    uint32_t m;
+    uint32_t n;
 };

@@ -50,7 +50,7 @@ using kat::SpectraHelper;
 
 #include "plot_density.hpp"
 
-void kat::PlotDensity::plot() {
+bool kat::PlotDensity::plot() {
     // Check input file exists
     if (!bfs::exists(mxFile) && !bfs::symbolic_link_exists(mxFile))
     {
@@ -163,7 +163,13 @@ void kat::PlotDensity::plot() {
             << "e" << endl
             << "e" << endl;
 
+    if (!density.is_valid()) {
+        return false;
+    }
+    
     density.cmd(plotstr.str());
+    
+    return true;
 }
 
 int kat::PlotDensity::main(int argc, char *argv[]) {

@@ -90,10 +90,13 @@ namespace kat {
     private: 
         uint16_t threads;
 
-        shared_ptr<CompCounters> final_matrix;
-        shared_ptr<vector<shared_ptr<CompCounters>>> threaded_counters;
+        CompCounters final_matrix;
+        vector<CompCounters> threaded_counters;
         
     public:
+        
+        ThreadedCompCounters() : ThreadedCompCounters(path(), path(), path()) {}
+        
         ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path) :
            ThreadedCompCounters(_hash1_path, _hash2_path, path()) {}
            
@@ -104,15 +107,15 @@ namespace kat {
         void add(shared_ptr<CompCounters> cc);
         
         size_t size() {
-            return threaded_counters->size();
+            return threaded_counters.size();
         }
         
-        shared_ptr<CompCounters> getFinalMatrix() {
+        CompCounters& getFinalMatrix() {
             return final_matrix;
         }
         
-        shared_ptr<CompCounters> getThreadedMatrixAt(uint16_t index) {
-            return threaded_counters->at(index);
+        CompCounters& getThreadedMatrixAt(uint16_t index) {
+            return threaded_counters[index];
         }
         
         void merge();
@@ -137,13 +140,13 @@ namespace kat {
         bool verbose;
 
         // Threaded matrix data
-        shared_ptr<ThreadedSparseMatrix> main_matrix;
-        shared_ptr<ThreadedSparseMatrix> ends_matrix;
-        shared_ptr<ThreadedSparseMatrix> middle_matrix;
-        shared_ptr<ThreadedSparseMatrix> mixed_matrix;
+        ThreadedSparseMatrix main_matrix;
+        ThreadedSparseMatrix ends_matrix;
+        ThreadedSparseMatrix middle_matrix;
+        ThreadedSparseMatrix mixed_matrix;
 
         // Final data (created by merging thread results)
-        shared_ptr<ThreadedCompCounters> comp_counters;
+        ThreadedCompCounters comp_counters;
         
         std::mutex mu;
 
@@ -285,24 +288,20 @@ namespace kat {
         
         // Threaded matrix data
 
-        SM64 getMainMatrix() {
-
-            return main_matrix ? main_matrix->getFinalMatrix() : NULL;
+        const SM64& getMainMatrix() const {
+            return main_matrix.getFinalMatrix();
         }
 
-        SM64 getEndsMatrix() {
-
-            return ends_matrix ? ends_matrix->getFinalMatrix() : NULL;
+        const SM64& getEndsMatrix() const {
+            return ends_matrix.getFinalMatrix();
         }
 
-        SM64 getMiddleMatrix() {
-
-            return middle_matrix ? middle_matrix->getFinalMatrix() : NULL;
+        const SM64& getMiddleMatrix() const {
+            return middle_matrix.getFinalMatrix();
         }
 
-        SM64 getMixedMatrix() {
-
-            return mixed_matrix ? mixed_matrix->getFinalMatrix() : NULL;
+        const SM64& getMixedMatrix() const {
+            return mixed_matrix.getFinalMatrix();
         }
 
         

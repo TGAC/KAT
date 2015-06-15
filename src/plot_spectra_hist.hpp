@@ -222,7 +222,7 @@ namespace kat {
             this->yMin = yMin;
         }
 
-        void plot();
+        bool plot();
         
     protected:
         

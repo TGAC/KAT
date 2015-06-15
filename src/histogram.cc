@@ -209,9 +209,15 @@ void kat::Histogram::plot() {
     psh.setXLabel("Kmer multiplicity");
     psh.setYLabel("# Distinct kmers");
     psh.setTitle(string("Kmer spectra for ") + input.pathString());
-    psh.plot();
+    bool res = psh.plot();
     
-    cout << " done.";
+    if (!res) {
+        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+    }
+    else {    
+        cout << " done.";
+    }
+    
     cout.flush();
 }
 

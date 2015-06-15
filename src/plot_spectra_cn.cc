@@ -49,7 +49,7 @@ using bfs::path;
 using kat::SpectraHelper;
 using kat::PlotSpectraCn;
 
-void kat::PlotSpectraCn::plot() {
+bool kat::PlotSpectraCn::plot() {
     
     // Check input file exists
     if (!bfs::exists(mxFile) && !bfs::symbolic_link_exists(mxFile))
@@ -87,9 +87,10 @@ void kat::PlotSpectraCn::plot() {
         }
 
         Pos pos = SpectraHelper::findPeak(cumulativeSpectra);
+        Pos xlim = SpectraHelper::lim97(cumulativeSpectra);
 
         // If possible estimate a reasonable x and y range directly from the data
-        uint32_t autoXMax = pos.first > 0 ? pos.first * 3 : 1000;
+        uint32_t autoXMax = xlim.first > 0 ? xlim.first : 1000;
         uint32_t autoYMax = pos.second > 0 ? pos.second * 1.1 : 1000000;
 
         // Override auto settings if user specified explicit x and y limits
@@ -152,10 +153,16 @@ void kat::PlotSpectraCn::plot() {
         spectra_cn_plot.set_xrange(0, xMax);
         spectra_cn_plot.set_yrange(0, yMax);
 
-        spectra_cn_plot.cmd(plot_str.str());
-
         if (verbose)
             cerr << "Gnuplot command: " << plot_str.str() << endl;
+        
+        if (!spectra_cn_plot.is_valid()) {
+            return false;
+        }
+        
+        spectra_cn_plot.cmd(plot_str.str());
+        
+        return true;
     }
 }
         

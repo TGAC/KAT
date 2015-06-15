@@ -52,7 +52,7 @@ using kat::SpectraHelper;
 
 #include "plot_spectra_hist.hpp"
 
-void kat::PlotSpectraHist::plot() {
+bool kat::PlotSpectraHist::plot() {
     // Check input files exists
     for(uint16_t i = 0; i < histoPaths.size(); i++) {
         if (!bfs::exists(histoPaths[i]) && !bfs::symbolic_link_exists(histoPaths[i])) {
@@ -71,16 +71,17 @@ void kat::PlotSpectraHist::plot() {
         vector<Pos> hist;
         SpectraHelper::loadHist(hp, hist);
         Pos pos = SpectraHelper::findPeak(hist);
-
-        if (pos.first > maxPos.first)
-            maxPos.first = pos.first;
+        Pos xlim = SpectraHelper::lim97(hist);
+        
+        if (xlim.first > maxPos.first)
+            maxPos.first = xlim.first;
 
         if (pos.second > maxPos.second)
             maxPos.second = pos.second;
     }
 
     // If possible estimate a reasonable x and y range directly from the data
-    uint32_t autoXMax = maxPos.first > 0 ? maxPos.first * 3 : 1000;
+    uint32_t autoXMax = maxPos.first > 0 ? maxPos.first : 1000;
     uint32_t autoYMax = maxPos.second > 0 ? maxPos.second * 1.1 : 1000000;
 
     // Override auto settings if user specified explicit x and y limits
@@ -170,13 +171,16 @@ void kat::PlotSpectraHist::plot() {
     if (verbose)
         cerr << "done." << endl << "Plotting...";
 
+    if (!spectra_hist_plot.is_valid()) {
+        return false;
+    }
+    
     spectra_hist_plot.cmd(plot_str.str());
 
     if (verbose)
         cerr << "done." << endl;
 
-    //if (verbose)
-    //    cerr << plot_str.str() << endl;
+    return true;
 }
         
 int kat::PlotSpectraHist::main(int argc, char *argv[]) {

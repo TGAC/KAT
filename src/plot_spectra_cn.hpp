@@ -219,7 +219,7 @@ namespace kat {
             this->yMax = yMax;
         }
 
-        void plot();
+        bool plot();
         
     protected:
 

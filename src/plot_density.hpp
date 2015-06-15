@@ -202,7 +202,7 @@ namespace kat {
             this->zMax = zMax;
         }
         
-        void plot();
+        bool plot();
 
             
     protected:

@@ -110,11 +110,11 @@ LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose
     if (header.format() == "bloomcounter") {        
         in.close();
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-            "KAT does not currently support bloom counted kmer hashes.  Please create a binary hash with jellyfish and use that instead.")));
+            "KAT does not currently support bloom counted kmer hashes.  Please create a binary hash with jellyfish or KAT and use that instead.")));
     } else if (header.format() == text_dumper::format) {
         in.close();
         BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-            "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish and use that instead.")));
+            "Processing a text format hash will be painfully slow, so we don't support it.  Please create a binary hash with jellyfish or KAT and use that instead.")));
     } 
     else if (header.format() == binary_dumper::format) {
 

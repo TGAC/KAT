@@ -114,13 +114,13 @@ namespace kat {
             testDir /= "tests";
             
                 
-            if (katExe.parent_path() == libsDir || katExe.parent_path() == testDir) {
+            if (katExe.parent_path() == srcDir || katExe.parent_path() == libsDir || katExe.parent_path() == testDir) {
                 jellyfishExe = path(rootDir);
                 jellyfishExe /= "deps/jellyfish-2.2.0/bin/jellyfish";                 
             }
             else {
                 jellyfishExe = path(binDir);
-                jellyfishExe /= "jellyfish";                
+                jellyfishExe /= "jellyfish";
             }
             
             if (!exists(jellyfishExe)) {

@@ -29,7 +29,8 @@ void kat::InputHandler::validateInput() {
     
     bool start = true;
     // Check input file(s) exists
-    for(path& p : input) {
+    for(path& rp : input) {
+        path p = bfs::canonical(rp);
         if (!bfs::exists(p) && !bfs::symbolic_link_exists(p)) {
             BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
                     "Could not find input file ") + lexical_cast<string>(index) + " at: " + p.string() + "; please check the path and try again."));

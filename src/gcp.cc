@@ -204,10 +204,17 @@ void kat::Gcp::plot() {
     pd.setYLabel("GC count");
     pd.setZLabel("Kmer multiplicity");
     pd.setTitle(string("GC vs kmer heat map for ") + input.pathString());
-    pd.plot();
+    bool res = pd.plot();
     
-    cout << " done.";
+    if (!res) {
+        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+    }
+    else {    
+        cout << " done.";
+    }
+    
     cout.flush();
+    
 }
 
 int kat::Gcp::main(int argc, char *argv[]) {
