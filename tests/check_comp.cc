@@ -79,12 +79,12 @@ BOOST_AUTO_TEST_CASE( THREADED_COUNTERS )
     tcc.merge();
     
     BOOST_CHECK( tcc.size() == 2 );
-    BOOST_CHECK( tcc.getFinalMatrix()->hash1_path == path("path1"));
-    BOOST_CHECK( tcc.getThreadedMatrixAt(0)->hash1_path == path("path1"));
-    BOOST_CHECK( tcc.getFinalMatrix()->hash1_distinct == 4);
-    BOOST_CHECK( tcc.getThreadedMatrixAt(0)->hash1_distinct == 2);
-    BOOST_CHECK( tcc.getThreadedMatrixAt(1)->hash1_distinct == 2);
-    BOOST_CHECK( tcc.getFinalMatrix()->hash1_total == 60);
+    BOOST_CHECK( tcc.getFinalMatrix().hash1_path == path("path1"));
+    BOOST_CHECK( tcc.getThreadedMatrixAt(0).hash1_path == path("path1"));
+    BOOST_CHECK( tcc.getFinalMatrix().hash1_distinct == 4);
+    BOOST_CHECK( tcc.getThreadedMatrixAt(0).hash1_distinct == 2);
+    BOOST_CHECK( tcc.getThreadedMatrixAt(1).hash1_distinct == 2);
+    BOOST_CHECK( tcc.getFinalMatrix().hash1_total == 60);
     
 }
 

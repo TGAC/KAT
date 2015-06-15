@@ -17,13 +17,10 @@ AC_CONFIG_AUX_DIR([build-aux])
 # Set the macro directory
 AC_CONFIG_MACRO_DIR([m4])
 
-# Automake initialisation.  Sets some default flags.  We use 'foreign' because we have a markdown README file.
-# I've only tried this with automake 1.11 and above, so you require at least that version installed on your 
-# machine if you want to regenerate 'the Makefile.in's.  If you're looking at this comment in the 'configure' 
-# script then this the am__api_version, will be set to whatever I used to create this file.  Or it might be 
-# whatever you used if you made it yourself with autoconf (or autoreconf, or the autogen.sh script)
+# Automake initialisation.
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
 
+# Use this to display simplified compilation output
 #AM_SILENT_RULES([yes])
 
 # Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
@@ -32,14 +29,8 @@ AC_LANG_CPLUSPLUS
 # Set output variable CXXCPP to a command that runs the C++ preprocessor. If ‘$CXX -E’ doesn't work, /lib/cpp is used. It is portable to run CXXCPP only on files with a .c, .C, .cc, or .cpp extension.
 AC_PROG_CXXCPP
 
-# AC_PROG_CXX determine a C++ compiler to use. Check whether the environment variable CXX or CCC (in that order) is set; if so, then set output variable CXX to its value.  We ignore the CXXFLAGS already set in the environment. This is necessary to avoid AC_PROG_XX automatically adding "-g -O2" to CXXFLAGS
-CXXFLAGS=""
+# Identify a c++ compiler to use
 AC_PROG_CXX
-
-# Determine a C compiler to use. If CC is not already set in the environment, check for gcc and cc, then for other C compilers. Set output variable CC to the name of the compiler found.
-# NOTE: This probably isn't necessary.  I don't think we have any C code in KAT.
-CFLAGS=""
-AC_PROG_CC
 
 # Ensure there's C++11 support
 AX_CXX_COMPILE_STDCXX_11(,[mandatory])
@@ -47,11 +38,8 @@ AX_CXX_COMPILE_STDCXX_11(,[mandatory])
 # Create the 'install-sh' script, which is used as the 'install' make target
 AC_PROG_INSTALL
 
+# Required for using the archiver
 AM_PROG_AR
-AC_PROG_LIBTOOL
-
-LT_INIT
-LT_PREREQ([2.4.2])
 
 
 ######################################################################
