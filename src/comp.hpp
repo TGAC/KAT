@@ -35,9 +35,9 @@ using bfs::path;
 
 #include <jellyfish/large_hash_iterator.hpp>
 
-#include <matrix/matrix_metadata_extractor.hpp>
-#include <matrix/sparse_matrix.hpp>
-#include <matrix/threaded_sparse_matrix.hpp>
+#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include "inc/matrix/sparse_matrix.hpp"
+#include "inc/matrix/threaded_sparse_matrix.hpp"
 
 #include "jellyfish_helper.hpp"
 #include "input_handler.hpp"
@@ -133,9 +133,9 @@ namespace kat {
         double d2Scale;
         uint16_t d1Bins;
         uint16_t d2Bins;
-        uint16_t threads;
+        uint16_t ioThreads;
+        uint16_t analysisThreads;
         uint16_t merLen;
-        bool parallelIO;
         bool densityPlot;
         bool verbose;
 
@@ -237,29 +237,39 @@ namespace kat {
             this->outputPrefix = outputPrefix;
         }
 
-        uint16_t getThreads() const {
-            return threads;
+        uint16_t getIOThreads() const {
+            return ioThreads;
         }
 
-        void setThreads(uint16_t threads) {
-            this->threads = threads;
+        void setIOThreads(uint16_t threads) {
+            this->ioThreads = threads;
         }
         
-        bool isParallelIO() const {
-            return parallelIO;
+        uint16_t getAnalysisThreads() const {
+            return analysisThreads;
         }
 
-        void setParallelIO(bool parallelIO) {
-            this->parallelIO = parallelIO;
+        void setAnalysisThreads(uint16_t threads) {
+            this->analysisThreads = threads;
         }
-
-        bool isDumpHashes() const {
+        
+        bool dumpHashes() const {
             return input[0].dumpHash;
         }
 
         void setDumpHashes(bool dumpHashes) {
             for(int i = 0; i < input.size(); i++) {
                 this->input[i].dumpHash = dumpHashes;
+            }
+        }
+        
+        bool hashGrowDisabled() const {
+            return input[0].disableHashGrow;
+        }
+
+        void setDisableHashGrow(bool disableHashGrow) {
+            for(int i = 0; i < input.size(); i++) {
+                this->input[i].disableHashGrow = disableHashGrow;
             }
         }
 

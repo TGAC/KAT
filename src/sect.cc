@@ -49,8 +49,8 @@ using boost::lexical_cast;
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>
 
-#include <matrix/matrix_metadata_extractor.hpp>
-#include <matrix/threaded_sparse_matrix.hpp>
+#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include "inc/matrix/threaded_sparse_matrix.hpp"
 
 #include "sect.hpp"
 

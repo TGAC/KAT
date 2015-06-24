@@ -39,7 +39,7 @@ namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::lexical_cast;
 
-#include <matrix/matrix_metadata_extractor.hpp>
+#include "inc/matrix/matrix_metadata_extractor.hpp"
 
 #include <jellyfish/mer_dna.hpp>
 #include <jellyfish_helper.hpp>

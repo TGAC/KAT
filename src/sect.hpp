@@ -49,12 +49,12 @@ using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
 
+#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include "inc/matrix/threaded_sparse_matrix.hpp"
+
 #include "jellyfish_helper.hpp"
 #include "input_handler.hpp"
 using kat::InputHandler;
-
-#include <matrix/matrix_metadata_extractor.hpp>
-#include <matrix/threaded_sparse_matrix.hpp>
 
 typedef boost::error_info<struct SectError,string> SectErrorInfo;
 struct SectException: virtual boost::exception, virtual std::exception { };

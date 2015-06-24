@@ -35,9 +35,6 @@ using std::ostringstream;
 using std::vector;
 using std::endl;
 
-#include <gnuplot/gnuplot_i.hpp>
-#include <str_utils.hpp>
-
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -45,6 +42,9 @@ using std::endl;
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
+
+#include "inc/gnuplot/gnuplot_i.hpp"
+#include "inc/str_utils.hpp"
 
 namespace kat {
     

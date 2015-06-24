@@ -30,8 +30,6 @@ using std::ifstream;
 using std::istringstream;
 using std::ostringstream;
 
-#include <gnuplot/gnuplot_i.hpp>
-
 #include <boost/exception/all.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -40,9 +38,11 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include <matrix/sparse_matrix.hpp>
-#include <matrix/matrix_metadata_extractor.hpp>
+#include "inc/gnuplot/gnuplot_i.hpp"
+#include "inc/str_utils.hpp"
 
+#include "inc/matrix/sparse_matrix.hpp"
+#include "inc/matrix/matrix_metadata_extractor.hpp"
 #include "inc/spectra_helper.hpp"
 using kat::SpectraHelper;
 

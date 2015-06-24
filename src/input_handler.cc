@@ -88,6 +88,7 @@ void kat::InputHandler::count(uint16_t merLen, uint16_t threads) {
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");      
     
     hashCounter = make_shared<HashCounter>(hashSize, merLen * 2, 7, threads);
+    hashCounter->do_size_doubling(!disableHashGrow);
         
     cout << "Input is a sequence file.  Counting kmers for " << pathString() << "...";
     cout.flush();

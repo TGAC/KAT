@@ -41,9 +41,11 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include <gnuplot/gnuplot_i.hpp>
-#include "inc/spectra_helper.hpp"
 #include "inc/matrix/sparse_matrix.hpp"
+#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include "inc/gnuplot/gnuplot_i.hpp"
+#include "inc/str_utils.hpp"
+#include "inc/spectra_helper.hpp"
 using kat::SpectraHelper;
 
 typedef boost::error_info<struct PlotSpectraCnError,string> PlotSpectraCnErrorInfo;

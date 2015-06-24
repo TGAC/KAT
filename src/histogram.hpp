@@ -38,9 +38,9 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include <matrix/matrix_metadata_extractor.hpp>
-
 #include <jellyfish/mer_dna.hpp>
+
+#include "inc/matrix/matrix_metadata_extractor.hpp"
 
 #include "input_handler.hpp"
 using kat::InputHandler;

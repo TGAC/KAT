@@ -17,11 +17,12 @@
 
 #pragma once
 
+#include <iostream>
+using std::endl;
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
-
 namespace fs = boost::filesystem;
-
 using fs::exists;
 using fs::path;
 

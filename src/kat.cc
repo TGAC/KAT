@@ -29,19 +29,19 @@ using std::string;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
+#include "inc/kat_fs.hpp"
+using kat::KatFS;
+
 #include "comp.hpp"
 #include "gcp.hpp"
 #include "histogram.hpp"
 #include "plot.hpp"
 #include "sect.hpp"
-//#include "filter.hpp"
-#include "kat_fs.hpp"
 using kat::Comp;
 using kat::Gcp;
 using kat::Histogram;
 using kat::Plot;
 using kat::Sect;
-using kat::KatFS;
 
 
 typedef boost::error_info<struct KatError,string> KatErrorInfo;

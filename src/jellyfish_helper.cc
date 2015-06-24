@@ -238,7 +238,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
         t[i] = thread(&kat::JellyfishHelper::countSlice, std::ref(hashCounter), std::ref(parser), canonical);
     }
 
-    for(int i = 0; i < threads; i++){
+    for(int i = 0; i < threads; i++) {
         t[i].join();
     }
     

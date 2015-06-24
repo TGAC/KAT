@@ -20,7 +20,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <matrix/matrix_metadata_extractor.hpp>
+#include "inc/matrix/matrix_metadata_extractor.hpp"
 
 using std::ifstream;
 using std::string;

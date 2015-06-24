@@ -43,9 +43,9 @@ using bfs::path;
 
 #include <jellyfish/large_hash_iterator.hpp>
 
-#include <matrix/matrix_metadata_extractor.hpp>
-#include <matrix/sparse_matrix.hpp>
-#include <matrix/threaded_sparse_matrix.hpp>
+#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include "inc/matrix/sparse_matrix.hpp"
+#include "inc/matrix/threaded_sparse_matrix.hpp"
 
 #include "input_handler.hpp"
 #include "plot_spectra_cn.hpp"
@@ -244,7 +244,8 @@ kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
     d2Scale = 1.0;
     d1Bins = 1001;
     d2Bins = 1001;
-    threads = 1;
+    ioThreads = 1;
+    analysisThreads = 1;
     merLen = DEFAULT_MER_LEN; 
     densityPlot = false;
     verbose = false;      
@@ -258,14 +259,14 @@ void kat::Comp::execute() {
     }
     
     // Create the final K-mer counter matrices
-    main_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
+    main_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, analysisThreads);
 
     // Initialise extra matrices for hash3 (only allocates space if required)
     if (doThirdHash()) {
 
-        ends_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
-        middle_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
-        mixed_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
+        ends_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, analysisThreads);
+        middle_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, analysisThreads);
+        mixed_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, analysisThreads);
     }
 
     // Create the comp counters for each thread
@@ -281,7 +282,7 @@ void kat::Comp::execute() {
     // Count kmers in sequence files if necessary (sets load and hashes and hashcounters as appropriate)
     for(int i = 0; i < input.size(); i++) {
         if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
-            input[i].count(merLen, threads);
+            input[i].count(merLen, ioThreads);
         }
     }
     
@@ -317,10 +318,10 @@ void kat::Comp::execute() {
 
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
-    if (isDumpHashes()) {
+    if (dumpHashes()) {
         for(uint16_t i = 0; i < input.size(); i++) {        
             path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(merLen));
-            input[i].dump(outputPath, threads, true);
+            input[i].dump(outputPath, ioThreads, true);
         }    
     }    
 
@@ -395,7 +396,7 @@ void kat::Comp::loadHashes() {
     cout.flush();    
 
     // If using parallel IO load hashes in parallel, otherwise do one at a time
-    if (threads > 1) {
+    if (ioThreads > 1) {
         
         thread threads[input.size()];
         
@@ -490,13 +491,13 @@ void kat::Comp::compare() {
     cout << "Comparing hashes ...";
     cout.flush();
     
-    thread t[threads];
+    thread t[analysisThreads];
 
-    for(int i = 0; i < threads; i++) {
+    for(int i = 0; i < analysisThreads; i++) {
         t[i] = thread(&Comp::compareSlice, this, i);
     }
 
-    for(int i = 0; i < threads; i++){
+    for(int i = 0; i < analysisThreads; i++){
         t[i].join();
     }
     
@@ -509,7 +510,7 @@ void kat::Comp::compareSlice(int th_id) {
     shared_ptr<CompCounters> cc = make_shared<CompCounters>();
 
     // Setup iterator for this thread's chunk of hash1
-    LargeHashArray::eager_iterator hash1Iterator = input[0].hash->eager_slice(th_id, threads);
+    LargeHashArray::eager_iterator hash1Iterator = input[0].hash->eager_slice(th_id, analysisThreads);
 
     // Go through this thread's slice for hash1
     while (hash1Iterator.next()) {
@@ -556,7 +557,7 @@ void kat::Comp::compareSlice(int th_id) {
     // Setup iterator for this thread's chunk of hash2
     // We setup hash2 for random access, so hopefully performance isn't too bad here...
     // Hash2 should be smaller than hash1 in most cases so hopefully we can get away with this.
-    LargeHashArray::eager_iterator hash2Iterator = input[1].hash->eager_slice(th_id, threads);
+    LargeHashArray::eager_iterator hash2Iterator = input[1].hash->eager_slice(th_id, analysisThreads);
 
     // Iterate through this thread's slice of hash2
     while (hash2Iterator.next()) {
@@ -585,7 +586,7 @@ void kat::Comp::compareSlice(int th_id) {
     // Only update hash3 counters if hash3 was provided
     if (doThirdHash()) {
         // Setup iterator for this thread's chunk of hash3
-        LargeHashArray::eager_iterator hash3Iterator = input[2].hash->eager_slice(th_id, threads);
+        LargeHashArray::eager_iterator hash3Iterator = input[2].hash->eager_slice(th_id, analysisThreads);
 
         // Iterate through this thread's slice of hash2
         while (hash3Iterator.next()) {
@@ -649,7 +650,8 @@ int kat::Comp::main(int argc, char *argv[]) {
     double d2_scale;
     uint16_t d1_bins;
     uint16_t d2_bins;
-    uint16_t threads;
+    uint16_t io_threads;
+    uint16_t analysis_threads;
     uint16_t mer_len;
     bool canonical_1;
     bool canonical_2;
@@ -657,8 +659,8 @@ int kat::Comp::main(int argc, char *argv[]) {
     uint64_t hash_size_1;
     uint64_t hash_size_2;
     uint64_t hash_size_3;
-    bool parallel_io;
     bool dump_hashes;
+    bool disable_hash_grow;
     bool density_plot;
     bool verbose;
     bool help;
@@ -668,8 +670,10 @@ int kat::Comp::main(int argc, char *argv[]) {
     generic_options.add_options()
             ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-comp"), 
                 "Path prefix for files generated by this program.")
-            ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
-                "The number of threads to use")
+            ("threads,t", po::value<uint16_t>(&io_threads)->default_value(1),
+                "The number of threads to use.  Keep in mind initially threads will be used to IO purposes (counting kmers from file), so don't raise this above what your storage system can manage.")
+            ("analysis_threads,T", po::value<uint16_t>(&analysis_threads)->default_value(1),
+                "The number of threads to use for analysis stage.  This option only applies if you set it higher than option 't', otherwise it will have the same value as option 't'.  This option is intended to allow users to get extra performance on high core systems which might by bottlenecked by IO.")
             ("d1_scale,x", po::value<double>(&d1_scale)->default_value(1.0),
                 "Scaling factor for the first dataset - float multiplier")
             ("d2_scale,y", po::value<double>(&d2_scale)->default_value(1.0),
@@ -693,7 +697,9 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("hash_size_3,J", po::value<uint64_t>(&hash_size_3)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for input 3, then use this value as the hash size.  It is important this is larger than the number of distinct kmers in your set.  We do not try to merge kmer hashes in this version of KAT.")
             ("dump_hashes,d", po::bool_switch(&dump_hashes)->default_value(false), 
-                "Dumps any jellyfish hashes to disk that were produced during this run.")   
+                "Dumps any jellyfish hashes to disk that were produced during this run.")
+            ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false), 
+                "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")   
             ("density_plot,p", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
@@ -733,6 +739,11 @@ int kat::Comp::main(int argc, char *argv[]) {
     }
 
 
+    // Make sure we have at least the same number of cores allocated for analysis as we have for io.
+    if (analysis_threads < io_threads) {
+        analysis_threads = io_threads;
+    }
+    
 
     auto_cpu_timer timer(1, "KAT COMP completed.\nTotal runtime: %ws\n\n");        
 
@@ -747,7 +758,8 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setD2Scale(d2_scale);
     comp.setD1Bins(d1_bins);
     comp.setD2Bins(d2_bins);
-    comp.setThreads(threads);
+    comp.setIOThreads(io_threads);
+    comp.setAnalysisThreads(analysis_threads);
     comp.setMerLen(mer_len);
     comp.setCanonical(0, canonical_1);
     comp.setCanonical(1, canonical_2);
@@ -756,6 +768,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setHashSize(1, hash_size_2);
     comp.setHashSize(2, hash_size_3);
     comp.setDumpHashes(dump_hashes);
+    comp.setDisableHashGrow(disable_hash_grow);
     comp.setDensityPlot(density_plot);
     comp.setVerbose(verbose);
     
