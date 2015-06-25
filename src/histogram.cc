@@ -250,7 +250,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
             ("inc,i", po::value<uint64_t>(&inc)->default_value(1),
                 "Increment for each bin") 
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
-                "Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
+                "Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),

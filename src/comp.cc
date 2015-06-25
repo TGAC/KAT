@@ -683,11 +683,11 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("d2_bins,j", po::value<uint16_t>(&d2_bins)->default_value(1001),
                 "Number of bins for the second dataset.  i.e. number of rows in the matrix")
             ("canonical1,C", po::bool_switch(&canonical_1)->default_value(false),
-                "Whether the jellyfish hash for input 1 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
+                "Whether the jellyfish hash for input 1 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
             ("canonical2,D", po::bool_switch(&canonical_2)->default_value(false),
-                "Whether the jellyfish hash for input 2 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.")
+                "Whether the jellyfish hash for input 2 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
             ("canonical3,E", po::bool_switch(&canonical_3)->default_value(false),
-                "Whether the jellyfish hash for input 3 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output from sect will be unpredicatable.  Only applicable if you are using a third input.")
+                "Whether the jellyfish hash for input 3 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.  Only applicable if you are using a third input.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size_1,H", po::value<uint64_t>(&hash_size_1)->default_value(DEFAULT_HASH_SIZE),
