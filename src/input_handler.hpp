@@ -47,6 +47,7 @@ namespace kat {
         shared_ptr<file_header> header;         // Only applicable if loaded
 
         void setSingleInput(path p) { input.clear(); input.push_back(p); }
+        void setMultipleInputs(const vector<path>& inputs);
         path getSingleInput() { return input[0]; }
         string pathString();
         void validateInput();   // Throws if input is not present.  Sets input mode.
@@ -56,6 +57,9 @@ namespace kat {
         void loadHash() { loadHash(false); }
         void loadHash(bool verbose);
         void dump(const path& outputPath, uint16_t threads, bool verbose);
+        
+        static vector<path> globFiles(const path& input);
+        static vector<path> globFiles(const vector<path>& input);
     };
     
 }

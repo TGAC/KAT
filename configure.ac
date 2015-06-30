@@ -69,7 +69,7 @@ AC_CHECK_HEADERS([stdio.h])
 AC_CHECK_HEADERS([fstream])
 AC_CHECK_HEADERS([memory])
 AC_CHECK_HEADERS([vector])
-
+AC_CHECK_HEADERS([glob.h])
 
 
 # Check pthreads exists

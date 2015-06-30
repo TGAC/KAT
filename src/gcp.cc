@@ -69,6 +69,15 @@ void kat::Gcp::execute() {
     // Validate input
     input.validateInput();
     
+    // Create output directory
+    path parentDir = outputPrefix.parent_path();
+    if (!exists(parentDir) || !is_directory(parentDir)) {
+        if (!create_directories(parentDir)) {
+            BOOST_THROW_EXCEPTION(GcpException() << GcpErrorInfo(string(
+                    "Could not create output directory: ") + parentDir.string()));
+        }
+    }
+    
     // Setup output stream for jellyfish initialisation
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 

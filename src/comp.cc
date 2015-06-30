@@ -228,14 +228,34 @@ kat::Comp::Comp(const path& _input1, const path& _input2) :
     kat::Comp::Comp(_input1, _input2, path()) {}
         
 kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
+    vector<path> vecInput1;
+    vecInput1.push_back(_input1);
+    vector<path> vecInput2;
+    vecInput2.push_back(_input2);
+    vector<path> vecInput3;
+    if (!_input3.empty())
+        vecInput3.push_back(_input3);    
+    
+    init(vecInput1, vecInput2, vecInput3);
+}
+    
+    
+kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2) : 
+    kat::Comp::Comp(_input1, _input2, vector<path>()) {}
+        
+kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {    
+    init(_input1, _input2, _input3);
+}
+
+void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {
     input = !_input3.empty() ? vector<InputHandler>(3) : vector<InputHandler>(2);
     
-    input[0].setSingleInput(_input1);
-    input[1].setSingleInput(_input2);
+    input[0].setMultipleInputs(_input1);
+    input[1].setMultipleInputs(_input2);
     input[0].index = 1;
     input[1].index = 2;
     if (!_input3.empty()) {
-        input[2].setSingleInput(_input3);
+        input[2].setMultipleInputs(_input3);
         input[2].index = 3;
     }
     
@@ -257,6 +277,16 @@ void kat::Comp::execute() {
     for(uint16_t i = 0; i < input.size(); i++) {
         input[i].validateInput();
     }
+    
+    // Create output directory
+    path parentDir = outputPrefix.parent_path();
+    if (!exists(parentDir) || !is_directory(parentDir)) {
+        if (!create_directories(parentDir)) {
+            BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
+                    "Could not create output directory: ") + parentDir.string()));
+        }
+    }
+    
     
     // Create the final K-mer counter matrices
     main_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, analysisThreads);
@@ -640,6 +670,8 @@ void kat::Comp::plot() {
     cout.flush();
 }
 
+
+
 int kat::Comp::main(int argc, char *argv[]) {
 
     path input1;
@@ -750,9 +782,13 @@ int kat::Comp::main(int argc, char *argv[]) {
     cout << "Running KAT in COMP mode" << endl
          << "------------------------" << endl << endl;
 
-
+    // Glob input files
+    vector<path> vecinput1 = InputHandler::globFiles(input1);
+    vector<path> vecinput2 = InputHandler::globFiles(input2);
+    vector<path> vecinput3 = InputHandler::globFiles(input3);
+    
     // Create the sequence coverage object
-    Comp comp(input1, input2, input3);
+    Comp comp(vecinput1, vecinput2, vecinput3);
     comp.setOutputPrefix(output_prefix);
     comp.setD1Scale(d1_scale);
     comp.setD2Scale(d2_scale);

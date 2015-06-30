@@ -15,6 +15,8 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
+#include <glob.h>
+
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/timer/timer.hpp>
@@ -24,6 +26,12 @@ using boost::timer::auto_cpu_timer;
 
 #include "input_handler.hpp"
 using kat::JellyfishHelper;
+
+void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
+    for(path p : inputs) {
+        input.push_back(p);
+    }
+}
 
 void kat::InputHandler::validateInput() {
     
@@ -151,4 +159,32 @@ void kat::InputHandler::dump(const path& outputPath, uint16_t threads, bool verb
     }
     
     
+}
+
+vector<path> kat::InputHandler::globFiles(const path& input) {
+
+    vector<path> inputvec;
+    inputvec.push_back(input);    
+    return globFiles(inputvec);
+}
+
+vector<path> kat::InputHandler::globFiles(const vector<path>& input) {
+
+    glob_t globbuf;
+
+    // Translate glob patterns into real paths
+    int i = 0;
+    for(path g : input) {           
+        glob(g.c_str(), i > 0 ? GLOB_TILDE | GLOB_APPEND : GLOB_TILDE, NULL, &globbuf);
+        i++;
+    }
+
+    vector<path> transformed;
+    for( int i = 0; i < globbuf.gl_pathc; ++i )
+        transformed.push_back( path(globbuf.gl_pathv[i]) );
+
+    if( globbuf.gl_pathc > 0 )
+        globfree( &globbuf );
+
+    return transformed;
 }

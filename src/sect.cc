@@ -84,6 +84,15 @@ void kat::Sect::execute() {
     // Validate input
     input.validateInput();
     
+    // Create output directory
+    path parentDir = outputPrefix.parent_path();
+    if (!exists(parentDir) || !is_directory(parentDir)) {
+        if (!create_directories(parentDir)) {
+            BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
+                    "Could not create output directory: ") + parentDir.string()));
+        }
+    }
+    
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
         input.count(merLen, threads);
