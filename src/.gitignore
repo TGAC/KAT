@@ -5,3 +5,9 @@
 /kat
 /*.am.autosave
 /.deps/
+/.libs/
+/comp/
+/gcp/
+/hist/
+/plot/
+/sect/
