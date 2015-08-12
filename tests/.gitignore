@@ -1,7 +1,14 @@
 /.deps/
+/.libs/
 /*.log
 /*.o
 /*.trs
 /Makefile
 /check_comp
 /check_sect
+*.dirstamp
+/check_kat
+/check_jellyfish
+
+callgrind.out.*
+/check_spectrahelper

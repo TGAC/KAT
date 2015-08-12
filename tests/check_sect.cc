@@ -15,29 +15,30 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE KAT_SECT
+#define BOOST_TEST_LOG_LEVEL all
+#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
 
-#include <../src/sect/sect_args.hpp>
-#include <../src/sect/sect.hpp>
-#include <stdio.h>
-#define BOOST_TEST_MODULE SECT
-#include <boost/test/included/unit_test.hpp>
 
-using kat::SectArgs;
+
+#include "../src/sect.hpp"
 using kat::Sect;
 
-BOOST_AUTO_TEST_CASE( quick )
+BOOST_AUTO_TEST_SUITE( KAT_SECT )
+
+/*BOOST_AUTO_TEST_CASE( quick )
 {
-    SectArgs args;
-
-    args.seq_file = "data/sect_test.fa";
-    args.jellyfish_hash = "data/sect_test.fa.jf31_0";
-    args.output_prefix = "temp/sect_quick";
-    args.both_strands = true;
-    args.threads_arg = 1;
-
-    Sect<hash_query_t> sect(&args);
-
-    sect.do_it();
+    vector<path> inputs;
+    inputs.push_back("data/sect_test.fa.jf31_0");
+    
+    Sect sect(inputs, "data/sect_test.fa");
+    sect.setOutputPrefix("temp/sect_quick");
+    sect.setCanonical(true);
+    
+    sect.execute();
 
     BOOST_CHECK( true );
 
@@ -45,21 +46,18 @@ BOOST_AUTO_TEST_CASE( quick )
     remove("temp/sect_quick_counts.cvg");
     remove("temp/sect_quick_contamination.mx");
     remove("temp/sect_quick_stats.csv");
-}
+}*/
 
 BOOST_AUTO_TEST_CASE( length_check )
 {
-    SectArgs args;
+    vector<path> inputs;
+    inputs.push_back("data/ecoli.header.jf27");
+    
+    Sect sect(inputs, "data/sect_length_test.fa");
+    sect.setOutputPrefix("temp/sect_length");
+    sect.setCanonical(true);
 
-    args.seq_file = "data/sect_length_test.fa";
-    args.jellyfish_hash = "data/sect_test.fa.jf31_0";
-    args.output_prefix = "temp/sect_length";
-    args.both_strands = true;
-    args.threads_arg = 1;
-
-    Sect<hash_query_t> sect(&args);
-
-    sect.do_it();
+    sect.execute();
 
     BOOST_CHECK( true );
 
@@ -68,3 +66,5 @@ BOOST_AUTO_TEST_CASE( length_check )
     remove("temp/sect_length_contamination.mx");
     remove("temp/sect_length_stats.csv");
 }
+
+BOOST_AUTO_TEST_SUITE_END()

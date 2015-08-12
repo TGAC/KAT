@@ -15,28 +15,77 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
-#include <../src/comp/comp_args.hpp>
-#include <../src/comp/comp.hpp>
-#define BOOST_TEST_MODULE COMP
-#include <boost/test/included/unit_test.hpp>
+#define BOOST_TEST_MAIN
+#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MODULE KAT_COMP
+#define BOOST_TEST_LOG_LEVEL all
+#include <boost/test/unit_test.hpp>
+#include <boost/test/unit_test_log.hpp>
 
-using kat::CompArgs;
+#include <thread>
+using std::thread;
+
+#include <../src/comp.hpp>
 using kat::Comp;
+using kat::ThreadedCompCounters;
+using kat::CompCounters;
 
-BOOST_AUTO_TEST_CASE( COMP )
+BOOST_AUTO_TEST_SUITE( KAT_COMP )
+
+/*BOOST_AUTO_TEST_CASE( COMP1 )
 {
-    CompArgs args;
+    Comp comp("data/ecoli.header.jf27", "data/ecoli.header.2.jf27");
+    comp.setOutputPrefix("temp/comp_test");
+    
+    comp.execute();
 
-    args.db1_path = "data/comp_test_1.jf31_0";
-    args.db2_path = "data/comp_test_2.jf31_0";
-    args.output_prefix = "temp/comp_test";
-    args.threads = 1;
-
-    Comp<hash_query_t> comp(&args);
-
-    comp.do_it();
-
-    SparseMatrix<uint64_t>* results = comp.getMainMatrix();
+    SM64 results = comp.getMainMatrix();
 
     BOOST_CHECK( true );
+}*/
+
+void addTcc(ThreadedCompCounters& tcc) {
+    shared_ptr<CompCounters> cc = make_shared<CompCounters>();
+    
+    cc->updateHash1Counters(10, 2);
+    cc->updateHash1Counters(20, 4);
+    cc->updateHash2Counters(0, 3);
+    
+    tcc.add(cc);
 }
+
+BOOST_AUTO_TEST_CASE( THREADED_COUNTERS )
+{
+    const uint16_t threads = 2;
+    
+    ThreadedCompCounters tcc("path1", "path2", "path3");
+    
+    shared_ptr<CompCounters> cc1 = make_shared<CompCounters>();
+    
+    cc1->updateHash1Counters(10, 2);
+    cc1->updateHash1Counters(20, 4);
+    cc1->updateHash2Counters(0, 3);
+    
+    tcc.add(cc1);
+    
+    shared_ptr<CompCounters> cc2 = make_shared<CompCounters>();
+    
+    cc2->updateHash1Counters(10, 2);
+    cc2->updateHash1Counters(20, 4);
+    cc2->updateHash2Counters(0, 3);
+    
+    tcc.add(cc2);
+    
+    tcc.merge();
+    
+    BOOST_CHECK( tcc.size() == 2 );
+    BOOST_CHECK( tcc.getFinalMatrix().hash1_path == path("path1"));
+    BOOST_CHECK( tcc.getThreadedMatrixAt(0).hash1_path == path("path1"));
+    BOOST_CHECK( tcc.getFinalMatrix().hash1_distinct == 4);
+    BOOST_CHECK( tcc.getThreadedMatrixAt(0).hash1_distinct == 2);
+    BOOST_CHECK( tcc.getThreadedMatrixAt(1).hash1_distinct == 2);
+    BOOST_CHECK( tcc.getFinalMatrix().hash1_total == 60);
+    
+}
+
+BOOST_AUTO_TEST_SUITE_END()

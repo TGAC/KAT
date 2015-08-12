@@ -30,3 +30,13 @@ Makefile.in
 /*.layout
 /nbproject/
 /kat-1.0.6/
+/libtool
+/kat
+/gcp/
+/hist/
+/comp/
+/sect/
+/plot/
+/.deps/
+/.libs/
+*.hpp
