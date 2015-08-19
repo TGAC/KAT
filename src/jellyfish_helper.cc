@@ -43,9 +43,6 @@ using jellyfish::large_hash::reprobe_limit_t;
 using jellyfish::Offsets;
 using jellyfish::quadratic_reprobes;
 
-
-#include <bits/stl_vector.h>
-
 #include "jellyfish_helper.hpp"
 using kat::JellyfishHelper;
 
