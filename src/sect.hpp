@@ -97,6 +97,8 @@ namespace kat {
         shared_ptr<vector<double>> coverages; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> gcs; // GC% for each sequence
         shared_ptr<vector<uint32_t>> lengths; // Length in nucleotides for each sequence
+        shared_ptr<vector<uint32_t>> nonZero;
+        shared_ptr<vector<double>> percentNonZero;
 
     public:
 

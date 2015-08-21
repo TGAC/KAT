@@ -167,7 +167,7 @@ void kat::Sect::processSeqFile() {
 
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
-    cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
+    cvg_gc_stream << "seq_name\tcoverage\tgc%\tseq_length\tnon_zero_bases\tpercent_covered" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
@@ -265,6 +265,8 @@ void kat::Sect::destroyBatchVars() {
     coverages->clear();
     gcs->clear();
     lengths->clear();
+    nonZero->clear();
+    percentNonZero->clear();
 }
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
@@ -272,10 +274,12 @@ void kat::Sect::createBatchVars(uint16_t batchSize) {
     coverages = make_shared<vector<double>>(batchSize);
     gcs = make_shared<vector<double>>(batchSize);
     lengths = make_shared<vector<uint32_t>>(batchSize);
+    nonZero = make_shared<vector<uint32_t>>(batchSize);
+    percentNonZero = make_shared<vector<double>>(batchSize);
 }
 
 void kat::Sect::printCounts(std::ostream &out) {
-    for (int i = 0; i < recordsInBatch; i++) {
+    for (uint32_t i = 0; i < recordsInBatch; i++) {
         out << ">" << seqan::toCString(names[i]) << endl;
 
         shared_ptr<vector<uint64_t>> seqCounts = counts->at(i);
@@ -295,8 +299,13 @@ void kat::Sect::printCounts(std::ostream &out) {
 }
 
 void kat::Sect::printStatTable(std::ostream &out) {
-    for (int i = 0; i < recordsInBatch; i++) {
-        out << names[i] << " " << (*coverages)[i] << " " << (*gcs)[i] << " " << (*lengths)[i] << endl;
+    for (uint32_t i = 0; i < recordsInBatch; i++) {
+        out     << names[i] << "\t" 
+                << (*coverages)[i] << "\t" 
+                << (*gcs)[i] << "\t" 
+                << (*lengths)[i] << "\t" 
+                << (*nonZero)[i] << "\t" 
+                << std::fixed << std::setprecision(5) << (*percentNonZero)[i] << endl;
     }
 }
 
@@ -375,7 +384,8 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     uint64_t seqLength = seq.length();
     uint64_t nbCounts = seqLength - merLen + 1;
     double average_cvg = 0.0;
-
+    uint64_t nbNonZero = 0;
+    
     if (seqLength < merLen) {
 
         cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
@@ -402,6 +412,8 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
         }
 
         (*counts)[index] = seqCounts;
+        
+        if (seqCounts != 0) nbNonZero++;
 
         if (median) {
 
@@ -420,6 +432,8 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
     // Add length
     (*lengths)[index] = seqLength;
+    (*nonZero)[index] = nbNonZero;
+    (*percentNonZero)[index] = (double)nbNonZero / (double)seqLength;
 
     // Calc GC%
     uint64_t gs = 0;
