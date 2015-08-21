@@ -77,7 +77,6 @@ namespace kat {
         uint16_t        threads;
         uint16_t        merLen;
         bool            noCountStats;
-        bool            median;
         bool            verbose;
             
         // Chunking vars
@@ -94,7 +93,8 @@ namespace kat {
         seqan::StringSet<seqan::CharString> names;
         seqan::StringSet<seqan::CharString> seqs;
         shared_ptr<vector<shared_ptr<vector<uint64_t>>>> counts; // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
-        shared_ptr<vector<double>> coverages; // Overall coverage calculated for each sequence from the K-mer windows.
+        shared_ptr<vector<uint32_t>> medians; // Overall coverage calculated for each sequence from the K-mer windows.
+        shared_ptr<vector<double>> means; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> gcs; // GC% for each sequence
         shared_ptr<vector<uint32_t>> lengths; // Length in nucleotides for each sequence
         shared_ptr<vector<uint32_t>> nonZero;
@@ -145,14 +145,6 @@ namespace kat {
 
         void setGcBins(uint16_t gc_bins) {
             this->gcBins = gc_bins;
-        }
-
-        bool isMedian() const {
-            return median;
-        }
-
-        void setMedian(bool median) {
-            this->median = median;
         }
 
         bool isNoCountStats() const {

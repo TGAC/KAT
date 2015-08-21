@@ -65,7 +65,6 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     threads = 1;
     merLen = DEFAULT_MER_LEN;
     noCountStats = false;
-    median = true;
     verbose = false;
     contamination_mx = nullptr;
 }
@@ -167,7 +166,7 @@ void kat::Sect::processSeqFile() {
 
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
-    cvg_gc_stream << "seq_name\tcoverage\tgc%\tseq_length\tnon_zero_bases\tpercent_covered" << endl;
+    cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tnon_zero_bases\tpercent_covered" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
@@ -262,7 +261,8 @@ void kat::Sect::destroyBatchVars() {
         counts->at(i)->clear();
     }
     counts->clear();            
-    coverages->clear();
+    medians->clear();
+    means->clear();
     gcs->clear();
     lengths->clear();
     nonZero->clear();
@@ -271,7 +271,8 @@ void kat::Sect::destroyBatchVars() {
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
     counts = make_shared<vector<shared_ptr<vector<uint64_t>>>>(batchSize);
-    coverages = make_shared<vector<double>>(batchSize);
+    medians = make_shared<vector<uint32_t>>(batchSize);
+    means = make_shared<vector<double>>(batchSize);
     gcs = make_shared<vector<double>>(batchSize);
     lengths = make_shared<vector<uint32_t>>(batchSize);
     nonZero = make_shared<vector<uint32_t>>(batchSize);
@@ -299,13 +300,17 @@ void kat::Sect::printCounts(std::ostream &out) {
 }
 
 void kat::Sect::printStatTable(std::ostream &out) {
+    
+    out << std::fixed << std::setprecision(5);
+    
     for (uint32_t i = 0; i < recordsInBatch; i++) {
-        out     << names[i] << "\t" 
-                << (*coverages)[i] << "\t" 
-                << (*gcs)[i] << "\t" 
-                << (*lengths)[i] << "\t" 
-                << (*nonZero)[i] << "\t" 
-                << std::fixed << std::setprecision(5) << (*percentNonZero)[i] << endl;
+        out << names[i] << "\t"
+            << (*medians)[i] << "\t" 
+            << (*means)[i] << "\t" 
+            << (*gcs)[i] << "\t" 
+            << (*lengths)[i] << "\t" 
+            << (*nonZero)[i] << "\t" 
+            << (*percentNonZero)[i] << endl;
     }
 }
 
@@ -408,26 +413,19 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
                 uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
                 sum += count;
                 (*seqCounts)[i] = count;
+                if (count != 0) nbNonZero++;
             }
         }
 
         (*counts)[index] = seqCounts;
         
-        if (seqCounts != 0) nbNonZero++;
+        // Create a copy of the counts, and sort it first, then take median value
+        vector<uint64_t> sortedSeqCounts = *seqCounts;                    
+        std::sort(sortedSeqCounts.begin(), sortedSeqCounts.end());
+        (*medians)[index] = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);                    
 
-        if (median) {
-
-            // Create a copy of the counts, and sort it first, then take median value
-            vector<uint64_t> sortedSeqCounts = *seqCounts;                    
-            std::sort(sortedSeqCounts.begin(), sortedSeqCounts.end());
-            average_cvg = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);                    
-        }
-        else {
-            // Calculate the mean
-            average_cvg = (double)sum / (double)nbCounts;                    
-        }
-
-        (*coverages)[index] = average_cvg;
+        // Calculate the mean
+        (*means)[index] = (double)sum / (double)nbCounts;                    
     }
 
     // Add length
@@ -479,7 +477,6 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            no_count_stats;
-    bool            mean;
     bool            dump_hash;
     bool            verbose;
     bool            help;
@@ -505,8 +502,6 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("no_count_stats,n", po::bool_switch(&no_count_stats)->default_value(false),
                 "Tells SECT not to output count stats.  Sometimes when using SECT on read files the output can get very large.  When flagged this just outputs summary stats for each sequence.")
-            ("mean", po::bool_switch(&mean)->default_value(false),
-                "When calculating average sequence coverage, use mean rather than the median kmer frequency.")   
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
                         "Dumps any jellyfish hashes to disk that were produced during this run.") 
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
@@ -561,7 +556,6 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
-    sect.setMedian(!mean);
     sect.setDumpHash(dump_hash);
     sect.setVerbose(verbose);
 
