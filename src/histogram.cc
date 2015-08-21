@@ -80,9 +80,9 @@ void kat::Histogram::execute() {
     input.validateInput();
     
     // Create output directory
-    path parentDir = outputPrefix.parent_path();
-    if (!exists(parentDir) || !is_directory(parentDir)) {
-        if (!create_directories(parentDir)) {
+    path parentDir = bfs::canonical(outputPrefix.parent_path());
+    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
+        if (!bfs::create_directories(parentDir)) {
             BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
                     "Could not create output directory: ") + parentDir.string()));
         }

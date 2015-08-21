@@ -44,11 +44,11 @@ AS_IF([test "x$with_sse" != xno],
       [])
 
 # Use valgrind to check memory allocation with mmap
-AC_ARG_ENABLE([valgrind],
-              [AS_HELP_STRING([--enable-valgrind], [Instrument mmap memory allocation with valgrind])])
-AS_IF([test "x$enable_valgrind" = xyes],
-      [AC_DEFINE([HAVE_VALGRIND], [1], [Define is using Valgrind])]
-      [PKG_CHECK_MODULES([VALGRIND], [valgrind >= 1.8.0])])
+#AC_ARG_ENABLE([valgrind],
+#              [AS_HELP_STRING([--enable-valgrind], [Instrument mmap memory allocation with valgrind])])
+#AS_IF([test "x$enable_valgrind" = xyes],
+#      [AC_DEFINE([HAVE_VALGRIND], [1], [Define is using Valgrind])]
+#      [PKG_CHECK_MODULES([VALGRIND], [valgrind >= 1.8.0])])
 
 # Check that type __int128 is supported and if the
 # std::numeric_limits<__int128> specialization exists
