@@ -279,7 +279,7 @@ void kat::Comp::execute() {
     }
     
     // Create output directory
-    path parentDir = bfs::canonical(outputPrefix).parent_path();
+    path parentDir = bfs::absolute(outputPrefix).parent_path();
     if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
         if (!bfs::create_directories(parentDir)) {
             BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
