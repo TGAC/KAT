@@ -65,7 +65,6 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     threads = 1;
     merLen = DEFAULT_MER_LEN;
     noCountStats = false;
-    median = true;
     verbose = false;
     contamination_mx = nullptr;
 }
@@ -85,9 +84,9 @@ void kat::Sect::execute() {
     input.validateInput();
     
     // Create output directory
-    path parentDir = outputPrefix.parent_path();
-    if (!exists(parentDir) || !is_directory(parentDir)) {
-        if (!create_directories(parentDir)) {
+    path parentDir = bfs::absolute(outputPrefix).parent_path();
+    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
+        if (!bfs::create_directories(parentDir)) {
             BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
                     "Could not create output directory: ") + parentDir.string()));
         }
@@ -146,7 +145,7 @@ void kat::Sect::processSeqFile() {
     recordsInBatch = 0;
 
     names = seqan::StringSet<seqan::CharString>();
-    seqs = seqan::StringSet<seqan::Dna5String>();
+    seqs = seqan::StringSet<seqan::CharString>();
     
     // Open file, create RecordReader and check all is well
     seqan::SeqFileIn reader(seqFile.c_str());
@@ -167,7 +166,7 @@ void kat::Sect::processSeqFile() {
 
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
-    cvg_gc_stream << "seq_name coverage gc% seq_length" << endl;
+    cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tnon_zero_bases\tpercent_covered" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
@@ -262,20 +261,26 @@ void kat::Sect::destroyBatchVars() {
         counts->at(i)->clear();
     }
     counts->clear();            
-    coverages->clear();
+    medians->clear();
+    means->clear();
     gcs->clear();
     lengths->clear();
+    nonZero->clear();
+    percentNonZero->clear();
 }
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
     counts = make_shared<vector<shared_ptr<vector<uint64_t>>>>(batchSize);
-    coverages = make_shared<vector<double>>(batchSize);
+    medians = make_shared<vector<uint32_t>>(batchSize);
+    means = make_shared<vector<double>>(batchSize);
     gcs = make_shared<vector<double>>(batchSize);
     lengths = make_shared<vector<uint32_t>>(batchSize);
+    nonZero = make_shared<vector<uint32_t>>(batchSize);
+    percentNonZero = make_shared<vector<double>>(batchSize);
 }
 
 void kat::Sect::printCounts(std::ostream &out) {
-    for (int i = 0; i < recordsInBatch; i++) {
+    for (uint32_t i = 0; i < recordsInBatch; i++) {
         out << ">" << seqan::toCString(names[i]) << endl;
 
         shared_ptr<vector<uint64_t>> seqCounts = counts->at(i);
@@ -295,8 +300,17 @@ void kat::Sect::printCounts(std::ostream &out) {
 }
 
 void kat::Sect::printStatTable(std::ostream &out) {
-    for (int i = 0; i < recordsInBatch; i++) {
-        out << names[i] << " " << (*coverages)[i] << " " << (*gcs)[i] << " " << (*lengths)[i] << endl;
+    
+    out << std::fixed << std::setprecision(5);
+    
+    for (uint32_t i = 0; i < recordsInBatch; i++) {
+        out << names[i] << "\t"
+            << (*medians)[i] << "\t" 
+            << (*means)[i] << "\t" 
+            << (*gcs)[i] << "\t" 
+            << (*lengths)[i] << "\t" 
+            << (*nonZero)[i] << "\t" 
+            << (*percentNonZero)[i] << endl;
     }
 }
 
@@ -345,11 +359,27 @@ void kat::Sect::processInterlaced(uint16_t th_id) {
     }
 }
 
+bool validKmer(const string& merstr) {
+    for(uint32_t i = 0; i < merstr.size(); i++) {        
+        switch(merstr[i]) {
+            case 'A':
+            case 'T':
+            case 'G':
+            case 'C':
+                break;
+            default:
+                return false;
+        }
+    }
+    
+    return true;
+}
+
 void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
     // There's no substring functionality in SeqAn in this version (2.0.0).  So we'll just
     // use regular c++ string's for this bit.  This conversion of strings:
-    // {Dna5String -> c++ string -> substring -> jellyfish mer_dna} is 
+    // {CharString -> c++ string -> substring -> jellyfish mer_dna} is 
     // inefficient. Reducing the number of conversions necessary will 
     // make a big performance improvement here
     stringstream ssSeq;
@@ -359,7 +389,8 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     uint64_t seqLength = seq.length();
     uint64_t nbCounts = seqLength - merLen + 1;
     double average_cvg = 0.0;
-
+    uint64_t nbNonZero = 0;
+    
     if (seqLength < merLen) {
 
         cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
@@ -375,38 +406,32 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
             string merstr = seq.substr(i, merLen);
 
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
-            if (merstr.find("N") != string::npos) {
+            if (!validKmer(merstr)) {
                 (*seqCounts)[i] = 0;
-            } else {
+            } else {                
                 mer_dna mer(merstr);
                 uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
                 sum += count;
-                
-                //cout << merstr << " " << count << endl;
-
                 (*seqCounts)[i] = count;
+                if (count != 0) nbNonZero++;
             }
         }
 
         (*counts)[index] = seqCounts;
+        
+        // Create a copy of the counts, and sort it first, then take median value
+        vector<uint64_t> sortedSeqCounts = *seqCounts;                    
+        std::sort(sortedSeqCounts.begin(), sortedSeqCounts.end());
+        (*medians)[index] = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);                    
 
-        if (median) {
-
-            // Create a copy of the counts, and sort it first, then take median value
-            vector<uint64_t> sortedSeqCounts = *seqCounts;                    
-            std::sort(sortedSeqCounts.begin(), sortedSeqCounts.end());
-            average_cvg = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);                    
-        }
-        else {
-            // Calculate the mean
-            average_cvg = (double)sum / (double)nbCounts;                    
-        }
-
-        (*coverages)[index] = average_cvg;
+        // Calculate the mean
+        (*means)[index] = (double)sum / (double)nbCounts;                    
     }
 
     // Add length
     (*lengths)[index] = seqLength;
+    (*nonZero)[index] = nbNonZero;
+    (*percentNonZero)[index] = (double)nbNonZero / (double)seqLength;
 
     // Calc GC%
     uint64_t gs = 0;
@@ -452,7 +477,6 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            no_count_stats;
-    bool            mean;
     bool            dump_hash;
     bool            verbose;
     bool            help;
@@ -478,8 +502,6 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("no_count_stats,n", po::bool_switch(&no_count_stats)->default_value(false),
                 "Tells SECT not to output count stats.  Sometimes when using SECT on read files the output can get very large.  When flagged this just outputs summary stats for each sequence.")
-            ("mean", po::bool_switch(&mean)->default_value(false),
-                "When calculating average sequence coverage, use mean rather than the median kmer frequency.")   
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
                         "Dumps any jellyfish hashes to disk that were produced during this run.") 
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
@@ -534,7 +556,6 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
-    sect.setMedian(!mean);
     sect.setDumpHash(dump_hash);
     sect.setVerbose(verbose);
 
