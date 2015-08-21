@@ -70,7 +70,7 @@ void kat::Gcp::execute() {
     input.validateInput();
     
     // Create output directory
-    path parentDir = bfs::canonical(outputPrefix.parent_path());
+    path parentDir = bfs::canonical(outputPrefix).parent_path();
     if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
         if (!bfs::create_directories(parentDir)) {
             BOOST_THROW_EXCEPTION(GcpException() << GcpErrorInfo(string(

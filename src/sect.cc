@@ -85,7 +85,7 @@ void kat::Sect::execute() {
     input.validateInput();
     
     // Create output directory
-    path parentDir = bfs::canonical(outputPrefix.parent_path());
+    path parentDir = bfs::canonical(outputPrefix).parent_path();
     if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
         if (!bfs::create_directories(parentDir)) {
             BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
@@ -146,7 +146,7 @@ void kat::Sect::processSeqFile() {
     recordsInBatch = 0;
 
     names = seqan::StringSet<seqan::CharString>();
-    seqs = seqan::StringSet<seqan::Dna5String>();
+    seqs = seqan::StringSet<seqan::CharString>();
     
     // Open file, create RecordReader and check all is well
     seqan::SeqFileIn reader(seqFile.c_str());
