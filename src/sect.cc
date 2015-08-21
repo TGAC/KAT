@@ -345,6 +345,22 @@ void kat::Sect::processInterlaced(uint16_t th_id) {
     }
 }
 
+bool validKmer(const string& merstr) {
+    for(uint32_t i = 0; i < merstr.size(); i++) {        
+        switch(merstr[i]) {
+            case 'A':
+            case 'T':
+            case 'G':
+            case 'C':
+                break;
+            default:
+                return false;
+        }
+    }
+    
+    return true;
+}
+
 void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
     // There's no substring functionality in SeqAn in this version (2.0.0).  So we'll just
@@ -375,15 +391,12 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
             string merstr = seq.substr(i, merLen);
 
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
-            if (merstr.find("N") != string::npos) {
+            if (!validKmer(merstr)) {
                 (*seqCounts)[i] = 0;
-            } else {
+            } else {                
                 mer_dna mer(merstr);
                 uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
                 sum += count;
-                
-                //cout << merstr << " " << count << endl;
-
                 (*seqCounts)[i] = count;
             }
         }
