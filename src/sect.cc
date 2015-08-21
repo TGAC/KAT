@@ -365,7 +365,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
     // There's no substring functionality in SeqAn in this version (2.0.0).  So we'll just
     // use regular c++ string's for this bit.  This conversion of strings:
-    // {Dna5String -> c++ string -> substring -> jellyfish mer_dna} is 
+    // {CharString -> c++ string -> substring -> jellyfish mer_dna} is 
     // inefficient. Reducing the number of conversions necessary will 
     // make a big performance improvement here
     stringstream ssSeq;

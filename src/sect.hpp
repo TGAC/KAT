@@ -92,7 +92,7 @@ namespace kat {
 
         // Variables that are refreshed for each batch
         seqan::StringSet<seqan::CharString> names;
-        seqan::StringSet<seqan::Dna5String> seqs;
+        seqan::StringSet<seqan::CharString> seqs;
         shared_ptr<vector<shared_ptr<vector<uint64_t>>>> counts; // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
         shared_ptr<vector<double>> coverages; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> gcs; // GC% for each sequence
