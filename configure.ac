@@ -76,15 +76,10 @@ AC_CHECK_HEADERS([glob.h])
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
 # Check for gnuplot on path.  Just emit a warning if not present.
-AC_CHECK_PROG(
-    [gnuplot_found], 
-    [gnuplot],
-    [yes], 
-    [no]
-)
+AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
 
-if test x"${gnuplot_found}" == x"no" ; then
-    AC_MSG_WARN([WARNING!!! Gnuplot not detected.  Gnuplot is required at KAT runtime in order to produce plots, although KAT will still work (minus plots) without it.])
+if test x"${gnuplot_found}" = x"no"; then
+    AC_MSG_WARN([Gnuplot not detected.  Gnuplot is required at KAT runtime in order to produce plots, although KAT will still work (minus plots) without it.])
 fi
 
 
