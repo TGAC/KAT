@@ -58,7 +58,7 @@ namespace kat {
         void loadHash(bool verbose);
         void dump(const path& outputPath, uint16_t threads, bool verbose);
         
-        static vector<path> globFiles(const path& input);
+        static vector<path> globFiles(const string& input);
         static vector<path> globFiles(const vector<path>& input);
     };
     

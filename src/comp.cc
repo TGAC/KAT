@@ -674,9 +674,9 @@ void kat::Comp::plot() {
 
 int kat::Comp::main(int argc, char *argv[]) {
 
-    path input1;
-    path input2;
-    path input3;
+    string input1;
+    string input2;
+    string input3;
     path output_prefix;
     double d1_scale;
     double d2_scale;
@@ -743,9 +743,9 @@ int kat::Comp::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("input_1,i1", po::value<path>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-            ("input_2,i2", po::value<path>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-            ("input_3,i3", po::value<path>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_1,i1", po::value<string>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_2,i2", po::value<string>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_3,i3", po::value<string>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
             ;
 
     // Positional option for the input bam file
