@@ -20,9 +20,11 @@
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/timer/timer.hpp>
+#include <boost/algorithm/string.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::timer::auto_cpu_timer;
+using boost::split;
 
 #include "input_handler.hpp"
 using kat::JellyfishHelper;
@@ -161,11 +163,17 @@ void kat::InputHandler::dump(const path& outputPath, uint16_t threads, bool verb
     
 }
 
-vector<path> kat::InputHandler::globFiles(const path& input) {
+vector<path> kat::InputHandler::globFiles(const string& input) {
 
-    vector<path> inputvec;
-    inputvec.push_back(input);    
-    return globFiles(inputvec);
+    vector<string> inputvec;
+    boost::split(inputvec, input, boost::is_any_of(" "));    
+    
+    vector<path> pathvec;
+    for(auto& s : inputvec) {
+        pathvec.push_back(s);
+    }
+    
+    return globFiles(pathvec);
 }
 
 vector<path> kat::InputHandler::globFiles(const vector<path>& input) {
