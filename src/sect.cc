@@ -391,10 +391,15 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     double average_cvg = 0.0;
     uint64_t nbNonZero = 0;
     
-    if (seqLength < merLen) {
+    if (nbCounts <= 0) {
 
         cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
                 << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
+        
+        (*counts)[index] = 0;
+        (*medians)[index] = 0;
+        (*means)[index] = 0.0;
+        
     } else {
 
         shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
@@ -431,7 +436,9 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     // Add length
     (*lengths)[index] = seqLength;
     (*nonZero)[index] = nbNonZero;
-    (*percentNonZero)[index] = (double)nbNonZero / (double)seqLength;
+    (*percentNonZero)[index] = nbNonZero == 0 || nbCounts <= 0 ? 
+        0.0 : 
+        (double)nbNonZero / (double)(nbCounts);
 
     // Calc GC%
     uint64_t gs = 0;
