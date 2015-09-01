@@ -438,7 +438,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     (*nonZero)[index] = nbNonZero;
     (*percentNonZero)[index] = nbNonZero == 0 || nbCounts <= 0 ? 
         0.0 : 
-        (double)nbNonZero / (double)(nbCounts);
+        ((double)nbNonZero / (double)(nbCounts)) * 100.0;
 
     // Calc GC%
     uint64_t gs = 0;
