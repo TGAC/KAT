@@ -393,8 +393,9 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     
     if (nbCounts <= 0) {
 
-        cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
-                << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
+        // Can't analyse this sequence because it's too short
+        //cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
+        //       << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
         
         (*counts)[index] = 0;
         (*medians)[index] = 0;
