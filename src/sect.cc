@@ -397,7 +397,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
         //cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
         //       << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
         
-        (*counts)[index] = 0;
+        (*counts)[index] = make_shared<vector<uint64_t>>();
         (*medians)[index] = 0;
         (*means)[index] = 0.0;
         
