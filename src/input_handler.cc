@@ -38,12 +38,25 @@ void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
 void kat::InputHandler::validateInput() {
     
     bool start = true;
+    
     // Check input file(s) exists
     for(path& rp : input) {
-        path p = bfs::canonical(rp);
-        if (!bfs::exists(p) && !bfs::symbolic_link_exists(p)) {
+        
+        path p = rp;
+        
+        if (bfs::is_symlink(rp)) {
+            if (bfs::symbolic_link_exists(rp)) {
+                p = bfs::canonical(rp);
+            }
+            else {
+                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
+                    "Could not find input file at: ") + rp.string() + "; please check the path and try again."));
+            }
+        }
+        
+        if (!bfs::exists(p)) {
             BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Could not find input file ") + lexical_cast<string>(index) + " at: " + p.string() + "; please check the path and try again."));
+                    "Could not find input file at: ") + rp.string() + "; please check the path and try again."));
         }
         
         InputMode m = JellyfishHelper::isSequenceFile(p) ? InputMode::COUNT : InputMode::LOAD;
@@ -56,8 +69,7 @@ void kat::InputHandler::validateInput() {
                 BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
                     "Cannot mix sequence files and jellyfish hashes.  Input: ") + p.string()));
             }
-        }        
-        
+        }
     }
     
     
@@ -194,5 +206,12 @@ vector<path> kat::InputHandler::globFiles(const vector<path>& input) {
     if( globbuf.gl_pathc > 0 )
         globfree( &globbuf );
 
+    // Check for content.  If there isn't any then probably the input file doesn't
+    // exist.  But we add the basic input regardless, the user will have to check
+    // for file non-existence later.
+    if (transformed.empty()) {
+        transformed.push_back(path(input[0]));
+    }
+    
     return transformed;
 }

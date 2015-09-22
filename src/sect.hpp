@@ -99,6 +99,10 @@ namespace kat {
         shared_ptr<vector<uint32_t>> lengths; // Length in nucleotides for each sequence
         shared_ptr<vector<uint32_t>> nonZero;
         shared_ptr<vector<double>> percentNonZero;
+        shared_ptr<vector<uint32_t>> invalid;
+        shared_ptr<vector<double>> percentInvalid;
+        shared_ptr<vector<double>> percentNonZeroCorrected;
+        
 
     public:
 

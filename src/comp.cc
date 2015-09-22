@@ -277,7 +277,7 @@ void kat::Comp::execute() {
     for(uint16_t i = 0; i < input.size(); i++) {
         input[i].validateInput();
     }
-    
+        
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
     if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {

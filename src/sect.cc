@@ -166,7 +166,7 @@ void kat::Sect::processSeqFile() {
 
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
-    cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tnon_zero_bases\tpercent_covered" << endl;
+    cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tinvalid_bases\t%_invalid\tnon_zero_bases\t%_non_zero\t%_non_zero_corrected" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
@@ -265,8 +265,12 @@ void kat::Sect::destroyBatchVars() {
     means->clear();
     gcs->clear();
     lengths->clear();
+    invalid->clear();
+    percentInvalid->clear();
     nonZero->clear();
     percentNonZero->clear();
+    percentNonZeroCorrected->clear();
+    
 }
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
@@ -275,8 +279,11 @@ void kat::Sect::createBatchVars(uint16_t batchSize) {
     means = make_shared<vector<double>>(batchSize);
     gcs = make_shared<vector<double>>(batchSize);
     lengths = make_shared<vector<uint32_t>>(batchSize);
+    invalid = make_shared<vector<uint32_t>>(batchSize);
+    percentInvalid = make_shared<vector<double>>(batchSize);
     nonZero = make_shared<vector<uint32_t>>(batchSize);
     percentNonZero = make_shared<vector<double>>(batchSize);
+    percentNonZeroCorrected = make_shared<vector<double>>(batchSize);    
 }
 
 void kat::Sect::printCounts(std::ostream &out) {
@@ -309,8 +316,11 @@ void kat::Sect::printStatTable(std::ostream &out) {
             << (*means)[i] << "\t" 
             << (*gcs)[i] << "\t" 
             << (*lengths)[i] << "\t" 
-            << (*nonZero)[i] << "\t" 
-            << (*percentNonZero)[i] << endl;
+            << (*invalid)[i] << "\t"
+            << (*percentInvalid)[i] << "\t"
+            << (*nonZero)[i] << "\t"
+            << (*percentNonZero)[i] << "\t"
+            << (*percentNonZeroCorrected)[i] << endl;
     }
 }
 
@@ -390,11 +400,18 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     uint64_t nbCounts = seqLength - merLen + 1;
     double average_cvg = 0.0;
     uint64_t nbNonZero = 0;
+    uint64_t nbInvalid = 0;
     
-    if (seqLength < merLen) {
+    if (nbCounts <= 0) {
 
-        cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
-                << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
+        // Can't analyse this sequence because it's too short
+        //cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
+        //       << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
+        
+        (*counts)[index] = make_shared<vector<uint64_t>>();
+        (*medians)[index] = 0;
+        (*means)[index] = 0.0;
+        
     } else {
 
         shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
@@ -408,6 +425,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
             if (!validKmer(merstr)) {
                 (*seqCounts)[i] = 0;
+                nbInvalid++;
             } else {                
                 mer_dna mer(merstr);
                 uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
@@ -431,8 +449,20 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     // Add length
     (*lengths)[index] = seqLength;
     (*nonZero)[index] = nbNonZero;
-    (*percentNonZero)[index] = (double)nbNonZero / (double)seqLength;
-
+    (*percentNonZero)[index] = nbNonZero == 0 || nbCounts <= 0 ? 
+        0.0 : 
+        ((double)nbNonZero / (double)nbCounts) * 100.0;
+    (*invalid)[index] = nbInvalid;
+    (*percentInvalid)[index] = nbInvalid == 0 || nbCounts <= 0 ?
+        0.0 :
+        ((double)nbInvalid / (double)nbCounts) * 100.0;
+    
+    uint64_t notInvalid = nbCounts - nbInvalid;
+    (*percentNonZeroCorrected)[index] = nbNonZero == 0 || notInvalid <= 0 ?
+        0.0 :
+        ((double)nbNonZero / (double)notInvalid) * 100.0;
+    
+    
     // Calc GC%
     uint64_t gs = 0;
     uint64_t cs = 0;
