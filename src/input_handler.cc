@@ -31,7 +31,7 @@ using kat::JellyfishHelper;
 
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
     for(path p : inputs) {
-        input.push_back(p);
+        input.push_back(make_shared<path>(p));      
     }
 }
 
@@ -40,23 +40,23 @@ void kat::InputHandler::validateInput() {
     bool start = true;
     
     // Check input file(s) exists
-    for(path& rp : input) {
+    for(auto& rp : input) {
+    
+        path p = *rp;
         
-        path p = rp;
-        
-        if (bfs::is_symlink(rp)) {
-            if (bfs::symbolic_link_exists(rp)) {
-                p = bfs::canonical(rp);
+        if (bfs::is_symlink(p)) {
+            if (bfs::symbolic_link_exists(p)) {
+                p = bfs::canonical(p);
             }
             else {
                 BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Could not find input file at: ") + rp.string() + "; please check the path and try again."));
+                    "Could not find input file at: ") + p.string() + "; please check the path and try again."));
             }
         }
         
         if (!bfs::exists(p)) {
             BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Could not find input file at: ") + rp.string() + "; please check the path and try again."));
+                    "Could not find input file at: ") + p.string() + "; please check the path and try again."));
         }
         
         InputMode m = JellyfishHelper::isSequenceFile(p) ? InputMode::COUNT : InputMode::LOAD;
@@ -77,7 +77,7 @@ void kat::InputHandler::validateInput() {
 
 void kat::InputHandler::loadHeader() {
     if (mode == InputMode::LOAD) {
-        header = JellyfishHelper::loadHashHeader(input[0]);
+        header = JellyfishHelper::loadHashHeader(*input[0]);
     }    
 }
 
@@ -91,7 +91,7 @@ void kat::InputHandler::validateMerLen(uint16_t merLen) {
                 lexical_cast<string>(merLen) + 
                 ".  Key length was " + 
                 lexical_cast<string>(header->key_len() / 2) + 
-                " for : " + input[0].string()));
+                " for : " + input[0]->string()));
         }
     }
 }
@@ -99,8 +99,8 @@ void kat::InputHandler::validateMerLen(uint16_t merLen) {
 string kat::InputHandler::pathString() {
     
     string s;
-    for(path& p : input) {
-        s += p.string() + " ";
+    for(auto& p : input) {
+        s += p->string() + " ";
     }
     return s;
 }
@@ -139,7 +139,7 @@ void kat::InputHandler::loadHash(bool verbose) {
     }
     
     hashLoader = make_shared<HashLoader>();
-    hashLoader->loadHash(input[0], false); 
+    hashLoader->loadHash(*input[0], false); 
     hash = hashLoader->getHash();
     canonical = hashLoader->getCanonical();
     

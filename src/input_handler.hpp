@@ -35,7 +35,7 @@ namespace kat {
         };
         
         uint16_t index;
-        vector<path> input;
+        vector<shared_ptr<path>> input;
         InputMode mode = InputMode::COUNT;
         bool canonical = false;
         uint64_t hashSize = DEFAULT_HASH_SIZE;
@@ -46,9 +46,9 @@ namespace kat {
         LargeHashArrayPtr hash = nullptr;
         shared_ptr<file_header> header;         // Only applicable if loaded
 
-        void setSingleInput(path p) { input.clear(); input.push_back(p); }
+        void setSingleInput(path p) { input.clear(); input.push_back(make_shared<path>(p)); }
         void setMultipleInputs(const vector<path>& inputs);
-        path getSingleInput() { return input[0]; }
+        path getSingleInput() { return *input[0]; }
         string pathString();
         void validateInput();   // Throws if input is not present.  Sets input mode.
         void loadHeader();

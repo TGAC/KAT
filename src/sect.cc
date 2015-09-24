@@ -55,7 +55,7 @@ using boost::lexical_cast;
 #include "sect.hpp"
 
 kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
-    input.input = _counts_files;
+    input.setMultipleInputs(_counts_files);
     input.index = 1;
     seqFile = _seq_file;
     outputPrefix = "kat-sect";
