@@ -787,7 +787,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     vector<path> vecinput2 = InputHandler::globFiles(input2);
 
     vector<path> vecinput3;
-    if ( input3 != "" ){
+    if ( !input3.empty() ){
         vecinput3 = InputHandler::globFiles(input3);
     }
     

@@ -51,7 +51,7 @@ using kat::PlotSpectraHist;
 
 kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc) {
     
-    input.input = _inputs;
+    input.setMultipleInputs(_inputs);
     input.index = 1;
     outputPrefix = "kat-hist";
     low = _low;

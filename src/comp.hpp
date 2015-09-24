@@ -221,11 +221,11 @@ namespace kat {
         }
 
         path getInput(uint16_t index) const {
-            return input[index].input[0];
+            return *(input[index].input[0]);
         }
 
         void setInput(uint16_t index, path input) {
-            this->input[index].input[0] = input;
+            this->input[index].input[0] = make_shared<path>(input);
         }
 
         uint8_t getMerLen() const {

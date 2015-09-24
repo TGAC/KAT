@@ -55,7 +55,7 @@ using kat::PlotDensity;
     
 kat::Gcp::Gcp(vector<path>& _inputs) {
     
-    input.input = _inputs;
+    input.setMultipleInputs(_inputs);
     input.index = 1;
     outputPrefix = "kat-gcp";
     cvgScale = 1.0;

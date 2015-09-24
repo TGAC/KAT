@@ -146,8 +146,8 @@ namespace kat {
          * @return The hash array counter
          */
         static LargeHashArrayPtr countSeqFile(const path& p, HashCounter& hashCounter, bool canonical, uint16_t threads) {
-            vector<path> paths;
-            paths.push_back(p);
+            vector<shared_ptr<path>> paths;
+            paths.push_back(make_shared<path>(p));
             return countSeqFile(paths, hashCounter, canonical, threads);
         }
 
@@ -157,7 +157,7 @@ namespace kat {
          * @param seqFile Sequence file to count
          * @return The hash array counter
          */
-        static LargeHashArrayPtr countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads);
+        static LargeHashArrayPtr countSeqFile(const vector<shared_ptr<path>>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads);
 
         
         

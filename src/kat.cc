@@ -87,14 +87,13 @@ Mode parseMode(string mode) {
  const string helpMessage() {
      return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
                     "The First argument should be the tool/mode you wish to use:\n\n" \
-                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a fasta file using\n" \
-                    "             K-mers from a jellyfish hash.\n" \
-                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two jellyfish hashes.\n" \
+                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using\n" \
+                    "             K-mers from another sequence file.\n" \
+                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files.\n" \
                     "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
                     "             count.\n" \
-                    "   * hist:   Create an histogram of k-mer occurrences from a jellyfish hash.  Similar to jellyfish histogram\n" \
+                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to jellyfish histogram\n" \
                     "             sub command but adds metadata in output for easy plotting, also actually runs multi-threaded.\n" \
-                    "   * filter: Filter out kmers, or sequences containing kmers\n" \
                     "   * plot:   Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
                     "             Requires gnuplot.\n\n" \
                     "Options";
