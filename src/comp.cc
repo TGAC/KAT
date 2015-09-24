@@ -785,7 +785,11 @@ int kat::Comp::main(int argc, char *argv[]) {
     // Glob input files
     vector<path> vecinput1 = InputHandler::globFiles(input1);
     vector<path> vecinput2 = InputHandler::globFiles(input2);
-    vector<path> vecinput3 = InputHandler::globFiles(input3);
+
+    vector<path> vecinput3;
+    if ( input3 != "" ){
+        vecinput3 = InputHandler::globFiles(input3);
+    }
     
     // Create the sequence coverage object
     Comp comp(vecinput1, vecinput2, vecinput3);
