@@ -63,7 +63,7 @@ the command line: ```kat hist -C -m27 LIB_R1.fastq LIB_R2.fastq```
 Note, the KAT comp subtool takes 2 or three groups of inputs as positional arguments therefore we need to distinguish between the file groups.
 This is achieved by surrounding any glob patterns or file lists in single quotes.  For example, assuming we have LIB1_R1.fastq, LIB1_R2.fastq, 
 LIB2_R1.fastq, LIB2_R2.fastq in the current directory, and we want to compare LIB1 against LIB2, instead of catting the files together, we might 
-run either: ```kat comp -C -D 'LIB1_R?.fastq' 'LIB2_R?.fastq'```; or ```kat comp -C -D 'LIB1_R1.fastq LIB1_R2.fastq' 'LIB2_R1.fastq LIB2_R2.fastq'.
+run either: ```kat comp -C -D 'LIB1_R?.fastq' 'LIB2_R?.fastq'```; or ```kat comp -C -D 'LIB1_R1.fastq LIB1_R2.fastq' 'LIB2_R1.fastq LIB2_R2.fastq'```.
 Both commands do the same thing.
 
 
@@ -88,3 +88,7 @@ See AUTHORS file for more details.
 
 Affiliation: The Genome Analysis Centre (TGAC)
 Funding: The Biotechnology and Biological Sciences Research Council (BBSRC)
+
+We would also like to thank the authors of Jellyfish: https://github.com/gmarcais/Jellyfish; 
+and SeqAn: http://www.seqan.de/.  Both are embedded inside KAT.
+

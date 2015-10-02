@@ -40,3 +40,4 @@ Makefile.in
 /.deps/
 /.libs/
 *.hpp
+*.Makefile.am.swp
