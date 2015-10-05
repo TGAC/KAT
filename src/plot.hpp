@@ -47,6 +47,8 @@ namespace kat {
             SPECTRA_MX
         };
         
+        static bool validatePlotOutputType();
+        
         static int main(int argc, char *argv[]);
         
     protected:
@@ -57,8 +59,9 @@ namespace kat {
             return string("Usage: kat plot <mode>\n\n") +
                     "Create K-mer Plots\n\n" +
                     "First argument should be the plot mode you wish to use:\n" \
-                    "  * density:         Creates a density plot from a matrix created with the \"comp\" tool.  Typically this is\n" \
-                    "                     used to compare two K-mer hashes produced by different NGS reads.\n" \
+                    "  * density:         Creates a density plot from a matrix created with the \"comp\" tool or the \"GCP\"\n" \
+                    "                     tool.  Typically this is used to compare two K-mer hashes produced by different NGS\n" \
+                    "                     reads, or to represent the kmer coverage vs GC count plots.\n" \
                     "  * profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
                     "                     coverage from the \"sect\" tool\n" \
                     "  * spectra-cn:      Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \

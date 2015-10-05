@@ -50,6 +50,8 @@ struct HistogramException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
 
+    const string     DEFAULT_HIST_PLOT_OUTPUT_TYPE     = "png";
+    
     class Histogram {
     private:
         
@@ -163,7 +165,7 @@ namespace kat {
         
         void save();
         
-        void plot();
+        void plot(const string& output_type);
         
     protected:
         

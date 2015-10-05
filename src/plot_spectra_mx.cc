@@ -301,7 +301,7 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-            ("output,o", po::value<path>(&output),
+            ("output,o", po::value<path>(&output)->required(),
                 "The path to the output file")
             ("title,t", po::value<string>(&title)->default_value(DEFAULT_PSMX_TITLE),
                 "Title for plot")

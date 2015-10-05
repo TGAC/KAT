@@ -57,7 +57,7 @@ bool kat::PlotDensity::plot() {
         BOOST_THROW_EXCEPTION(PlotDensityException() << PlotDensityErrorInfo(string(
             "Could not find matrix file at: ") + mxFile.string() + "; please check the path and try again.")); 
     }
-
+    
     // Determine auto ranges
     SparseMatrix<uint64_t> tmx(mxFile);
     vector<Pos> cumulativeSpectraX(tmx.height());
@@ -194,7 +194,7 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-            ("output,o", po::value<path>(&output),
+            ("output,o", po::value<path>(&output)->required(),
                 "The path to the output file")
             ("title,t", po::value<string>(&title)->default_value(DEFAULT_PD_TITLE),
                 "Title for plot")
@@ -245,7 +245,8 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
-
+    
+        
     PlotDensity pd(mx_file, output);
     pd.setHeight(height);
     pd.setOutputType(output_type);

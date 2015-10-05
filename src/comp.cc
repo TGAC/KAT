@@ -634,7 +634,7 @@ void kat::Comp::compareSlice(int th_id) {
     mu.unlock();
 }
 
-void kat::Comp::plot() {
+void kat::Comp::plot(const string& output_type) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
@@ -645,18 +645,20 @@ void kat::Comp::plot() {
     
     // Plot results
     if (densityPlot) {
-        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density.png"));
+        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density." + output_type));
         pd.setXLabel(string("# Distinct kmers for ") + input[0].pathString());
         pd.setYLabel(string("# Distinct kmers for ") + input[1].pathString());
         pd.setZLabel("Kmer multiplicity");
         pd.setTitle(string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
+        pd.setOutputType(output_type);
         res = pd.plot();
     }
     else {
-        PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn.png"));
+        PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));
         pscn.setTitle(string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
         pscn.setYLabel("# Distinct kmers");
         pscn.setXLabel("Kmer multiplicity");
+        pscn.setOutputType(output_type);
         res = pscn.plot();
     }
     
@@ -694,6 +696,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     bool dump_hashes;
     bool disable_hash_grow;
     bool density_plot;
+    string plot_output_type;
     bool verbose;
     bool help;
 
@@ -734,6 +737,8 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")   
             ("density_plot,p", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE), 
+                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -819,7 +824,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.save();
     
     // Plot results
-    comp.plot();
+    comp.plot(plot_output_type);
     
     // Send K-mer statistics to stdout as well
     comp.printCounters(cout);
