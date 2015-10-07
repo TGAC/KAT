@@ -270,7 +270,7 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value(DEFAULT_PSCN_OUTPUT_TYPE), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-            ("output,o", po::value<path>(&output)->required(),
+            ("output,o", po::value<path>(&output),
                 "The path to the output file")
             ("title,t", po::value<string>(&title)->default_value(DEFAULT_PSCN_TITLE),
                 "Title for plot")
@@ -325,6 +325,12 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotSpectraCnException() << PlotSpectraCnErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
+    }
+    
 
     PlotSpectraCn pscn(mx_file, output);
     pscn.setHeight(height);

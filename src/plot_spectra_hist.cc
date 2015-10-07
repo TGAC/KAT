@@ -207,7 +207,7 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-            ("output,o", po::value<path>(&output)->required(),
+            ("output,o", po::value<path>(&output),
                 "The path to the output file")
             ("title,t", po::value<string>(&title)->default_value(DEFAULT_SH_TITLE),
                 "Title for plot")
@@ -262,6 +262,12 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotSpectraHistException() << PlotSpectraHistErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
+    }
+    
 
     PlotSpectraHist sh(histo_paths, output);
     sh.setHeight(height);

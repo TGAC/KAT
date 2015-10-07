@@ -194,7 +194,7 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
-            ("output,o", po::value<path>(&output)->required(),
+            ("output,o", po::value<path>(&output),
                 "The path to the output file")
             ("title,t", po::value<string>(&title)->default_value(DEFAULT_PD_TITLE),
                 "Title for plot")
@@ -244,6 +244,11 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
     if (help || argc <= 1) {
         cout << generic_options << endl;
         return 1;
+    }
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotDensityException() << PlotDensityErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
     }
     
         
