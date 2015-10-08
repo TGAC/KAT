@@ -1,0 +1,6 @@
+.. _walkthrough:
+
+KAT Walkthrough
+===============
+
+
