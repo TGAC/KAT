@@ -196,6 +196,7 @@ namespace kat {
             uint16_t    height;
             uint32_t    x_max;
             uint32_t    y_max;
+            bool        y_logscale;
             uint32_t    fasta_index;
             string      fasta_header;
             bool        verbose;
@@ -226,6 +227,8 @@ namespace kat {
                         "Index of fasta entry to plot.  First entry is 1.")
                     ("header,d", po::value<string>(&fasta_header),
                         "Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over index")
+                    ("y_logscale,m", po::bool_switch(&y_logscale)->default_value(false),
+                        "Y-axis is logscale.  This overrides the y_min and y_max limits.")
                     ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                         "Print extra information.")
                     ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -302,7 +305,7 @@ namespace kat {
                 profile_plot.set_ylabel(y_label);
                 profile_plot.set_xrange(0, cvs.size());
                 profile_plot.set_yrange(0, maxCvgVal);
-
+                
                 profile_plot.cmd("set style data linespoints");
 
                 std::ostringstream data_str;
@@ -310,7 +313,8 @@ namespace kat {
                 for(uint32_t i = 0; i < cvs.size(); i++)
                 {
                     uint32_t index = i+1;
-                    data_str << index << " " << cvs[i] << "\n";
+                    double val = y_logscale ? (double)std::log(cvs[i]) : (double)cvs[i];
+                    data_str << index << " " << val << "\n";
                 }
 
                 std::ostringstream plot_str;

@@ -50,6 +50,7 @@ struct CompException: virtual boost::exception, virtual std::exception { };
 namespace kat {
     
     const string     DEFAULT_COMP_PLOT_OUTPUT_TYPE     = "png";
+    const uint32_t   DEFAULT_NB_BINS                   = 1001;
 
     class CompCounters {
     public:
@@ -66,25 +67,32 @@ namespace kat {
         uint64_t shared_hash1_total;
         uint64_t shared_hash2_total;
         uint64_t shared_distinct;
-
+        
+        vector<uint64_t> spectrum1;
+        vector<uint64_t> spectrum2;
+        vector<uint64_t> shared_spectrum1;
+        vector<uint64_t> shared_spectrum2;
+        
         path hash1_path;
         path hash2_path;
         path hash3_path;
 
         CompCounters();
         
-        CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path);
+        CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size);
         
         CompCounters(const CompCounters& o);
 
-        void updateHash1Counters(uint64_t hash1_count, uint64_t hash2_count);
+        void updateHash1Counters(const uint64_t hash1_count, const uint64_t hash2_count);
 
-        void updateHash2Counters(uint64_t hash1_count, uint64_t hash2_count);
+        void updateHash2Counters(const uint64_t hash1_count, const uint64_t hash2_count);
 
-        void updateHash3Counters(uint64_t hash3_count);
+        void updateHash3Counters(const uint64_t hash3_count);
 
-        void updateSharedCounters(uint64_t hash1_count, uint64_t hash2_count);
-
+        void updateSharedCounters(const uint64_t hash1_count, const uint64_t hash2_count);
+        
+        static void updateSpectrum(vector<uint64_t>& spectrum, const uint64_t count);
+        
         void printCounts(ostream &out);
     };
     
@@ -95,14 +103,13 @@ namespace kat {
         CompCounters final_matrix;
         vector<CompCounters> threaded_counters;
         
+        static void merge_spectrum(vector<uint64_t>& spectrum, const vector<uint64_t>& threaded_spectrum);
+        
     public:
         
-        ThreadedCompCounters() : ThreadedCompCounters(path(), path(), path()) {}
+        ThreadedCompCounters();
         
-        ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path) :
-           ThreadedCompCounters(_hash1_path, _hash2_path, path()) {}
-           
-        ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path);                
+        ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size);
         
         void printCounts(ostream &out);
         

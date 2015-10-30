@@ -30,6 +30,7 @@ using std::endl;
 using std::ostream;
 using std::ofstream;
 using std::shared_ptr;
+using std::unique_ptr;
 using std::make_shared;
 using std::thread;
 
@@ -46,6 +47,7 @@ using bfs::path;
 #include "inc/matrix/matrix_metadata_extractor.hpp"
 #include "inc/matrix/sparse_matrix.hpp"
 #include "inc/matrix/threaded_sparse_matrix.hpp"
+#include "inc/distance_metrics.hpp"
 
 #include "input_handler.hpp"
 #include "plot_spectra_cn.hpp"
@@ -61,9 +63,9 @@ using kat::PlotDensity;
 
 // ********** CompCounters ***********
 
-kat::CompCounters::CompCounters() : CompCounters("", "", "") {}
+kat::CompCounters::CompCounters() : CompCounters("", "", "", DEFAULT_NB_BINS) {}
 
-kat::CompCounters::CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path) :
+kat::CompCounters::CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size) :
         hash1_path(_hash1_path), hash2_path(_hash2_path), hash3_path(_hash3_path) {
 
     hash1_total = 0;
@@ -79,6 +81,12 @@ kat::CompCounters::CompCounters(const path& _hash1_path, const path& _hash2_path
     shared_hash1_total = 0;
     shared_hash2_total = 0;
     shared_distinct = 0;
+    
+    spectrum1.resize(_dm_size, 0);
+    spectrum2.resize(_dm_size, 0);
+    
+    shared_spectrum1.resize(_dm_size, 0);
+    shared_spectrum2.resize(_dm_size, 0);
 }
         
 kat::CompCounters::CompCounters(const CompCounters& o) {
@@ -98,11 +106,16 @@ kat::CompCounters::CompCounters(const CompCounters& o) {
     shared_hash1_total = o.shared_hash1_total;
     shared_hash2_total = o.shared_hash2_total;
     shared_distinct = o.shared_distinct;
+    spectrum1 = o.spectrum1;
+    spectrum2 = o.spectrum2;
+    shared_spectrum1 = o.shared_spectrum1;
+    shared_spectrum2 = o.shared_spectrum2;
 }
 
-void kat::CompCounters::updateHash1Counters(uint64_t hash1_count, uint64_t hash2_count) {
+void kat::CompCounters::updateHash1Counters(const uint64_t hash1_count, const uint64_t hash2_count) {
     hash1_total += hash1_count;
     hash1_distinct++;
+    updateSpectrum(spectrum1, hash1_count);
 
     if (!hash2_count) {
         hash1_only_total += hash1_count;
@@ -110,9 +123,10 @@ void kat::CompCounters::updateHash1Counters(uint64_t hash1_count, uint64_t hash2
     }
 }
 
-void kat::CompCounters::updateHash2Counters(uint64_t hash1_count, uint64_t hash2_count) {
+void kat::CompCounters::updateHash2Counters(const uint64_t hash1_count, const uint64_t hash2_count) {
     hash2_total += hash2_count;
     hash2_distinct++;
+    updateSpectrum(spectrum2, hash2_count);
 
     if (!hash1_count) {
         hash2_only_total += hash2_count;
@@ -120,20 +134,36 @@ void kat::CompCounters::updateHash2Counters(uint64_t hash1_count, uint64_t hash2
     }
 }
 
-void kat::CompCounters::updateHash3Counters(uint64_t hash3_count) {
+void kat::CompCounters::updateHash3Counters(const uint64_t hash3_count) {
 
     hash3_total += hash3_count;
     hash3_distinct++;
 }
 
-void kat::CompCounters::updateSharedCounters(uint64_t hash1_count, uint64_t hash2_count) {
+void kat::CompCounters::updateSharedCounters(const uint64_t hash1_count, const uint64_t hash2_count) {
 
     if (hash1_count && hash2_count) {
         shared_hash1_total += hash1_count;
         shared_hash2_total += hash2_count;
         shared_distinct++;
+        updateSpectrum(shared_spectrum1, hash1_count);
+        updateSpectrum(shared_spectrum2, hash2_count);
     }
 }
+
+void kat::CompCounters::updateSpectrum(vector<uint64_t>& spectrum, const uint64_t count) {
+    
+    size_t s_size = spectrum.size();
+    
+    if (count <= 0)
+        ++(spectrum)[0];
+    else if (count >= s_size)
+        ++(spectrum)[s_size - 1];
+    else
+        ++(spectrum)[count];
+}
+
+
 
 void kat::CompCounters::printCounts(ostream &out) {
 
@@ -176,14 +206,36 @@ void kat::CompCounters::printCounts(ostream &out) {
     out << " - Total shared found in hash 1: " << shared_hash1_total << endl;
     out << " - Total shared found in hash 2: " << shared_hash2_total << endl;
     out << " - Distinct shared K-mers: " << shared_distinct << endl << endl;
+    
+    vector<unique_ptr<DistanceMetric>> dms;
+    dms.push_back(unique_ptr<DistanceMetric>(new ManhattanDistance()));
+    dms.push_back(unique_ptr<DistanceMetric>(new EuclideanDistance()));
+    dms.push_back(unique_ptr<DistanceMetric>(new CosineDistance()));
+    dms.push_back(unique_ptr<DistanceMetric>(new CanberraDistance()));
+    dms.push_back(unique_ptr<DistanceMetric>(new JaccardDistance()));
+        
+    out << "Distance between spectra 1 and 2 (all k-mers):" << endl;
+    for(auto& dm : dms) {
+        out << " - " << dm->getName() << " distance: " << dm->calcDistance(spectrum1, spectrum2) << endl;
+    }
+    out << endl;
+    
+        
+    out << "Distance between spectra 1 and 2 (shared k-mers):" << endl;
+    for(auto& dm : dms) {
+        out << " - " << dm->getName() << " distance: " << dm->calcDistance(shared_spectrum1, shared_spectrum2) << endl;
+    }
+    out << endl;
+    
 }
      
 
 // ******** ThreadedCompCounters *********
 
+kat::ThreadedCompCounters::ThreadedCompCounters() : ThreadedCompCounters("", "", "", DEFAULT_NB_BINS) {}
 
-kat::ThreadedCompCounters::ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path) {
-    final_matrix = CompCounters(_hash1_path, _hash2_path, _hash3_path);            
+kat::ThreadedCompCounters::ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size) {
+    final_matrix = CompCounters(_hash1_path, _hash2_path, _hash3_path, _dm_size);            
 }
                 
 void kat::ThreadedCompCounters::printCounts(ostream &out) {
@@ -215,6 +267,19 @@ void kat::ThreadedCompCounters::merge() {
         final_matrix.shared_hash1_total += itp.shared_hash1_total;
         final_matrix.shared_hash2_total += itp.shared_hash2_total;
         final_matrix.shared_distinct += itp.shared_distinct;
+        
+        merge_spectrum(final_matrix.spectrum1, itp.spectrum1);
+        merge_spectrum(final_matrix.spectrum2, itp.spectrum2);
+        merge_spectrum(final_matrix.shared_spectrum1, itp.shared_spectrum1);
+        merge_spectrum(final_matrix.shared_spectrum2, itp.shared_spectrum2);
+    }
+}
+
+        
+void kat::ThreadedCompCounters::merge_spectrum(vector<uint64_t>& spectrum, const vector<uint64_t>& threaded_spectrum) {
+    
+    for(size_t i = 0; i < spectrum.size(); i++) {
+        spectrum[i] += threaded_spectrum[i];
     }
 }
 
@@ -262,8 +327,8 @@ void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, c
     outputPrefix = "kat-comp";
     d1Scale = 1.0;
     d2Scale = 1.0;
-    d1Bins = 1001;
-    d2Bins = 1001;
+    d1Bins = DEFAULT_NB_BINS;
+    d2Bins = DEFAULT_NB_BINS;
     ioThreads = 1;
     analysisThreads = 1;
     merLen = DEFAULT_MER_LEN; 
@@ -303,7 +368,8 @@ void kat::Comp::execute() {
     comp_counters = ThreadedCompCounters(
             input[0].getSingleInput(), 
             input[1].getSingleInput(), 
-            input.size() == 3 ? input[2].getSingleInput() : path());
+            input.size() == 3 ? input[2].getSingleInput() : path(),
+            std::min(d1Bins, d2Bins));
 
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
@@ -633,6 +699,7 @@ void kat::Comp::compareSlice(int th_id) {
     comp_counters.add(cc);
     mu.unlock();
 }
+
 
 void kat::Comp::plot(const string& output_type) {
     

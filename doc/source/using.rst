@@ -12,21 +12,29 @@ can access by typing ```kat <subtool> --help```.
 HIST
 ----
 
-Create an histogram with the number of k-mers having a given count, derived from the input.
-
-This can take the form of a single jellyfish hash, or one or more FastA or FastQ 
-files. In bucket 'i' are tallied the k-mers which have a count 'c' satisfying 
-'low+i*inc <= c < low+(i+1)'. Buckets in the output are labeled by the low end point (low+i).
-                            
-The last bucket in the output behaves as a catchall: it tallies all k-mers with a count greater or equal to
-the low end point of this bucket. 
+Creates a histogram with the number of distinct k-mers having a given frequency, 
+derived from the input. The input can take the form of one or more FastA or FastQ 
+files, or a jellyfish hash.  The last bucket in the histogram behaves as a catchall: 
+it tallies all k-mers with a count greater or equal to the low end point of this bucket. 
 
 This tool is very similar to the \"histo\" tool in jellyfish itself.  The primary 
-difference being that the output contains metadata that make the histogram easier for the user to plot.
+difference being that the output contains metadata that make the histogram easier 
+for the user to plot, and that this version is faster because we do not need to 
+dump the hash to disk and read it back.
 
 Usage: kat hist [options] (<input>)+
 
-Applications:
+
+Applications::
+
+ * Assess data quality: estimates of kmers deriving from errors; sequencing bias
+ * Determine completeness of sequencing
+ * Identify genomic properties: Heterozygosity, homozygosity, karyotype, repeat content.
+ * Limited contamination detection
+
+
+Runtime:
+
 
 
 GCP
@@ -35,13 +43,19 @@ GCP
 This tool takes in either a single jellyfish hash or one or more FastA or FastQ 
 input files and then counts the GC nucleotides for each distinct K-mer in the hash.  
 For each GC count and K-mer coverage level, the number of distinct K-mers are counted 
-and stored in a matrix.  This matrix can be used to analyse biological content within 
-the hash.  For example, it can be used to distinguish legitimate content from contamination, 
-or unexpected content.
+and stored in a matrix.  This matrix can be used in much that same way as a kmer
+spectra histogram, although it provides richer output by incorperating GC content
+into the picture.  This helps to distinguish legitimate content from contamination, 
+which often appear as separate spots at unexpected GC and coverage levels.
 
 Usage: kat gcp (<input>)+
 
-Applications:
+Applications::
+
+ * Assess data quality: estimates of kmers deriving from errors; sequencing bias
+ * Determine completeness of sequencing
+ * Identify genomic properties: Heterozygosity, homozygosity, karyotype, repeat content.
+ * Contamination detection
 
 
 Comp
@@ -60,7 +74,14 @@ on that set.  The manual contains more details on specific use cases.
 
 Usage: kat comp [options] <input_1> <input_2> [<input_3>]
 
-Describe how to do globbing with comp here using quotes to define input groups.
+TODO: Describe how to do globbing with comp here using quotes to define input groups.
+
+
+Applications::
+
+ * Determine sequencing bias between left and right read pairs.
+ * Compare the kmer spectrum of input reads against an assembly to gauge assembly completeness
+
 
 
 SECT
@@ -79,3 +100,9 @@ included.
 
 Usage: kat sect [options] <sequence_file> (<input>)+
 
+
+Applications::
+
+ * Analyse kmer coverage across assembled sequences
+ * Compare assemblies using kmers, helpful to levels of contamination of a specific organism.
+ * Contamination detection - Compare kmer spectrum against assembly providing average coverage and GC values for each contig, which can be 2D binned and plot as a heatmap

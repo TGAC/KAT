@@ -92,9 +92,9 @@ bool kat::PlotDensity::plot() {
     autoYMax = std::min((uint16_t)mme::getNumeric(mxFile, mme::KEY_NB_ROWS), autoYMax);            
 
     // Get plotting properties, either from file, or user.  User args have precedence.
-    uint16_t x_range = xMax != 0 ? DEFAULT_PD_X_MAX : autoXMax;
-    uint16_t y_range = yMax != 0 ? DEFAULT_PD_Y_MAX : autoYMax;
-    uint32_t z_range = zMax != 0 ? DEFAULT_PD_Z_MAX : autoZMax;
+    uint16_t x_range = xMax != 0 && xMax != DEFAULT_PD_X_MAX ? xMax : autoXMax;
+    uint16_t y_range = yMax != 0 && yMax != DEFAULT_PD_Y_MAX ? yMax : autoYMax;
+    uint32_t z_range = zMax != 0 && zMax != DEFAULT_PD_Z_MAX ? zMax : autoZMax;
 
     string xl = !boost::equals(xLabel, DEFAULT_PD_X_LABEL) ? xLabel : mme::getString(mxFile, mme::KEY_X_LABEL);
     string yl = !boost::equals(yLabel, DEFAULT_PD_Y_LABEL) ? yLabel : mme::getString(mxFile, mme::KEY_Y_LABEL);
