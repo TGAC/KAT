@@ -182,14 +182,8 @@ void kat::Gcp::analyseSlice(int th_id) {
         string kmer = it.key().to_str();
         uint64_t kmer_count = it.val();
 
-        uint16_t g_or_c = 0;
-
-        for (uint16_t i = 0; i < kmer.length(); i++) {
-            char c = kmer[i];
-
-            if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
-                g_or_c++;
-        }
+        // Count gs and cs
+        uint16_t g_or_c = gcCount(kmer);
 
         // Apply scaling factor
         uint64_t cvg_pos = kmer_count == 0 ? 0 : ceil((double) kmer_count * cvgScale);

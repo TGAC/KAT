@@ -20,6 +20,8 @@ noinst_HEADERS = \
 		plot_spectra_mx.hpp \
 		plot_spectra_hist.hpp \
 		plot.hpp \
+		filter_kmer.hpp \
+		filter.hpp \
 		comp.hpp \
 		gcp.hpp \
 		histogram.hpp \
@@ -43,6 +45,8 @@ kat_SOURCES = \
 		plot_spectra_mx.cc \
 		plot_spectra_hist.cc \
 		plot.cc \
+		filter_kmer.cc \
+		filter.cc \
 		comp.cc \
 		gcp.cc \
 		histogram.cc \

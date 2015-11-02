@@ -142,8 +142,7 @@ namespace kat {
         double d2Scale;
         uint16_t d1Bins;
         uint16_t d2Bins;
-        uint16_t ioThreads;
-        uint16_t analysisThreads;
+        uint16_t threads;
         uint16_t merLen;
         bool densityPlot;
         bool verbose;
@@ -252,21 +251,13 @@ namespace kat {
         void setOutputPrefix(path outputPrefix) {
             this->outputPrefix = outputPrefix;
         }
-
-        uint16_t getIOThreads() const {
-            return ioThreads;
-        }
-
-        void setIOThreads(uint16_t threads) {
-            this->ioThreads = threads;
-        }
         
-        uint16_t getAnalysisThreads() const {
-            return analysisThreads;
+        uint16_t getThreads() const {
+            return threads;
         }
 
-        void setAnalysisThreads(uint16_t threads) {
-            this->analysisThreads = threads;
+        void setThreads(uint16_t threads) {
+            this->threads = threads;
         }
         
         bool dumpHashes() const {

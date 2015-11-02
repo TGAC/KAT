@@ -151,4 +151,16 @@ namespace kat
 
         return out_str.str();
     }
+    
+    static uint32_t gcCount(const string& seq) {
+    
+        uint32_t g_or_c = 0;
+
+        for (const auto& c : seq) {
+            if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
+                g_or_c++;
+        }
+        
+        return g_or_c;
+    }
 }
