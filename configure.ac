@@ -75,11 +75,15 @@ AC_CHECK_HEADERS([glob.h])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
-# Check for gnuplot on path.  Just emit a warning if not present.
-AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
-
-if test x"${gnuplot_found}" = x"no"; then
-    AC_MSG_WARN([Gnuplot not detected.  Gnuplot is required at KAT runtime in order to produce plots, although KAT will still work (minus plots) without it.])
+AX_PYTHON
+AX_PYTHON_MODULE(matplotlib , ,)
+# Check for gnuplot on path.  Just emit a warning if not present
+if test x"${PYMOD}" = x"no"; then
+    AC_MSG_WARN([Python matplotlib not found.  This is the preferred plotting method in KAT.  Now checking for gnuplot as alternative plotting method.])
+    AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
+    if test x"${gnuplot_found}" = x"no"; then
+        AC_MSG_WARN([Neither python matplotlib or Gnuplot not detected.  KAT will still work (minus plots). You can install either python3 matplotlib or gnuplot at any time to enable plotting in KAT.])
+    fi
 fi
 
 
