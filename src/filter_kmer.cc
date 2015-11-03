@@ -17,6 +17,7 @@
 //  *******************************************************************
 
 #include <iostream>
+#include <sstream>
 #include <string.h>
 #include <stdint.h>
 #include <vector>
@@ -30,6 +31,7 @@ using std::cerr;
 using std::endl;
 using std::ostream;
 using std::ofstream;
+using std::stringstream;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::make_shared;
@@ -54,6 +56,12 @@ using kat::PlotDensity;
 
 #include "filter_kmer.hpp"
 
+
+string kat::filter::Counter::toString() const {
+    stringstream ss;
+    ss << distinct << " distinct; " << total << " total.";
+    return ss.str();
+}
 
 unique_ptr<kat::filter::Counter> kat::filter::ThreadedCounter::merge() {
     
@@ -100,11 +108,7 @@ void kat::filter::FilterKmer::init(const vector<path>& _input) {
     low_gc = DEFAULT_FILT_KMER_LOW_GC;
     high_gc = DEFAULT_FILT_KMER_HIGH_GC;
     invert = DEFAULT_FILT_KMER_INVERT;
-    separate = DEFAULT_FILT_KMER_SEPARATE;
-    
-    all.resize(threads);
-    in.resize(threads);
-    out.resize(threads);
+    separate = DEFAULT_FILT_KMER_SEPARATE;    
 }
 
 void kat::filter::FilterKmer::execute() {
@@ -156,6 +160,18 @@ void kat::filter::FilterKmer::execute() {
              << " nb mers           = " << input.header->nb_hashes() << endl << endl;
     }
     
+    file_header out_header;
+    out_header.fill_standard();
+    out_header.canonical(input.header->canonical());
+    out_header.counter_len(input.header->counter_len());
+    out_header.format(input.header->format());
+    out_header.fpr(input.header->fpr());
+    out_header.key_len(input.header->key_len());
+    out_header.max_reprobe(input.header->max_reprobe());
+    out_header.nb_hashes(input.header->nb_hashes());
+    out_header.size(input.header->size());
+    out_header.val_len(input.header->val_len());
+    
     HashCounter* inCounter = new HashCounter(size, key_len, val_len, threads);
     inCounter->do_size_doubling(false);   // We know the size of the hash
     
@@ -164,21 +180,29 @@ void kat::filter::FilterKmer::execute() {
         outCounter->do_size_doubling(false);
     }
     
+    // Resize all the counters to the requested number of threads
+    all.resize(threads);
+    in.resize(threads);
+    out.resize(threads);
+    
     // Do the work
     filter(*inCounter, *outCounter);
+    
+    // Merge (and print) results
+    merge();
 
     // Output to disk
     path in_path(output_prefix.string() + "-in.jf" + lexical_cast<string>(merLen));
     path out_path(output_prefix.string() + "-out.jf" + lexical_cast<string>(merLen));
     
     // Dumping automatically destroys hash counters
-    dump(in_path, inCounter);    
+    dump(in_path, inCounter, out_header);    
     if (separate) {
-        dump(out_path, outCounter);
+        dump(out_path, outCounter, out_header);
     }    
 }
 
-void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash) {
+void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash, file_header& header) {
      // Remove anything that exists at the target location
     if (bfs::is_symlink(out_path) || bfs::exists(out_path)) {
         bfs::remove(out_path.c_str());
@@ -187,8 +211,10 @@ void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash) {
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n"); 
     cout << "Dumping hash to " << out_path.string() << " ...";
     cout.flush();
+    
+    
 
-    JellyfishHelper::dumpHash(hash->ary(), *(input.header), threads, out_path);
+    JellyfishHelper::dumpHash(hash->ary(), header, threads, out_path);
 
     cout << " done.";
     cout.flush();
@@ -198,16 +224,16 @@ void kat::filter::FilterKmer::merge() {
     
     unique_ptr<Counter> all_counts = all.merge();
     unique_ptr<Counter> in_counts = in.merge();
-    unique_ptr<Counter> out_counts = out.merge();    
+        
+    cout << "K-mers in input   : " << all_counts->toString() << endl
+         << "K-mers to keep    : " << in_counts->toString() << endl;
     
     if (separate) {
-       cout << "Distinct kmers in input      : " << all_counts->distinct << endl
-            << "Distinct kmers in bounds     : " << in_counts->distinct << endl
-            << "Distinct kmers out of bounds : " << out_counts->distinct << endl
-            << "Total kmers in input         : " << all_counts->total << endl
-            << "Total kmers in bounds        : " << in_counts->total << endl
-            << "Total kmers out of bounds    : " << out_counts->total << endl; 
+        unique_ptr<Counter> out_counts = out.merge();
+        cout << "K-mers to discard : " << out_counts->toString() << endl;
     }
+    
+    cout << endl;
 }
 
 void kat::filter::FilterKmer::filter(HashCounter& inCounter, HashCounter& outCounter) {

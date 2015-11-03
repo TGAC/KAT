@@ -200,9 +200,9 @@ void kat::Gcp::plot(const string& output_type) {
     cout.flush();
     
     PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx." + output_type));
-    pd.setXLabel("# Distinct kmers");
+    pd.setZLabel("# distinct kmers");
     pd.setYLabel("GC count");
-    pd.setZLabel("Kmer multiplicity");
+    pd.setXLabel("K-mer multiplicity");
     pd.setTitle(string("GC vs kmer heat map for ") + input.pathString());
     pd.setOutputType(output_type);
     bool res = pd.plot();

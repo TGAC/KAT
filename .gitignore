@@ -41,3 +41,7 @@ Makefile.in
 /.libs/
 *.hpp
 *.Makefile.am.swp
+!/src/filter_sequence.hpp
+!/src/filter_kmer.hpp
+!/src/filter.hpp
+!/src/inc/distance_metrics.hpp

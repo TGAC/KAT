@@ -35,8 +35,10 @@ namespace bfs = boost::filesystem;
 using bfs::path;
 
 #include "filter_kmer.hpp"
+#include "filter_sequence.hpp"
 #include "filter.hpp"
 using kat::filter::FilterKmer;
+using kat::filter::FilterSeq;
 using kat::Filter;
 
 
@@ -47,8 +49,8 @@ Filter::FilterMode kat::Filter::parseMode(const string& mode) {
     if (upperMode == string("KMER")) {
         return KMER;                
     }
-    else if (upperMode == string("SEQUENCE")) {
-        return SEQUENCE;
+    else if (upperMode == string("SEQ")) {
+        return SEQ;
     }
     else {
         BOOST_THROW_EXCEPTION(KatFilterException() << KatFilterErrorInfo(string(
@@ -105,8 +107,8 @@ int kat::Filter::main(int argc, char *argv[]) {
     case KMER:
         FilterKmer::main(modeArgC, modeArgV);
         break;
-    case SEQUENCE:
-        //FilterSequence::main(modeArgC, modeArgV);
+    case SEQ:
+        FilterSeq::main(modeArgC, modeArgV);
         break;
     default:
         BOOST_THROW_EXCEPTION(KatFilterException() << KatFilterErrorInfo(string(

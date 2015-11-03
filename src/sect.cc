@@ -369,21 +369,7 @@ void kat::Sect::processInterlaced(uint16_t th_id) {
     }
 }
 
-bool validKmer(const string& merstr) {
-    for(uint32_t i = 0; i < merstr.size(); i++) {        
-        switch(merstr[i]) {
-            case 'A':
-            case 'T':
-            case 'G':
-            case 'C':
-                break;
-            default:
-                return false;
-        }
-    }
-    
-    return true;
-}
+
 
 void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 

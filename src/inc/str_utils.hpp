@@ -163,4 +163,20 @@ namespace kat
         
         return g_or_c;
     }
+    
+    static bool validKmer(const string& merstr) {
+        for(const auto& c: merstr) {        
+            switch(c) {
+                case 'A':
+                case 'T':
+                case 'G':
+                case 'C':
+                    break;
+                default:
+                    return false;
+            }
+        }
+
+        return true;
+    }
 }

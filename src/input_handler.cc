@@ -131,22 +131,18 @@ void kat::InputHandler::count(uint16_t merLen, uint16_t threads) {
 
 void kat::InputHandler::loadHash(bool verbose) {
     
-    if (verbose) {
-        auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
-    
-        cout << "Loading hashes into memory...";
-        cout.flush();  
-    }
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    cout << "Loading hashes into memory...";
+    cout.flush();  
     
     hashLoader = make_shared<HashLoader>();
     hashLoader->loadHash(*input[0], false); 
     hash = hashLoader->getHash();
     canonical = hashLoader->getCanonical();
     
-    if (verbose) {
-        cout << " done.";
-        cout.flush();
-    }
+    cout << " done.";
+    cout.flush();    
 }
 
 void kat::InputHandler::dump(const path& outputPath, uint16_t threads) {
