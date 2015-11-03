@@ -299,55 +299,61 @@ void kat::filter::FilterSeq::processSeq(const size_t index, const uint16_t th_id
 
 void kat::filter::FilterSeq::save(const vector<uint32_t>& keepers) {
     
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");     
-    
-    path ext = seq_file.extension();
-    path output_path_in(output_prefix.string() + ".in" + ext.string());
-    path output_path_out(output_prefix.string() + ".out" + ext.string());
-    
-    cout << "Saving kept sequences to " << output_path_in.string() << " ...";
-    cout.flush();
-    
-    // Open file, create RecordReader and check all is well
-    // Open file and create RecordReader.
-    seqan::SeqFileIn reader(seq_file.c_str());
-    seqan::SeqFileOut inWriter(output_path_in.c_str());
-    seqan::SeqFileOut outWriter(output_path_out.c_str());
-    
-    // Processes sequences in batches of records to reduce memory requirements
-    uint32_t i = 0;
-    uint32_t j = 0;
-    
-    // Loop until end
-    while (!atEnd(reader)) {
-        
-        // Read record
-        seqan::CharString id;
-        seqan::Dna5String seq;
-        seqan::CharString qual;
-        seqan::readRecord(id, seq, qual, reader);
-        
-        if (i == keepers[j]) {
-            seqan::writeRecord(inWriter, id, seq, qual);
-            j++;
-        }
-        else if (separate) {
-            seqan::writeRecord(outWriter, id, seq, qual);
-        }
-        
-        i++;
+    if (keepers.empty()) {
+        cout << "Nothing to filter" << endl << endl;
     }
+    else {
     
-    seqan::close(reader);
-    seqan::close(inWriter);
-    seqan::close(outWriter);
-    
-    if (!separate) {
-        boost::filesystem::remove(output_path_out);
+        auto_cpu_timer timer(1, "  Time taken: %ws\n\n");     
+
+        path ext = seq_file.extension();
+        path output_path_in(output_prefix.string() + ".in" + ext.string());
+        path output_path_out(output_prefix.string() + ".out" + ext.string());
+
+        cout << "Saving kept sequences to " << output_path_in.string() << " ...";
+        cout.flush();
+
+        // Open file, create RecordReader and check all is well
+        // Open file and create RecordReader.
+        seqan::SeqFileIn reader(seq_file.c_str());
+        seqan::SeqFileOut inWriter(output_path_in.c_str());
+        seqan::SeqFileOut outWriter(output_path_out.c_str());
+
+        // Processes sequences in batches of records to reduce memory requirements
+        uint32_t i = 0;
+        uint32_t j = 0;
+
+        // Loop until end
+        while (!atEnd(reader)) {
+
+            // Read record
+            seqan::CharString id;
+            seqan::Dna5String seq;
+            seqan::CharString qual;
+            seqan::readRecord(id, seq, qual, reader);
+
+            if (i == keepers[j]) {
+                seqan::writeRecord(inWriter, id, seq, qual);
+                j++;
+            }
+            else if (separate) {
+                seqan::writeRecord(outWriter, id, seq, qual);
+            }
+
+            i++;
+        }
+
+        seqan::close(reader);
+        seqan::close(inWriter);
+        seqan::close(outWriter);
+
+        if (!separate) {
+            boost::filesystem::remove(output_path_out);
+        }
+
+        cout << " done.";
+        cout.flush();
     }
-    
-    cout << " done.";
-    cout.flush();
 }
 
 int kat::filter::FilterSeq::main(int argc, char *argv[]) {
