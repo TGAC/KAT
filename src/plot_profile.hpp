@@ -93,7 +93,7 @@ namespace kat {
             if (!inputStream.is_open())
             {
                 std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
-                return NULL;
+                return 0;
             }
 
             string id;
@@ -130,7 +130,7 @@ namespace kat {
             if (!inputStream.is_open())
             {
                 std::cerr << "ERROR: Could not open the sequence file: " << fasta_path << endl;
-                return NULL;
+                return 0;
             }
 
 

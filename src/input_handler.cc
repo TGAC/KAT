@@ -149,7 +149,7 @@ void kat::InputHandler::loadHash(bool verbose) {
     }
 }
 
-void kat::InputHandler::dump(const path& outputPath, uint16_t threads, bool verbose) {
+void kat::InputHandler::dump(const path& outputPath, uint16_t threads) {
     
     // Remove anything that exists at the target location
     if (bfs::is_symlink(outputPath) || bfs::exists(outputPath)) {
@@ -200,7 +200,7 @@ vector<path> kat::InputHandler::globFiles(const vector<path>& input) {
     }
 
     vector<path> transformed;
-    for( int i = 0; i < globbuf.gl_pathc; ++i )
+    for( size_t i = 0; i < globbuf.gl_pathc; ++i )
         transformed.push_back( path(globbuf.gl_pathv[i]) );
 
     if( globbuf.gl_pathc > 0 )

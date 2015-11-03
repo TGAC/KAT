@@ -100,9 +100,6 @@ void kat::Histogram::execute() {
     data = vector<uint64_t>(nb_buckets, 0);
     threadedData = vector<shared_ptr<vector<uint64_t>>>();
     
-    
-    std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
-
     // Do the work
     bin();
     
@@ -110,7 +107,7 @@ void kat::Histogram::execute() {
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
-        input.dump(outputPath, threads, true);     
+        input.dump(outputPath, threads);     
     }
     // Merge results
     merge();
@@ -172,13 +169,13 @@ void kat::Histogram::bin() {
     cout << "Bining kmers ...";
     cout.flush();
 
-    thread t[threads];
+    vector<thread> t(threads);
 
-    for(int i = 0; i < threads; i++) {
+    for(uint16_t i = 0; i < threads; i++) {
         t[i] = thread(&Histogram::binSlice, this, i);
     }
 
-    for(int i = 0; i < threads; i++){
+    for(uint16_t i = 0; i < threads; i++){
         t[i].join();
     }
 

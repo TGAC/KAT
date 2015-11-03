@@ -33,11 +33,13 @@ namespace po = boost::program_options;
 using kat::KatFS;
 
 #include "comp.hpp"
+#include "filter.hpp"
 #include "gcp.hpp"
 #include "histogram.hpp"
 #include "plot.hpp"
 #include "sect.hpp"
 using kat::Comp;
+using kat::Filter;
 using kat::Gcp;
 using kat::Histogram;
 using kat::Plot;
@@ -74,7 +76,7 @@ Mode parseMode(string mode) {
     }
     else if (upperMode == string("PLOT")) {
         return PLOT;
-    }
+    }    
     else if (upperMode == string("SECT")) {
         return SECT;
     }
@@ -94,7 +96,9 @@ Mode parseMode(string mode) {
                     "             count.\n" \
                     "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to jellyfish histogram\n" \
                     "             sub command but adds metadata in output for easy plotting, also actually runs multi-threaded.\n" \
-                    "   * plot:   Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
+                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on user-defined GC\n" \
+                    "             and coverage limits.\n" \
+                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
                     "             Requires gnuplot.\n\n" \
                     "Options";
         }
@@ -143,7 +147,7 @@ int main(int argc, char *argv[])
         po::notify(vm);
 
         // Output help information the exit if requested
-        if (argc == 1 || argc == 2 && help) {
+        if (argc == 1 || (argc == 2 && help)) {
             cout << generic_options << endl;
             return 1;
         }
@@ -177,9 +181,9 @@ int main(int argc, char *argv[])
             case COMP:
                 Comp::main(modeArgC, modeArgV);
                 break;
-            /*case FILTER:
+            case FILTER:
                 Filter::main(modeArgC, modeArgV);
-                break;*/
+                break;
             case GCP:
                 Gcp::main(modeArgC, modeArgV);
                 break;

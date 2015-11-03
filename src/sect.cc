@@ -110,7 +110,7 @@ void kat::Sect::execute() {
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
-        input.dump(outputPath, threads, true);     
+        input.dump(outputPath, threads);     
     }
     
     // Merge results from contamination matrix
@@ -235,13 +235,13 @@ void kat::Sect::merge() {
 
 void kat::Sect::analyseBatch() {
 
-    thread t[threads];
+    vector<thread> t(threads);
 
-    for(int i = 0; i < threads; i++) {
+    for(uint16_t i = 0; i < threads; i++) {
         t[i] = thread(&Sect::analyseBatchSlice, this, i);
     }
 
-    for(int i = 0; i < threads; i++){
+    for(uint16_t i = 0; i < threads; i++){
         t[i].join();
     }            
 }

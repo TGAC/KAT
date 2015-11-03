@@ -91,7 +91,7 @@ int kat::Filter::main(int argc, char *argv[]) {
     po::notify(vm);
 
     // Output help information the exit if requested
-    if (argc == 1 || argc == 2 && help) {
+    if (argc == 1 || (argc == 2 && help)) {
         cout << generic_options << endl;
         return 1;
     }

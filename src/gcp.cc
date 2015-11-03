@@ -78,9 +78,6 @@ void kat::Gcp::execute() {
         }
     }
     
-    // Setup output stream for jellyfish initialisation
-    std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
-
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
         input.count(merLen, threads);
@@ -102,7 +99,7 @@ void kat::Gcp::execute() {
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
-        input.dump(outputPath, threads, true);     
+        input.dump(outputPath, threads);     
     }
     
     // Merge results
@@ -161,13 +158,13 @@ void kat::Gcp::analyse() {
     cout << "Analysing kmers in hash ...";
     cout.flush();
     
-    thread t[threads];
+    vector<thread> t(threads);
 
-    for(int i = 0; i < threads; i++) {
+    for(uint16_t i = 0; i < threads; i++) {
         t[i] = thread(&Gcp::analyseSlice, this, i);
     }
 
-    for(int i = 0; i < threads; i++){
+    for(uint16_t i = 0; i < threads; i++){
         t[i].join();
     }
     

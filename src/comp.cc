@@ -370,12 +370,10 @@ void kat::Comp::execute() {
             input.size() == 3 ? input[2].getSingleInput() : path(),
             std::min(d1Bins, d2Bins));
 
-    std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
-
     string merLenStr = lexical_cast<string>(merLen);
 
     // Count kmers in sequence files if necessary (sets load and hashes and hashcounters as appropriate)
-    for(int i = 0; i < input.size(); i++) {
+    for(size_t i = 0; i < input.size(); i++) {
         if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
             input[i].count(merLen, threads);
         }
@@ -384,14 +382,12 @@ void kat::Comp::execute() {
     // Check to see if user specified any hashes to load
     bool anyLoad = false;
     bool allLoad = true;
-    bool anyDump = false;
-    for(uint16_t i = 0; i < input.size(); i++) {
+    for(size_t i = 0; i < input.size(); i++) {
         if (input[i].mode == InputHandler::InputMode::LOAD) {
             input[i].loadHeader();
             anyLoad = true;            
         }
         else if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
-            anyDump = true;
             allLoad = false;
         }
     }
@@ -416,7 +412,7 @@ void kat::Comp::execute() {
     if (dumpHashes()) {
         for(uint16_t i = 0; i < input.size(); i++) {        
             path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(merLen));
-            input[i].dump(outputPath, threads, true);
+            input[i].dump(outputPath, threads);
         }    
     }    
 
@@ -493,24 +489,24 @@ void kat::Comp::loadHashes() {
     // If using parallel IO load hashes in parallel, otherwise do one at a time
     if (threads > 1) {
         
-        thread threads[input.size()];
+        vector<thread> threads(input.size());
         
         void (kat::InputHandler::*memfunc)() = &kat::InputHandler::loadHash;
         
-        for(int i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < input.size(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                 threads[i] = thread(memfunc, &input[i]);                
             }
         }
         
-        for(int i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < input.size(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                 threads[i].join();                 
             }
         }        
     }
     else {
-        for(int i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < input.size(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                input[i].loadHash(false);                
             }
@@ -586,13 +582,13 @@ void kat::Comp::compare() {
     cout << "Comparing hashes ...";
     cout.flush();
     
-    thread t[threads];
+    vector<thread> t(threads);
 
-    for(int i = 0; i < threads; i++) {
+    for(uint16_t i = 0; i < threads; i++) {
         t[i] = thread(&Comp::compareSlice, this, i);
     }
 
-    for(int i = 0; i < threads; i++){
+    for(uint16_t i = 0; i < threads; i++){
         t[i].join();
     }
     

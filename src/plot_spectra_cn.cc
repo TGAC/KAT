@@ -162,8 +162,8 @@ bool kat::PlotSpectraCn::plot() {
         
         spectra_cn_plot.cmd(plot_str.str());
         
-        return true;
     }
+    return true;
 }
         
 string kat::PlotSpectraCn::createLineStyleStr(uint16_t i, const char* colour) {

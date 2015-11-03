@@ -56,7 +56,7 @@ namespace kat {
         void count(uint16_t merLen, uint16_t threads);   // Uses the jellyfish library to count kmers in the input
         void loadHash() { loadHash(false); }
         void loadHash(bool verbose);
-        void dump(const path& outputPath, uint16_t threads, bool verbose);
+        void dump(const path& outputPath, uint16_t threads);
         
         static vector<path> globFiles(const string& input);
         static vector<path> globFiles(const vector<path>& input);

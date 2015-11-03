@@ -265,7 +265,7 @@ namespace kat {
         }
 
         void setDumpHashes(bool dumpHashes) {
-            for(int i = 0; i < input.size(); i++) {
+            for(size_t i = 0; i < input.size(); i++) {
                 this->input[i].dumpHash = dumpHashes;
             }
         }
@@ -275,7 +275,7 @@ namespace kat {
         }
 
         void setDisableHashGrow(bool disableHashGrow) {
-            for(int i = 0; i < input.size(); i++) {
+            for(size_t i = 0; i < input.size(); i++) {
                 this->input[i].disableHashGrow = disableHashGrow;
             }
         }

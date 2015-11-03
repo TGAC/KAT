@@ -229,7 +229,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<shared_ptr<pat
     
     SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
     
-    thread t[threads];
+    vector<thread> t(threads);
 
     for(int i = 0; i < threads; i++) {
         t[i] = thread(&kat::JellyfishHelper::countSlice, std::ref(hashCounter), std::ref(parser), canonical);
