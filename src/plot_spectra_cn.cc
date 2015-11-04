@@ -286,7 +286,7 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
                 "Width of canvas")
             ("height,h", po::value<uint16_t>(&height)->default_value(DEFAULT_PSCN_HEIGHT),
                 "Height of canvas")
-            ("ignore_absent,a", po::bool_switch(&ignore_absent)->default_value(false),
+            ("ignore_absent,i", po::bool_switch(&ignore_absent)->default_value(false),
                 "Ignore K-mers in reads but absent from the assembly")
             ("max_dup,m", po::value<uint16_t>(&max_duplication)->default_value(DEFAULT_MAX_DUPLICATION),
                 "Maximum duplication level to show in plots")
