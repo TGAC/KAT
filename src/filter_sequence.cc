@@ -62,20 +62,20 @@ using kat::PlotDensity;
 #include "filter_sequence.hpp"
 
 
-unique_ptr<kat::filter::SeqFilterCounter> kat::filter::ThreadedSeqFilter::merge() {
+
+
+unique_ptr<kat::filter::SeqFilterCounter> kat::filter::ThreadedSeqStatsCounters::merge() {
     
     unique_ptr<kat::filter::SeqFilterCounter> merged( new SeqFilterCounter() );
     
-    for(const auto& c : counters) {
-        merged->nb_records += c.nb_records;
-        
-        for(const auto& k : c.keepers) {
-            merged->keepers.push_back(k);
+    for(const auto& c : counters) {        
+        for(const auto& s : c.seq_stats) {
+            merged->add(s);
         }
     }
-    
-    // Sort keeper indices
-    std::sort(merged->keepers.begin(), merged->keepers.end()); 
+
+    // Sort by index
+    merged->sort();
         
     return merged;
 }
@@ -106,7 +106,8 @@ void kat::filter::FilterSeq::init(const vector<path>& _input) {
     
     threshold = DEFAULT_FILT_SEQ_THRESHOLD;
     invert = DEFAULT_FILT_SEQ_INVERT;
-    separate = DEFAULT_FILT_SEQ_SEPARATE;    
+    separate = DEFAULT_FILT_SEQ_SEPARATE;   
+    doStats = false;
 }
 
 void kat::filter::FilterSeq::execute() {
@@ -147,18 +148,18 @@ void kat::filter::FilterSeq::execute() {
     }
     
     // Resize all the counters to the requested number of threads
-    filters.resize(threads);
+    stats.resize(threads);
     
     // Do the core of the work here
     processSeqFile();
     
     // Merge (and print) results
-    unique_ptr<SeqFilterCounter> keepers = filters.merge();
+    unique_ptr<SeqFilterCounter> merged_stats = stats.merge();
     
-    cout << "Found " << keepers->keepers.size() << " / " << keepers->nb_records << " to keep" << endl << endl;
+    cout << "Found " << merged_stats->calcKeepers(threshold) << " / " << merged_stats->size() << " to keep" << endl << endl;
 
     // Filter seqs
-    save(keepers->keepers);
+    save(merged_stats->seq_stats);
 }
 
 
@@ -287,19 +288,13 @@ void kat::filter::FilterSeq::processSeq(const size_t index, const uint16_t th_id
         if (b) nbFound ++;
     }
     
-    double ratio = (double)nbFound / (double)nbCounts;
-    
-    if ((ratio >= threshold && !invert) || (invert && ratio < threshold)) {
-        filters.addFound(th_id, offset+index);
-    }
-    else {
-        filters.addUnFound(th_id);
-    }
+    unique_ptr<SeqStats> k( new SeqStats(offset+index, nbFound, nbCounts) );        
+    stats.add(th_id, std::move(k));    
 }
 
-void kat::filter::FilterSeq::save(const vector<uint32_t>& keepers) {
+void kat::filter::FilterSeq::save(vector<shared_ptr<SeqStats> >& stats) {
     
-    if (keepers.empty()) {
+    if (stats.empty()) {
         cout << "Nothing to filter" << endl << endl;
     }
     else {
@@ -309,6 +304,7 @@ void kat::filter::FilterSeq::save(const vector<uint32_t>& keepers) {
         path ext = seq_file.extension();
         path output_path_in(output_prefix.string() + ".in" + ext.string());
         path output_path_out(output_prefix.string() + ".out" + ext.string());
+        path stats_path_out(output_prefix.string() + ".stats");
 
         cout << "Saving kept sequences to " << output_path_in.string() << " ...";
         cout.flush();
@@ -318,11 +314,16 @@ void kat::filter::FilterSeq::save(const vector<uint32_t>& keepers) {
         seqan::SeqFileIn reader(seq_file.c_str());
         seqan::SeqFileOut inWriter(output_path_in.c_str());
         seqan::SeqFileOut outWriter(output_path_out.c_str());
+        
+        ofstream stats_stream(stats_path_out.c_str());
+        
+        if (doStats) {
+            stats_stream << "header\tnb_bases\tnb_kmers\tnb_hits\tratio" << endl;
+        }
 
         // Processes sequences in batches of records to reduce memory requirements
         uint32_t i = 0;
-        uint32_t j = 0;
-
+        
         // Loop until end
         while (!atEnd(reader)) {
 
@@ -331,24 +332,35 @@ void kat::filter::FilterSeq::save(const vector<uint32_t>& keepers) {
             seqan::Dna5String seq;
             seqan::CharString qual;
             seqan::readRecord(id, seq, qual, reader);
+            
+            double ratio = stats[i]->calcRatio();
 
-            if (i == keepers[j]) {
+            if ((ratio >= threshold && !invert) || (invert && ratio < threshold)) {
                 seqan::writeRecord(inWriter, id, seq, qual);
-                j++;
             }
             else if (separate) {
                 seqan::writeRecord(outWriter, id, seq, qual);
             }
 
+            if (doStats) {
+                stats_stream << id << "\t" << seqan::length(seq) << "\t" << stats[i]->nb_kmers 
+                        << "\t" << stats[i]->matches << "\t" << ratio << endl;
+            }
+            
             i++;
         }
 
         seqan::close(reader);
         seqan::close(inWriter);
         seqan::close(outWriter);
+        stats_stream.close();  
 
         if (!separate) {
             boost::filesystem::remove(output_path_out);
+        }
+        
+        if (!doStats) {
+            boost::filesystem::remove(stats_path_out);
         }
 
         cout << " done.";
@@ -365,6 +377,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     double          threshold;
     bool            invert;
     bool            separate;
+    bool            stats;
     bool            canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
@@ -384,6 +397,8 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
                 "Whether to take k-mers outside region as selected content, rather than those inside.")
             ("separate,s", po::bool_switch(&separate)->default_value(false),
                 "Whether to partition the k-mers into two sets, those inside region and those outside.  Works in combination with \"invert\".")
+            ("stats", po::bool_switch(&stats)->default_value(false),
+                "Whether to emit statistics about quantity of found k-mers in each sequence.")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
@@ -423,8 +438,6 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
         return 1;
     }
 
-
-
     auto_cpu_timer timer(1, "KAT filter seq completed.\nTotal runtime: %ws\n\n");        
 
     cout << "Running KAT in filter sequence mode" << endl
@@ -438,6 +451,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     filter.setCanonical(canonical);
     filter.setInvert(invert);
     filter.setSeparate(separate);
+    filter.setDoStats(stats);
     filter.setMerLen(mer_len);
     filter.setHashSize(hash_size);
     filter.setVerbose(verbose);

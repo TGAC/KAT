@@ -16,8 +16,10 @@
 
 #pragma once
 
+#include <iostream>
 #include <memory>
 using std::unique_ptr;
+using std::stringstream;
 
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
@@ -37,41 +39,81 @@ const double    DEFAULT_FILT_SEQ_THRESHOLD      = 0.1;
 const bool      DEFAULT_FILT_SEQ_INVERT         = false;
 const bool      DEFAULT_FILT_SEQ_SEPARATE       = false;
 
+struct SeqStats {
+    int64_t index;
+    uint64_t matches;
+    uint64_t nb_kmers;
     
-class SeqFilterCounter {
-public:
-    uint64_t nb_records;
-    vector<uint32_t> keepers;
-
-    SeqFilterCounter() : SeqFilterCounter(0) {}
-    SeqFilterCounter(uint64_t _nb_records) :
-        nb_records(_nb_records) {}
+    SeqStats() : SeqStats(-1, 0, 0) {}
+    SeqStats(const int32_t index, const uint64_t matches, const uint64_t nb_kmers) : 
+        index(index), matches(matches), nb_kmers(nb_kmers) {}
     
-    void add(const int32_t index) {
-        nb_records++;
-        keepers.push_back(index);
+    string toString() const {
+        stringstream ss;
+        ss << index << "\t" << nb_kmers << "\t" << matches;
+        return ss.str();
+    }
+    
+    double calcRatio() {
+        return (double)matches / (double)nb_kmers;
     }
 };
 
-class ThreadedSeqFilter {
+struct SeqStatsComparator {
+    inline bool operator() (shared_ptr<SeqStats> k1, shared_ptr<SeqStats> k2) {
+        return (k1->index < k2->index);
+    }
+};
+
+class SeqFilterCounter {
+    
+public:
+        
+    vector<shared_ptr<SeqStats> > seq_stats;
+    
+    SeqFilterCounter() {}
+    
+    void add(shared_ptr<SeqStats> k) {
+        seq_stats.push_back(std::move(k));
+    }
+    
+    uint32_t calcKeepers(const double threshold) {
+        uint32_t nb_found = 0;
+        for(const auto& k : seq_stats) {
+            if (k->calcRatio() >= threshold) {
+                nb_found++;
+            }
+        }
+        
+        return nb_found;
+    }
+    
+    size_t size() const {
+        return seq_stats.size();
+    }
+    
+    void sort() {
+        // Sort keeper indices
+        std::sort(seq_stats.begin(), seq_stats.end(), SeqStatsComparator()); 
+    }
+    
+};
+
+class ThreadedSeqStatsCounters {
 private:
     vector<SeqFilterCounter> counters;
 
 public:
     
-    ThreadedSeqFilter() : ThreadedSeqFilter(1) {};
-    ThreadedSeqFilter(const uint16_t threads) {
+    ThreadedSeqStatsCounters() : ThreadedSeqStatsCounters(1) {};
+    ThreadedSeqStatsCounters(const uint16_t threads) {
         counters.resize(threads);
     }
     
-    ~ThreadedSeqFilter() {}
+    ~ThreadedSeqStatsCounters() {}
 
-    void addFound(const uint32_t th_id, const int32_t index) {
-        counters[th_id].add(index);            
-    };
-
-    void addUnFound(const uint32_t th_id) {
-        counters[th_id].nb_records++;            
+    void add(const uint32_t th_id, unique_ptr<SeqStats> keeper) {
+        counters[th_id].add(std::move(keeper));            
     };
 
     unique_ptr<SeqFilterCounter> merge();
@@ -95,6 +137,7 @@ private:
     double      threshold;
     bool        invert;
     bool        separate;
+    bool        doStats;
     uint16_t    threads;
     uint16_t    merLen;
     bool        verbose;
@@ -106,9 +149,9 @@ private:
         
     seqan::StringSet<seqan::CharString> names;
     seqan::StringSet<seqan::CharString> seqs;
-    string extesion;
+    string extension;
     
-    ThreadedSeqFilter filters;
+    ThreadedSeqStatsCounters stats;
 
     void init(const vector<path>& _input);
 
@@ -158,7 +201,14 @@ public:
     void setThreshold(double threshold) {
         this->threshold = threshold;
     }
+    
+    bool isDoStats() const {
+        return doStats;
+    }
 
+    void setDoStats(bool doStats) {
+        this->doStats = doStats;
+    }
     
     bool isCanonical() const {
         return input.canonical;
@@ -214,7 +264,7 @@ protected:
     
     void processSeq(const size_t index, const uint16_t th_id);
         
-    void save(const vector<uint32_t>& keepers);
+    void save(vector<shared_ptr<SeqStats> >& stats);
     
     static string helpMessage() {            
         
