@@ -117,4 +117,4 @@ plt.xlabel(args.x_label)
 plt.ylabel(args.y_label)
 plt.grid(True, color="white", alpha=0.2)
 
-plt.savefig(args.output + ".pdf", dpi=300)
+plt.savefig(args.output, dpi=300)
