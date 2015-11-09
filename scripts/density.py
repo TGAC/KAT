@@ -21,11 +21,10 @@ vs K-mer multiplicity matrices produced by the "kat gcp" tool.""")
 parser.add_argument("matrix_file", type=str,
                     help="The input matrix file from KAT")
 
-parser.add_argument("-p", "--output_type", type=str, default="png",
-                    choices=["png", "pdf", "eps"],
-                    help="The plot file type to create.")
 parser.add_argument("-o", "--output", type=str, default="kat-density",
                     help="The path to the output file.")
+parser.add_argument("-p", "--output_type", type=str,
+                    help="The plot file type to create (default is based on given output name).")
 parser.add_argument("-t", "--title", type=str, default="Density Plot",
                     help="Title for plot")
 parser.add_argument("-a", "--x_label", type=str, default="X",
@@ -117,4 +116,9 @@ plt.xlabel(args.x_label)
 plt.ylabel(args.y_label)
 plt.grid(True, color="white", alpha=0.2)
 
-plt.savefig(args.output, dpi=300)
+if args.output_type is not None:
+    output_name = args.output + '.' + args.output_type
+else:
+    output_name = args.output
+
+plt.savefig(output_name, dpi=300)
