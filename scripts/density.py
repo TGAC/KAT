@@ -2,7 +2,11 @@
 
 import argparse
 import numpy as np
+import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
+import colormaps as cmaps
+
+from findpeaks import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
@@ -30,11 +34,11 @@ parser.add_argument("-b", "--y_label", type=str, default="Y",
                     help="Label for y-axis")
 parser.add_argument("-c", "--z_label", type=str, default="Z",
                     help="Label for z-axis")
-parser.add_argument("-x", "--x_max", type=int, default=1000,
+parser.add_argument("-x", "--x_max", type=int,
                     help="Maximum value for x-axis")
-parser.add_argument("-y", "--y_max", type=int, default=1000,
+parser.add_argument("-y", "--y_max", type=int,
                     help="Maximum value for y-axis")
-parser.add_argument("-z", "--z_max", type=int, default=1000,
+parser.add_argument("-z", "--z_max", type=int,
                     help="Maximum value for z-axis")
 parser.add_argument("-w", "--width", type=int, default=1024,
                     help="Width of canvas")
@@ -51,4 +55,59 @@ matrix = np.loadtxt(args.matrix_file)
 if args.verbose:
     print "{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
                                                     matrix.shape[1])
+matrix_smooth = ndimage.gaussian_filter(matrix, sigma=2.0, order=0)
 
+if args.x_max is None or args.y_max is None or args.z_max is None:
+    # find peaks
+    msum = np.sum(matrix)
+    xsums = np.sum(matrix, 0)
+    ysums = np.sum(matrix, 1)
+    peakx = findpeaks(xsums) + 1
+    peaky = findpeaks(ysums) + 1
+    # ignore peaks at 1
+    peakx = peakx[peakx != 1]
+    print peakx
+    peaky = peaky[peaky != 1]
+    print peaky
+    peakz = matrix[peaky,:][:,peakx]
+
+    # peakxv = xsums[peakx]
+    # print "peakxv: ", peakxv
+    # xmax = np.max(peakx[peakxv > (msum * 0.0005)]) * 2
+    # peakyv = ysums[peaky]
+    # print "peakyv: ", peakyv
+    # ymax = np.max(peaky[peakyv > (msum * 0.0005)]) * 2
+
+    xmax = len(xsums)
+    ymax = len(ysums)
+    for i in range(1, len(xsums), len(xsums)/20):
+        if np.sum(xsums[:i]) >= msum * 0.995:
+            xmax = i
+            break
+    for i in range(1, len(ysums), len(ysums)/20):
+        if np.sum(ysums[:i]) >= msum * 0.995:
+            ymax = i
+            break
+
+
+    zmax = np.max(peakz)
+
+    if args.verbose:
+        print "Automatically detected axis limits:"
+        print "xmax: ", xmax
+        print "ymax: ", ymax
+        print "zmax: ", zmax
+
+if args.x_max is not None:
+    xmax = args.x_max
+if args.y_max is not None:
+    ymax = args.y_max
+if args.z_max is not None:
+    zmax = args.z_max
+
+plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis)
+plt.axis([0,xmax,0,ymax])
+plt.colorbar()
+levels = np.arange(zmax/4, zmax, zmax/8)
+plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
+plt.savefig(args.output + ".png")
