@@ -25,13 +25,13 @@ parser.add_argument("-o", "--output", type=str, default="kat-density",
                     help="The path to the output file.")
 parser.add_argument("-p", "--output_type", type=str,
                     help="The plot file type to create (default is based on given output name).")
-parser.add_argument("-t", "--title", type=str, default="Density Plot",
+parser.add_argument("-t", "--title", type=str,
                     help="Title for plot")
-parser.add_argument("-a", "--x_label", type=str, default="X",
+parser.add_argument("-a", "--x_label", type=str,
                     help="Label for x-axis")
-parser.add_argument("-b", "--y_label", type=str, default="Y",
+parser.add_argument("-b", "--y_label", type=str,
                     help="Label for y-axis")
-parser.add_argument("-c", "--z_label", type=str, default="Z",
+parser.add_argument("-c", "--z_label", type=str,
                     help="Label for z-axis")
 parser.add_argument("-x", "--x_max", type=int,
                     help="Maximum value for x-axis")
@@ -49,6 +49,59 @@ parser.set_defaults(verbose=False)
 
 args = parser.parse_args()
 # ----- end command line parsing -----
+
+# load header information
+header_title = header_x = header_y = header_z = None
+input_file = open(args.matrix_file)
+for line in input_file:
+    if line[0] == '#':
+        if line[2:8] == "Title:":
+            header_title = line[8:-1]
+            if args.verbose:
+                print header_title
+        elif line[2:9] == "XLabel:":
+            header_x = line[9:-1]
+            if args.verbose:
+                print header_x
+        elif line[2:9] == "YLabel:":
+            header_y = line[9:-1]
+            if args.verbose:
+                print header_y
+        elif line[2:9] == "ZLabel:":
+            header_z = line[9:-1]
+            if args.verbose:
+                print header_z
+    else:
+        break
+input_file.close()
+
+if args.title is not None:
+    title = args.title
+elif header_title is not None:
+    title = header_title
+else:
+    title = "Density Plot"
+
+if args.x_label is not None:
+    x_label = args.x_label
+elif header_x is not None:
+    x_label = header_x
+else:
+    x_label = "X"
+
+if args.y_label is not None:
+    y_label = args.y_label
+elif header_y is not None:
+    y_label = header_y
+else:
+    y_label = "Y"
+
+if args.z_label is not None:
+    z_label = args.z_label
+elif header_z is not None:
+    z_label = header_z
+else:
+    z_label = "Z"
 
 matrix = np.loadtxt(args.matrix_file)
 if args.verbose:
@@ -86,7 +139,6 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
             ymax = i
             break
 
-
     zmax = np.max(peakz)
 
     if args.verbose:
@@ -107,13 +159,13 @@ plt.figure(num = None, figsize=(args.width, args.height))
 pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis, rasterized=True)
 plt.axis([0,xmax,0,ymax])
 cbar = plt.colorbar()
-cbar.set_label(args.z_label)
+cbar.set_label(z_label)
 levels = np.arange(zmax/4, zmax, zmax/8)
 plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
 
-plt.title(args.title)
-plt.xlabel(args.x_label)
-plt.ylabel(args.y_label)
+plt.title(title)
+plt.xlabel(x_label)
+plt.ylabel(y_label)
 plt.grid(True, color="white", alpha=0.2)
 
 if args.output_type is not None:
