@@ -40,9 +40,9 @@ parser.add_argument("-y", "--y_max", type=int,
                     help="Maximum value for y-axis")
 parser.add_argument("-z", "--z_max", type=int,
                     help="Maximum value for z-axis")
-parser.add_argument("-w", "--width", type=int, default=1024,
+parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
-parser.add_argument("-l", "--height", type=int, default=1024,
+parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true",
                     help="Print extra information")
@@ -66,9 +66,7 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
     peaky = findpeaks(ysums) + 1
     # ignore peaks at 1
     peakx = peakx[peakx != 1]
-    print peakx
     peaky = peaky[peaky != 1]
-    print peaky
     peakz = matrix[peaky,:][:,peakx]
 
     # peakxv = xsums[peakx]
@@ -80,11 +78,11 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
 
     xmax = len(xsums)
     ymax = len(ysums)
-    for i in range(1, len(xsums), len(xsums)/20):
+    for i in range(1, len(xsums), len(xsums)/40 + 1):
         if np.sum(xsums[:i]) >= msum * 0.995:
             xmax = i
             break
-    for i in range(1, len(ysums), len(ysums)/20):
+    for i in range(1, len(ysums), len(ysums)/40 + 1):
         if np.sum(ysums[:i]) >= msum * 0.995:
             ymax = i
             break
@@ -105,9 +103,18 @@ if args.y_max is not None:
 if args.z_max is not None:
     zmax = args.z_max
 
-plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis)
+plt.figure(num = None, figsize=(args.width, args.height))
+
+pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis, rasterized=True)
 plt.axis([0,xmax,0,ymax])
-plt.colorbar()
+cbar = plt.colorbar()
+cbar.set_label(args.z_label)
 levels = np.arange(zmax/4, zmax, zmax/8)
 plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
-plt.savefig(args.output + ".png")
+
+plt.title(args.title)
+plt.xlabel(args.x_label)
+plt.ylabel(args.y_label)
+plt.grid(True, color="white", alpha=0.2)
+
+plt.savefig(args.output + ".pdf", dpi=300)
