@@ -162,7 +162,7 @@ pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis, rasterized=
 plt.axis([0,xmax,0,ymax])
 cbar = plt.colorbar()
 cbar.set_label(z_label)
-levels = np.arange(zmax/4, zmax, zmax/8)
+levels = np.arange(zmax/8, zmax, zmax/8)
 plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
 
 plt.title(title)
