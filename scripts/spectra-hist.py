@@ -122,8 +122,8 @@ if args.y_max is not None:
 
 plt.figure(num = None, figsize=(args.width, args.height))
 
-for x,y,h in zip(x,y,headers):
-    plt.plot(x, y, label=h["Title"].split(":")[-1].split("/")[-1])
+for xt,yt,ht in zip(x,y,headers):
+    plt.plot(xt, yt, label=ht["Title"].split(":")[-1].split("/")[-1])
 
 if args.x_logscale:
     plt.xscale("log")
@@ -136,7 +136,8 @@ plt.title(title)
 plt.xlabel(x_label)
 plt.ylabel(y_label)
 plt.grid(True, color="black", alpha=0.2)
-plt.legend(loc=1)
+if len(x) > 1:
+    plt.legend(loc=1)
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
