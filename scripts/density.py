@@ -71,9 +71,10 @@ for line in input_file:
             header_z = line[9:-1]
             if args.verbose:
                 print header_z
+        elif line[0:-1] == "###":
+            break
     else:
         break
-input_file.close()
 
 if args.title is not None:
     title = args.title
@@ -103,7 +104,8 @@ elif header_z is not None:
 else:
     z_label = "Z"
 
-matrix = np.loadtxt(args.matrix_file)
+matrix = np.loadtxt(input_file)
+input_file.close()
 if args.verbose:
     print "{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
                                                     matrix.shape[1])
