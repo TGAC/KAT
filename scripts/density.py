@@ -141,7 +141,7 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
             ymax = i
             break
 
-    zmax = np.max(peakz)
+    zmax = np.max(peakz) * 1.1
 
     if args.verbose:
         print "Automatically detected axis limits:"
