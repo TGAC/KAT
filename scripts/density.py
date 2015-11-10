@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import colormaps as cmaps
 
 from findpeaks import *
+from header import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
@@ -51,56 +52,35 @@ args = parser.parse_args()
 # ----- end command line parsing -----
 
 # load header information
-header_title = header_x = header_y = header_z = None
 input_file = open(args.matrix_file)
-for line in input_file:
-    if line[0] == '#':
-        if line[2:8] == "Title:":
-            header_title = line[8:-1]
-            if args.verbose:
-                print header_title
-        elif line[2:9] == "XLabel:":
-            header_x = line[9:-1]
-            if args.verbose:
-                print header_x
-        elif line[2:9] == "YLabel:":
-            header_y = line[9:-1]
-            if args.verbose:
-                print header_y
-        elif line[2:9] == "ZLabel:":
-            header_z = line[9:-1]
-            if args.verbose:
-                print header_z
-        elif line[0:-1] == "###":
-            break
-    else:
-        break
+
+header = readheader(input_file)
 
 if args.title is not None:
     title = args.title
-elif header_title is not None:
-    title = header_title
+elif "Title" in header:
+    title = header["Title"]
 else:
     title = "Density Plot"
 
 if args.x_label is not None:
     x_label = args.x_label
-elif header_x is not None:
-    x_label = header_x
+elif "XLabel" in header:
+    x_label = header["XLabel"]
 else:
     x_label = "X"
 
 if args.y_label is not None:
     y_label = args.y_label
-elif header_y is not None:
-    y_label = header_y
+elif "YLabel" in header:
+    y_label = header["YLabel"]
 else:
     y_label = "Y"
 
 if args.z_label is not None:
     z_label = args.z_label
-elif header_z is not None:
-    z_label = header_z
+elif "ZLabel" in header:
+    z_label = header["ZLabel"]
 else:
     z_label = "Z"
 
