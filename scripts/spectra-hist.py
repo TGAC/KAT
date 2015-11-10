@@ -25,6 +25,8 @@ parser.add_argument("-a", "--x_label", type=str,
                     help="Label for x-axis")
 parser.add_argument("-b", "--y_label", type=str,
                     help="Label for y-axis")
+parser.add_argument("-L", "--legend_labels", type=str,
+                    help="Comma separated list of labels for legend")
 parser.add_argument("-r", "--x_min", type=int, default=0,
                     help="Minimum value for x-axis")
 parser.add_argument("-s", "--y_min", type=int, default=0,
@@ -122,8 +124,16 @@ if args.y_max is not None:
 
 plt.figure(num = None, figsize=(args.width, args.height))
 
-for xt,yt,ft in zip(x,y,args.histo_files):
-    plt.plot(xt, yt, label=ft.split("/")[-1])
+legend_labels = []
+if args.legend_labels is not None:
+    legend_labels = args.legend_labels.split(",")
+if len(legend_labels) >= len(x):
+    labels = legend_labels
+else:
+    labels = map(lambda s: s.split("/")[-1], args.histo_files)
+
+for xt,yt,lb in zip(x,y,labels):
+    plt.plot(xt, yt, label=lb)
 
 if args.x_logscale:
     plt.xscale("log")
