@@ -26,9 +26,9 @@ parser.add_argument("-x", "--x_max", type=int, default=1000,
                     help="Maximum value for x-axis")
 parser.add_argument("-y", "--y_max", type=int, default=1000,
                     help="Maximum value for y-axis")
-parser.add_argument("-w", "--width", type=int, default=1024,
+parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
-parser.add_argument("-l", "--height", type=int, default=1024,
+parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
 parser.add_argument("-i", "--ignore_absent", dest="ignore_absent", action="store_true",
                     help="Ignore K-mers in reads but absent from the assembly")
@@ -46,4 +46,36 @@ parser.set_defaults(verbose=False)
 
 args = parser.parse_args()
 # ----- end command line parsing -----
+
+# load header information
+input_file = open(args.matrix_file)
+
+header = readheader(input_file)
+
+if args.title is not None:
+    title = args.title
+elif "Title" in header:
+    title = header["Title"]
+else:
+    title = "Density Plot"
+
+if args.x_label is not None:
+    x_label = args.x_label
+elif "XLabel" in header:
+    x_label = header["XLabel"]
+else:
+    x_label = "X"
+
+if args.y_label is not None:
+    y_label = args.y_label
+elif "YLabel" in header:
+    y_label = header["YLabel"]
+else:
+    y_label = "Y"
+
+matrix = np.loadtxt(input_file)
+input_file.close()
+if args.verbose:
+    print "{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
+                                                    matrix.shape[1])
 
