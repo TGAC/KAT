@@ -122,8 +122,8 @@ if args.y_max is not None:
 
 plt.figure(num = None, figsize=(args.width, args.height))
 
-for xt,yt,ht in zip(x,y,headers):
-    plt.plot(xt, yt, label=ht["Title"].split(":")[-1].split("/")[-1])
+for xt,yt,ft in zip(x,y,args.histo_files):
+    plt.plot(xt, yt, label=ft.split("/")[-1])
 
 if args.x_logscale:
     plt.xscale("log")
