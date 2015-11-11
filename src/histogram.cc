@@ -57,7 +57,6 @@ kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, u
     low = _low;
     high = _high;
     inc = _inc;
-    merLen = DEFAULT_MER_LEN;
     threads = 1;
     
     // Calculate other vars required for this run
@@ -90,11 +89,11 @@ void kat::Histogram::execute() {
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
-        input.count(merLen, threads);
+        input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash(true);                
+        input.loadHash();                
     }
     
     data = vector<uint64_t>(nb_buckets, 0);
@@ -106,7 +105,7 @@ void kat::Histogram::execute() {
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
-        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
+        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(input.merLen));
         input.dump(outputPath, threads);     
     }
     // Merge results
@@ -135,8 +134,8 @@ void kat::Histogram::save() {
 void kat::Histogram::print(std::ostream &out) {
     // Output header
     out << mme::KEY_TITLE << "K-mer spectra for: " << input.pathString() << endl;
-    out << mme::KEY_X_LABEL << "K" << merLen << " multiplicity" << endl;
-    out << mme::KEY_Y_LABEL << "Number of distinct K" << merLen << " mers" << endl;
+    out << mme::KEY_X_LABEL << "K" << input.merLen << " multiplicity" << endl;
+    out << mme::KEY_Y_LABEL << "Number of distinct " << input.merLen << " mers" << endl;
     out << mme::MX_META_END << endl;
 
     uint64_t col = base;

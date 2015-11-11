@@ -90,7 +90,6 @@ private:
     bool        invert;
     bool        separate;
     uint16_t    threads;
-    uint16_t    merLen;
     bool        verbose;
 
     ThreadedCounter all;
@@ -147,11 +146,11 @@ public:
     }
 
     uint16_t getMerLen() const {
-        return merLen;
+        return input.merLen;
     }
 
     void setMerLen(uint16_t merLen) {
-        this->merLen = merLen;
+        this->input.merLen = merLen;
     }
 
     path getOutputPrefix() const {

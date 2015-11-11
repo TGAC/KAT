@@ -39,6 +39,7 @@ namespace kat {
         InputMode mode = InputMode::COUNT;
         bool canonical = false;
         uint64_t hashSize = DEFAULT_HASH_SIZE;
+        uint16_t merLen = DEFAULT_MER_LEN;
         bool dumpHash = false;
         bool disableHashGrow = false;
         HashCounterPtr hashCounter = nullptr;
@@ -52,11 +53,10 @@ namespace kat {
         string pathString();
         void validateInput();   // Throws if input is not present.  Sets input mode.
         void loadHeader();
-        void validateMerLen(uint16_t merLen);   // Throws if incorrect merlen
-        void count(uint16_t merLen, uint16_t threads);   // Uses the jellyfish library to count kmers in the input
-        void loadHash() { loadHash(false); }
-        void loadHash(bool verbose);
-        void dump(const path& outputPath, uint16_t threads);
+        void validateMerLen(const uint16_t merLen);   // Throws if incorrect merlen
+        void count(const uint16_t threads);   // Uses the jellyfish library to count kmers in the input
+        void loadHash();
+        void dump(const path& outputPath, const uint16_t threads);
         
         static vector<path> globFiles(const string& input);
         static vector<path> globFiles(const vector<path>& input);

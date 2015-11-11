@@ -63,7 +63,6 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     cvgBins = 1001;
     cvgLogscale = false;
     threads = 1;
-    merLen = DEFAULT_MER_LEN;
     noCountStats = false;
     verbose = false;
     contamination_mx = nullptr;
@@ -94,11 +93,11 @@ void kat::Sect::execute() {
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
-        input.count(merLen, threads);
+        input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash(true);                
+        input.loadHash();
     }
 
     contamination_mx = make_shared<ThreadedSparseMatrix>(gcBins, cvgBins, threads);
@@ -109,7 +108,7 @@ void kat::Sect::execute() {
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
-        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
+        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(input.merLen));
         input.dump(outputPath, threads);     
     }
     
@@ -383,7 +382,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     string seq = ssSeq.str();
 
     uint64_t seqLength = seq.length();
-    uint64_t nbCounts = seqLength - merLen + 1;
+    uint64_t nbCounts = seqLength - input.merLen + 1;
     double average_cvg = 0.0;
     uint64_t nbNonZero = 0;
     uint64_t nbInvalid = 0;
@@ -406,7 +405,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
         for (uint64_t i = 0; i < nbCounts; i++) {
 
-            string merstr = seq.substr(i, merLen);
+            string merstr = seq.substr(i, input.merLen);
 
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
             if (!validKmer(merstr)) {

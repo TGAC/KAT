@@ -100,7 +100,6 @@ void kat::filter::FilterKmer::init(const vector<path>& _input) {
     
     threads = 1;
     input.canonical = false;
-    merLen = DEFAULT_MER_LEN; 
     verbose = false; 
     
     low_count = DEFAULT_FILT_KMER_LOW_COUNT;
@@ -137,11 +136,11 @@ void kat::filter::FilterKmer::execute() {
     }
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
-        input.count(merLen, threads);
+        input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash(true);                
+        input.loadHash();                
     }
     
     size_t size = input.header->size();
@@ -192,8 +191,8 @@ void kat::filter::FilterKmer::execute() {
     merge();
 
     // Output to disk
-    path in_path(output_prefix.string() + "-in.jf" + lexical_cast<string>(merLen));
-    path out_path(output_prefix.string() + "-out.jf" + lexical_cast<string>(merLen));
+    path in_path(output_prefix.string() + "-in.jf" + lexical_cast<string>(input.merLen));
+    path out_path(output_prefix.string() + "-out.jf" + lexical_cast<string>(input.merLen));
     
     // Dumping automatically destroys hash counters
     dump(in_path, inCounter, out_header);    

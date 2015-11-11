@@ -330,7 +330,6 @@ void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, c
     d1Bins = DEFAULT_NB_BINS;
     d2Bins = DEFAULT_NB_BINS;
     threads = 1;
-    merLen = DEFAULT_MER_LEN; 
     densityPlot = false;
     verbose = false;      
 }
@@ -370,12 +369,12 @@ void kat::Comp::execute() {
             input.size() == 3 ? input[2].getSingleInput() : path(),
             std::min(d1Bins, d2Bins));
 
-    string merLenStr = lexical_cast<string>(merLen);
+    string merLenStr = lexical_cast<string>(this->getMerLen());
 
     // Count kmers in sequence files if necessary (sets load and hashes and hashcounters as appropriate)
     for(size_t i = 0; i < input.size(); i++) {
         if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
-            input[i].count(merLen, threads);
+            input[i].count(threads);
         }
     }
     
@@ -394,10 +393,10 @@ void kat::Comp::execute() {
     
     // If all hashes are loaded directly there is no requirement that the user needs
     // to specify the merLen, so just set it to the merLen found in the header of the first input
-    if (allLoad) merLen = input[0].header->key_len() / 2;
+    if (allLoad) this->setMerLen(input[0].header->key_len() / 2);
     
     for(uint16_t i = 0; i < input.size(); i++) {
-        input[i].validateMerLen(merLen);
+        input[i].validateMerLen(this->getMerLen());
     }
     
     // Load any hashes if necessary
@@ -411,7 +410,7 @@ void kat::Comp::execute() {
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (dumpHashes()) {
         for(uint16_t i = 0; i < input.size(); i++) {        
-            path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(merLen));
+            path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(this->getMerLen()));
             input[i].dump(outputPath, threads);
         }    
     }    
@@ -508,7 +507,7 @@ void kat::Comp::loadHashes() {
     else {
         for(size_t i = 0; i < input.size(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
-               input[i].loadHash(false);                
+               input[i].loadHash();                
             }
         }        
     }

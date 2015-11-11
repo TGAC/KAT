@@ -81,7 +81,7 @@ void kat::InputHandler::loadHeader() {
     }    
 }
 
-void kat::InputHandler::validateMerLen(uint16_t merLen) {    
+void kat::InputHandler::validateMerLen(const uint16_t merLen) {    
     
     if (mode == InputMode::LOAD) {
         if (header->key_len() != merLen * 2) {
@@ -105,7 +105,7 @@ string kat::InputHandler::pathString() {
     return s;
 }
 
-void kat::InputHandler::count(uint16_t merLen, uint16_t threads) {
+void kat::InputHandler::count(const uint16_t threads) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");      
     
@@ -129,7 +129,7 @@ void kat::InputHandler::count(uint16_t merLen, uint16_t threads) {
     cout.flush();    
 }
 
-void kat::InputHandler::loadHash(bool verbose) {
+void kat::InputHandler::loadHash() {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
@@ -140,12 +140,13 @@ void kat::InputHandler::loadHash(bool verbose) {
     hashLoader->loadHash(*input[0], false); 
     hash = hashLoader->getHash();
     canonical = hashLoader->getCanonical();
+    merLen = hashLoader->getMerLen();
     
     cout << " done.";
     cout.flush();    
 }
 
-void kat::InputHandler::dump(const path& outputPath, uint16_t threads) {
+void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
     
     // Remove anything that exists at the target location
     if (bfs::is_symlink(outputPath) || bfs::exists(outputPath)) {

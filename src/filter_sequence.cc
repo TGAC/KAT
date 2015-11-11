@@ -101,7 +101,6 @@ void kat::filter::FilterSeq::init(const vector<path>& _input) {
     
     threads = 1;
     input.canonical = false;
-    merLen = DEFAULT_MER_LEN;
     verbose = false; 
     
     threshold = DEFAULT_FILT_SEQ_THRESHOLD;
@@ -140,11 +139,11 @@ void kat::filter::FilterSeq::execute() {
     }
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
-        input.count(merLen, threads);
+        input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash(true);                
+        input.loadHash();                
     }
     
     // Resize all the counters to the requested number of threads
@@ -254,7 +253,7 @@ void kat::filter::FilterSeq::processSeq(const size_t index, const uint16_t th_id
     string seq = ssSeq.str();
 
     uint64_t seqLength = seq.length();
-    uint64_t nbCounts = seqLength - merLen + 1;
+    uint64_t nbCounts = seqLength - input.merLen + 1;
     uint64_t nbInvalid = 0;
     
     vector<bool> kFound(nbCounts, 0);
@@ -269,7 +268,7 @@ void kat::filter::FilterSeq::processSeq(const size_t index, const uint16_t th_id
 
         for (uint64_t i = 0; i < nbCounts; i++) {
 
-            string merstr = seq.substr(i, merLen);
+            string merstr = seq.substr(i, input.merLen);
 
             // Jellyfish compacted hash does not support Ns so if we find one set this kmer to false
             if (!validKmer(merstr)) {
@@ -289,7 +288,7 @@ void kat::filter::FilterSeq::processSeq(const size_t index, const uint16_t th_id
     }
     
     unique_ptr<SeqStats> k( new SeqStats(offset+index, nbFound, nbCounts) );        
-    stats.add(th_id, std::move(k));    
+    stats.add(th_id, std::move(k));
 }
 
 void kat::filter::FilterSeq::save(vector<shared_ptr<SeqStats> >& stats) {

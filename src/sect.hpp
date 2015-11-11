@@ -75,7 +75,6 @@ namespace kat {
         uint16_t        cvgBins;
         bool            cvgLogscale;
         uint16_t        threads;
-        uint16_t        merLen;
         bool            noCountStats;
         bool            verbose;
             
@@ -184,11 +183,11 @@ namespace kat {
         }
 
         uint16_t getMerLen() const {
-            return merLen;
+            return input.merLen;
         }
 
         void setMerLen(uint16_t merLen) {
-            this->merLen = merLen;
+            this->input.merLen = merLen;
         }
         
         bool isDumpHash() const {

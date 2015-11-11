@@ -143,7 +143,6 @@ namespace kat {
         uint16_t d1Bins;
         uint16_t d2Bins;
         uint16_t threads;
-        uint16_t merLen;
         bool densityPlot;
         bool verbose;
 
@@ -237,11 +236,13 @@ namespace kat {
         }
 
         uint8_t getMerLen() const {
-            return merLen;
+            return input[0].merLen;
         }
 
         void setMerLen(uint8_t merLen) {
-            this->merLen = merLen;
+            for (auto& i : this->input) {
+                i.merLen = merLen;
+            }
         }
 
         path getOutputPrefix() const {

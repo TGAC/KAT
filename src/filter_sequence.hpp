@@ -139,7 +139,6 @@ private:
     bool        separate;
     bool        doStats;
     uint16_t    threads;
-    uint16_t    merLen;
     bool        verbose;
     
     vector<uint32_t> keep;
@@ -171,11 +170,11 @@ public:
     }
 
     uint16_t getMerLen() const {
-        return merLen;
+        return input.merLen;
     }
 
     void setMerLen(uint16_t merLen) {
-        this->merLen = merLen;
+        this->input.merLen = merLen;
     }
 
     path getOutputPrefix() const {

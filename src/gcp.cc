@@ -60,7 +60,6 @@ kat::Gcp::Gcp(vector<path>& _inputs) {
     outputPrefix = "kat-gcp";
     cvgScale = 1.0;
     cvgBins = 1000;
-    merLen = DEFAULT_MER_LEN;
     threads = 1;
 }
  
@@ -80,11 +79,11 @@ void kat::Gcp::execute() {
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
-        input.count(merLen, threads);
+        input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash(true);                
+        input.loadHash();                
     }
     
     // Create matrix of appropriate size (adds 1 to cvg bins to account for 0)
@@ -98,7 +97,7 @@ void kat::Gcp::execute() {
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
-        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(merLen));
+        path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(input.merLen));
         input.dump(outputPath, threads);     
     }
     

@@ -66,7 +66,6 @@ namespace kat {
         uint16_t        threads;
         double          cvgScale;
         uint16_t        cvgBins;
-        uint16_t        merLen;
         bool            verbose;
         
         // Stores results
@@ -112,11 +111,11 @@ namespace kat {
         }
 
         uint16_t getMerLen() const {
-            return merLen;
+            return input.merLen;
         }
 
         void setMerLen(uint16_t merLen) {
-            this->merLen = merLen;
+            this->input.merLen = merLen;
         }
 
         path getOutputPrefix() const {
