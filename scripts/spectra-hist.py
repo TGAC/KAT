@@ -14,11 +14,10 @@ parser = argparse.ArgumentParser(
 parser.add_argument("histo_files", type=str, nargs='+',
                     help="The input histogram file from KAT")
 
-parser.add_argument("-p", "--output_type", type=str,
-                    choices=["png", "pdf", "eps"],
-                    help="The plot file type to create.")
 parser.add_argument("-o", "--output", type=str, default="kat-spectra-hist",
                     help="The path to the output file.")
+parser.add_argument("-p", "--output_type", type=str,
+                    help="The plot file type to create (default is based on given output name).")
 parser.add_argument("-t", "--title", type=str,
                     help="Title for plot")
 parser.add_argument("-a", "--x_label", type=str,
@@ -132,8 +131,15 @@ if len(legend_labels) >= len(x):
 else:
     labels = map(lambda s: s.split("/")[-1], args.histo_files)
 
-for xt,yt,lb in zip(x,y,labels):
-    plt.plot(xt, yt, label=lb)
+colours = ["#cc0000",
+           "#75507b",
+           "#3465a4",
+           "#73d216",
+           "#c17d11",
+           "#f57900",
+           "#edd400"]
+for xt,yt,lb,i in zip(x,y,labels,range(len(x))):
+    plt.plot(xt, yt, label=lb, color=colours[i%len(colours)])
 
 if args.x_logscale:
     plt.xscale("log")
