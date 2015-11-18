@@ -44,6 +44,9 @@ parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
+parser.add_argument("--not_rasterised", dest="rasterised", action="store_false",
+                    help="Don't rasterise graphics (slower).")
+parser.set_defaults(rasterised=True)
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true",
                     help="Print extra information")
 parser.set_defaults(verbose=False)
@@ -96,9 +99,11 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
     msum = np.sum(matrix)
     xsums = np.sum(matrix, 0)
     ysums = np.sum(matrix, 1)
-    peakx = findpeaks(xsums) + 1
-    peaky = findpeaks(ysums) + 1
+    peakx = findpeaks(xsums)
+    peaky = findpeaks(ysums)
     # ignore peaks at 1
+    print peakx
+    print peaky
     peakx = peakx[peakx != 1]
     peaky = peaky[peaky != 1]
     peakz = matrix[peaky,:][:,peakx]
@@ -138,10 +143,12 @@ if args.z_max is not None:
 
 plt.figure(num = None, figsize=(args.width, args.height))
 
-pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis, rasterized=True)
+pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis,
+                      rasterized=args.rasterised)
 plt.axis([0,xmax,0,ymax])
 cbar = plt.colorbar()
 cbar.set_label(z_label)
+cbar.solids.set_rasterized(args.rasterised)
 levels = np.arange(zmax/8, zmax, zmax/8)
 plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
 
