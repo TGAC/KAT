@@ -102,8 +102,6 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
     peakx = findpeaks(xsums)
     peaky = findpeaks(ysums)
     # ignore peaks at 1
-    print peakx
-    print peaky
     peakx = peakx[peakx != 1]
     peaky = peaky[peaky != 1]
     peakz = matrix[peaky,:][:,peakx]
