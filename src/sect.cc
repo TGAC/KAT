@@ -329,39 +329,42 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
     for (uint32_t i = 0; i < recordsInBatch; i++) {
         
         uint32_t index = 1;
+        uint32_t start = 0;
         shared_ptr<vector<uint64_t>> seqCounts = counts->at(i);
 
         if (seqCounts != NULL && !seqCounts->empty()) {
+            bool inRegion = false;
             stringstream ss;
-            ss << ">" << seqan::toCString(names[i]) << "_" << index++ << endl;
             for (size_t j = 0; j < seqCounts->size(); j++) {
                 uint64_t c = seqCounts->at(j);
                 
                 if (c >= min_count && c <= max_count) {
-                    ss << seqs[i][j];
-                }
-                else {
-                    ss.seekp(0, stringstream::end);
-                    size_t size = ss.tellp();
-                    if (size > 0) {
-                        out << ss.str();
-                        
-                        for(size_t k = 0; k < j+this->getMerLen() - 1; k++) {
-                            out << seqs[i][k];
-                        }
-                        out << endl;
-                        ss.clear();
-                        ss << ">" << seqan::toCString(names[i]) << "_" << index++ << endl;
+                    if (!inRegion) {
+                        start = j;
+                        inRegion = true;
                     }
+                    ss << seqs[i][j];                    
                 }
+                else if (inRegion) {
+                    uint32_t end = j+this->getMerLen() - 1;
+                    out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << "-" << max_count << endl;
+                    out << ss.str();
+                    for(size_t k = j+1; k < end; k++) {
+                        out << seqs[i][k];
+                    }
+                    out << endl;
+                    inRegion = false;
+                    ss.str(std::string());
+                }                
                 
             }
             
-            ss.seekp(0, stringstream::end);
-            size_t size = ss.tellp();
-            if (size > 0) {
-                out << ss;
-                for(size_t k = seqCounts->size(); k < seqCounts->size() + this->getMerLen() - 1; k++) {
+            if (inRegion) {
+                uint32_t end = seqCounts->size() + this->getMerLen() - 1;
+                        
+                out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << "-" << max_count << endl;
+                out << ss.str();
+                for(size_t k = seqCounts->size(); k < end; k++) {
                     out << seqs[i][k];
                 }
                 out << endl;
