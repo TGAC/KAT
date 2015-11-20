@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ parser.add_argument("-o", "--output", type=str, default="kat-profile",
                     help="The path to the output file.")
 parser.add_argument("-p", "--output_type", type=str,
                     help="The plot file type to create (default is based on given output name).")
-parser.add_argument("-t", "--title", type=str, default="Sequence Coverage Plot",
+parser.add_argument("-t", "--title", type=str,
                     help="Title for plot")
 parser.add_argument("-a", "--x_label", type=str,
                     help="Label for x-axis")
@@ -29,8 +30,8 @@ parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=3,
                     help="Height of canvas")
-parser.add_argument("-n", "--index", type=int, default=0,
-                    help="Index of fasta entry to plot")
+parser.add_argument("-n", "--index", type=str, default="0",
+                    help="Comma separate list of indexes of fasta entry to plot")
 parser.add_argument("-d", "--header", type=str,
                     help="Name of fasta entry to plot (has priority over index)")
 parser.add_argument("-v", "--verbose", dest="verbose", action="store_true",
@@ -52,30 +53,50 @@ for line in input_file:
         names.append(last_name)
     else:
         profiles[last_name] = line[:-1]
+input_file.close()
 
 if args.header is not None:
-    name = args.header
+    names = [args.header]
 else:
-    name = names[args.index]
+    indexes = map(int, args.index.split(','))
+    names = map(lambda i: names[i], indexes)
 
-if name not in profiles:
-    sys.exit("Entry {:s} not found.".format(name))
+if args.title is not None:
+    title = args.title
 else:
-    pstr = profiles[name]
+    title = "Sequence Coverage Plot"
 
-profile = np.fromstring(pstr, dtype=int, sep=' ')
+if args.x_label is not None:
+    x_label = args.x_label
+else:
+    x_label = "Position"
 
-x = np.arange(1,len(profile)+1)
+if args.y_label is not None:
+    y_label = args.y_label
+else:
+    y_label = "Coverage"
 
-plt.figure(num = None, figsize=(args.width, args.height))
-plt.gcf().subplots_adjust(bottom=0.15) # makes room for x-label
+plt.figure(1, figsize=(args.width, args.height * len(names)))
 
-plt.plot(x, profile)
+for i in range(len(names)):
+    if names[i] not in profiles:
+        sys.exit("Entry {:s} not found.".format(names[i]))
+    else:
+        pstr = profiles[names[i]]
 
-plt.title(name)
-plt.xlabel("Position")
-plt.ylabel("Coverage")
-plt.grid(True, color="black", alpha=0.2)
+        profile = np.fromstring(pstr, dtype=int, sep=' ')
+
+        x = np.arange(1,len(profile)+1)
+
+        plt.subplot(len(names), 1, i+1)
+        plt.plot(x, profile)
+        plt.ylim(0,np.max(profile)*1.1)
+
+        plt.title(names[i])
+        plt.xlabel(x_label)
+        plt.ylabel(y_label)
+        plt.grid(True, color="black", alpha=0.2)
+        plt.tight_layout()
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
