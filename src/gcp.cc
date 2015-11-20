@@ -224,7 +224,8 @@ int kat::Gcp::main(int argc, char *argv[]) {
     uint16_t        threads;
     double          cvg_scale;
     uint16_t        cvg_bins;
-    bool            canonical;
+    bool            canonical;      // Deprecated... for removal in KAT 3.0
+    bool            non_canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            dump_hash;
@@ -244,6 +245,8 @@ int kat::Gcp::main(int argc, char *argv[]) {
             ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(1000),
                 "Number of bins for the cvg data when creating the contamination matrix.")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
+                "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
                 "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
@@ -294,7 +297,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
     // Create the sequence coverage object
     Gcp gcp(inputs);
     gcp.setThreads(threads);
-    gcp.setCanonical(canonical);
+    gcp.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
     gcp.setCvgBins(cvg_bins);
     gcp.setCvgScale(cvg_scale);
     gcp.setHashSize(hash_size);

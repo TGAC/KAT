@@ -64,6 +64,9 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     cvgLogscale = false;
     threads = 1;
     noCountStats = false;
+    extractNR = false;
+    extractR = false;
+    maxRepeat = 20;
     verbose = false;
     contamination_mx = nullptr;
 }
@@ -162,6 +165,16 @@ void kat::Sect::processSeqFile() {
     if (!noCountStats) {
         count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-counts.cvg").c_str());
     }
+    
+    shared_ptr<ofstream> nr_path_stream = nullptr;
+    if (extractNR) {
+        nr_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-non_repetitive.fa").c_str());
+    }
+    
+    shared_ptr<ofstream> r_path_stream = nullptr;
+    if (extractR) {
+        r_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-repetitive.fa").c_str());
+    }
 
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
@@ -193,6 +206,13 @@ void kat::Sect::processSeqFile() {
         // Output counts for this batch if (not not) requested
         if (!noCountStats)
             printCounts(*count_path_stream);
+        
+        if (extractNR)
+            printRegions(*nr_path_stream, 1, 1);
+        
+        if (extractNR)
+            printRegions(*r_path_stream, 2, maxRepeat);
+
 
         // Output stats
         printStatTable(cvg_gc_stream);
@@ -208,9 +228,9 @@ void kat::Sect::processSeqFile() {
     }
 
     // Close output streams
-    if (!noCountStats) {
-        count_path_stream->close();                
-    }
+    if (!noCountStats)  count_path_stream->close();    
+    if (extractNR)      nr_path_stream->close();
+    if (extractR)       r_path_stream->close();
 
     seqan::close(reader);
 
@@ -304,6 +324,53 @@ void kat::Sect::printCounts(std::ostream &out) {
         }
     }
 }
+
+void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const uint32_t max_count) {
+    for (uint32_t i = 0; i < recordsInBatch; i++) {
+        
+        uint32_t index = 1;
+        shared_ptr<vector<uint64_t>> seqCounts = counts->at(i);
+
+        if (seqCounts != NULL && !seqCounts->empty()) {
+            stringstream ss;
+            ss << ">" << seqan::toCString(names[i]) << "_" << index++ << endl;
+            for (size_t j = 0; j < seqCounts->size(); j++) {
+                uint64_t c = seqCounts->at(j);
+                
+                if (c >= min_count && c <= max_count) {
+                    ss << seqs[i][j];
+                }
+                else {
+                    ss.seekp(0, stringstream::end);
+                    size_t size = ss.tellp();
+                    if (size > 0) {
+                        out << ss.str();
+                        
+                        for(size_t k = 0; k < j+this->getMerLen() - 1; k++) {
+                            out << seqs[i][k];
+                        }
+                        out << endl;
+                        ss.clear();
+                        ss << ">" << seqan::toCString(names[i]) << "_" << index++ << endl;
+                    }
+                }
+                
+            }
+            
+            ss.seekp(0, stringstream::end);
+            size_t size = ss.tellp();
+            if (size > 0) {
+                out << ss;
+                for(size_t k = seqCounts->size(); k < seqCounts->size() + this->getMerLen() - 1; k++) {
+                    out << seqs[i][k];
+                }
+                out << endl;
+            }
+
+        }
+    }
+}
+
 
 void kat::Sect::printStatTable(std::ostream &out) {
     
@@ -488,10 +555,14 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint16_t        cvg_bins;
     bool            cvg_logscale;
     uint16_t        threads;
-    bool            canonical;
+    bool            canonical;  // Deprecated... for removal in KAT 3.0
+    bool            non_canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            no_count_stats;
+    bool            extract_nr;
+    bool            extract_r;
+    uint32_t        max_repeat;
     bool            dump_hash;
     bool            verbose;
     bool            help;
@@ -510,6 +581,8 @@ int kat::Sect::main(int argc, char *argv[]) {
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
+                "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
                 "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
@@ -517,6 +590,12 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("no_count_stats,n", po::bool_switch(&no_count_stats)->default_value(false),
                 "Tells SECT not to output count stats.  Sometimes when using SECT on read files the output can get very large.  When flagged this just outputs summary stats for each sequence.")
+            ("extract_nr,E", po::bool_switch(&extract_nr)->default_value(false),
+                "Tells SECT extract non-repetitive regions into a separate FastA file.")
+            ("extract_r,F", po::bool_switch(&extract_r)->default_value(false),
+                "Tells SECT extract repetitive regions into a separate FastA file.")
+            ("max_repeat,G", po::value<uint32_t>(&max_repeat)->default_value(20),
+                "If user requests repeat region extraction (--max_repeat), this value allows the user to override the default maximum limit on the amount of repetition allowed.  This allows users to avoid regions that are likely to be due to low complexity sequences.")
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
                         "Dumps any jellyfish hashes to disk that were produced during this run.") 
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
@@ -567,10 +646,13 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setCvgBins(cvg_bins);
     sect.setCvgLogscale(cvg_logscale);
     sect.setThreads(threads);
-    sect.setCanonical(canonical);
+    sect.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
+    sect.setExtractNR(extract_nr);
+    sect.setExtractR(extract_r);
+    sect.setMaxRepeat(max_repeat);
     sect.setDumpHash(dump_hash);
     sect.setVerbose(verbose);
 

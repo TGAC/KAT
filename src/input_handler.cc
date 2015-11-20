@@ -29,8 +29,14 @@ using boost::split;
 #include "input_handler.hpp"
 using kat::JellyfishHelper;
 
+void kat::InputHandler::setMultipleInputs(const vector<path_ptr>& inputs) {
+    for(auto& p : inputs) {
+        input.push_back(p);      
+    }
+}
+
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
-    for(path p : inputs) {
+    for(auto& p : inputs) {
         input.push_back(make_shared<path>(p));      
     }
 }
@@ -42,7 +48,7 @@ void kat::InputHandler::validateInput() {
     // Check input file(s) exists
     for(auto& rp : input) {
     
-        path p = *rp;
+        path p(*rp);
         
         if (bfs::is_symlink(p)) {
             if (bfs::symbolic_link_exists(p)) {
@@ -172,33 +178,33 @@ void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
     
 }
 
-vector<path> kat::InputHandler::globFiles(const string& input) {
+vector<path_ptr> kat::InputHandler::globFiles(const string& input) {
 
     vector<string> inputvec;
     boost::split(inputvec, input, boost::is_any_of(" "));    
     
-    vector<path> pathvec;
+    vector<path_ptr> pathvec;
     for(auto& s : inputvec) {
-        pathvec.push_back(s);
+        pathvec.push_back(make_shared<path>(s));
     }
     
     return globFiles(pathvec);
 }
 
-vector<path> kat::InputHandler::globFiles(const vector<path>& input) {
+vector<path_ptr> kat::InputHandler::globFiles(const vector<path_ptr>& input) {
 
     glob_t globbuf;
 
     // Translate glob patterns into real paths
     int i = 0;
-    for(path g : input) {           
-        glob(g.c_str(), i > 0 ? GLOB_TILDE | GLOB_APPEND : GLOB_TILDE, NULL, &globbuf);
+    for(auto& g : input) {           
+        glob(g->c_str(), i > 0 ? GLOB_TILDE | GLOB_APPEND : GLOB_TILDE, NULL, &globbuf);
         i++;
     }
 
-    vector<path> transformed;
+    vector<path_ptr> transformed;
     for( size_t i = 0; i < globbuf.gl_pathc; ++i )
-        transformed.push_back( path(globbuf.gl_pathv[i]) );
+        transformed.push_back( make_shared<path>(globbuf.gl_pathv[i]) );
 
     if( globbuf.gl_pathc > 0 )
         globfree( &globbuf );
@@ -207,7 +213,7 @@ vector<path> kat::InputHandler::globFiles(const vector<path>& input) {
     // exist.  But we add the basic input regardless, the user will have to check
     // for file non-existence later.
     if (transformed.empty()) {
-        transformed.push_back(path(input[0]));
+        transformed.push_back(input[0]);
     }
     
     return transformed;

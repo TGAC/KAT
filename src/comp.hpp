@@ -157,7 +157,7 @@ namespace kat {
         
         std::mutex mu;
         
-        void init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3);
+        void init(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3);
 
 
     public:
@@ -168,9 +168,9 @@ namespace kat {
         
         Comp(const path& _input1, const path& _input2, const path& _input3);
 
-        Comp(const vector<path>& _input1, const vector<path>& _input2);
+        Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2);
         
-        Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3);
+        Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3);
 
         
         virtual ~Comp() {}

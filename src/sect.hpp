@@ -66,7 +66,7 @@ namespace kat {
     private:
 
         static const uint16_t BATCH_SIZE = 1024;
-
+        
         // Input args
         InputHandler    input;
         path            seqFile;
@@ -76,6 +76,9 @@ namespace kat {
         bool            cvgLogscale;
         uint16_t        threads;
         bool            noCountStats;
+        bool            extractNR;
+        bool            extractR;
+        uint32_t        maxRepeat;
         bool            verbose;
             
         // Chunking vars
@@ -157,6 +160,30 @@ namespace kat {
         void setNoCountStats(bool no_count_stats) {
             this->noCountStats = no_count_stats;
         }
+        
+        bool isExtractNR() const {
+            return extractNR;
+        }
+
+        void setExtractNR(bool extractNR) {
+            this->extractNR = extractNR;
+        }
+
+        bool isExtractR() const {
+            return extractR;
+        }
+
+        void setExtractR(bool extractR) {
+            this->extractR = extractR;
+        }
+        
+        uint32_t getMaxRepeat() const {
+            return maxRepeat;
+        }
+
+        void setMaxRepeat(uint32_t maxRepeat) {
+            this->maxRepeat = maxRepeat;
+        }
 
         path getSeqFile() const {
             return seqFile;
@@ -227,6 +254,8 @@ namespace kat {
         void createBatchVars(uint16_t batchSize);
 
         void printCounts(std::ostream &out);
+        
+        void printRegions(std::ostream &out, const uint32_t min_count, const uint32_t max_count);
 
         void printStatTable(std::ostream &out);
 

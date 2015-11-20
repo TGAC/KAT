@@ -23,11 +23,14 @@ using std::shared_ptr;
 #include <jellyfish_helper.hpp>
 using kat::JellyfishHelper;
 
+typedef shared_ptr<path> path_ptr;
+
 namespace kat {
     
     class InputHandler {
         
     public:
+        
         
         enum InputMode {
             LOAD,
@@ -35,7 +38,7 @@ namespace kat {
         };
         
         uint16_t index;
-        vector<shared_ptr<path>> input;
+        vector<path_ptr> input;
         InputMode mode = InputMode::COUNT;
         bool canonical = false;
         uint64_t hashSize = DEFAULT_HASH_SIZE;
@@ -47,7 +50,8 @@ namespace kat {
         LargeHashArrayPtr hash = nullptr;
         shared_ptr<file_header> header;         // Only applicable if loaded
 
-        void setSingleInput(path p) { input.clear(); input.push_back(make_shared<path>(p)); }
+        void setSingleInput(const path& p) { input.clear(); input.push_back(make_shared<path>(p)); }
+        void setMultipleInputs(const vector<path_ptr>& inputs);
         void setMultipleInputs(const vector<path>& inputs);
         path getSingleInput() { return *input[0]; }
         string pathString();
@@ -58,8 +62,8 @@ namespace kat {
         void loadHash();
         void dump(const path& outputPath, const uint16_t threads);
         
-        static vector<path> globFiles(const string& input);
-        static vector<path> globFiles(const vector<path>& input);
+        static vector<path_ptr> globFiles(const string& input);
+        static vector<path_ptr> globFiles(const vector<path_ptr>& input);
     };
     
 }

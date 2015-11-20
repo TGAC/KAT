@@ -287,32 +287,32 @@ void kat::ThreadedCompCounters::merge_spectrum(vector<uint64_t>& spectrum, const
 // ********* Comp **********
 
 kat::Comp::Comp() :
-    kat::Comp::Comp(path(), path()) {}
+    kat::Comp::Comp(nullptr, nullptr) {}
 
 kat::Comp::Comp(const path& _input1, const path& _input2) : 
-    kat::Comp::Comp(_input1, _input2, path()) {}
+    kat::Comp::Comp(_input1, _input2, nullptr) {}
         
 kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
-    vector<path> vecInput1;
-    vecInput1.push_back(_input1);
-    vector<path> vecInput2;
-    vecInput2.push_back(_input2);
-    vector<path> vecInput3;
+    vector<path_ptr> vecInput1;
+    vecInput1.push_back(make_shared<path>(_input1));
+    vector<path_ptr> vecInput2;
+    vecInput2.push_back(make_shared<path>(_input2));
+    vector<path_ptr> vecInput3;
     if (!_input3.empty())
-        vecInput3.push_back(_input3);    
+        vecInput3.push_back(make_shared<path>(_input3));    
     
     init(vecInput1, vecInput2, vecInput3);
 }
     
     
-kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2) : 
-    kat::Comp::Comp(_input1, _input2, vector<path>()) {}
+kat::Comp::Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2) : 
+    kat::Comp::Comp(_input1, _input2, vector<path_ptr>()) {}
         
-kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {    
+kat::Comp::Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3) {    
     init(_input1, _input2, _input3);
 }
 
-void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {
+void kat::Comp::init(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3) {
     input = !_input3.empty() ? vector<InputHandler>(3) : vector<InputHandler>(2);
     
     input[0].setMultipleInputs(_input1);
@@ -747,9 +747,12 @@ int kat::Comp::main(int argc, char *argv[]) {
     uint16_t d2_bins;
     uint16_t threads;
     uint16_t mer_len;
-    bool canonical_1;
-    bool canonical_2;
-    bool canonical_3;
+    bool canonical_1;       // Deprecated... for removal in KAT 3.0
+    bool canonical_2;       // Deprecated... for removal in KAT 3.0
+    bool canonical_3;       // Deprecated... for removal in KAT 3.0
+    bool non_canonical_1;
+    bool non_canonical_2;
+    bool non_canonical_3;
     uint64_t hash_size_1;
     uint64_t hash_size_2;
     uint64_t hash_size_3;
@@ -776,11 +779,17 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("d2_bins,j", po::value<uint16_t>(&d2_bins)->default_value(1001),
                 "Number of bins for the second dataset.  i.e. number of rows in the matrix")
             ("canonical1,C", po::bool_switch(&canonical_1)->default_value(false),
-                "If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "(DEPRECATED) If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("canonical2,D", po::bool_switch(&canonical_2)->default_value(false),
-                "If counting fast(a/q) for input 2, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "(DEPRECATED) If counting fast(a/q) for input 2, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("canonical3,E", po::bool_switch(&canonical_3)->default_value(false),
-                "If counting fast(a/q) for input 3, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "(DEPRECATED) If counting fast(a/q) for input 3, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("non_canonical_1,N", po::bool_switch(&non_canonical_1)->default_value(false),
+                "If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("non_canonical_2,O", po::bool_switch(&non_canonical_2)->default_value(false),
+                "If counting fast(a/q) for input 2, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("non_canonical_3,P", po::bool_switch(&non_canonical_3)->default_value(false),
+                "If counting fast(a/q) for input 3, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")                    
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size_1,H", po::value<uint64_t>(&hash_size_1)->default_value(DEFAULT_HASH_SIZE),
@@ -839,10 +848,10 @@ int kat::Comp::main(int argc, char *argv[]) {
          << "------------------------" << endl << endl;
 
     // Glob input files
-    vector<path> vecinput1 = InputHandler::globFiles(input1);
-    vector<path> vecinput2 = InputHandler::globFiles(input2);
+    vector<path_ptr> vecinput1 = InputHandler::globFiles(input1);
+    vector<path_ptr> vecinput2 = InputHandler::globFiles(input2);
 
-    vector<path> vecinput3;
+    vector<path_ptr> vecinput3;
     if ( !input3.empty() ){
         vecinput3 = InputHandler::globFiles(input3);
     }
@@ -856,9 +865,9 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setD2Bins(d2_bins);
     comp.setThreads(threads);
     comp.setMerLen(mer_len);
-    comp.setCanonical(0, canonical_1);
-    comp.setCanonical(1, canonical_2);
-    comp.setCanonical(2, canonical_3);
+    comp.setCanonical(0, non_canonical_1 ? non_canonical_1 : canonical_1 ? canonical_1 : true);
+    comp.setCanonical(1, non_canonical_2 ? non_canonical_2 : canonical_2 ? canonical_2 : true);
+    comp.setCanonical(2, non_canonical_3 ? non_canonical_3 : canonical_3 ? canonical_3 : true);
     comp.setHashSize(0, hash_size_1);
     comp.setHashSize(1, hash_size_2);
     comp.setHashSize(2, hash_size_3);
