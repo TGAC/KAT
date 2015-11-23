@@ -136,16 +136,20 @@ x = range(xmax)
 labels = map(lambda l: "{:d}x".format(l),
              range(mincov, mincov+covbands+1))
 labels[-1] = "{:s}+".format(labels[-1])
-plt.bar(x, matrix[:,0],
-        color=colours[0],
-        linewidth=0,
-        label=labels[0])
+bar = plt.bar(x, matrix[:,0],
+              color=colours[0],
+              linewidth=0.1,
+              edgecolor=colours[0],
+              width=1,
+              label=labels[0])
 for level in range(1, covbands+1):
-    plt.bar(x, matrix[:,level],
-            bottom=np.sum(matrix[:,:level], 1),
-            color=colours[level%len(colours)],
-            linewidth=0,
-            label=labels[level])
+    bar = plt.bar(x, matrix[:,level],
+                  bottom=np.sum(matrix[:,:level], 1),
+                  color=colours[level%len(colours)],
+                  linewidth=0.1,
+                  edgecolor=colours[level%len(colours)],
+                  width=1,
+                  label=labels[level])
 
 plt.title(title)
 plt.xlabel(x_label)
