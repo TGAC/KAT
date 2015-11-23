@@ -2,6 +2,7 @@
 
 import sys
 import argparse
+import math
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -78,19 +79,35 @@ else:
 
 plt.figure(1, figsize=(args.width, args.height * len(names)))
 
+pstrs = map(lambda name: profiles[name], names)
+profs = map(lambda pstr: np.fromstring(pstr, dtype=int, sep=' '), pstrs)
+maxlen = max(map(len, profs))
+tickdist = maxlen/7
+tickdist = int(round(tickdist, -int(math.floor(math.log10(tickdist)))))
 for i in range(len(names)):
     if names[i] not in profiles:
         sys.exit("Entry {:s} not found.".format(names[i]))
     else:
-        pstr = profiles[names[i]]
+        # pstr = profiles[names[i]]
 
-        profile = np.fromstring(pstr, dtype=int, sep=' ')
+        # profile = np.fromstring(pstr, dtype=int, sep=' ')
+        profile = profs[i]
 
         x = np.arange(1,len(profile)+1)
 
         plt.subplot(len(names), 1, i+1)
         plt.plot(x, profile)
         plt.ylim(0,np.max(profile)*1.1)
+        # diff = maxlen - len(profile)
+        # plt.xlim(1 - diff/2, len(profile)+diff/2+1)
+        plt.xlim(1, maxlen+1)
+        xticks = range(0, len(profile)+1, tickdist)
+        xticks[0] = 1
+        if len(profile) - xticks[-1] > tickdist/2:
+            xticks.append(len(profile))
+        else:
+            xticks[-1] = len(profile)
+        plt.xticks(xticks)
 
         plt.title(names[i])
         plt.xlabel(x_label)
