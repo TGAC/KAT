@@ -115,8 +115,9 @@ for i in range(len(names)):
         plt.grid(True, color="black", alpha=0.2)
         plt.tight_layout()
 
-plt.suptitle(title, fontsize=14)
-plt.subplots_adjust(top=0.94)
+if title != "":
+    plt.suptitle(title, fontsize=14)
+    plt.subplots_adjust(top=0.95)
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
