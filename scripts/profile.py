@@ -109,11 +109,14 @@ for i in range(len(names)):
             xticks[-1] = len(profile)
         plt.xticks(xticks)
 
-        plt.title(names[i])
+        plt.title(names[i], fontsize=12)
         plt.xlabel(x_label)
         plt.ylabel(y_label)
         plt.grid(True, color="black", alpha=0.2)
         plt.tight_layout()
+
+plt.suptitle(title, fontsize=14)
+plt.subplots_adjust(top=0.94)
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
