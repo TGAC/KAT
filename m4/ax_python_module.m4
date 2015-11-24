@@ -47,7 +47,7 @@ AC_DEFUN([AX_PYTHON_MODULE],[
         AC_SUBST(PYMOD)
     else
         AC_MSG_RESULT(no)
-        eval AS_TR_CPP(HAVE_PYMOD_$1)=no
+        eval AS_TR_CPP(HAVE_PYMOD)=no
         PYMOD="no"
         AC_SUBST(PYMOD)
         #
