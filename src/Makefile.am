@@ -4,7 +4,7 @@ bin_PROGRAMS = kat
 
 kat_noinstdir = $(top_srcdir)/src
 
-kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@
+kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@
 
 kat_CPPFLAGS = -DCPLUSPLUS -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include @AM_CPPFLAGS@
 

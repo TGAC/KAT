@@ -27,7 +27,9 @@ using std::endl;
 using std::string;
 using std::vector;
 
+#if HAVE_PYTHON
 #include <Python.h>
+#endif
 
 #include <boost/algorithm/string.hpp>
 #include <boost/exception/all.hpp>
@@ -130,14 +132,18 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], c
 
     std::ifstream script_in(full_script_path.c_str());
     std::string contents((std::istreambuf_iterator<char>(script_in)), std::istreambuf_iterator<char>());
-        
+
+#if HAVE_PYTHON    
+
     // Run python script
     Py_Initialize();
     Py_SetProgramName(wsp);
     PySys_SetArgv(argc, wargv);
     PyRun_SimpleString(contents.c_str());
     Py_Finalize();
-    
+ 
+#endif
+
     // Cleanup
     delete wsn;
     // No need to free up "wsp" as it is element 0 in the array
