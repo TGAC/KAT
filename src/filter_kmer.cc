@@ -321,7 +321,7 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
     uint16_t        high_gc;
     bool            invert;
     bool            separate;
-    bool            canonical;
+    bool            non_canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            verbose;
@@ -346,7 +346,7 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
                 "Whether to take k-mers outside region as selected content, rather than those inside.")
             ("separate,s", po::bool_switch(&separate)->default_value(false),
                 "Whether to partition the k-mers into two sets, those inside region and those outside.  Works in combination with \"invert\".")
-            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
+            ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
                 "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
@@ -398,7 +398,7 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
     filter.setHigh_gc(high_gc);
     filter.setOutput_prefix(output_prefix);
     filter.setThreads(threads);
-    filter.setCanonical(canonical);
+    filter.setCanonical(!non_canonical);
     filter.setInvert(invert);
     filter.setSeparate(separate);
     filter.setMerLen(mer_len);

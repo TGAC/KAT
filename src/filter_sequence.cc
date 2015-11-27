@@ -377,7 +377,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     bool            invert;
     bool            separate;
     bool            stats;
-    bool            canonical;
+    bool            non_canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            verbose;
@@ -398,7 +398,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
                 "Whether to partition the k-mers into two sets, those inside region and those outside.  Works in combination with \"invert\".")
             ("stats", po::bool_switch(&stats)->default_value(false),
                 "Whether to emit statistics about quantity of found k-mers in each sequence.")
-            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
+            ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
                 "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
@@ -447,7 +447,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     filter.setThreshold(threshold);
     filter.setOutput_prefix(output_prefix);
     filter.setThreads(threads);
-    filter.setCanonical(canonical);
+    filter.setCanonical(!non_canonical);
     filter.setInvert(invert);
     filter.setSeparate(separate);
     filter.setDoStats(stats);
