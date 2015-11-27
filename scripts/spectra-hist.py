@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import numpy as np
@@ -56,7 +56,7 @@ args = parser.parse_args()
 # ----- end command line parsing -----
 
 if args.verbose:
-    print "Input files given: {:d}".format(len(args.histo_files))
+    print("Input files given: {:d}".format(len(args.histo_files)))
 
 headers = []
 x = []
@@ -69,8 +69,8 @@ for histo_file in args.histo_files:
     matrix = np.loadtxt(input_file)
     input_file.close()
     if args.verbose:
-        print "{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
-                                                        matrix.shape[1])
+        print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
+                                                        matrix.shape[1]))
     headers.append(header)
     x.append(matrix[:,0])
     y.append(matrix[:,1])
@@ -98,15 +98,15 @@ else:
 
 # find limits
 if args.x_max is None or args.y_max is None:
-    xmax = map(len, x)
-    ysum = map(np.sum, y)
-    ymax = map(np.max, y)
+    xmax = list(map(len, x))
+    ysum = list(map(np.sum, y))
+    ymax = list(map(np.max, y))
     for i in range(len(x)):
         peakx = findpeaks(y[i])
         peakx = peakx[peakx != 1]
         peaky = y[i][peakx]
 
-        for j in range(1, xmax[i], xmax[i]/1000 + 1):
+        for j in range(1, xmax[i], int(xmax[i]/1000) + 1):
             if np.sum(y[i][:j]) >= ysum[i] * 0.999:
                 xmax[i] = j
                 break
@@ -116,9 +116,9 @@ if args.x_max is None or args.y_max is None:
     xmax = max(xmax)
     ymax = max(ymax)
     if args.verbose:
-        print "Automatically detected axis limits:"
-        print "xmax: ", xmax
-        print "ymax: ", ymax
+        print("Automatically detected axis limits:")
+        print("xmax: ", xmax)
+        print("ymax: ", ymax)
 
 if args.x_max is not None:
     xmax = args.x_max
@@ -133,7 +133,7 @@ if args.legend_labels is not None:
 if len(legend_labels) >= len(x):
     labels = legend_labels
 else:
-    labels = map(lambda s: s.split("/")[-1], args.histo_files)
+    labels = [s.split("/")[-1] for s in args.histo_files]
 
 colours = ["#cc0000",
            "#75507b",
@@ -142,7 +142,7 @@ colours = ["#cc0000",
            "#c17d11",
            "#f57900",
            "#edd400"]
-for xt,yt,lb,i in zip(x,y,labels,range(len(x))):
+for xt,yt,lb,i in zip(x,y,labels,list(range(len(x)))):
     plt.plot(xt, yt, label=lb, color=colours[i%len(colours)])
 
 if args.x_logscale:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import argparse
@@ -63,8 +63,8 @@ input_file.close()
 if args.header is not None:
     names = [args.header]
 else:
-    indexes = map(int, args.index.split(','))
-    names = map(lambda i: names[i], indexes)
+    indexes = list(map(int, args.index.split(',')))
+    names = [names[i] for i in indexes]
 
 if args.title is not None:
     title = args.title
@@ -83,9 +83,9 @@ else:
 
 plt.figure(1, figsize=(args.width, args.height * len(names)))
 
-pstrs = map(lambda name: profiles[name], names)
-profs = map(lambda pstr: np.fromstring(pstr, dtype=int, sep=' '), pstrs)
-maxlen = max(map(len, profs))
+pstrs = [profiles[name] for name in names]
+profs = [np.fromstring(pstr, dtype=int, sep=' ') for pstr in pstrs]
+maxlen = max(list(map(len, profs)))
 tickdist = maxlen/7
 tickdist = int(round(tickdist, -int(math.floor(math.log10(tickdist)))))
 for i in range(len(names)):
@@ -105,7 +105,7 @@ for i in range(len(names)):
         # diff = maxlen - len(profile)
         # plt.xlim(1 - diff/2, len(profile)+diff/2+1)
         plt.xlim(1, maxlen+1)
-        xticks = range(0, len(profile)+1, tickdist)
+        xticks = list(range(0, len(profile)+1, tickdist))
         xticks[0] = 1
         if len(profile) - xticks[-1] > tickdist/2:
             xticks.append(len(profile))

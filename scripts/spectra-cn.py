@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import numpy as np
@@ -85,8 +85,8 @@ else:
 matrix = np.loadtxt(input_file)
 input_file.close()
 if args.verbose:
-    print "{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
-                                                    matrix.shape[1])
+    print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
+                                                    matrix.shape[1]))
 
 mincov = 1 if args.ignore_absent else 0
 covbands = args.max_dup
@@ -120,15 +120,15 @@ if args.x_max is None or args.y_max is None:
     peakx = peakx[peakx != 1]
     peaky = totals[peakx]
 
-    for i in range(1, xmax, xmax/100 + 1):
+    for i in range(1, xmax, int(xmax/100) + 1):
         if np.sum(totals[:i]) >= ysum * xamount:
             xmax = i
             break
     ymax = np.max(peaky) * 1.1
     if args.verbose:
-        print "Automatically detected axis limits:"
-        print "xmax: ", xmax
-        print "ymax: ", ymax
+        print("Automatically detected axis limits:")
+        print("xmax: ", xmax)
+        print("ymax: ", ymax)
 
 if args.x_max is not None:
     xmax = args.x_max
@@ -139,9 +139,8 @@ matrix = matrix[:xmax,:]
 
 plt.figure(num = None, figsize=(args.width, args.height))
 plt.axis([0,xmax,0,ymax])
-x = range(xmax)
-labels = map(lambda l: "{:d}x".format(l),
-             range(mincov, mincov+covbands+1))
+x = list(range(xmax))
+labels = ["{:d}x".format(l) for l in range(mincov, mincov+covbands+1)]
 labels[-1] = "{:s}+".format(labels[-1])
 bar = plt.bar(x, matrix[:,0],
               color=colours[0],

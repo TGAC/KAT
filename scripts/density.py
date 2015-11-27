@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import argparse
 import numpy as np
@@ -93,8 +93,8 @@ else:
 matrix = np.loadtxt(input_file)
 input_file.close()
 if args.verbose:
-    print "{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
-                                                    matrix.shape[1])
+    print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
+                                                    matrix.shape[1]))
 matrix_smooth = ndimage.gaussian_filter(matrix, sigma=2.0, order=0)
 
 if args.x_max is None or args.y_max is None or args.z_max is None:
@@ -118,11 +118,11 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
 
     xmax = len(xsums)
     ymax = len(ysums)
-    for i in range(1, len(xsums), len(xsums)/40 + 1):
+    for i in range(1, len(xsums), int(len(xsums)/40) + 1):
         if np.sum(xsums[:i]) >= msum * 0.995:
             xmax = i
             break
-    for i in range(1, len(ysums), len(ysums)/40 + 1):
+    for i in range(1, len(ysums), int(len(ysums)/40) + 1):
         if np.sum(ysums[:i]) >= msum * 0.995:
             ymax = i
             break
@@ -130,10 +130,10 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
     zmax = np.max(peakz) * 1.1
 
     if args.verbose:
-        print "Automatically detected axis limits:"
-        print "xmax: ", xmax
-        print "ymax: ", ymax
-        print "zmax: ", zmax
+        print("Automatically detected axis limits:")
+        print("xmax: ", xmax)
+        print("ymax: ", ymax)
+        print("zmax: ", zmax)
 
 if args.x_max is not None:
     xmax = args.x_max
