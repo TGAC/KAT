@@ -60,11 +60,7 @@ namespace kat {
     protected:
 
         static PlotMode parseMode(const string& mode);
-        
-        static bool detectPythonEnv();
-        
-        static bool detectGnuplotEnv();
-        
+                
         static void executePythonPlot(const PlotMode mode, int argc, char *argv[], const KatFS& fs);
         
         static void executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]);        
