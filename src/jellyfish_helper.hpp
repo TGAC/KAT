@@ -121,14 +121,6 @@ namespace kat {
         
     public:
 
-        
-
-        /**
-         * This can be set be the client as a record of the path to the jellyfish
-         * executable
-         */
-        static path jellyfishExe;
-        
         static uint64_t getCount(LargeHashArrayPtr hash, const mer_dna& kmer, bool canonical);
         
         /**
@@ -187,29 +179,8 @@ namespace kat {
          */
         static bool isSequenceFile(const path& filename);
         
-        static string createJellyfishCountCmd(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
-            
-            vector<path> paths;
-            paths.push_back(input);
-            return createJellyfishCountCmd(paths, output, merLen, hashSize, threads, canonical);
-        }
-        
-        static string createJellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical);
-        
-        static path executeJellyfishCount(const path& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
-            
-            vector<path> paths;
-            paths.push_back(input);
-            
-            return executeJellyfishCount(paths, output, merLen, hashSize, threads, canonical, verbose);
-        }
-        
-        static path executeJellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose);
-        
     protected:
 
         
-        
-        static void executeJellyfishCount(const string& cmd, bool verbose);
     };
 }

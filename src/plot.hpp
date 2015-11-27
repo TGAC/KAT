@@ -30,6 +30,9 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include "inc/kat_fs.hpp"
+using kat::KatFS;
+
 namespace kat {
     
     typedef boost::error_info<struct KatPlotError,string> KatPlotErrorInfo;
@@ -49,11 +52,24 @@ namespace kat {
         
         static bool validatePlotOutputType();
         
-        static int main(int argc, char *argv[]);
+        static int main(int argc, char *argv[], const KatFS& fs);
+        
+    private:
+        static wchar_t* convertCharToWideChar(const char* c);
         
     protected:
-        
+
         static PlotMode parseMode(const string& mode);
+        
+        static bool detectPythonEnv();
+        
+        static bool detectGnuplotEnv();
+        
+        static void executePythonPlot(const PlotMode mode, int argc, char *argv[], const KatFS& fs);
+        
+        static void executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]);        
+        
+        static path getPythonScript(const PlotMode mode);
         
         static string helpMessage() {
             return string("Usage: kat plot <mode>\n\n") +

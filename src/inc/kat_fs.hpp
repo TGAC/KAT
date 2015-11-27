@@ -37,12 +37,12 @@ namespace kat {
         
         // Executables
         path katExe;
-        path jellyfishExe;
         
         // Directories
         path binDir;
         path rootDir;
         path libsDir;
+        path scriptsDir;
         
         
         string exec(const char* cmd) {
@@ -113,20 +113,18 @@ namespace kat {
             
             path testDir = path(rootDir);
             testDir /= "tests";
-            
-                
+                            
             if (katExe.parent_path() == srcDir || katExe.parent_path() == libsDir || katExe.parent_path() == testDir) {
-                jellyfishExe = path(rootDir);
-                jellyfishExe /= "deps/jellyfish-2.2.0/bin/jellyfish";                 
+                scriptsDir = path(rootDir);
+                scriptsDir /= "scripts";                 
             }
             else {
-                jellyfishExe = path(binDir);
-                jellyfishExe /= "jellyfish";
+                scriptsDir = path(binDir);
             }
             
-            if (!exists(jellyfishExe)) {
+            if (!exists(scriptsDir)) {
                 BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                    "Could not find jellyfish executable at: ") + jellyfishExe.c_str()));
+                    "Could not find suitable directory containing KAT scripts at: ") + scriptsDir.c_str()));
             }
             
         }
@@ -149,8 +147,8 @@ namespace kat {
             return rootDir;
         }
 
-        path GetJellyfishExe() const {
-            return jellyfishExe;
+        path GetScriptsDir() const {
+            return scriptsDir;
         }
 
         
@@ -158,10 +156,10 @@ namespace kat {
             
             return strm << "Directories: "<< endl
                         << " - Root: " << pfs.rootDir << endl
-                        << " - Bin: " << pfs.binDir << endl << endl
+                        << " - Bin: " << pfs.binDir << endl
+                        << " - Scripts: " << pfs.scriptsDir << endl << endl                    
                         << "Executables: " << endl
-                        << " - kat: " << pfs.katExe << endl
-                        << " - jellyfish: " << pfs.jellyfishExe << endl;
+                        << " - kat: " << pfs.katExe << endl;                        
         }     
     };
     

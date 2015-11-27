@@ -21,7 +21,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
 
 # Use this to display simplified compilation output
-AM_SILENT_RULES([yes])
+#AM_SILENT_RULES([yes])
 
 # Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
 AC_LANG_CPLUSPLUS
@@ -85,11 +85,17 @@ AX_PYTHON_MODULE(scipy, pymod_good="no",)
 
 # Check for gnuplot on path.  Just emit a warning if not present
 if test x"${pymod_good}" = x"no"; then
+    AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
     AC_MSG_WARN([Some Python modules not found.  This is the preferred plotting method in KAT.  They are only required for runtime so you can install later (we suggest via anaconda3), or use gnuplot.  Now checking for gnuplot as alternative plotting method.])
     AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
     if test x"${gnuplot_found}" = x"no"; then
-        AC_MSG_WARN([Neither python matplotlib or Gnuplot not detected.  KAT will still work (minus plots). You can install either python3 matplotlib or gnuplot at any time to enable plotting in KAT.])
+        AC_DEFINE([HAVE_GNUPLOT], [0], [Gnuplot not present])
+        AC_MSG_WARN([Neither python matplotlib or Gnuplot not detected.  KAT will still work (minus plots). You must install either python3 matplotlib (preferred) or gnuplot, and then recompile to enable plotting in KAT.])
+    else
+        AC_DEFINE([HAVE_GNUPLOT], [1], [Gnuplot present])
     fi
+else
+    AC_DEFINE([HAVE_PYTHON], [1], [Python present])
 fi
 
 
@@ -111,13 +117,18 @@ AC_SUBST([BOOST_STATIC_LIBS])
 AM_CXXFLAGS="-DCPLUSPLUS"
 AC_SUBST([AM_CXXFLAGS])
 
-AM_CPPFLAGS="${BOOST_CPPFLAGS}"
-AC_SUBST([AM_CPPFLAGS])
-
-AM_LDFLAGS="${BOOST_LDFLAGS}"
+AM_LDFLAGS="${BOOST_LDFLAGS} -Xlinker -export-dynamic"
 AC_SUBST([AM_LDFLAGS])
 
-AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS}"
+if test x"${pymod_good}" = x"yes"; then 
+    AM_CPPFLAGS="${BOOST_CPPFLAGS} -I${PYTHON_INCLUDE_DIR}"
+    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS} -ldl -lutil -lm -l${PYTHON_LIB}"
+else
+    AM_CPPFLAGS="${BOOST_CPPFLAGS}"
+    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS}"
+fi
+
+AC_SUBST([AM_CPPFLAGS])
 AC_SUBST([AM_LIBS])
 
 AC_CONFIG_HEADERS([config.h])

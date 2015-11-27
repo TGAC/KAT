@@ -31,7 +31,15 @@ EXTRA_DIST =	README.md \
 dist_noinst_SCRIPTS = autogen.sh clean.sh
 
 # Scripts to install
-dist_bin_SCRIPTS = scripts/dist_analysis.py
+dist_bin_SCRIPTS =  scripts/dist_analysis.py \
+		    scripts/colormaps.py \
+		    scripts/density.py \
+		    scripts/findpeaks.py \
+		    scripts/header.py \
+		    scripts/profile.py \
+		    scripts/spectra-cn.py \
+		    scripts/spectra-hist.py \
+		    scripts/spectra-mx.py
 
 # SRC DIRS
 SUBDIRS = deps/jellyfish-2.2.0 src tests

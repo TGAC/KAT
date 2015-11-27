@@ -46,8 +46,6 @@ using jellyfish::quadratic_reprobes;
 #include "jellyfish_helper.hpp"
 using kat::JellyfishHelper;
 
-path kat::JellyfishHelper::jellyfishExe = "jellyfish";
-
 /**
  * Extracts the jellyfish hash file header
  * @param jfHashPath Path to the jellyfish hash file
@@ -276,87 +274,4 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
            boost::iequals(ext, ".fna") ||
            boost::iequals(ext, ".fas");
 }
-                
-string kat::JellyfishHelper::createJellyfishCountCmd(const vector<path>& input, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical) {
 
-    string i;
-    for (path p : input) {
-        i += p.string();                
-        i += " ";
-    }
-
-    string jellyfishCmd =   kat::JellyfishHelper::jellyfishExe.empty() ? 
-                                "jellyfish" : 
-                                kat::JellyfishHelper::jellyfishExe.string();
-    
-    return jellyfishCmd + " count " +
-            (canonical ? "-C " : "") +
-            "-m " + lexical_cast<string>(merLen) + 
-            " -s " + lexical_cast<string>(hashSize) + 
-            " -t " + lexical_cast<string>(threads) + 
-            " -o " + output.string() + 
-            " " + i;
-}
-    
-
-path kat::JellyfishHelper::executeJellyfishCount(const vector<path>& inputs, const path& output, uint16_t merLen, uint64_t hashSize, uint16_t threads, bool canonical, bool verbose) {
-
-    if (inputs.empty()) {
-        BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-            "No input files provided")));
-    }
-
-    if (inputs.size() == 1 && !kat::JellyfishHelper::isSequenceFile(inputs[0])) {
-        // No need to jellyfish count, input is already a jellyfish hash
-        return inputs[0];                
-    }
-    else {
-
-        for (path p : inputs) {
-            if (!kat::JellyfishHelper::isSequenceFile(p)) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "You provided multiple sequence files to generate a kmer hash from, however some of the input files do not have a recognised sequence file extension: \".fa,.fasta,.fq,.fastq,.fna\"")));
-            }
-
-            // Check input files exist
-            if (!bfs::exists(p) && !bfs::symbolic_link_exists(p)) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                    "Could not find input file at: ") + p.string() + "; please check the path and try again."));                        
-            }
-        }
-
-        if (verbose)
-            cout << "Provided one or more sequence files.  Executing jellyfish to count kmers." << endl;
-
-        const string cmd = createJellyfishCountCmd(inputs, output, merLen, hashSize, threads, canonical);
-        
-        if (verbose) {
-            cout << "Command issued: " << cmd << endl;
-        }
-        
-        executeJellyfishCount(cmd, verbose);            
-
-        return output;
-    }
-}
-     
-void kat::JellyfishHelper::executeJellyfishCount(const string& cmd, bool verbose) {
-
-    auto_cpu_timer timer(1, "Kmer counting total runtime: %ws\n\n");
-
-    if (verbose) {                
-        cout << "Counting kmers...";
-        cout.flush();
-    }
-
-    int res = system(cmd.c_str());
-
-    if (res != 0) {
-        BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
-                "Problem executing jellyfish count.  Non-0 return code.  Return code: ") + lexical_cast<string>(res)));
-    }
-
-    if (verbose)
-        cout << " done" << endl;
-}
-    

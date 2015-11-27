@@ -168,7 +168,6 @@ int main(int argc, char *argv[])
         }
         
         KatFS fs(argv[0]);
-        kat::JellyfishHelper::jellyfishExe = fs.GetJellyfishExe();
         
         //cout << fs << endl;
         
@@ -191,7 +190,7 @@ int main(int argc, char *argv[])
                 Histogram::main(modeArgC, modeArgV);
                 break;
             case PLOT:
-                Plot::main(modeArgC, modeArgV);            
+                Plot::main(modeArgC, modeArgV, fs);            
                 break;
             case SECT:
                 Sect::main(modeArgC, modeArgV);            
