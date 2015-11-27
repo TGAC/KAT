@@ -287,10 +287,10 @@ void kat::ThreadedCompCounters::merge_spectrum(vector<uint64_t>& spectrum, const
 // ********* Comp **********
 
 kat::Comp::Comp() :
-    kat::Comp::Comp(nullptr, nullptr) {}
+    kat::Comp::Comp(path(), path()) {}
 
 kat::Comp::Comp(const path& _input1, const path& _input2) : 
-    kat::Comp::Comp(_input1, _input2, nullptr) {}
+    kat::Comp::Comp(_input1, _input2, path()) {}
         
 kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
     vector<path_ptr> vecInput1;
