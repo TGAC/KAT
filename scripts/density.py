@@ -25,7 +25,8 @@ parser.add_argument("matrix_file", type=str,
 parser.add_argument("-o", "--output", type=str, default="kat-density",
                     help="The path to the output file.")
 parser.add_argument("-p", "--output_type", type=str,
-                    help="The plot file type to create (default is based on given output name).")
+                    help="The plot file type to create (default is based on " \
+                    "given output name).")
 parser.add_argument("-t", "--title", type=str,
                     help="Title for plot")
 parser.add_argument("-a", "--x_label", type=str,
@@ -44,10 +45,12 @@ parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
-parser.add_argument("--not_rasterised", dest="rasterised", action="store_false",
+parser.add_argument("--not_rasterised", dest="rasterised",
+                    action="store_false",
                     help="Don't rasterise graphics (slower).")
 parser.set_defaults(rasterised=True)
-parser.add_argument("-v", "--verbose", dest="verbose", action="store_true",
+parser.add_argument("-v", "--verbose", dest="verbose",
+                    action="store_true",
                     help="Print extra information")
 parser.set_defaults(verbose=False)
 

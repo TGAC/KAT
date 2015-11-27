@@ -9,7 +9,8 @@ from header import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
-    description="Creates a stacked histogram showing the level of duplication in an assembly.")
+    description="Creates a stacked histogram showing the level of " \
+    "duplication in an assembly.")
 
 parser.add_argument("matrix_file", type=str,
                     help="The input matrix file from KAT")
@@ -17,7 +18,8 @@ parser.add_argument("matrix_file", type=str,
 parser.add_argument("-o", "--output", type=str, default="kat-spectra-cn",
                     help="The path to the output file.")
 parser.add_argument("-p", "--output_type", type=str,
-                    help="The plot file type to create (default is based on given output name).")
+                    help="The plot file type to create (default is based on " \
+                    "given output name).")
 parser.add_argument("-t", "--title", type=str,
                     help="Title for plot")
 parser.add_argument("-a", "--x_label", type=str,
@@ -32,17 +34,22 @@ parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
-parser.add_argument("-i", "--ignore_absent", dest="ignore_absent", action="store_true",
-                    help="Ignore K-mers in reads but absent from the assembly")
+parser.add_argument("-i", "--ignore_absent", dest="ignore_absent",
+                    action="store_true",
+                    help="Ignore K-mers in reads but absent from the " \
+                    "assembly")
 parser.set_defaults(ignore_absent=False)
 parser.add_argument("-m", "--max_dup", type=int, default=6,
                     help="Maximum duplication level to show in plots")
 parser.add_argument("-c", "--columns", type=str,
-                    help="Comma separated string listing columns to show in plot (overrides -a)")
-parser.add_argument("-u", "--cumulative", dest="cumulative", action="store_true",
+                    help="Comma separated string listing columns to " \
+                    "show in plot (overrides -a)")
+parser.add_argument("-u", "--cumulative", dest="cumulative",
+                    action="store_true",
                     help="Plot cumulative distribution of kmers")
 parser.set_defaults(cumulative=False)
-parser.add_argument("-v", "--verbose", dest="verbose", action="store_true",
+parser.add_argument("-v", "--verbose", dest="verbose",
+                    action="store_true",
                     help="Print extra information")
 parser.set_defaults(verbose=False)
 
