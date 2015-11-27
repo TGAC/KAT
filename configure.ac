@@ -86,11 +86,11 @@ AX_PYTHON_MODULE(scipy, pymod_good="no",)
 # Check for gnuplot on path.  Just emit a warning if not present
 if test x"${pymod_good}" = x"no"; then
     AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
-    AC_MSG_WARN([Some Python modules not found.  This is the preferred plotting method in KAT.  They are only required for runtime so you can install later (we suggest via anaconda3), or use gnuplot.  Now checking for gnuplot as alternative plotting method.])
+    AC_MSG_WARN([Some Python modules not found.  This is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  Now checking for gnuplot as alternative plotting method.])
     AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
     if test x"${gnuplot_found}" = x"no"; then
         AC_DEFINE([HAVE_GNUPLOT], [0], [Gnuplot not present])
-        AC_MSG_WARN([Neither python matplotlib or Gnuplot not detected.  KAT will still work (minus plots). You must install either python3 matplotlib (preferred) or gnuplot, and then recompile to enable plotting in KAT.])
+        AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). You must install either python3 matplotlib (preferred) or gnuplot, and then recompile to enable plotting in KAT.])
     else
         AC_DEFINE([HAVE_GNUPLOT], [1], [Gnuplot present])
     fi
