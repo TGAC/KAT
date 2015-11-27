@@ -325,9 +325,9 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
                 "Activate intersection mode, which plots the shared and exclusive content found in the matrix.")
             ("list,c", po::value<string>(&list),
                 "The list of columns or rows to select from the matrix.  Note that this option will override \"--intersection\" if that was also selected.")
-            ("exc_cutoff_d1,e1", po::value<uint16_t>(&exc_cutoff_d1)->default_value(1),
+            ("exc_cutoff_d1,e", po::value<uint16_t>(&exc_cutoff_d1)->default_value(1),
                 "If in \"--intersection\" mode, this enables you to alter the level at which content for dataset 1 is considered exclusive or shared.")
-            ("exc_cutoff_d2,e2", po::value<uint16_t>(&exc_cutoff_d2)->default_value(1),
+            ("exc_cutoff_d2,f", po::value<uint16_t>(&exc_cutoff_d2)->default_value(1),
                 "If in \"--intersection\" mode, this enables you to alter the level at which content for dataset 2 is considered exclusive or shared.")
             ("x_logscale,l", po::bool_switch(&x_logscale)->default_value(false),
                 "X-axis is logscale.  This overrides the x_min and x_max limits.")
