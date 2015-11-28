@@ -48,6 +48,8 @@ typedef boost::error_info<struct CompError,string> CompErrorInfo;
 struct CompException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
+    
+    const string     DEFAULT_COMP_PLOT_OUTPUT_TYPE     = "png";
 
     class CompCounters {
     public:
@@ -346,7 +348,7 @@ namespace kat {
         
         path getMxOutPath() { return path(string(outputPrefix.string() + "-main.mx")); }
         
-        void plot();
+        void plot(const string& output_type);
 
 
     private:

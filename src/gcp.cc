@@ -201,18 +201,19 @@ void kat::Gcp::analyseSlice(int th_id) {
     }
 }
 
-void kat::Gcp::plot() {
+void kat::Gcp::plot(const string& output_type) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
     cout << "Creating plot ...";
     cout.flush();
     
-    PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx.png"));
+    PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx." + output_type));
     pd.setXLabel("# Distinct kmers");
     pd.setYLabel("GC count");
     pd.setZLabel("Kmer multiplicity");
     pd.setTitle(string("GC vs kmer heat map for ") + input.pathString());
+    pd.setOutputType(output_type);
     bool res = pd.plot();
     
     if (!res) {
@@ -237,6 +238,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            dump_hash;
+    string          plot_output_type;
     bool            verbose;
     bool            help;
 
@@ -252,13 +254,15 @@ int kat::Gcp::main(int argc, char *argv[]) {
             ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(1000),
                 "Number of bins for the cvg data when creating the contamination matrix.")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
-                "IMPORTANT: Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
+                "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
                         "Dumps any jellyfish hashes to disk that were produced during this run.") 
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_GCP_PLOT_OUTPUT_TYPE), 
+                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")            
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -316,7 +320,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
     gcp.save();
     
     // Plot results
-    gcp.plot();
+    gcp.plot(plot_output_type);
     
     return 0;
 }

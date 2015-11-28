@@ -325,6 +325,12 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotSpectraCnException() << PlotSpectraCnErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
+    }
+    
 
     PlotSpectraCn pscn(mx_file, output);
     pscn.setHeight(height);

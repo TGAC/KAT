@@ -204,7 +204,7 @@ void kat::Histogram::binSlice(int th_id) {
     threadedData.push_back(hist);
 }
 
-void kat::Histogram::plot() {
+void kat::Histogram::plot(const string& output_type) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
@@ -214,10 +214,11 @@ void kat::Histogram::plot() {
     vector<path> pin;
     pin.push_back(outputPrefix);
     
-    PlotSpectraHist psh(pin, path(outputPrefix.string() + ".png"));
+    PlotSpectraHist psh(pin, path(outputPrefix.string() + "." + output_type));
     psh.setXLabel("Kmer multiplicity");
     psh.setYLabel("# Distinct kmers");
     psh.setTitle(string("Kmer spectra for ") + input.pathString());
+    psh.setOutputType(output_type);
     bool res = psh.plot();
     
     if (!res) {
@@ -242,6 +243,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     uint16_t        mer_len;
     uint64_t        hash_size; 
     bool            dump_hash;
+    string          plot_output_type;
     bool            verbose;
     bool            help;
 
@@ -259,13 +261,15 @@ int kat::Histogram::main(int argc, char *argv[]) {
             ("inc,i", po::value<uint64_t>(&inc)->default_value(1),
                 "Increment for each bin") 
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
-                "Whether the jellyfish hashes contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
+                "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
                         "Dumps any jellyfish hashes to disk that were produced during this run.") 
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_HIST_PLOT_OUTPUT_TYPE), 
+                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")            
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -321,7 +325,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     histo.save();
     
     // Plot
-    histo.plot();
+    histo.plot(plot_output_type);
 
     return 0;
 }

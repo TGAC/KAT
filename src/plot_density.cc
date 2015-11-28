@@ -57,7 +57,7 @@ bool kat::PlotDensity::plot() {
         BOOST_THROW_EXCEPTION(PlotDensityException() << PlotDensityErrorInfo(string(
             "Could not find matrix file at: ") + mxFile.string() + "; please check the path and try again.")); 
     }
-
+    
     // Determine auto ranges
     SparseMatrix<uint64_t> tmx(mxFile);
     vector<Pos> cumulativeSpectraX(tmx.height());
@@ -245,7 +245,13 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
-
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotDensityException() << PlotDensityErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
+    }
+    
+        
     PlotDensity pd(mx_file, output);
     pd.setHeight(height);
     pd.setOutputType(output_type);

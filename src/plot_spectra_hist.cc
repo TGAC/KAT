@@ -262,6 +262,12 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotSpectraHistException() << PlotSpectraHistErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
+    }
+    
 
     PlotSpectraHist sh(histo_paths, output);
     sh.setHeight(height);

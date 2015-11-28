@@ -364,6 +364,12 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
+    
+    if (output.empty()) {
+        BOOST_THROW_EXCEPTION(PlotSpectraMxException() << PlotSpectraMxErrorInfo(string(
+            "Output file not specified.  Please use the '-o' option."))); 
+    }
+    
 
     PlotSpectraMx psmx(mx_file, output);
     psmx.setExcCutoffD1(exc_cutoff_d1);

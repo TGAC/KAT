@@ -634,7 +634,7 @@ void kat::Comp::compareSlice(int th_id) {
     mu.unlock();
 }
 
-void kat::Comp::plot() {
+void kat::Comp::plot(const string& output_type) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
@@ -645,18 +645,20 @@ void kat::Comp::plot() {
     
     // Plot results
     if (densityPlot) {
-        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density.png"));
+        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density." + output_type));
         pd.setXLabel(string("# Distinct kmers for ") + input[0].pathString());
         pd.setYLabel(string("# Distinct kmers for ") + input[1].pathString());
         pd.setZLabel("Kmer multiplicity");
         pd.setTitle(string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
+        pd.setOutputType(output_type);
         res = pd.plot();
     }
     else {
-        PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn.png"));
+        PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));
         pscn.setTitle(string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
         pscn.setYLabel("# Distinct kmers");
         pscn.setXLabel("Kmer multiplicity");
+        pscn.setOutputType(output_type);
         res = pscn.plot();
     }
     
@@ -694,6 +696,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     bool dump_hashes;
     bool disable_hash_grow;
     bool density_plot;
+    string plot_output_type;
     bool verbose;
     bool help;
 
@@ -715,11 +718,11 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("d2_bins,j", po::value<uint16_t>(&d2_bins)->default_value(1001),
                 "Number of bins for the second dataset.  i.e. number of rows in the matrix")
             ("canonical1,C", po::bool_switch(&canonical_1)->default_value(false),
-                "Whether the jellyfish hash for input 1 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
+                "If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("canonical2,D", po::bool_switch(&canonical_2)->default_value(false),
-                "Whether the jellyfish hash for input 2 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.")
+                "If counting fast(a/q) for input 2, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("canonical3,E", po::bool_switch(&canonical_3)->default_value(false),
-                "Whether the jellyfish hash for input 3 contains K-mers produced for both strands.  If this is not set to the same value as was produced during jellyfish counting then output will be unpredictable.  Only applicable if you are using a third input.")
+                "If counting fast(a/q) for input 3, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size_1,H", po::value<uint64_t>(&hash_size_1)->default_value(DEFAULT_HASH_SIZE),
@@ -734,6 +737,8 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")   
             ("density_plot,p", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE), 
+                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -819,7 +824,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.save();
     
     // Plot results
-    comp.plot();
+    comp.plot(plot_output_type);
     
     // Send K-mer statistics to stdout as well
     comp.printCounters(cout);
