@@ -92,15 +92,12 @@ if test x"${PYMOD}" = x"no"; then
 	pymod_good="no" 
 fi
 
-
 # Check for gnuplot on path.  Just emit a warning if not present
 if test x"${pymod_good}" = x"no"; then
     AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
-    AC_MSG_WARN([Some Python modules not found.  This is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  Now checking for gnuplot as alternative plotting method.])
     AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
     if test x"${gnuplot_found}" = x"no"; then
         AC_DEFINE([HAVE_GNUPLOT], [0], [Gnuplot not present])
-        AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). Should you require plotting functionality, you must install either anaconda3 (or python3 with numpy, scipy and matplotlib) or gnuplot, and then recompile to enable plotting in KAT.])
     else
         AC_DEFINE([HAVE_GNUPLOT], [1], [Gnuplot present])
     fi
@@ -145,3 +142,15 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
+
+if test x"${pymod_good}" = x"yes"; then
+    echo "Using python plotting"
+else
+    if test x"${gnuplot_found}" = x"yes"; then
+        AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
+    else
+        AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). Should you require plotting functionality, you must install either anaconda3 (or python3 with numpy, scipy and matplotlib) or gnuplot, and then reconfigure and compile to enable plotting in KAT.])
+    fi
+fi 
+
+
