@@ -268,4 +268,3 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
 
     return 0;
 }
-   
