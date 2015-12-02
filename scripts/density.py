@@ -47,6 +47,8 @@ parser.add_argument("-l", "--height", type=int, default=6,
 parser.add_argument("--not_rasterised", dest="rasterised",
                     action="store_false",
                     help="Don't rasterise graphics (slower).")
+parser.add_argument("--dpi", type=int, default=300,
+                    help="Resolution in dots per inch of output graphic.")
 parser.set_defaults(rasterised=True)
 parser.add_argument("-v", "--verbose", dest="verbose",
                     action="store_true",
@@ -162,5 +164,5 @@ if args.output_type is not None:
 else:
     output_name = args.output
 
-plt.savefig(correct_filename(output_name), dpi=300)
+plt.savefig(correct_filename(output_name), dpi=args.dpi)
 

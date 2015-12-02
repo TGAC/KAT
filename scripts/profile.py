@@ -40,6 +40,8 @@ parser.add_argument("-n", "--index", type=str, default="0",
 parser.add_argument("-d", "--header", type=str,
                     help="Name of fasta entry to plot (has priority " \
                     "over index)")
+parser.add_argument("--dpi", type=int, default=300,
+                    help="Resolution in dots per inch of output graphic.")
 parser.add_argument("-v", "--verbose", dest="verbose",
                     action="store_true",
                     help="Print extra information")
@@ -130,4 +132,4 @@ if args.output_type is not None:
 else:
     output_name = args.output
 
-plt.savefig(correct_filename(output_name), dpi=300)
+plt.savefig(correct_filename(output_name), dpi=args.dpi)

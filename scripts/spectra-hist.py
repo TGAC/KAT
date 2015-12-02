@@ -46,6 +46,8 @@ parser.add_argument("-n", "--y_logscale", dest="y_logscale",
                     action="store_true",
                     help="Y-axis is logscale. Overrides y_min and y_max")
 parser.set_defaults(y_logscale=False)
+parser.add_argument("--dpi", type=int, default=300,
+                    help="Resolution in dots per inch of output graphic.")
 parser.add_argument("-v", "--verbose", dest="verbose",
                     action="store_true",
                     help="Print extra information")
@@ -163,4 +165,4 @@ if args.output_type is not None:
 else:
     output_name = args.output
 
-plt.savefig(correct_filename(output_name), dpi=300)
+plt.savefig(correct_filename(output_name), dpi=args.dpi)
