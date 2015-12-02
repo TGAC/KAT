@@ -6,6 +6,8 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
+from kat_plotting import *
+
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
     description="Create Sequence Coverage Plot.")
@@ -128,4 +130,4 @@ if args.output_type is not None:
 else:
     output_name = args.output
 
-plt.savefig(output_name, dpi=300)
+plt.savefig(correct_filename(output_name), dpi=300)
