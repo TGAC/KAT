@@ -6,8 +6,7 @@ import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 import colormaps as cmaps
 
-from findpeaks import *
-from header import *
+from kat_plotting import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(

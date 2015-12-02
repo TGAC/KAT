@@ -4,8 +4,7 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from findpeaks import *
-from header import *
+from kat_plotting import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
