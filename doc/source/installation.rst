@@ -4,43 +4,49 @@ Installation
 ============
 
 KAT is primarily a C++ application with a few python scripts.  We use the 
-GNU build system ``Autotools`` to assist with package management and to make the 
+GNU build system "Autotools" to assist with package management and to make the 
 software portable across UNIX type operating systems.  Installation of KAT
 therefore follows a similar incantation to other autotools based projects::
 
-  ```./configure; make; sudo make install;```
+  ./configure; make; sudo make install;
 
-However, there are a few caveats.  If you cloned the software directly from the 
-git repository you must first run "./autogen.sh" to create the configure and make 
+However, if you cloned the software directly from the 
+git repository you must first run ```./autogen.sh``` to create the configure and make 
 files for your project.  If you downloaded a source code distribution tarball those
 scripts are already present so you can skip this step.
 
 External Dependencies
 ---------------------
 
-KAT depends on some external software, specifically boost and gnuplot, although you
-will also need a C++11 capable compiler to compile the code.  Please 
-make sure these programs are correctly configured and installed 
+KAT depends on some external software, specifically boost. You will also need a C++11 capable compiler to 
+compile the code.  Please make sure these programs are correctly configured and installed 
 on your system prior to building KAT.  Consult the each program's installation
 guide separately for instructions on how to do this.  Should you install these dependencies
 into non-standard locations you can direct KAT to them by using the following
 options when running the configure script.
 
-  - ```--with-boost``` - for specifiying a custom boost installation directory
-  - ```--with-zlib``` - for specifying a custom zlib installation directory
+  - "--with-boost=<path_to_boost>"  for specifiying a custom boost installation directory
+  - "--with-zlib=<path_to_zlib>"  for specifying a custom zlib installation directory
 
 We prefer static linking, which is forced in the configuation script.  Therefore
 you do not need to modify your LD_LIBRARY_PATH to recognise boost at runtime. 
 
-In addition, should you wish to run the dist_analysis.py script you will need python with the
-numpy and scipy libraries available.
+To enable plotting functionality we require either python3, with numpy, scipy and
+matplotlib installed, or gnuplot.  The python plotting method is the preferred
+method and will produce nicer results.  If you don't already have python3 installed
+on your system we recommend installing anaconda3 as this contains everything you
+need.  The type of plotting engine used will be determined when running the configure
+script, which will select the first engine detected in the following order: python,
+gnuplot, none.  There is currently no way to select the plotting directory from
+a custom location, so the plotting system needs to be properly installed and configured
+on your system: i.e. python3 or gnuplot must be available on the PATH.
 
 
 Internal Dependencies
 ---------------------
 
 KAT contains jellyfish and SeqAn in the source tree.  The user does
-not need to do anything specical to handle these dependencies as they are automatically
+not need to do anything special to handle these dependencies as they are automatically
 built and managed inside KAT.  However, it is important to note that KAT
 will create the jellyfish executable in it's bin directory after installation, which
 may conflict with your own jellyfish executable if it was already installed on your

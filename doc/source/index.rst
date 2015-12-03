@@ -6,19 +6,31 @@
 Welcome to KAT's documentation!
 ===============================
 
-# TODO
-#.. image:: images/KAT.png
-#    :scale: 50%
+.. image:: images/kat_logo.png
+    :scale: 30%
 
-KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta or fastq) using kmer counts.
+KAT is a suite of tools that generating, analysing and comparing k-mer spectra 
+produced from sequence files (fasta or fastq).
 
 .. toctree::
     :maxdepth: 2
+    :numbered:
     
     installation
     using
+    kmer
     walkthrough
     system
+
+
+.. _citing:
+
+Citing
+======
+
+We are currently planning to submit multiple publications around different aspects of KAT.
+In the meantime if you use KAT in your work, please reference our github page `https://github.com/TGAC/KAT <https://github.com/TGAC/KAT>`_
+
 
 
 .. _issues:
@@ -26,7 +38,7 @@ KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta o
 Issues
 ======
 
-Should you discover any issues with spectre, or wish to request a new feature please raise a ticket at https://github.com/TGAC/KAT/issues.
+Should you discover any issues with spectre, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
 Alternatively, contact Daniel Mapleson at: daniel.mapleson@tgac.ac.uk
 
 
@@ -35,14 +47,7 @@ Alternatively, contact Daniel Mapleson at: daniel.mapleson@tgac.ac.uk
 Availability and License
 ========================
 
-Open source code available on github: https://github.com/TGAC/KAT.git
+Open source code available on github: `https://github.com/TGAC/KAT.git <https://github.com/TGAC/KAT>`_
 
-Spectre is available under GNU GLP V3: http://www.gnu.org/licenses/gpl.txt
+KAT is available under `GNU GLP V3 <http://www.gnu.org/licenses/gpl.txt>`_
 
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
