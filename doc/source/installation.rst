@@ -15,6 +15,18 @@ git repository you must first run ```./autogen.sh``` to create the configure and
 files for your project.  If you downloaded a source code distribution tarball those
 scripts are already present so you can skip this step.
 
+The configure script contains all the usual options you might expect in particular
+it has the ```--prefix```, which will install KAT to a custom directory.  By default 
+this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by 
+default.
+
+In addition, the KAT makefile contains all the usual targets you would expect.  In particular:
+
+ * ```make check``` - runs unit tests.
+ * ```make dist``` - packages the installation into a tarballed distributable.
+ * ```make distcheck``` - runs some sanity tests to ensure the tarballed distributable is likely to work.
+
+
 External Dependencies
 ---------------------
 

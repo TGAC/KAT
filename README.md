@@ -3,12 +3,14 @@
 
 KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta or fastq) using kmer counts.  The following tools are currently available in KAT:
 
-   - **sect**:  SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using K-mers from another sequence file.
-   - **comp**:  K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files or hashes.
-   - **gcp:**   K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.
-   - **hist**:  Create an histogram of k-mer occurrences from a sequence file.  Adds metadata in output for easy plotting.
-   - **plot**:  Plotting tool.  Contains several plotting tools to visualise K-mer and compare distributions. Requires gnuplot.  The following plot tools are available:
-
+   - **sect**:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using K-mers from another sequence file.
+   - **comp**:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files or hashes.
+   - **gcp:**    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.
+   - **hist**:   Create an histogram of k-mer occurrences from a sequence file.  Adds metadata in output for easy plotting.
+   - **filter**: Filtering tools.  Contains tools for filtering k-mer hashes and FastQ/A files:
+     - **kmer**:         Produces a k-mer hash containing only k-mers within specified coverage and GC tolerances.
+     - **seq**:          Filters a sequence file based on whether or not the sequences contain k-mers within a provided hash.
+   - **plot**:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare distributions. Requires gnuplot.  The following plot tools are available:
      - **density**:      Creates a density plot from a matrix created with the "comp" tool.  Typically this is used to compare two K-mer hashes produced by different NGS reads.
      - **profile**:      Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output coverage from the "sect" tool
      - **spectra-cn**:   Creates a stacked histogram using a matrix created with the "comp" tool.  Typically this is used to compare a jellyfish hash produced from a read set to a jellyfish hash produced from an assembly. The plot shows the amount of distinct K-mers absent, as well as the copy number variation present within the assembly.
@@ -27,9 +29,10 @@ Generic installation description can be found in the INSTALL file. Short summary
   - Ensure these tools are correctly installed and available on your system:
       - gcc tool chain
       - make
-      - gnuplot (required for plotting at runtime, must be available on the path to use this functionality) - http://www.gnuplot.info
+      
   - If you cloned the git repository you must first run "./autogen.sh" to create the configure and make files for your project.  (If you downloaded a source code distribution tarball then you can skip this step.)
   - For a typical installation on a machine where you have root access type ```./configure; make; sudo make install;```
+
 
 The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by default.  In addition, some options specific to managing KAT dependencies located in non-standard locations are:
 
@@ -39,9 +42,14 @@ Type ```./configure --help``` for full details.
 
 The Makefile for KAT can take several goals.  Full details of common make goals can be found in the INSTALL file.  Typically, the following options can optionally used by KAT:
 
-  - ```make check``` - runs unit tests.  *NOTE*: Requires boost unit test framework to be installed and available.
+  - ```make check``` - runs unit tests.
   - ```make dist``` - packages the installation into a tarballed distributable.
   - ```make distcheck``` - runs some sanity tests to ensure the tarballed distributable is likely to work.
+
+KAT can also make plots.  To enable plotting functionality we require either python3, with numpy, scipy and matplotlib installed, or gnuplot.  The python plotting method is the preferred method and will produce nicer results.  
+If you don't already have python3 installed on your system we recommend installing anaconda3 as this contains everything you need.  
+The type of plotting engine used will be determined when running the configure script, which will select the first engine detected in the following order: python, gnuplot, none.  
+There is currently no way to select the plotting directory from a custom location, so the plotting system needs to be properly installed and configured on your system: i.e. python3 or gnuplot must be available on the PATH.
 
 KAT also come with a python script called "dist_analysis.py", which allows the user to determine the amount of content under each peak in the K-mer spectra.  This script will automatically be moved into your selected install directory after running "make install".  However, before running this script you will need to install python and the python numpy and scipy libraries.  In future versions this script will be properly integrated into KAT as another subtool written in C++.
 
@@ -51,8 +59,7 @@ KAT also come with a python script called "dist_analysis.py", which allows the u
 After KAT has been installed, the following tools should be available:
 
  - **kat** - a single executable binary file that contains a number of subtools.
- - **dist_analysis.py** - a python script for determining the amount of content in each peak in the K-mer spectra
-
+ 
 Running ```kat --help``` will bring up a list of available tools within kat.  To get help on any of these subtools simple type: ```kat <tool> --help```.  For example: ```kat sect --help``` will show details on how to use the sequence coverage estimator tool.
 
 KAT supports file globbing for input, this is particularly useful when trying to count and analyse kmers for paired end files.  For example,
@@ -80,6 +87,8 @@ Daniel Mapleson
 Darren Heavens
 Sarah Ayling
 Mario Caccamo
+George Kettleborough
+
 
 See AUTHORS file for more details.
 
