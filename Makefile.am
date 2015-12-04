@@ -15,6 +15,7 @@ dist_noinst_SCRIPTS = autogen.sh clean.sh
 
 # Scripts to install
 dist_bin_SCRIPTS =	scripts/dist_analysis.py \
+			scripts/kat_plotting.py \
 			scripts/colormaps.py \
 			scripts/density.py \
 			scripts/profile.py \
