@@ -1,1 +1,2 @@
-/Makefile
+__pycache__
+*.pyc
