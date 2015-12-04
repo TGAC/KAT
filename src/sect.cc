@@ -225,7 +225,7 @@ void kat::Sect::processSeqFile() {
         if (extractNR)
             printRegions(*nr_path_stream, 1, 1);
         
-        if (extractNR)
+        if (extractR)
             printRegions(*r_path_stream, 2, maxRepeat);
 
 
