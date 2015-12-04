@@ -32,7 +32,7 @@ parser.add_argument("-y", "--y_max", type=int,
                     help="Maximum value for y-axis")
 parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
-parser.add_argument("-l", "--height", type=int, default=3,
+parser.add_argument("-l", "--height", type=int, default=2.5,
                     help="Height of canvas")
 parser.add_argument("-n", "--index", type=str, default="0",
                     help="Comma separate list of indexes of fasta entry " \
@@ -85,7 +85,7 @@ if args.y_label is not None:
 else:
     y_label = "Coverage"
 
-plt.figure(1, figsize=(args.width, args.height * len(names)))
+plt.figure(1, figsize=(args.width, args.height * (len(names) + 0.25)))
 
 pstrs = [profiles[name] for name in names]
 profs = [np.fromstring(pstr, dtype=int, sep=' ') for pstr in pstrs]
@@ -124,8 +124,8 @@ for i in range(len(names)):
         plt.tight_layout()
 
 if title != "":
-    plt.suptitle(title, fontsize=14)
-    plt.subplots_adjust(top=0.95)
+    plt.suptitle(title, fontsize=14, y=1-1/(float(len(names))*15+5))
+    plt.subplots_adjust(top=1-1/(float(len(names))*4+1))
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
