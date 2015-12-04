@@ -8,7 +8,7 @@ kat_CXXFLAGS = -g -O3 -Wno-conversion-null -Wno-unused-result -Wno-unused-functi
 
 kat_CPPFLAGS = -DCPLUSPLUS -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include @AM_CPPFLAGS@
 
-kat_LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libjellyfish-2.0.a \
+kat_LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libjellyfish-k2.0.a \
 	    @AM_LIBS@
 
 noinst_HEADERS = \
