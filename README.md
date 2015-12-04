@@ -25,21 +25,25 @@ Generic installation description can be found in the INSTALL file. Short summary
   - Acquire the source code.  Either download and decompress the distributable ("tar -xvf kat-<version>.tar.gz"), or clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
   - "cd" into root directory of the installation
   - Ensure these tools are correctly installed and available on your system:
-      - gcc tool chain
+      - gcc V4.9+
+      - autoconf V2.53+
+      - automake V1.11+
+      - libtool V2.4.2+
       - make
+      - boost V1.53+
       - gnuplot (required for plotting at runtime, must be available on the path to use this functionality) - http://www.gnuplot.info
   - If you cloned the git repository you must first run "./autogen.sh" to create the configure and make files for your project.  (If you downloaded a source code distribution tarball then you can skip this step.)
   - For a typical installation on a machine where you have root access type ```./configure; make; sudo make install;```
 
 The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by default.  In addition, some options specific to managing KAT dependencies located in non-standard locations are:
 
-  - ```--with-boost``` - for specifying a custom boost directory (boost is only required for unit testing)
+  - ```--with-boost``` - for specifying a custom boost directory
 
 Type ```./configure --help``` for full details.
 
 The Makefile for KAT can take several goals.  Full details of common make goals can be found in the INSTALL file.  Typically, the following options can optionally used by KAT:
 
-  - ```make check``` - runs unit tests.  *NOTE*: Requires boost unit test framework to be installed and available.
+  - ```make check``` - runs unit tests.
   - ```make dist``` - packages the installation into a tarballed distributable.
   - ```make distcheck``` - runs some sanity tests to ensure the tarballed distributable is likely to work.
 

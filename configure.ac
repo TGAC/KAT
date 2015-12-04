@@ -3,7 +3,7 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([Kmer Analysis Toolkit (KAT)],[2.0.7],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
+AC_INIT([Kmer Analysis Toolkit (KAT)],[2.0.8],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
 
 # Require autoconf 2.53 or higher
 AC_PREREQ([2.53])
@@ -111,6 +111,6 @@ AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS}"
 AC_SUBST([AM_LIBS])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile deps/seqan-library-2.0.0/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
