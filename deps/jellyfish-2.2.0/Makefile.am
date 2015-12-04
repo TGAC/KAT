@@ -140,9 +140,9 @@ SH_LOG_COMPILER = /bin/sh
 AM_SH_LOG_FLAGS =
 
 TESTS = tests/generate_sequence.sh tests/parallel_hashing.sh	\
-        tests/merge.sh tests/bloom_filter.sh tests/big.sh	\
+        tests/merge.sh tests/big.sh	\
         tests/subset_hashing.sh tests/multi_file.sh		\
-        tests/bloom_counter.sh tests/large_key.sh
+        tests/large_key.sh
 
 EXTRA_DIST += $(TESTS)
 clean-local: clean-local-check
@@ -152,8 +152,8 @@ clean-local-check:
 
 tests/parallel_hashing.log: tests/generate_sequence.log
 tests/subset_hashing.log: tests/generate_sequence.log
-tests/bloom_filter.log: tests/generate_sequence.log
-tests/bloom_counter.log: tests/generate_sequence.log
+#tests/bloom_filter.log: tests/generate_sequence.log
+#tests/bloom_counter.log: tests/generate_sequence.log
 tests/multi_file.log: tests/generate_sequence.log
 tests/merge.log: tests/generate_sequence.log
 tests/min_qual.log: tests/generate_fastq_sequence.log
@@ -161,13 +161,13 @@ tests/large_key.log: tests/generate_sequence.log
 tests/quality_filter.log: tests/generate_sequence.log
 
 # SWIG tests
-TESTS += tests/swig_python.sh tests/swig_ruby.sh tests/swig_perl.sh
-tests/swig_python.log: tests/generate_sequence.log
-tests/swig_ruby.log: tests/generate_sequence.log
-tests/swig_perl.log: tests/generate_sequence.log
-EXTRA_DIST += swig/python/test_mer_file.py swig/python/test_hash_counter.py
-EXTRA_DIST += swig/ruby/test_mer_file.rb swig/ruby/test_hash_counter.rb
-EXTRA_DIST += swig/perl5/t/test_mer_file.t swig/perl5/t/test_hash_counter.t
+#TESTS += tests/swig_python.sh tests/swig_ruby.sh tests/swig_perl.sh
+#tests/swig_python.log: tests/generate_sequence.log
+#tests/swig_ruby.log: tests/generate_sequence.log
+#tests/swig_perl.log: tests/generate_sequence.log
+#EXTRA_DIST += swig/python/test_mer_file.py swig/python/test_hash_counter.py
+#EXTRA_DIST += swig/ruby/test_mer_file.rb swig/ruby/test_hash_counter.rb
+#EXTRA_DIST += swig/perl5/t/test_mer_file.t swig/perl5/t/test_hash_counter.t
 
 
 ##############
