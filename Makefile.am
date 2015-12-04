@@ -17,8 +17,6 @@ dist_noinst_SCRIPTS = autogen.sh clean.sh
 dist_bin_SCRIPTS =	scripts/dist_analysis.py \
 			scripts/colormaps.py \
 			scripts/density.py \
-			scripts/findpeaks.py \
-			scripts/header.py \
 			scripts/profile.py \
 			scripts/spectra-cn.py \
 			scripts/spectra-hist.py \

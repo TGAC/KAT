@@ -76,6 +76,7 @@ namespace kat {
         bool            cvgLogscale;
         uint16_t        threads;
         bool            noCountStats;
+        bool            outputGCStats;
         bool            extractNR;
         bool            extractR;
         uint32_t        maxRepeat;
@@ -95,6 +96,7 @@ namespace kat {
         seqan::StringSet<seqan::CharString> names;
         seqan::StringSet<seqan::CharString> seqs;
         shared_ptr<vector<shared_ptr<vector<uint64_t>>>> counts; // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
+        shared_ptr<vector<shared_ptr<vector<uint16_t>>>> gc_counts; // GC counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
         shared_ptr<vector<uint32_t>> medians; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> means; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> gcs; // GC% for each sequence
@@ -159,6 +161,14 @@ namespace kat {
 
         void setNoCountStats(bool no_count_stats) {
             this->noCountStats = no_count_stats;
+        }
+        
+        bool isOutputGCStats() const {
+            return outputGCStats;
+        }
+
+        void setOutputGCStats(bool outputGCStats) {
+            this->outputGCStats = outputGCStats;
         }
         
         bool isExtractNR() const {
@@ -254,6 +264,8 @@ namespace kat {
         void createBatchVars(uint16_t batchSize);
 
         void printCounts(std::ostream &out);
+        
+        void printGCCounts(std::ostream &out);
         
         void printRegions(std::ostream &out, const uint32_t min_count, const uint32_t max_count);
 
