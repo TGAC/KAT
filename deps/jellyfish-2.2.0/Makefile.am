@@ -5,7 +5,7 @@ EXTRA_DIST = doc/jellyfish.pdf doc/jellyfish.man README LICENSE # jellyfish.spec
 man1_MANS = doc/jellyfish.man
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = jellyfish-2.0.pc
+pkgconfig_DATA = jellyfish-k2.0.pc
 
 AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
 AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
@@ -29,15 +29,15 @@ V_YAGGO_0 = @echo "  YAGGO   " $@;
 YAGGO_SOURCES = # Append all file to be built by yaggo
 
 # What to build
-bin_PROGRAMS += bin/jellyfish
-lib_LTLIBRARIES = libjellyfish-2.0.la
-LDADD = libjellyfish-2.0.la # $(VALGRIND_LIBS)
+bin_PROGRAMS += bin/jellyfishk
+lib_LTLIBRARIES = libjellyfish-k2.0.la
+LDADD = libjellyfish-k2.0.la # $(VALGRIND_LIBS)
 check_PROGRAMS = bin/generate_sequence
 
 ############################
 # Build Jellyfish the exec #
 ############################
-bin_jellyfish_SOURCES = sub_commands/jellyfish.cc	\
+bin_jellyfishk_SOURCES = sub_commands/jellyfish.cc	\
                         sub_commands/count_main.cc	\
                         sub_commands/info_main.cc	\
                         sub_commands/dump_main.cc	\
@@ -49,7 +49,7 @@ bin_jellyfish_SOURCES = sub_commands/jellyfish.cc	\
                         sub_commands/cite_main.cc	\
                         sub_commands/mem_main.cc	\
                         jellyfish/merge_files.cc
-bin_jellyfish_LDFLAGS = $(AM_LDFLAGS) $(STATIC_FLAGS)
+bin_jellyfishk_LDFLAGS = $(AM_LDFLAGS) $(STATIC_FLAGS)
 
 
 YAGGO_SOURCES += sub_commands/count_main_cmdline.hpp	\
@@ -66,8 +66,8 @@ YAGGO_SOURCES += sub_commands/count_main_cmdline.hpp	\
 ######################################
 # Build Jellyfish the shared library #
 ######################################
-libjellyfish_2_0_la_LDFLAGS = -version-info 2:0:0
-libjellyfish_2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
+libjellyfish_k2_0_la_LDFLAGS = -version-info 2:0:0
+libjellyfish_k2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
                               lib/mer_dna.cc lib/storage.cc		\
                               lib/allocators_mmap.cc lib/misc.cc	\
                               lib/int128.cc lib/thread_exec.cc		\
@@ -140,9 +140,9 @@ SH_LOG_COMPILER = /bin/sh
 AM_SH_LOG_FLAGS =
 
 TESTS = tests/generate_sequence.sh tests/parallel_hashing.sh	\
-        tests/merge.sh tests/bloom_filter.sh tests/big.sh	\
+        tests/merge.sh tests/big.sh	\
         tests/subset_hashing.sh tests/multi_file.sh		\
-        tests/bloom_counter.sh tests/large_key.sh
+        tests/large_key.sh
 
 EXTRA_DIST += $(TESTS)
 clean-local: clean-local-check
@@ -152,8 +152,8 @@ clean-local-check:
 
 tests/parallel_hashing.log: tests/generate_sequence.log
 tests/subset_hashing.log: tests/generate_sequence.log
-tests/bloom_filter.log: tests/generate_sequence.log
-tests/bloom_counter.log: tests/generate_sequence.log
+#tests/bloom_filter.log: tests/generate_sequence.log
+#tests/bloom_counter.log: tests/generate_sequence.log
 tests/multi_file.log: tests/generate_sequence.log
 tests/merge.log: tests/generate_sequence.log
 tests/min_qual.log: tests/generate_fastq_sequence.log
@@ -161,13 +161,13 @@ tests/large_key.log: tests/generate_sequence.log
 tests/quality_filter.log: tests/generate_sequence.log
 
 # SWIG tests
-TESTS += tests/swig_python.sh tests/swig_ruby.sh tests/swig_perl.sh
-tests/swig_python.log: tests/generate_sequence.log
-tests/swig_ruby.log: tests/generate_sequence.log
-tests/swig_perl.log: tests/generate_sequence.log
-EXTRA_DIST += swig/python/test_mer_file.py swig/python/test_hash_counter.py
-EXTRA_DIST += swig/ruby/test_mer_file.rb swig/ruby/test_hash_counter.rb
-EXTRA_DIST += swig/perl5/t/test_mer_file.t swig/perl5/t/test_hash_counter.t
+#TESTS += tests/swig_python.sh tests/swig_ruby.sh tests/swig_perl.sh
+#tests/swig_python.log: tests/generate_sequence.log
+#tests/swig_ruby.log: tests/generate_sequence.log
+#tests/swig_perl.log: tests/generate_sequence.log
+#EXTRA_DIST += swig/python/test_mer_file.py swig/python/test_hash_counter.py
+#EXTRA_DIST += swig/ruby/test_mer_file.rb swig/ruby/test_hash_counter.rb
+#EXTRA_DIST += swig/perl5/t/test_mer_file.t swig/perl5/t/test_hash_counter.t
 
 
 ##############
