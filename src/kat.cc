@@ -159,12 +159,17 @@ int main(int argc, char *argv[])
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "2.0.0"
+#define PACKAGE_VERSION "2.1.0"
 #endif
-        cout << PACKAGE_NAME << " V" << PACKAGE_VERSION << endl << endl;
         
-        if (version) {    
+        if (version) {
+            // Output in GNU standard format
+            cout << PACKAGE_NAME << " " << PACKAGE_VERSION << endl;
             return 0;
+        }
+        else {
+            // Output for the first line in a normal KAT run
+            cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
         }
         
         KatFS fs(argv[0]);
