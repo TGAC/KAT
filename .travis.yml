@@ -16,13 +16,12 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq g++-4.9
 - export CXX="g++-4.9"
-- sudo apt-get install build-essential
-- sudo apt-get install libboost-system-dev
-- sudo apt-get install libboost-filesystem-dev
-- sudo apt-get install libboost-program-options-dev
-- sudo apt-get install libboost-chrono-dev
-- sudo apt-get install libboost-timer-dev
-- sudo apt-get install libboost-test-dev
+- wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz/download
+- mv download boost.tar.gz
+- tar -xvf boost.tar.gz
+- cd boost_1_59_0
+- sudo ./bootstrap.sh
+- sudo ./b2 install
 - wget https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda3-2.4.0-Linux-x86_64.sh
 - bash ~/Anaconda3-2.4.0-Linux-x86_64.sh -b -p $HOME/anaconda3
 - export PATH="$HOME/anaconda3/bin:$PATH"
