@@ -2,26 +2,19 @@
 
 import argparse
 import numpy as np
-import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
-import colormaps as cmaps
 
-from kat_plotting import *
+from kat_plot_misc import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
-    description="""Create K-mer Density Plots.
-
-Creates a scatter plot, where the density or "heat" at each point represents
-the number of distinct K-mers at that point.  Typically this is used to
-visualise a matrix produced by the "kat comp" tool to compare multiplicities
-from two K-mer hashes produced by different NGS reads, or to visualise the GC
-vs K-mer multiplicity matrices produced by the "kat gcp" tool.""")
+    description="Creates a stacked histogram showing the level of " \
+    "duplication in an assembly.")
 
 parser.add_argument("matrix_file", type=str,
                     help="The input matrix file from KAT")
 
-parser.add_argument("-o", "--output", type=str, default="kat-density",
+parser.add_argument("-o", "--output", type=str, default="kat-spectra-cn",
                     help="The path to the output file.")
 parser.add_argument("-p", "--output_type", type=str,
                     help="The plot file type to create (default is based on " \
@@ -32,24 +25,30 @@ parser.add_argument("-a", "--x_label", type=str,
                     help="Label for x-axis")
 parser.add_argument("-b", "--y_label", type=str,
                     help="Label for y-axis")
-parser.add_argument("-c", "--z_label", type=str,
-                    help="Label for z-axis")
 parser.add_argument("-x", "--x_max", type=int,
                     help="Maximum value for x-axis")
 parser.add_argument("-y", "--y_max", type=int,
                     help="Maximum value for y-axis")
-parser.add_argument("-z", "--z_max", type=int,
-                    help="Maximum value for z-axis")
 parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
-parser.add_argument("--not_rasterised", dest="rasterised",
-                    action="store_false",
-                    help="Don't rasterise graphics (slower).")
+parser.add_argument("-i", "--ignore_absent", dest="ignore_absent",
+                    action="store_true",
+                    help="Ignore K-mers in reads but absent from the " \
+                    "assembly")
+parser.set_defaults(ignore_absent=False)
+parser.add_argument("-m", "--max_dup", type=int, default=6,
+                    help="Maximum duplication level to show in plots")
+parser.add_argument("-c", "--columns", type=str,
+                    help="Comma separated string listing columns to " \
+                    "show in plot (overrides -a)")
+parser.add_argument("-u", "--cumulative", dest="cumulative",
+                    action="store_true",
+                    help="Plot cumulative distribution of kmers")
+parser.set_defaults(cumulative=False)
 parser.add_argument("--dpi", type=int, default=300,
                     help="Resolution in dots per inch of output graphic.")
-parser.set_defaults(rasterised=True)
 parser.add_argument("-v", "--verbose", dest="verbose",
                     action="store_true",
                     help="Print extra information")
@@ -84,80 +83,86 @@ elif "YLabel" in header:
 else:
     y_label = "Y"
 
-if args.z_label is not None:
-    z_label = args.z_label
-elif "ZLabel" in header:
-    z_label = header["ZLabel"]
-else:
-    z_label = "Z"
-
 matrix = np.loadtxt(input_file)
 input_file.close()
 if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
                                                     matrix.shape[1]))
-matrix_smooth = ndimage.gaussian_filter(matrix, sigma=2.0, order=0)
 
-if args.x_max is None or args.y_max is None or args.z_max is None:
-    # find peaks
-    msum = np.sum(matrix)
-    xsums = np.sum(matrix, 0)
-    ysums = np.sum(matrix, 1)
-    peakx = findpeaks(xsums)
-    peaky = findpeaks(ysums)
-    # ignore peaks at 1
+mincov = 1 if args.ignore_absent else 0
+covbands = args.max_dup
+
+colours = ["#888a85",
+           "#ef2929",
+           "#ad7fa8",
+           "#729fcf",
+           "#8ae234",
+           "#e9b96e",
+           "#fcaf3e",
+           "#fce94f"]
+if mincov > 0:
+    colours = colours[1:]
+    xamount = 0.65
+else:
+    xamount = 0.99
+
+# leave only coverage levels we are interested in
+last_column = np.transpose(np.matrix(np.sum(matrix[:,(mincov+covbands):], 1)))
+matrix = np.concatenate([matrix[:,mincov:(mincov+covbands)], last_column], 1)
+
+# find limits
+if args.x_max is None or args.y_max is None:
+    totals = np.squeeze(np.asarray(np.sum(matrix, 1)))
+    xmax = len(totals) - 1
+    ysum = np.sum(totals)
+    ymax = np.max(totals)
+
+    peakx = findpeaks(totals)
     peakx = peakx[peakx != 1]
-    peaky = peaky[peaky != 1]
-    peakz = matrix[peaky,:][:,peakx]
+    peaky = totals[peakx]
 
-    # peakxv = xsums[peakx]
-    # print "peakxv: ", peakxv
-    # xmax = np.max(peakx[peakxv > (msum * 0.0005)]) * 2
-    # peakyv = ysums[peaky]
-    # print "peakyv: ", peakyv
-    # ymax = np.max(peaky[peakyv > (msum * 0.0005)]) * 2
-
-    xmax = len(xsums)
-    ymax = len(ysums)
-    for i in range(1, len(xsums), int(len(xsums)/40) + 1):
-        if np.sum(xsums[:i]) >= msum * 0.995:
+    for i in range(1, xmax, int(xmax/100) + 1):
+        if np.sum(totals[:i]) >= ysum * xamount:
             xmax = i
             break
-    for i in range(1, len(ysums), int(len(ysums)/40) + 1):
-        if np.sum(ysums[:i]) >= msum * 0.995:
-            ymax = i
-            break
-
-    zmax = np.max(peakz) * 1.1
-
+    ymax = np.max(peaky) * 1.1
     if args.verbose:
         print("Automatically detected axis limits:")
         print("xmax: ", xmax)
         print("ymax: ", ymax)
-        print("zmax: ", zmax)
 
 if args.x_max is not None:
     xmax = args.x_max
 if args.y_max is not None:
     ymax = args.y_max
-if args.z_max is not None:
-    zmax = args.z_max
+
+matrix = matrix[:xmax,:]
 
 plt.figure(num = None, figsize=(args.width, args.height))
-
-pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis,
-                      rasterized=args.rasterised)
 plt.axis([0,xmax,0,ymax])
-cbar = plt.colorbar()
-cbar.set_label(z_label)
-cbar.solids.set_rasterized(args.rasterised)
-levels = np.arange(zmax/8, zmax, zmax/8)
-plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
+x = list(range(xmax))
+labels = ["{:d}x".format(l) for l in range(mincov, mincov+covbands+1)]
+labels[-1] = "{:s}+".format(labels[-1])
+bar = plt.bar(x, matrix[:,0],
+              color=colours[0],
+              linewidth=0.1,
+              edgecolor=colours[0],
+              width=1,
+              label=labels[0])
+for level in range(1, covbands+1):
+    bar = plt.bar(x, matrix[:,level],
+                  bottom=np.sum(matrix[:,:level], 1),
+                  color=colours[level%len(colours)],
+                  linewidth=0.1,
+                  edgecolor=colours[level%len(colours)],
+                  width=1,
+                  label=labels[level])
 
 plt.title(title)
 plt.xlabel(x_label)
 plt.ylabel(y_label)
-plt.grid(True, color="white", alpha=0.2)
+plt.grid(True, color="black", alpha=0.2)
+plt.legend(loc=1)
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
@@ -165,4 +170,3 @@ else:
     output_name = args.output
 
 plt.savefig(correct_filename(output_name), dpi=args.dpi)
-

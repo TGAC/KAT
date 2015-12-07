@@ -90,15 +90,15 @@ path kat::Plot::getPythonScript(const PlotMode mode) {
     
     switch (mode) {
         case DENSITY:
-            return "density.py";            
+            return "kat_plot_density.py";            
         case PROFILE:
-            return "profile.py";
+            return "kat_plot_profile.py";
         case SPECTRA_CN:
-            return "spectra-cn.py";
+            return "kat_plot_spectra-cn.py";
         case SPECTRA_HIST:
-            return "spectra-hist.py";
+            return "kat_plot_spectra-hist.py";
         case SPECTRA_MX:
-            return "spectra-mx.py";
+            return "kat_plot_spectra-mx.py";
         default:
             BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
                     "Unrecognised KAT PLOT mode")));

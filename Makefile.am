@@ -14,14 +14,14 @@ EXTRA_DIST =	README.md \
 dist_noinst_SCRIPTS = autogen.sh clean.sh
 
 # Scripts to install
-dist_bin_SCRIPTS =	scripts/dist_analysis.py \
-			scripts/kat_plotting.py \
-			scripts/colormaps.py \
-			scripts/density.py \
-			scripts/profile.py \
-			scripts/spectra-cn.py \
-			scripts/spectra-hist.py \
-			scripts/spectra-mx.py
+dist_bin_SCRIPTS =	scripts/kat_distanalysis.py \
+			scripts/kat_plot_misc.py \
+			scripts/kat_plot_colormaps.py \
+			scripts/kat_plot_density.py \
+			scripts/kat_plot_profile.py \
+			scripts/kat_plot_spectra-cn.py \
+			scripts/kat_plot_spectra-hist.py \
+			scripts/kat_plot_spectra-mx.py
 
 # SRC DIRS
 SUBDIRS = deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 src tests

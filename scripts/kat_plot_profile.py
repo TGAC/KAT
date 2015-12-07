@@ -6,7 +6,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 
-from kat_plotting import *
+from kat_plot_misc import *
 
 # ----- command line parsing -----
 parser = argparse.ArgumentParser(
