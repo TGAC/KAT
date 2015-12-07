@@ -1,14 +1,14 @@
 language: cpp
 
 compiler:
-- clang
 - gcc
 
-sudo: false
+sudo: required
 
 before_install:
 - add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - apt-get update -qq
+- apt-get install libboost-all-dev
 - ./autogen.sh 
 
 install:
