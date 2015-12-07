@@ -54,6 +54,7 @@ using bfs::path;
 #include "inc/distance_metrics.hpp"
 
 #include "input_handler.hpp"
+#include "plot.hpp"
 #include "plot_spectra_cn.hpp"
 #include "plot_density.hpp"
 using kat::JellyfishHelper;
@@ -61,6 +62,7 @@ using kat::HashLoader;
 using kat::InputHandler;
 using kat::PlotSpectraCn;
 using kat::PlotDensity;
+using kat::Plot;
 
 
 #include "comp.hpp"
@@ -710,13 +712,35 @@ void kat::Comp::plot(const string& output_type) {
     
     // Plot results
     if (densityPlot) {
-        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density." + output_type));
-        pd.setXLabel(string("# Distinct kmers for ") + input[0].pathString());
-        pd.setYLabel(string("# Distinct kmers for ") + input[1].pathString());
-        pd.setZLabel("Kmer multiplicity");
-        pd.setTitle(string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
-        pd.setOutputType(output_type);
-        res = pd.plot();
+        
+        path outputFile = path(getMxOutPath().string() + ".density." + output_type);
+        string xLabel = string("# Distinct kmers for ") + input[0].pathString();
+        string yLabel = string("# Distinct kmers for ") + input[1].pathString();
+        string zLabel = "Kmer frequency";
+        string title = string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
+        
+        #if HAVE_PYTHON
+            /*const char** args = new char*[6];
+            args[0] = string(string("--output=") + outputFile.string()).c_str();
+            args[1] = string(string("--x_label=") + xLabel).c_str();
+            args[2] = string(string("--y_label=") + yLabel).c_str();
+            args[3] = string(string("--z_label=") + zLabel).c_str();
+            args[4] = string(string("--title=") + title).c_str();
+            args[5] = getMxOutPath().c_str();            
+            Plot::executePythonPlot(Plot::PlotMode::DENSITY, 6, args);*/
+        #elif HAVE_GNUPLOT
+            PlotDensity pd(getMxOutPath(), outputFile);
+            pd.setXLabel(xLabel);
+            pd.setYLabel(yLabel);
+            pd.setZLabel(zLabel);
+            pd.setTitle(title);
+            pd.setOutputType(output_type);
+            res = pd.plot();
+        #endif
+
+        
+        
+        
     }
     else {
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));

@@ -52,7 +52,12 @@ namespace kat {
         
         static bool validatePlotOutputType();
         
-        static int main(int argc, char *argv[], const KatFS& fs);
+        static int main(int argc, char *argv[]);
+        
+        static path getPythonScript(const PlotMode mode);
+        
+        static void executePythonPlot(const PlotMode mode, int argc, char *argv[]);
+                
         
     private:
         static wchar_t* convertCharToWideChar(const char* c);
@@ -61,11 +66,9 @@ namespace kat {
 
         static PlotMode parseMode(const string& mode);
                 
-        static void executePythonPlot(const PlotMode mode, int argc, char *argv[], const KatFS& fs);
         
         static void executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]);        
         
-        static path getPythonScript(const PlotMode mode);
         
         static string helpMessage() {
             return string("Usage: kat plot <mode>\n\n") +

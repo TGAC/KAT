@@ -164,6 +164,7 @@ namespace kat {
     };
     
        
-    
+    // Make available everywhere
+    extern KatFS katFileSystem;
 }
 

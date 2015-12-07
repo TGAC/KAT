@@ -49,6 +49,11 @@ using kat::Sect;
 typedef boost::error_info<struct KatError,string> KatErrorInfo;
 struct KatException: virtual boost::exception, virtual std::exception { };
 
+namespace kat {
+// Global variable! :(
+KatFS katFileSystem;
+}
+
 enum Mode {
     COMP,
     FILTER,
@@ -172,7 +177,7 @@ int main(int argc, char *argv[])
             cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
         }
         
-        KatFS fs(argv[0]);
+        kat::katFileSystem = KatFS(argv[0]);
         
         //cout << fs << endl;
         
@@ -195,7 +200,7 @@ int main(int argc, char *argv[])
                 Histogram::main(modeArgC, modeArgV);
                 break;
             case PLOT:
-                Plot::main(modeArgC, modeArgV, fs);            
+                Plot::main(modeArgC, modeArgV);            
                 break;
             case SECT:
                 Sect::main(modeArgC, modeArgV);            

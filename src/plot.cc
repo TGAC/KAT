@@ -113,10 +113,10 @@ wchar_t* kat::Plot::convertCharToWideChar(const char* c) {
     return wc;
 }
 
-void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], const KatFS& fs) {
+void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
     
     const path script_name = getPythonScript(mode);
-    const path scripts_dir = fs.GetScriptsDir();
+    const path scripts_dir = katFileSystem.GetScriptsDir();
     const path full_script_path = path(scripts_dir.string() + "/" + script_name.string());
     
     stringstream ss;
@@ -180,7 +180,7 @@ void kat::Plot::executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]) 
 }
 
        
-int kat::Plot::main(int argc, char *argv[], const KatFS& fs) {
+int kat::Plot::main(int argc, char *argv[]) {
 
     string modeStr;
     vector<string> others;
@@ -229,7 +229,7 @@ int kat::Plot::main(int argc, char *argv[], const KatFS& fs) {
 
     // Execute via appropriate method (or error)
 #if HAVE_PYTHON
-    executePythonPlot(mode, modeArgC, modeArgV, fs);
+    executePythonPlot(mode, modeArgC, modeArgV);
 #elif HAVE_GNUPLOT
     executeGnuplotPlot(mode, modeArgC, modeArgV);
 #else
