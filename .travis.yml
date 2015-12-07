@@ -16,6 +16,6 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq g++-4.9
 - export CXX="g++-4.9"
-- sudo apt-get install -qq libboost-filesystem-dev libboost-system-dev libboost-program-options libboost-chrono-dev libboost-timer-dev libboost-test-dev
+- sudo apt-get install -qq libboost-filesystem-dev libboost-system-dev libboost-program-options-dev libboost-chrono-dev libboost-timer-dev libboost-test-dev
 - ./autogen.sh 
 
