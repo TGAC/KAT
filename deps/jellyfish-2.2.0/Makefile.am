@@ -5,7 +5,7 @@ EXTRA_DIST = doc/kat_jellyfish.pdf doc/kat_jellyfish.man README LICENSE # jellyf
 man1_MANS = doc/kat_jellyfish.man
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = katjellyfish-2.0.pc
+pkgconfig_DATA = kat_jellyfish-2.0.pc
 
 AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
 AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
