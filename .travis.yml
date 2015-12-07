@@ -16,14 +16,14 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq g++-4.9
 - export CXX="g++-4.9"
-- wget http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz/download
+- wget -q http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz/download
 - mv download boost.tar.gz
 - tar -xf boost.tar.gz
 - cd boost_1_59_0
 - sudo ./bootstrap.sh
 - sudo ./b2 -d0 install
 - cd ..
-- wget https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda3-2.4.0-Linux-x86_64.sh
+- wget -q https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda3-2.4.0-Linux-x86_64.sh
 - bash ./Anaconda3-2.4.0-Linux-x86_64.sh -b -p $HOME/anaconda3
 - export PATH="$HOME/anaconda3/bin:$PATH"
 - ./autogen.sh 
