@@ -7,11 +7,11 @@ compiler:
 sudo: false
 
 before_install:
-- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-- sudo apt-get update -qq
+- add-apt-repository -y ppa:ubuntu-toolchain-r/test
+- apt-get update -qq
 - ./autogen.sh 
 
 install:
-- sudo apt-get install -qq g++-4.9
+- apt-get install -qq g++-4.9
 - export CXX="g++-4.9"
 
