@@ -218,7 +218,6 @@ void kat::Gcp::plot(const string& output_type) {
     }
     
     cout.flush();
-    
 }
 
 int kat::Gcp::main(int argc, char *argv[]) {

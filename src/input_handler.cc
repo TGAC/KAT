@@ -133,7 +133,7 @@ void kat::InputHandler::count(const uint16_t threads) {
     header->update_from_ary(*hash);
     header->counter_len(4);  // Hard code for now.
     header->canonical(canonical);
-    header->format(binary_dumper::format);    
+    header->format(binary_dumper::format);
     
     cout << " done.";
     cout.flush();    
@@ -178,8 +178,6 @@ void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
     else {
         bfs::create_symlink(getSingleInput(), outputPath);
     }
-    
-    
 }
 
 vector<path_ptr> kat::InputHandler::globFiles(const string& input) {

@@ -276,6 +276,7 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
            boost::iequals(ext, ".fasta") ||
            boost::iequals(ext, ".fa") || 
            boost::iequals(ext, ".fna") ||
-           boost::iequals(ext, ".fas");
+           boost::iequals(ext, ".fas") ||
+           boost::iequals(ext, ".scafSeq"); // For SOAP de novo scaffolder output
 }
 
