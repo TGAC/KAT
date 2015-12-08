@@ -23,8 +23,25 @@ before_install:
 #- sudo ./bootstrap.sh
 #- sudo ./b2 -d1 install
 #- cd ..
-- wget -q https://3230d63b5fc54e62148e-c95ac804525aac4b6dba79b00b39d1d3.ssl.cf1.rackcdn.com/Anaconda3-2.4.0-Linux-x86_64.sh
-- sudo bash ./Anaconda3-2.4.0-Linux-x86_64.sh -b -p /usr/local
-- python3 -c "from distutils.sysconfig import *; print(get_config_var('CONFINCLUDEPY'))"
-- ./autogen.sh 
 
+# Anaconda installation
+- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+- bash miniconda.sh -b -p $HOME/miniconda
+- export PATH="$HOME/miniconda/bin:$PATH"
+- hash -r
+- conda config --set always_yes yes --set changeps1 no
+- conda update -q conda
+
+# Useful for debugging any issues with conda
+- conda info -a
+
+# Install anaconda
+- conda install anaconda
+
+# Replace dep1 dep2 ... with your dependencies
+#- conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION dep1 dep2 ...
+#- source activate test-environment
+#- python setup.py install
+
+# Run autogen to generate KAT's configure script
+- ./autogen.sh 
