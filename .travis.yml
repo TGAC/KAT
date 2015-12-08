@@ -24,6 +24,8 @@ before_install:
 #- sudo ./b2 -d1 install
 #- cd ..
 
+install:
+
 # Anaconda installation
 - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 - bash miniconda.sh -b -p $HOME/miniconda
@@ -43,5 +45,6 @@ before_install:
 #- source activate test-environment
 #- python setup.py install
 
-# Run autogen to generate KAT's configure script
-- ./autogen.sh 
+# Build KAT
+- ./autogen.sh && ./configure && make && make check
+
