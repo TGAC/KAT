@@ -39,7 +39,6 @@ before_install:
 # Replace dep1 dep2 ... with your dependencies
 - conda create -q -n test-environment python=3.5 anaconda
 - source activate test-environment
-- python setup.py install
 
 # Build KAT
 - ./autogen.sh
