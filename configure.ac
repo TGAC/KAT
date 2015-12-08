@@ -76,7 +76,8 @@ AC_CHECK_HEADERS([glob.h])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
-AX_PYTHON_DEVEL([>= '3.2.0'])
+AM_PATH_PYTHON([], [], AC_MSG_ERROR([Python interpreter not found.]))
+AX_PYTHON_DEVEL([>= '3.1'])
 
 pymod_good="yes"
 AX_PYTHON_MODULE(numpy, ,python3)
