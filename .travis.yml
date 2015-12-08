@@ -27,5 +27,6 @@ before_install:
 - sudo bash ./Anaconda3-2.4.0-Linux-x86_64.sh -b -p /usr/local/share/anaconda3
 - export PATH="/usr/local/share/anaconda3/bin:$PATH"
 - python3 -c "from distutils.sysconfig import *; print(get_config_var('CONFINCLUDEPY'))"
+- ldd python3
 - ./autogen.sh 
 
