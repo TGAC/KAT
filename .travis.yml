@@ -29,6 +29,7 @@ before_install:
 - echo $PATH
 - ls $HOME/anaconda3/bin/python
 - ls $HOME/anaconda3/bin/python3
-- ls $HOME/anaconda3/bin/python3.4 
+- ls $HOME/anaconda3/bin/python3.5 
+- which python
 - ./autogen.sh 
 
