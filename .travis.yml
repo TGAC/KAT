@@ -16,6 +16,8 @@ before_install:
 - sudo apt-get update -qq
 - sudo apt-get install -qq g++-4.9
 - export CXX="g++-4.9"
+- export CC="gcc-4.9"
+
 
 # Boost installation
 - wget -q http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz/download
