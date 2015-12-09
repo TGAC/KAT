@@ -3,7 +3,7 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([kat],[2.1.0],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
+AC_INIT([kat],[2.1.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 
 # Require autoconf 2.53 or higher
 AC_PREREQ([2.53])

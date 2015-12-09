@@ -46,7 +46,7 @@ struct TestBloomFilter {
 };
 
 typedef ::testing::Types<TestBloomCounter, TestBloomFilter> TestBloomCounterTypes;
-TYPED_TEST_CASE(MerDnaBloomTest, TestBloomCounterTypes);
+/*TYPED_TEST_CASE(MerDnaBloomTest, TestBloomCounterTypes);
 
 
 TYPED_TEST(MerDnaBloomTest, FalsePositive) {
@@ -145,6 +145,6 @@ TYPED_TEST(MerDnaBloomTest, Move) {
   typename TypeParam::bloom_type bc2(std::move(bc));
   EXPECT_EQ(k, bc2.k());
   EXPECT_EQ(m, bc.m());
-}
+}*/
 
 }

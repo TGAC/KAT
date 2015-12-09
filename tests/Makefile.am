@@ -2,11 +2,14 @@ AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # additional include paths necessary to compile the C++ library
-CPPFLAGS=-DCPLUSPLUS -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
-CXXFLAGS=-g -O0 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=c++11 @AM_CXXFLAGS@
+CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@
+
+CPPFLAGS=-DCPLUSPLUS -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
+
 LDFLAGS=@AM_LDFLAGS@
+
 LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.a \
-	@BOOST_UNIT_TEST_FRAMEWORK_LIB@ \
+	@BOOST_UNIT_TEST_FRAMEWORK_STATIC_LIB@ \
 	@AM_LIBS@
 
 TESTS_ENVIRONMENT=BOOST_TEST_REPORT_LEVEL=detailed BOOST_TEST_LOG_LEVEL=all
