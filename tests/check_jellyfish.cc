@@ -37,18 +37,6 @@ using kat::HashLoader;
 
 BOOST_AUTO_TEST_SUITE(KAT_JELLYFISH)
 
-BOOST_AUTO_TEST_CASE(TEST_JFCMD) {
-    
-    string cmd = JellyfishHelper::createJellyfishCountCmd("input.fa", "output.jf27", 27, 100000, 4, true);
-    
-    const string expected = "jellyfish count -C -m 27 -s 100000 -t 4 -o output.jf27 input.fa ";
-    
-    //cout << cmd << endl;
-    //cout << expected << endl;
-    
-    BOOST_CHECK_EQUAL( cmd, expected );
-}
-
 
 BOOST_AUTO_TEST_CASE(TEST_HEADER) {
     
