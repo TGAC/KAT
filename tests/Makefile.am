@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 CPPFLAGS=-DCPLUSPLUS -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
 CXXFLAGS=-g -O0 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=c++11 @AM_CXXFLAGS@
 LDFLAGS=@AM_LDFLAGS@
-LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libjellyfish-k2.0.a \
+LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.a \
 	@BOOST_UNIT_TEST_FRAMEWORK_LIB@ \
 	@AM_LIBS@
 

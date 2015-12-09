@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE( THREADED_COUNTERS )
 {
     const uint16_t threads = 2;
     
-    ThreadedCompCounters tcc("path1", "path2", "path3");
+    ThreadedCompCounters tcc("path1", "path2", "path3", 1001);
     
     shared_ptr<CompCounters> cc1 = make_shared<CompCounters>();
     
