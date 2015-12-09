@@ -43,4 +43,6 @@ before_install:
 # Build KAT
 - ./autogen.sh
 
+install:
+- ./configure && make -j2 && make check
 
