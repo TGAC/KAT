@@ -3,7 +3,7 @@ if [ -z "$nCPUs" ]; then
 fi
 pref=$(basename $0 .sh)
 DIR=../bin
-JF="$DIR/jellyfish"
+JF="$DIR/kat_jellyfish"
 [ -n "$VALGRIND" ] && JF="valgrind $JF"
 SRCDIR=@abs_top_srcdir@
 BUILDDIR=@abs_top_builddir@

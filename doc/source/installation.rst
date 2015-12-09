@@ -3,12 +3,18 @@
 Installation
 ============
 
+To get a quick summary of how to install KAT please consult the README.md file
+in the root directory of the project.  This section of the documentation discusses
+some more details.
+
 KAT is primarily a C++ application with a few python scripts.  We use the 
 GNU build system "Autotools" to assist with package management and to make the 
 software portable across UNIX type operating systems.  Installation of KAT
 therefore follows a similar incantation to other autotools based projects::
 
   ./configure; make; sudo make install;
+
+Should you wish to run tests then you can do this by typing: ```make check```.
 
 However, if you cloned the software directly from the 
 git repository you must first run ```./autogen.sh``` to create the configure and make 
@@ -20,17 +26,11 @@ it has the ```--prefix```, which will install KAT to a custom directory.  By def
 this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by 
 default.
 
-In addition, the KAT makefile contains all the usual targets you would expect.  In particular:
-
- * ```make check``` - runs unit tests.
- * ```make dist``` - packages the installation into a tarballed distributable.
- * ```make distcheck``` - runs some sanity tests to ensure the tarballed distributable is likely to work.
-
 
 External Dependencies
 ---------------------
 
-KAT depends on some external software, specifically boost. You will also need a C++11 capable compiler to 
+KAT depends on some external software, specifically boost. You will also need "make" and a C++11 capable compiler such as "GCC V4.8+" to 
 compile the code.  Please make sure these programs are correctly configured and installed 
 on your system prior to building KAT.  Consult the each program's installation
 guide separately for instructions on how to do this.  Should you install these dependencies
@@ -52,6 +52,16 @@ script, which will select the first engine detected in the following order: pyth
 gnuplot, none.  There is currently no way to select the plotting directory from
 a custom location, so the plotting system needs to be properly installed and configured
 on your system: i.e. python3 or gnuplot must be available on the PATH.
+
+For an example of how to install boost and python3 with matplotlib on a regular system
+take a look at our travis CI script in the root directory: ```.travis.yml```
+
+If you have cloned the repository then you will also need a few additional dependencies installed
+to generate the configuration script.  These are:
+ 
+   - autoconf V2.53+
+   - automake V1.11+
+   - libtool V2.4.2+
 
 
 Internal Dependencies

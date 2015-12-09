@@ -19,24 +19,40 @@ KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta o
 
 In addition, KAT contains a python script for analysing the mathematical distributions present in the K-mer spectra in order to determine how much content is present in each peak.
 
+This README contain some brief details of how to install and use KAT.  For more
+extensive documentation please visit: https://readthedocs.org/projects/kat/
+
 
 ##Installation:
 
-Generic installation description can be found in the INSTALL file. Short summary: 
+Generic installation description can be found in the INSTALL file. There are two ways to install KAT from source, either by cloning the git repository, or by downloading a distributable package, the later method is generally recommended as it reduces the number of installation steps and dependencies required to be on your system.
 
-  - Acquire the source code.  Either download and decompress the distributable ("tar -xvf kat-<version>.tar.gz"), or clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
+Installing from distributable:
+ - Confirm dependencies are installed and configured:
+  - GCC V4.8+
+  - make
+  - Boost V1.53+
+  - Plotting engine:
+   - Option 1 (preferred) python3 with matplotlib.  We recommend installing anaconda as this has all the required packages preinstalled.
+   - Option 2 gnuplot 
+ - Download tarball from https://github.com/TGAC/KAT/releases
+ - Decompress and untar: ```tar -xvf kat-<version>.tar.gz```
+ - Change into directory: ```cd kat-x.x.x```
+ - Generate makefiles and confirm dependencies: ```./configure```
+ - Compile software: ```make```
+ - Run tests (optional) ```make check```
+ - Install: ```sudo make install```
+
+
+Installing from cloned repository
+  - Clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
   - "cd" into root directory of the installation
   - Ensure these tools are correctly installed and available on your system:
-      - gcc V4.9+
       - autoconf V2.53+
       - automake V1.11+
       - libtool V2.4.2+
-      - make
-      - boost V1.53+
-      - Optionally python3 with matplotlib or gnuplot (required for plotting at runtime, must be available on the path to use this functionality)
-  - If you cloned the git repository you must first run "./autogen.sh" to create the configure and make files for your project.  (If you downloaded a source code distribution tarball then you can skip this step.)
-  - For a typical installation on a machine where you have root access type ```./configure; make; sudo make install;```
-
+  - Create configuration script by typing: ```./autogen.sh```.
+  - Follow all steps described in "Installing from a distributable" (except for the download and decompress tarball steps).```
 
 The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by default.  In addition, some options specific to managing KAT dependencies located in non-standard locations are:
 
@@ -44,18 +60,11 @@ The configure script can take several options as arguments.  One commonly modifi
 
 Type ```./configure --help``` for full details.
 
-The Makefile for KAT can take several goals.  Full details of common make goals can be found in the INSTALL file.  Typically, the following options can optionally used by KAT:
-
-  - ```make check``` - runs unit tests.
-  - ```make dist``` - packages the installation into a tarballed distributable.
-  - ```make distcheck``` - runs some sanity tests to ensure the tarballed distributable is likely to work.
-
 KAT can also make plots.  To enable plotting functionality we require either python3, with numpy, scipy and matplotlib installed, or gnuplot.  The python plotting method is the preferred method and will produce nicer results.  
 If you don't already have python3 installed on your system we recommend installing anaconda3 as this contains everything you need.  
+
 The type of plotting engine used will be determined when running the configure script, which will select the first engine detected in the following order: python, gnuplot, none.  
 There is currently no way to select the plotting directory from a custom location, so the plotting system needs to be properly installed and configured on your system: i.e. python3 or gnuplot must be available on the PATH.
-
-KAT also come with a python script called "dist_analysis.py", which allows the user to determine the amount of content under each peak in the K-mer spectra.  This script will automatically be moved into your selected install directory after running "make install".  However, before running this script you will need to install python and the python numpy and scipy libraries.  In future versions this script will be properly integrated into KAT as another subtool written in C++.
 
 
 ##Operating Instructions:
