@@ -224,10 +224,10 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
     }
     
     // Ensures jellyfish knows what kind of kmers we are working with
-    uint16_t merLen = hashCounter.key_len() / 2;
+    unsigned int merLen = hashCounter.key_len() / 2;
     mer_dna::k(merLen);
     
-    StreamManager streams(paths.begin(), paths.end(), 1);
+    StreamManager streams(paths.begin(), paths.end(), (const int)std::min(paths.size(), (size_t)threads));
     
     SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
     
