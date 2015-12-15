@@ -9,8 +9,8 @@ CPPFLAGS=-DCPLUSPLUS -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include -is
 LDFLAGS=@AM_LDFLAGS@
 
 LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.a \
-	@BOOST_UNIT_TEST_FRAMEWORK_LIB@ \
-	@AM_LIBS@
+	@AM_LIBS@ \
+	@BOOST_UNIT_TEST_FRAMEWORK_LIB@
 
 TESTS_ENVIRONMENT=BOOST_TEST_REPORT_LEVEL=detailed BOOST_TEST_LOG_LEVEL=all
 
