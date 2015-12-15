@@ -215,12 +215,12 @@ void kat::JellyfishHelper::countSlice(HashCounter& ary, SequenceParser& parser, 
 * @param seqFile Sequence file to count
 * @return The hash array
 */
-LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<shared_ptr<path>>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads) {
+LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads) {
     
     // Convert paths to a format jellyfish is happy with
     vector<const char*> paths;
     for(auto& p : seqFiles) {
-        paths.push_back(p->c_str());
+        paths.push_back(p.c_str());
     }
     
     // Ensures jellyfish knows what kind of kmers we are working with
@@ -244,7 +244,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<shared_ptr<pat
     return hashCounter.ary();
 }
 
-void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, uint16_t threads, path outputFile) {
+void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, uint16_t threads, const path& outputFile) {
     
     //JellyfishHelper::printHeader(header, cout);
     

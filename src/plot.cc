@@ -113,6 +113,21 @@ wchar_t* kat::Plot::convertCharToWideChar(const char* c) {
     return wc;
 }
 
+void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args) {
+    
+    char* char_args[50];
+    
+    for(size_t i = 0; i < args.size(); i++) {
+        char_args[i] = strdup(args[i].c_str());
+    }
+    
+    kat::Plot::executePythonPlot(mode, (int)args.size(), char_args);
+    
+    for(size_t i = 0; i < args.size(); i++) {
+        free(char_args[i]);
+    }
+}
+
 void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
     
     const path script_name = getPythonScript(mode);
@@ -132,7 +147,7 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
         ss << " " << argv[i];
     }
     
-    cout << "Effective command line: " << ss.str() << endl << endl;
+    //cout << endl << "Effective command line: " << ss.str() << endl << endl;
 
     std::ifstream script_in(full_script_path.c_str());
     std::string contents((std::istreambuf_iterator<char>(script_in)), std::istreambuf_iterator<char>());

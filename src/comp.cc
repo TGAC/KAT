@@ -299,26 +299,26 @@ kat::Comp::Comp(const path& _input1, const path& _input2) :
     kat::Comp::Comp(_input1, _input2, path()) {}
         
 kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
-    vector<path_ptr> vecInput1;
-    vecInput1.push_back(make_shared<path>(_input1));
-    vector<path_ptr> vecInput2;
-    vecInput2.push_back(make_shared<path>(_input2));
-    vector<path_ptr> vecInput3;
+    vector<path> vecInput1;
+    vecInput1.push_back(_input1);
+    vector<path> vecInput2;
+    vecInput2.push_back(_input2);
+    vector<path> vecInput3;
     if (!_input3.empty())
-        vecInput3.push_back(make_shared<path>(_input3));    
+        vecInput3.push_back(_input3);
     
     init(vecInput1, vecInput2, vecInput3);
 }
     
     
-kat::Comp::Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2) : 
-    kat::Comp::Comp(_input1, _input2, vector<path_ptr>()) {}
+kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2) : 
+    kat::Comp::Comp(_input1, _input2, vector<path>()) {}
         
-kat::Comp::Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3) {    
+kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {
     init(_input1, _input2, _input3);
 }
 
-void kat::Comp::init(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3) {
+void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {
     input = !_input3.empty() ? vector<InputHandler>(3) : vector<InputHandler>(2);
     
     input[0].setMultipleInputs(_input1);
@@ -337,7 +337,7 @@ void kat::Comp::init(const vector<path_ptr>& _input1, const vector<path_ptr>& _i
     d2Bins = DEFAULT_NB_BINS;
     threads = 1;
     densityPlot = false;
-    verbose = false;      
+    verbose = false;
 }
 
 void kat::Comp::execute() {
@@ -719,45 +719,69 @@ void kat::Comp::plot(const string& output_type) {
         string zLabel = "Kmer frequency";
         string title = string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
         
-        #if HAVE_PYTHON
-            /*const char** args = new char*[6];
-            args[0] = string(string("--output=") + outputFile.string()).c_str();
-            args[1] = string(string("--x_label=") + xLabel).c_str();
-            args[2] = string(string("--y_label=") + yLabel).c_str();
-            args[3] = string(string("--z_label=") + zLabel).c_str();
-            args[4] = string(string("--title=") + title).c_str();
-            args[5] = getMxOutPath().c_str();            
-            Plot::executePythonPlot(Plot::PlotMode::DENSITY, 6, args);*/
-        #elif HAVE_GNUPLOT
-            PlotDensity pd(getMxOutPath(), outputFile);
-            pd.setXLabel(xLabel);
-            pd.setYLabel(yLabel);
-            pd.setZLabel(zLabel);
-            pd.setTitle(title);
-            pd.setOutputType(output_type);
-            res = pd.plot();
-        #endif
+#if HAVE_PYTHON
+        vector<string> args;
+        args.push_back("kat_plot_density.py");
+        args.push_back(string("--output=") + outputFile.string());
+        args.push_back(string("--x_label=\"") + xLabel + "\"");
+        args.push_back(string("--y_label=\"") + yLabel + "\"");
+        args.push_back(string("--z_label=\"") + zLabel + "\"");
+        args.push_back(string("--title=\"") + title + "\"");
+        args.push_back(getMxOutPath().string());            
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
+#elif HAVE_GNUPLOT
+        PlotDensity pd(getMxOutPath(), outputFile);
+        pd.setXLabel(xLabel);
+        pd.setYLabel(yLabel);
+        pd.setZLabel(zLabel);
+        pd.setTitle(title);
+        pd.setOutputType(output_type);
+        res = pd.plot();
+        
+        if (!res) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }
+        
+#endif
 
-        
-        
-        
     }
     else {
+        
+        path outputFile = path(getMxOutPath().string() + ".density." + output_type);
+        string xLabel = string("Kmer frequency");
+        string yLabel = string("# Distinct kmers");
+        string zLabel = "Kmer frequency";
+        string title = string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
+        
+#if HAVE_PYTHON
+
+        vector<string> args;
+        args.push_back("kat_plot_spectra-cn.py");
+        args.push_back(string("--output=") + outputFile.string());
+        args.push_back(string("--x_label=\"") + xLabel + "\"");
+        args.push_back(string("--y_label=\"") + yLabel + "\"");
+        args.push_back(string("--z_label=\"") + zLabel + "\"");
+        args.push_back(string("--title=\"") + title + "\"");
+        args.push_back(getMxOutPath().string());
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args);
+        
+#elif HAVE_GNUPLOT
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));
-        pscn.setTitle(string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
-        pscn.setYLabel("# Distinct kmers");
-        pscn.setXLabel("Kmer multiplicity");
+        pscn.setTitle(title);
+        pscn.setYLabel(yLabel);
+        pscn.setXLabel(xLabel);
         pscn.setOutputType(output_type);
         res = pscn.plot();
+        
+        if (!res) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }       
+#endif
     }
     
-    if (!res) {
-        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-    }
-    else {    
-        cout << " done.";
-    }
-    
+    cout << " done.";
     cout.flush();
 }
 
@@ -830,7 +854,7 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "Dumps any jellyfish hashes to disk that were produced during this run.")
             ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false), 
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")   
-            ("density_plot,p", po::bool_switch(&density_plot)->default_value(false),
+            ("density_plot,n", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
@@ -843,9 +867,9 @@ int kat::Comp::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("input_1,i1", po::value<string>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-            ("input_2,i2", po::value<string>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-            ("input_3,i3", po::value<string>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_1,X", po::value<string>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_2,Y", po::value<string>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_3,Z", po::value<string>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
             ;
 
     // Positional option for the input bam file
@@ -876,12 +900,13 @@ int kat::Comp::main(int argc, char *argv[]) {
          << "------------------------" << endl << endl;
 
     // Glob input files
-    vector<path_ptr> vecinput1 = InputHandler::globFiles(input1);
-    vector<path_ptr> vecinput2 = InputHandler::globFiles(input2);
+    vector<path> vecinput1, vecinput2;
+    InputHandler::globFiles(input1, vecinput1);
+    InputHandler::globFiles(input2, vecinput2);
 
-    vector<path_ptr> vecinput3;
+    vector<path> vecinput3;
     if ( !input3.empty() ){
-        vecinput3 = InputHandler::globFiles(input3);
+        InputHandler::globFiles(input3, vecinput3);
     }
     
     // Create the sequence coverage object

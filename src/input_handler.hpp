@@ -38,7 +38,7 @@ namespace kat {
         };
         
         uint16_t index;
-        vector<path_ptr> input;
+        vector<path> input;
         InputMode mode = InputMode::COUNT;
         bool canonical = false;
         uint64_t hashSize = DEFAULT_HASH_SIZE;
@@ -50,10 +50,9 @@ namespace kat {
         LargeHashArrayPtr hash = nullptr;
         shared_ptr<file_header> header;         // Only applicable if loaded
 
-        void setSingleInput(const path& p) { input.clear(); input.push_back(make_shared<path>(p)); }
-        void setMultipleInputs(const vector<path_ptr>& inputs);
+        void setSingleInput(const path& p) { input.clear(); input.push_back(p); }
         void setMultipleInputs(const vector<path>& inputs);
-        path getSingleInput() { return *input[0]; }
+        path getSingleInput() { return input[0]; }
         string pathString();
         void validateInput();   // Throws if input is not present.  Sets input mode.
         void loadHeader();
@@ -62,8 +61,8 @@ namespace kat {
         void loadHash();
         void dump(const path& outputPath, const uint16_t threads);
         
-        static vector<path_ptr> globFiles(const string& input);
-        static vector<path_ptr> globFiles(const vector<path_ptr>& input);
+        static void globFiles(const string& input, vector<path>& globbed);
+        static void globFiles(const vector<path>& input, vector<path>& globbed);
     };
     
 }

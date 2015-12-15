@@ -157,7 +157,7 @@ namespace kat {
         
         std::mutex mu;
         
-        void init(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3);
+        void init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3);
 
 
     public:
@@ -168,9 +168,9 @@ namespace kat {
         
         Comp(const path& _input1, const path& _input2, const path& _input3);
 
-        Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2);
+        Comp(const vector<path>& _input1, const vector<path>& _input2);
         
-        Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3);
+        Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3);
 
         
         virtual ~Comp() {}
@@ -228,11 +228,11 @@ namespace kat {
         }
 
         path getInput(uint16_t index) const {
-            return *(input[index].input[0]);
+            return input[index].input[0];
         }
 
         void setInput(uint16_t index, path input) {
-            this->input[index].input[0] = make_shared<path>(input);
+            this->input[index].input[0] = input;
         }
 
         uint8_t getMerLen() const {

@@ -33,15 +33,9 @@ using boost::split;
 #include "input_handler.hpp"
 using kat::JellyfishHelper;
 
-void kat::InputHandler::setMultipleInputs(const vector<path_ptr>& inputs) {
-    for(auto& p : inputs) {
-        input.push_back(p);      
-    }
-}
-
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
     for(auto& p : inputs) {
-        input.push_back(make_shared<path>(p));      
+        input.push_back(p);      
     }
 }
 
@@ -52,7 +46,7 @@ void kat::InputHandler::validateInput() {
     // Check input file(s) exists
     for(auto& rp : input) {
     
-        path p(*rp);
+        path p(rp);
         
         if (bfs::is_symlink(p)) {
             if (bfs::symbolic_link_exists(p)) {
@@ -87,7 +81,7 @@ void kat::InputHandler::validateInput() {
 
 void kat::InputHandler::loadHeader() {
     if (mode == InputMode::LOAD) {
-        header = JellyfishHelper::loadHashHeader(*input[0]);
+        header = JellyfishHelper::loadHashHeader(input[0]);
     }    
 }
 
@@ -101,7 +95,7 @@ void kat::InputHandler::validateMerLen(const uint16_t merLen) {
                 lexical_cast<string>(merLen) + 
                 ".  Key length was " + 
                 lexical_cast<string>(header->key_len() / 2) + 
-                " for : " + input[0]->string()));
+                " for : " + input[0].string()));
         }
     }
 }
@@ -110,9 +104,9 @@ string kat::InputHandler::pathString() {
     
     string s;
     for(auto& p : input) {
-        s += p->string() + " ";
+        s += p.string() + " ";
     }
-    return s;
+    return boost::trim_right_copy(s);
 }
 
 void kat::InputHandler::count(const uint16_t threads) {
@@ -147,7 +141,7 @@ void kat::InputHandler::loadHash() {
     cout.flush();  
     
     hashLoader = make_shared<HashLoader>();
-    hashLoader->loadHash(*input[0], false); 
+    hashLoader->loadHash(input[0], false); 
     hash = hashLoader->getHash();
     canonical = hashLoader->getCanonical();
     merLen = hashLoader->getMerLen();
@@ -180,33 +174,32 @@ void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
     }
 }
 
-vector<path_ptr> kat::InputHandler::globFiles(const string& input) {
+void kat::InputHandler::globFiles(const string& input, vector<path>& globbed) {
 
     vector<string> inputvec;
     boost::split(inputvec, input, boost::is_any_of(" "));    
     
-    vector<path_ptr> pathvec;
+    vector<path> pathvec;
     for(auto& s : inputvec) {
-        pathvec.push_back(make_shared<path>(s));
+        pathvec.push_back(s);
     }
     
-    return globFiles(pathvec);
+    globFiles(pathvec, globbed);
 }
 
-vector<path_ptr> kat::InputHandler::globFiles(const vector<path_ptr>& input) {
+void kat::InputHandler::globFiles(const vector<path>& input, vector<path>& globbed) {
 
     glob_t globbuf;
 
     // Translate glob patterns into real paths
     int i = 0;
     for(auto& g : input) {           
-        glob(g->c_str(), i > 0 ? GLOB_TILDE | GLOB_APPEND : GLOB_TILDE, NULL, &globbuf);
+        glob(g.c_str(), i > 0 ? GLOB_TILDE | GLOB_APPEND : GLOB_TILDE, NULL, &globbuf);
         i++;
     }
 
-    vector<path_ptr> transformed;
     for( size_t i = 0; i < globbuf.gl_pathc; ++i )
-        transformed.push_back( make_shared<path>(globbuf.gl_pathv[i]) );
+        globbed.push_back( path(globbuf.gl_pathv[i]) );
 
     if( globbuf.gl_pathc > 0 )
         globfree( &globbuf );
@@ -214,9 +207,7 @@ vector<path_ptr> kat::InputHandler::globFiles(const vector<path_ptr>& input) {
     // Check for content.  If there isn't any then probably the input file doesn't
     // exist.  But we add the basic input regardless, the user will have to check
     // for file non-existence later.
-    if (transformed.empty()) {
-        transformed.push_back(input[0]);
-    }
-    
-    return transformed;
+    if (globbed.empty()) {
+        globbed.push_back(input[0]);
+    }    
 }
