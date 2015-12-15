@@ -51,8 +51,10 @@ using kat::HashLoader;
 
 #include "input_handler.hpp"
 #include "plot_density.hpp"
+#include "plot.hpp"
 using kat::InputHandler;
 using kat::PlotDensity;
+using kat::Plot;
 
 #include "gcp.hpp"
 
@@ -202,6 +204,26 @@ void kat::Gcp::plot(const string& output_type) {
     cout << "Creating plot ...";
     cout.flush();
     
+    string kstr = lexical_cast<string>(this->getMerLen());
+    
+    string outputFile = outputPrefix.string() + ".mx." + output_type;
+    string zLabel = string("# distinct ") + kstr + "-mers";
+    string xLabel = kstr + "-mer frequency for " + input.pathString();
+    string yLabel = "GC count";
+    string title = string("Spectra Density Plot (GC vs freq) for: ") + input.pathString();
+        
+#if HAVE_PYTHON
+        vector<string> args;
+        args.push_back("kat_plot_density.py");
+        args.push_back(string("--output=") + outputFile);
+        args.push_back(string("--x_label=") + xLabel);
+        args.push_back(string("--y_label=") + yLabel);
+        args.push_back(string("--z_label=") + zLabel);
+        args.push_back(string("--title=") + title);
+        args.push_back(outputPrefix.string() + ".mx");            
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
+#elif HAVE_GNUPLOT
+    
     PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx." + output_type));
     pd.setZLabel("# distinct kmers");
     pd.setYLabel("GC count");
@@ -212,11 +234,12 @@ void kat::Gcp::plot(const string& output_type) {
     
     if (!res) {
         cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-    }
-    else {    
-        cout << " done.";
+        return;
     }
     
+#endif
+    
+    cout << " done.";
     cout.flush();
 }
 

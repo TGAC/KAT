@@ -459,9 +459,33 @@ void kat::Comp::save() {
     ofstream stats_out_stream(string(outputPrefix.string() + ".stats").c_str());
     printCounters(stats_out_stream);
     stats_out_stream.close();
+    
+    if (outputHists) {
+        
+        ofstream hist1_out_stream(string(outputPrefix.string() + ".1.hist").c_str());
+        printHist(hist1_out_stream, input[0], comp_counters.getFinalMatrix().getSpectrum1());
+        hist1_out_stream.close();
+        
+        ofstream hist2_out_stream(string(outputPrefix.string() + ".2.hist").c_str());
+        printHist(hist2_out_stream, input[1], comp_counters.getFinalMatrix().getSpectrum2());
+        hist2_out_stream.close();        
+    }
 
     cout << " done.";
     cout.flush();
+}
+
+void kat::Comp::printHist(std::ostream &out, InputHandler& input, vector<uint64_t>& hist) {
+    
+    // Output header
+    out << mme::KEY_TITLE << input.merLen << "-mer spectra for: " << input.pathString() << endl;
+    out << mme::KEY_X_LABEL << input.merLen << "-mer frequency" << endl;
+    out << mme::KEY_Y_LABEL << "# distinct " << input.merLen << "-mers" << endl;
+    out << mme::MX_META_END << endl;
+
+    for (uint64_t i = 0; i < hist.size(); i++) {
+        out << i << " " << hist[i] << "\n";
+    }
 }
 
 void kat::Comp::merge() {
@@ -705,28 +729,29 @@ void kat::Comp::plot(const string& output_type) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Creating plot ...";
+    cout << "Creating plot(s) ...";
     cout.flush();
     
     bool res = true;
+    string kstr = lexical_cast<string>(this->getMerLen());
     
     // Plot results
     if (densityPlot) {
         
         path outputFile = path(getMxOutPath().string() + ".density." + output_type);
-        string xLabel = string("# Distinct kmers for ") + input[0].pathString();
-        string yLabel = string("# Distinct kmers for ") + input[1].pathString();
-        string zLabel = "Kmer frequency";
+        string xLabel = kstr + "-mer frequency for " + input[0].pathString();
+        string yLabel = kstr + "-mer frequency for " + input[1].pathString();
+        string zLabel = string("# distinct ") + kstr + "-mers";
         string title = string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
         
 #if HAVE_PYTHON
         vector<string> args;
         args.push_back("kat_plot_density.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(string("--x_label=\"") + xLabel + "\"");
-        args.push_back(string("--y_label=\"") + yLabel + "\"");
-        args.push_back(string("--z_label=\"") + zLabel + "\"");
-        args.push_back(string("--title=\"") + title + "\"");
+        args.push_back(string("--x_label=") + xLabel);
+        args.push_back(string("--y_label=") + yLabel);
+        args.push_back(string("--z_label=") + zLabel);
+        args.push_back(string("--title=") + title);
         args.push_back(getMxOutPath().string());            
         Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
 #elif HAVE_GNUPLOT
@@ -749,9 +774,9 @@ void kat::Comp::plot(const string& output_type) {
     else {
         
         path outputFile = path(getMxOutPath().string() + ".density." + output_type);
-        string xLabel = string("Kmer frequency");
-        string yLabel = string("# Distinct kmers");
-        string zLabel = "Kmer frequency";
+        string xLabel = kstr + "-mer frequency for " + input[0].pathString();
+        string yLabel = string("# distinct ") + kstr + "-mers";
+        string zLabel = kstr + "mer frequency for " + input[1].pathString();
         string title = string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
         
 #if HAVE_PYTHON
@@ -759,10 +784,10 @@ void kat::Comp::plot(const string& output_type) {
         vector<string> args;
         args.push_back("kat_plot_spectra-cn.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(string("--x_label=\"") + xLabel + "\"");
-        args.push_back(string("--y_label=\"") + yLabel + "\"");
-        args.push_back(string("--z_label=\"") + zLabel + "\"");
-        args.push_back(string("--title=\"") + title + "\"");
+        args.push_back(string("--x_label=") + xLabel);
+        args.push_back(string("--y_label=") + yLabel);
+        args.push_back(string("--z_label=") + zLabel);
+        args.push_back(string("--title=") + title);
         args.push_back(getMxOutPath().string());
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args);
         
@@ -780,7 +805,65 @@ void kat::Comp::plot(const string& output_type) {
         }       
 #endif
     }
-    
+/*    
+    if (outputHists) {
+       
+        path outputFile1 = path(outputPrefix.string() + ".1.hist." + output_type);
+        path outputFile2 = path(outputPrefix.string() + ".2.hist." + output_type);
+        string xLabel = kstr + "-mer frequency";
+        string yLabel = "# distinct " + kstr + "-mers";
+        string title1 = kstr + "-mer spectra for: " + input[0].pathString();
+        string title2 = kstr + "-mer spectra for: " + input[1].pathString();
+        
+#if HAVE_PYTHON        
+       
+        vector<string> args1;
+        args1.push_back("kat_plot_spectra-hist.py");
+        args1.push_back(string("--output=") + outputFile1.string());
+        args1.push_back(string("--x_label=") + xLabel);
+        args1.push_back(string("--y_label=") + yLabel);
+        args1.push_back(string("--title=") + title1);
+        args1.push_back(outputPrefix.string() + ".1.hist");
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args1);
+        
+        vector<string> args2;
+        args2.push_back("kat_plot_spectra-hist.py");
+        args2.push_back(string("--output=") + outputFile2.string());
+        args2.push_back(string("--x_label=\"") + xLabel + "\"");
+        args2.push_back(string("--y_label=\"") + yLabel + "\"");
+        args2.push_back(string("--title=\"") + title2 + "\"");
+        args2.push_back(outputPrefix.string() + ".2.hist");
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args2);
+
+#elif HAVE_GNUPLOT
+        
+        PlotSpectraHist psh(input[0].input, outputFile1);
+        psh.setXLabel(xLabel);
+        psh.setYLabel(yLabel);
+        psh.setTitle(title1);
+        psh.setOutputType(output_type);
+        bool res1 = psh.plot(); 
+        
+        if (!res1) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }     
+        
+        PlotSpectraHist psh(input[1].input, outputFile2);
+        psh.setXLabel(xLabel);
+        psh.setYLabel(yLabel);
+        psh.setTitle(title2);
+        psh.setOutputType(output_type);
+        bool res2 = psh.plot(); 
+        
+        if (!res2) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }     
+        
+#endif
+    }
+*/    
     cout << " done.";
     cout.flush();
 }
@@ -792,7 +875,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     string input1;
     string input2;
     string input3;
-    path output_prefix;
+    string output_prefix;
     double d1_scale;
     double d2_scale;
     uint16_t d1_bins;
@@ -812,13 +895,14 @@ int kat::Comp::main(int argc, char *argv[]) {
     bool disable_hash_grow;
     bool density_plot;
     string plot_output_type;
+    bool output_hists;
     bool verbose;
     bool help;
 
     // Declare the supported options.
     po::options_description generic_options(Comp::helpMessage(), 100);
     generic_options.add_options()
-            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-comp"), 
+            ("output_prefix,o", po::value<string>(&output_prefix)->default_value("kat-comp"), 
                 "Path prefix for files generated by this program.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use.")
@@ -858,6 +942,8 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
+            ("output_hists,h", po::bool_switch(&output_hists)->default_value(false), 
+                "Whether or not to output histogram data and plots for input 1 and input 2")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -872,7 +958,7 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("input_3,Z", po::value<string>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
             ;
 
-    // Positional option for the input bam file
+    // Positional options for the input file groups
     po::positional_options_description p;
     p.add("input_1", 1);
     p.add("input_2", 1);
@@ -911,7 +997,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     
     // Create the sequence coverage object
     Comp comp(vecinput1, vecinput2, vecinput3);
-    comp.setOutputPrefix(output_prefix);
+    comp.setOutputPrefix(path(output_prefix));
     comp.setD1Scale(d1_scale);
     comp.setD2Scale(d2_scale);
     comp.setD1Bins(d1_bins);
@@ -927,6 +1013,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setDumpHashes(dump_hashes);
     comp.setDisableHashGrow(disable_hash_grow);
     comp.setDensityPlot(density_plot);
+    comp.setOutputHists(output_hists);
     comp.setVerbose(verbose);
     
     // Do the work

@@ -94,6 +94,11 @@ namespace kat {
         static void updateSpectrum(vector<uint64_t>& spectrum, const uint64_t count);
         
         void printCounts(ostream &out);
+        
+        vector<uint64_t>& getSpectrum1() { return spectrum1; }
+        
+        vector<uint64_t>& getSpectrum2() { return spectrum2; }       
+        
     };
     
     class ThreadedCompCounters {
@@ -144,6 +149,7 @@ namespace kat {
         uint16_t d2Bins;
         uint16_t threads;
         bool densityPlot;
+        bool outputHists;
         bool verbose;
 
         // Threaded matrix data
@@ -235,7 +241,7 @@ namespace kat {
             this->input[index].input[0] = input;
         }
 
-        uint8_t getMerLen() const {
+        uint16_t getMerLen() const {
             return input[0].merLen;
         }
 
@@ -297,6 +303,13 @@ namespace kat {
             this->densityPlot = densityPlot;
         }
 
+        bool isOutputHists() const {
+            return outputHists;
+        }
+
+        void setOutputHists(bool outputHists) {
+            this->outputHists = outputHists;
+        }
 
 
         
@@ -342,6 +355,10 @@ namespace kat {
         // Print K-mer statistics
 
         void printCounters(ostream &out);
+        
+        // Print histograms
+        
+        void printHist(ostream &out, InputHandler& input, vector<uint64_t>& hist);
         
         void save();
         

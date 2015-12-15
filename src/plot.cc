@@ -146,6 +146,9 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
         wargv[i] = convertCharToWideChar(argv[i]);
         ss << " " << argv[i];
     }
+    for(int i = argc; i < 50; i++) {
+        wargv[i] = convertCharToWideChar("\0");
+    }
     
     //cout << endl << "Effective command line: " << ss.str() << endl << endl;
 
