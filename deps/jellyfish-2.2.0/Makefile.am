@@ -8,7 +8,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = kat_jellyfish-2.0.pc
 
 AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
-AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
+AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
 AM_CXXFLAGS = $(ALL_CXXFLAGS) -g -O3
 
 noinst_HEADERS = $(YAGGO_SOURCES)
