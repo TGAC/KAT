@@ -215,8 +215,6 @@ void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash, file_heade
     cout << "Dumping hash to " << out_path.string() << " ...";
     cout.flush();
     
-    
-
     JellyfishHelper::dumpHash(hash->ary(), header, threads, out_path);
 
     cout << " done.";

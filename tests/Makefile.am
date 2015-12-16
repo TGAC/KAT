@@ -27,6 +27,7 @@ check_comp_SOURCES =	../src/inc/gnuplot/gnuplot_i.cc \
 			../src/inc/matrix/matrix_metadata_extractor.cc \
 			../src/input_handler.cc \
 			../src/jellyfish_helper.cc \
+			../src/plot.cc \
 			../src/plot_density.cc \
 			../src/plot_spectra_cn.cc \
 			../src/comp.cc \

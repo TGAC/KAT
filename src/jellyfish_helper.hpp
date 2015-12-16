@@ -153,7 +153,7 @@ namespace kat {
 
         
         
-        static void dumpHash(LargeHashArrayPtr ary, file_header& header,  uint16_t threads, const path& outputFile);
+        static void dumpHash(LargeHashArrayPtr ary, file_header& header, uint16_t threads, const path& outputFile);
         
         /**
         * Extracts the jellyfish hash file header
