@@ -44,5 +44,6 @@ before_install:
 - ./autogen.sh
 
 install:
+- export LD_LIBRARY_PATH=/home/travis/miniconda/envs/test-environment/lib:%LD_LIBRARY_PATH
 - ./configure && make -j2 && make check
 
