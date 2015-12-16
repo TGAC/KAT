@@ -17,29 +17,14 @@
 
 #include <gtest/gtest.h>
 
-#include <../src/sect.hpp>
-using kat::Sect;
+#include <../src/inc/kat_fs.hpp>
+using kat::KatFS;
 
-namespace kat {
+KatFS kat::katFileSystem;
 
-TEST(KAT_SECT, length_check ) 
-{
-    vector<path> inputs;
-    inputs.push_back("data/ecoli.header.jf27");
-    
-    Sect sect(inputs, "data/sect_length_test.fa");
-    sect.setOutputPrefix("temp/sect_length");
-    sect.setCanonical(true);
+int main(int argc, char *argv[]) {
+  //kat::katFileSystem = KatFS(argv[0]);
 
-    sect.execute();
-
-    EXPECT_EQ( true, true );
-
-    // Remove any generated files
-    remove("temp/sect_length_counts.cvg");
-    remove("temp/sect_length_contamination.mx");
-    remove("temp/sect_length_stats.csv");
-}
-
-
+  ::testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
 }

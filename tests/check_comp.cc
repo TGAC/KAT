@@ -15,12 +15,7 @@
 //  along with KAT.  If not, see <http://www.gnu.org/licenses/>.
 //  *******************************************************************
 
-#define BOOST_TEST_MAIN
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE KAT_COMP
-#define BOOST_TEST_LOG_LEVEL all
-#include <boost/test/unit_test.hpp>
-#include <boost/test/unit_test_log.hpp>
+#include <gtest/gtest.h>
 
 #include <thread>
 using std::thread;
@@ -29,22 +24,10 @@ using std::thread;
 using kat::Comp;
 using kat::ThreadedCompCounters;
 using kat::CompCounters;
-
-BOOST_AUTO_TEST_SUITE( KAT_COMP )
-
-/*BOOST_AUTO_TEST_CASE( COMP1 )
-{
-    Comp comp("data/ecoli.header.jf27", "data/ecoli.header.2.jf27");
-    comp.setOutputPrefix("temp/comp_test");
     
-    comp.execute();
-
-    SM64 results = comp.getMainMatrix();
-
-    BOOST_CHECK( true );
-}*/
 
 void addTcc(ThreadedCompCounters& tcc) {
+        
     shared_ptr<CompCounters> cc = make_shared<CompCounters>();
     
     cc->updateHash1Counters(10, 2);
@@ -54,8 +37,9 @@ void addTcc(ThreadedCompCounters& tcc) {
     tcc.add(cc);
 }
 
-BOOST_AUTO_TEST_CASE( THREADED_COUNTERS )
-{
+
+TEST( KAT_COMP, ThreadedCounters ) {
+
     const uint16_t threads = 2;
     
     ThreadedCompCounters tcc("path1", "path2", "path3", 1001);
@@ -78,14 +62,12 @@ BOOST_AUTO_TEST_CASE( THREADED_COUNTERS )
     
     tcc.merge();
     
-    BOOST_CHECK( tcc.size() == 2 );
-    BOOST_CHECK( tcc.getFinalMatrix().hash1_path == path("path1"));
-    BOOST_CHECK( tcc.getThreadedMatrixAt(0).hash1_path == path("path1"));
-    BOOST_CHECK( tcc.getFinalMatrix().hash1_distinct == 4);
-    BOOST_CHECK( tcc.getThreadedMatrixAt(0).hash1_distinct == 2);
-    BOOST_CHECK( tcc.getThreadedMatrixAt(1).hash1_distinct == 2);
-    BOOST_CHECK( tcc.getFinalMatrix().hash1_total == 60);
+    EXPECT_EQ( tcc.size(), 2 );
+    EXPECT_EQ( tcc.getFinalMatrix().hash1_path, path("path1"));
+    EXPECT_EQ( tcc.getThreadedMatrixAt(0).hash1_path, path("path1"));
+    EXPECT_EQ( tcc.getFinalMatrix().hash1_distinct, 4);
+    EXPECT_EQ( tcc.getThreadedMatrixAt(0).hash1_distinct, 2);
+    EXPECT_EQ( tcc.getThreadedMatrixAt(1).hash1_distinct, 2);
+    EXPECT_EQ( tcc.getFinalMatrix().hash1_total, 60);
     
 }
-
-BOOST_AUTO_TEST_SUITE_END()

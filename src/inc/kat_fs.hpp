@@ -19,12 +19,15 @@
 
 #include <iostream>
 using std::endl;
+using std::string;
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/exception/all.hpp>
 namespace fs = boost::filesystem;
 using fs::exists;
 using fs::path;
+
 
 namespace kat {
     

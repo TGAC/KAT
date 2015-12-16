@@ -42,6 +42,8 @@ AC_PROG_INSTALL
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
 
+# Uses libtool for creating libraries
+AC_PROG_LIBTOOL
 
 ######################################################################
 # Dependency checks
@@ -115,7 +117,6 @@ AX_BOOST_SYSTEM
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_CHRONO
 AX_BOOST_TIMER
-AX_BOOST_UNIT_TEST_FRAMEWORK
 
 
 # Combine BOOST variables (apart for BOOST_TEST)
