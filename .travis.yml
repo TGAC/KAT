@@ -11,6 +11,7 @@ sudo: required
 #- python_plot
 #- gnuplot
 
+# Setup compiler
 before_install:
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt-get update -qq
@@ -18,6 +19,9 @@ before_install:
 - export CXX="g++-4.9"
 - export CC="gcc-4.9"
 - gcc --version
+
+# Install dependencies: (Boost and python, and setup KAT)
+install:
 
 # Boost installation
 - wget -q http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz/download
@@ -43,7 +47,8 @@ before_install:
 # Build KAT
 - ./autogen.sh
 
-install:
+# Make sure python's available at runtime and then build KAT and run tests
+script:
 - export LD_LIBRARY_PATH=/home/travis/miniconda/envs/test-environment/lib:%LD_LIBRARY_PATH
 - ./configure && make -j2 && make check
 
