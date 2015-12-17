@@ -209,18 +209,14 @@ in KAT is simple::
     kat gcp [options] (WGS_file)+
 
 Running this tool will produce a matrix containing distinct k-mer counts at varying 
-frequency and GC value.  It will also produce a plot, such as the one shown here:
+frequency and GC value.  It will also produce a plot, such as the one below that
+highlights error k-mers shown at very low level with wide GC spread and genuine 
+content between 10-100X with GC spread from 5-25.  In this case we also have some
+unexpected content shown at approx 200X with GC 15-25:
 
-.. figure:: images/contaminant_MP.png
+.. image:: images/contaminant_MP.png
     :scale: 50%
-    :alt: Contamination detection 1
-    :align: center
-    :figclass: align-center
-
-    KAT GCP output run through the density plotting tool.  Error k-mers shown at
-    very low level with wide GC spread, genuine content between 10-100X with GC 
-    spread from 5-25, unexpected content shown at approx 200X with GC 15-25.
-
+    
 The high coverage hot-spot is already suspicious but it becomes even more so after
 consider other WGS libraries of the same sample:
 
@@ -235,15 +231,9 @@ No other library contains the such a hotspot at GC 15-25.  After merging all lib
 into one the contaminant becomes obvious as the coverage has not altered, meaning
 that k-mers in that region where not also found in the other libraries:
 
-.. figure:: images/contaminant_all.png
+.. image:: images/contaminant_all.png
     :scale: 50%
-    :alt: Contamination detection 2
-    :align: center
-    :figclass: align-center
-
-    After merging all WGS libraries of the same sample, the original suspicious
-    region has not altered in coverage.
-
+    
 We can then use the filtering tools in KAT to extract k-mers inside, or outside
 defined coverage and GC limits.  In this case we could take the original MP library
 and run the following command::

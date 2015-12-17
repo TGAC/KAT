@@ -11,23 +11,17 @@ shape of the distributions provides a useful set of properties describing the
 biological sample and the sequencing process and the amount of useful data in the
 dataset.
 
-A typical nice distribution for a yeast WGS dataset might be the one found in the
+A typical nice 31-mer spectrum of S.cerevisae S288C WGS dataset is shown in the
 following figure:
 
-.. figure:: images/kmer_spectra1.png
+.. image:: images/kmer_spectra1.png
     :scale: 75%
-    :alt: Simple yeast k-mer spectrum
     
-    31-mer spectrum for an Illumina run of S.cerevisae S288C
 
 This is composed of an error component containing a huge amount of
 rare motifs, and a several other components as distributions with different modes
 according to how many times a motif appear on the genome. The decomposition
 showing this distributions can be seen here:
 
-.. figure:: images/kmer_spectra_breakdown.png
-    :scale: 50%
-    :alt: Simple yeast k-mer spectrum breakdown
-
-    31-mer spectrum density for each component of in the previous figure as divided 
-    by frequency on the reference sequence.
+.. image:: images/kmer_spectra_breakdown.png
+    :scale: 50%    
