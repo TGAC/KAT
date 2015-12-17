@@ -209,10 +209,10 @@ Basic usage::
 
 Applications:
 
- * Visualise coverage level across a sequence or set of sequences
+ * Visualise coverage (and optionally GC) levels across a sequence or set of sequences
 
-#.. image:: images/kat_logo.png
-#    :scale: 30%
+.. image:: images/profile.png
+    :scale: 30%
 
 
 Spectra_CN
@@ -230,8 +230,8 @@ Applications:
 
  * Visualise the copy number spectra of WGS data compared against an assembly
 
-#.. image:: images/kat_logo.png
-#    :scale: 30%
+.. image:: images/heterozygous_real.png
+    :scale: 75%
 
 
 Spectra_hist
@@ -286,6 +286,6 @@ Applications:
  * RNAseq to WGS comparison
  * Visualising k-mer spectra of arbitrary columns and rows from a matrix
 
-#.. image:: images/kat_logo.png
-#    :scale: 30%
+.. image:: images/pe_v_pe_1_shared.png
+    :scale: 50%
 

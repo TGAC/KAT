@@ -404,7 +404,7 @@ To run the script use the following command line::
 
 So the script as of now takes the following parameters:
 
- - Number of CNs to consider: As an example, if this value is 4 the distributions corresponding to cn ̄0, cn ̄1, cn ̄2 and cn ̄3+ will be analysed.
+ - Number of CNs to consider: As an example, if this value is 4 the distributions corresponding to cn0, cn1, cn2 and cn3+ will be analysed.
 
  - Max frequency cutoff: The analysis will be done up to this frequency.
  - Min perc: Any new distribution that adds less to min perc kmers on the iterative analysis will not be added.
