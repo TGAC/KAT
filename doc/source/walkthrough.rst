@@ -396,23 +396,12 @@ analyses and fits distributions to the peaks, estimating the counts for the elem
 on the stripes. The final output is a report of the content on each peak divided 
 by the stripes with counts based on the distribution fitting.
 
-WARNING: this script is still experimental, we are working on making it release-quality.
-
 To run the script use the following command line::
 
-    kat_dist_analysis.py assembly_main.mx 4 170 5 50000000
-
-So the script as of now takes the following parameters:
-
- - Number of CNs to consider: As an example, if this value is 4 the distributions corresponding to cn0, cn1, cn2 and cn3+ will be analysed.
-
- - Max frequency cutoff: The analysis will be done up to this frequency.
- - Min perc: Any new distribution that adds less to min perc kmers on the iterative analysis will not be added.
- - Min elem: Any new distribution that adds less to min elem kmers on the iterative analysis will not be added.
+    kat_distanalysis.py [options] <assembly.mx>
 
 Right now you might need to fiddle a bit with the parameters to get the
-script to pick up your distributions correctly, we are working on getting this to
-be easier and better.
+script to pick up your distributions correctly, we are working to improve this.
 
 Since the genes are mostly expected to be in the “unique” content part of the
 genome, the analysis of the content of the unique peak can be used to predict
