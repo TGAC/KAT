@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'KAT'
-copyright = u'2015, Daniel Mapleson, Bernardo Clavijo, Gonzalo Garcia, Jon Wright'
+copyright = u'2015, Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
