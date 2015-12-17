@@ -28,7 +28,7 @@ install:
 - mv download boost.tar.gz
 - tar -xf boost.tar.gz
 - cd boost_1_59_0
-- sudo ./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system,test
+- sudo ./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
 - sudo ./b2 -d1 --toolset=gcc-4.9 install
 - cd ..
 

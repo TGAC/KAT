@@ -24,4 +24,4 @@ according to how many times a motif appear on the genome. The decomposition
 showing this distributions can be seen here:
 
 .. image:: images/kmer_spectra_breakdown.png
-    :scale: 50%    
+    :scale: 50%
