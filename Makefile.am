@@ -16,7 +16,7 @@ EXTRA_DIST =	README.md \
 
 
 # Scripts NOT to install
-dist_noinst_SCRIPTS = autogen.sh clean.sh
+dist_noinst_SCRIPTS = autogen.sh antigen.sh
 
 # Scripts to install
 dist_bin_SCRIPTS =	scripts/kat_distanalysis.py \
