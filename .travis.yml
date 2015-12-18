@@ -50,5 +50,5 @@ install:
 # Make sure python's available at runtime and then build KAT and run tests
 script:
 - export LD_LIBRARY_PATH=/home/travis/miniconda/envs/test-environment/lib:%LD_LIBRARY_PATH
-- ./configure && make -j2 && make check
+- ./configure && make -j2 && make -j2 check
 

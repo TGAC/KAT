@@ -82,18 +82,21 @@ AM_PATH_PYTHON([], [], AC_MSG_ERROR([Python interpreter not found.]))
 
 AX_PYTHON_DEVEL([>= '3.1'])
 
-pymod_good="yes"
-AX_PYTHON_MODULE(numpy, ,python3)
-if test x"${PYMOD}" = x"no"; then 
-	pymod_good="no" 
-fi
-AX_PYTHON_MODULE(matplotlib, ,python3)
-if test x"${PYMOD}" = x"no"; then 
-	pymod_good="no" 
-fi
-AX_PYTHON_MODULE(scipy, ,python3)
-if test x"${PYMOD}" = x"no"; then 
-	pymod_good="no" 
+pymod_good="no"
+if test x"${PYTHON_VERSION}" != x""; then
+    pymod_good="yes"
+    AX_PYTHON_MODULE(numpy, ,python3)
+    if test x"${PYMOD}" = x"no"; then 
+            pymod_good="no" 
+    fi
+    AX_PYTHON_MODULE(matplotlib, ,python3)
+    if test x"${PYMOD}" = x"no"; then 
+            pymod_good="no" 
+    fi
+    AX_PYTHON_MODULE(scipy, ,python3)
+    if test x"${PYMOD}" = x"no"; then 
+            pymod_good="no" 
+    fi
 fi
 
 # Check for gnuplot on path.  Just emit a warning if not present

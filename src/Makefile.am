@@ -2,13 +2,13 @@ AUTOMAKE_OPTIONS = subdir-objects
 
 bin_PROGRAMS = kat
 
-kat_noinstdir = $(top_srcdir)/src
+kat_noinstdir = $(srcdir)
 
 kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@
 
-kat_CPPFLAGS = -DCPLUSPLUS -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include @AM_CPPFLAGS@
+kat_CPPFLAGS = -DCPLUSPLUS -isystem $(srcdir)/../deps/seqan-library-2.0.0/include -isystem $(srcdir)/../deps/jellyfish-2.2.0/include @AM_CPPFLAGS@
 
-kat_LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.a \
+kat_LDADD = $(builddir)/../deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.a \
 	    @AM_LIBS@
 
 noinst_HEADERS = \
@@ -38,6 +38,7 @@ kat_SOURCES = \
 		inc/str_utils.hpp \
 		inc/spectra_helper.hpp \
 		inc/kat_fs.hpp \
+		inc/distance_metrics.hpp \
 		jellyfish_helper.cc \
 		input_handler.cc \
 		plot_density.cc \

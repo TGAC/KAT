@@ -7,7 +7,12 @@ EXTRA_DIST =	README.md \
 		COPYING \
 		AUTHORS \
 		INSTALL \
-		ChangeLog
+		ChangeLog \
+		tests/data/EcoliK12.fasta \
+		tests/data/ecoli.header.jf27 \
+		tests/data/kat.hist \
+		tests/data/sect_length_test.fa \
+		tests/data/sect_test.fa
 
 
 # Scripts NOT to install

@@ -81,7 +81,7 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 
 	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
 	if test -z "$PYTHON"; then
-	   AC_MSG_ERROR([Cannot find python$PYTHON_VERSION in your system path])
+	   AC_MSG_WARN([Cannot find python$PYTHON_VERSION in your system path])
 	   PYTHON_VERSION=""
 	fi
 
@@ -123,7 +123,7 @@ to something else than an empty string.
 		   AC_MSG_RESULT([yes])
 		else
 			AC_MSG_RESULT([no])
-			AC_MSG_ERROR([this package requires Python $1.
+			AC_MSG_WARN([this package requires Python $1.
 If you have it installed, but it isn't the default Python
 interpreter in your system path, please pass the PYTHON_VERSION
 variable to configure. See ``configure --help'' for reference.
@@ -141,7 +141,7 @@ variable to configure. See ``configure --help'' for reference.
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])
-		AC_MSG_ERROR([cannot import Python module "distutils".
+		AC_MSG_WARN([cannot import Python module "distutils".
 Please check your Python installation. The error was:
 $ac_distutils_result])
 		PYTHON_VERSION=""
@@ -307,7 +307,7 @@ EOD`
 	AC_MSG_RESULT([$pythonexists])
 
         if test ! "x$pythonexists" = "xyes"; then
-	   AC_MSG_FAILURE([
+	   AC_MSG_WARN([
   Could not link test program to Python. Maybe the main Python library has been
   installed in some non-standard library path. If so, pass it to configure,
   via the LIBS environment variable.
