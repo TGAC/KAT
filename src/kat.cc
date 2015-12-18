@@ -29,7 +29,7 @@ using std::string;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-#include "inc/kat_fs.hpp"
+#include <kat/kat_fs.hpp>
 using kat::KatFS;
 
 #include "comp.hpp"

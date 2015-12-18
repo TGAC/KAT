@@ -30,8 +30,10 @@ using bfs::path;
 using boost::timer::auto_cpu_timer;
 using boost::split;
 
-#include "input_handler.hpp"
+#include <kat/jellyfish_helper.hpp>
 using kat::JellyfishHelper;
+
+#include <kat/input_handler.hpp>
 
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
     for(auto& p : inputs) {

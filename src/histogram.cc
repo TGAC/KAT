@@ -42,10 +42,10 @@ namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::lexical_cast;
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
+
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/jellyfish_helper.hpp>
 
 #include "plot_spectra_hist.hpp"
 #include "plot.hpp"

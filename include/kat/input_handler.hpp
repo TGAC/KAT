@@ -20,7 +20,7 @@
 #include <memory>
 using std::shared_ptr;
 
-#include <jellyfish_helper.hpp>
+#include <kat/jellyfish_helper.hpp>
 using kat::JellyfishHelper;
 
 typedef shared_ptr<path> path_ptr;

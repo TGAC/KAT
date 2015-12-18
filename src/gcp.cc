@@ -43,16 +43,16 @@ using bfs::path;
 using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
+
+#include <kat/jellyfish_helper.hpp>
+#include <kat/sparse_matrix.hpp>
+#include <kat/threaded_sparse_matrix.hpp>
+#include <kat/input_handler.hpp>
+using kat::InputHandler;
 using kat::HashLoader;
 
-#include "inc/matrix/sparse_matrix.hpp"
-#include "inc/matrix/threaded_sparse_matrix.hpp"
-
-#include "input_handler.hpp"
 #include "plot_density.hpp"
 #include "plot.hpp"
-using kat::InputHandler;
 using kat::PlotDensity;
 using kat::Plot;
 

@@ -122,6 +122,9 @@ AX_BOOST_CHRONO
 AX_BOOST_TIMER
 
 
+define([PC_FILE], kat-2.1.pc)
+
+
 # Combine BOOST variables (apart for BOOST_TEST)
 BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB}"
 BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
@@ -146,7 +149,7 @@ AC_SUBST([AM_LIBS])
 
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile deps/seqan-library-2.0.0/Makefile])
+AC_CONFIG_FILES([Makefile kat-2.1.pc tests/Makefile deps/seqan-library-2.0.0/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 

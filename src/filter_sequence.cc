@@ -54,13 +54,13 @@ using bfs::path;
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
-#include "inc/str_utils.hpp"
-
-#include "input_handler.hpp"
-#include "jellyfish_helper.hpp"
-#include "plot_density.hpp"
+#include <kat/str_utils.hpp>
+#include <kat/input_handler.hpp>
+#include <kat/jellyfish_helper.hpp>
 using kat::InputHandler;
 using kat::JellyfishHelper;
+
+#include "plot_density.hpp"
 using kat::PlotDensity;
 
 #include "filter_sequence.hpp"

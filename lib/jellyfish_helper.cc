@@ -47,7 +47,7 @@ using jellyfish::large_hash::reprobe_limit_t;
 using jellyfish::Offsets;
 using jellyfish::quadratic_reprobes;
 
-#include "jellyfish_helper.hpp"
+#include <kat/jellyfish_helper.hpp>
 using kat::JellyfishHelper;
 
 /**

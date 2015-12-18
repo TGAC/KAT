@@ -40,9 +40,8 @@ using bfs::path;
 
 #include <jellyfish/mer_dna.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-
-#include "input_handler.hpp"
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/input_handler.hpp>
 using kat::InputHandler;
 
 typedef boost::error_info<struct HistogramError,string> HistogramErrorInfo;

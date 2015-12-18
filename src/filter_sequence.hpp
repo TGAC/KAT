@@ -25,7 +25,7 @@ using std::stringstream;
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
-#include "input_handler.hpp"
+#include <kat/input_handler.hpp>
 using kat::InputHandler;
  
 

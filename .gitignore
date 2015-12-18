@@ -13,10 +13,8 @@
 /test-driver
 /*.pro.user*
 /doxygen-doc/
-/kat-0.2.1/
 /.metadata/
 /*.tar.gz
-/kat-0.3.3/
 /config.h
 config.h.in
 configure
@@ -24,12 +22,10 @@ configure
 Makefile.in
 /*.log
 /*.scan
-/kat-1.0.3/
 /build-aux/
-/kat-1.0.4/
 /*.layout
 /nbproject/
-/kat-1.0.6/
+/kat-*/
 /libtool
 /kat
 /gcp/
@@ -41,7 +37,5 @@ Makefile.in
 /.libs/
 *.hpp
 *.Makefile.am.swp
-!/src/filter_sequence.hpp
-!/src/filter_kmer.hpp
-!/src/filter.hpp
-!/src/inc/distance_metrics.hpp
+*.pc
+*.la

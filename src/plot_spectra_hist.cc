@@ -44,10 +44,9 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include "inc/gnuplot/gnuplot_i.hpp"
-#include "inc/str_utils.hpp"
-
-#include "inc/spectra_helper.hpp"
+#include <kat/gnuplot_i.hpp>
+#include <kat/str_utils.hpp>
+#include <kat/spectra_helper.hpp>
 using kat::SpectraHelper;
 
 #include "plot_spectra_hist.hpp"

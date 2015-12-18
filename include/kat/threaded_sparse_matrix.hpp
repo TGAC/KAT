@@ -21,7 +21,7 @@
 #include <memory>
 using std::shared_ptr;
 
-#include "sparse_matrix.hpp"
+#include <kat/sparse_matrix.hpp>
 
 typedef SparseMatrix<uint64_t> SM64;
 

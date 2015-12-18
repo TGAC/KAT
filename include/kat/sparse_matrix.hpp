@@ -31,7 +31,7 @@ namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::lexical_cast;
 
-#include "inc/str_utils.hpp"
+#include <kat/str_utils.hpp>
 
 using std::cout;
 using std::endl;

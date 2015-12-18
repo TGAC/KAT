@@ -51,10 +51,10 @@ using bfs::path;
 using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-#include "inc/matrix/threaded_sparse_matrix.hpp"
+#include <kat/jellyfish_helper.hpp>
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/threaded_sparse_matrix.hpp>
 
 #include "sect.hpp"
 

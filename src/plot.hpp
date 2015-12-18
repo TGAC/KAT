@@ -30,7 +30,7 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include "inc/kat_fs.hpp"
+#include <kat/kat_fs.hpp>
 using kat::KatFS;
 
 namespace kat {

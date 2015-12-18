@@ -48,18 +48,18 @@ using bfs::path;
 
 #include <jellyfish/large_hash_iterator.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-#include "inc/matrix/sparse_matrix.hpp"
-#include "inc/matrix/threaded_sparse_matrix.hpp"
-#include "inc/distance_metrics.hpp"
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/sparse_matrix.hpp>
+#include <kat/threaded_sparse_matrix.hpp>
+#include <kat/distance_metrics.hpp>
+#include <kat/input_handler.hpp>
+using kat::JellyfishHelper;
+using kat::InputHandler;
+using kat::HashLoader;
 
-#include "input_handler.hpp"
 #include "plot.hpp"
 #include "plot_spectra_cn.hpp"
 #include "plot_density.hpp"
-using kat::JellyfishHelper;
-using kat::HashLoader;
-using kat::InputHandler;
 using kat::PlotSpectraCn;
 using kat::PlotDensity;
 using kat::Plot;

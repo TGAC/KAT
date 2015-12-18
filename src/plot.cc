@@ -45,13 +45,14 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include <kat/kat_fs.hpp>
+
 #include "plot_density.hpp"
 #include "plot_profile.hpp"
 #include "plot_spectra_cn.hpp"
 #include "plot_spectra_hist.hpp"
 #include "plot_spectra_mx.hpp"
 #include "plot.hpp"
-#include "inc/kat_fs.hpp"
 using kat::PlotDensity;
 using kat::PlotProfile;
 using kat::PlotSpectraCn;
