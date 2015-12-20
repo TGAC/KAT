@@ -33,7 +33,7 @@ using kat::HashLoader;
 
 namespace kat {
 
-TEST(KAT_JELLYFISH, TEST_HEADER) {
+TEST(jellyfish, header) {
     
     file_header header = *(JellyfishHelper::loadHashHeader(DATADIR "/ecoli.header.jf27"));
     unsigned int klen = header.key_len();
@@ -57,7 +57,7 @@ TEST(KAT_JELLYFISH, TEST_HEADER) {
     
 }
 
-TEST(KAT_JELLYFISH, TEST_QUERY) {
+TEST(jellyfish, query) {
     
     HashLoader hl;
     LargeHashArrayPtr hash = hl.loadHash(DATADIR "/ecoli.header.jf27", false);
@@ -88,7 +88,7 @@ TEST(KAT_JELLYFISH, TEST_QUERY) {
     EXPECT_EQ( countEndCan, 0 );  
 }
 
-TEST(KAT_JELLYFISH, TEST_SLICE) {
+TEST(jellyfish, slice) {
     
     HashLoader hl;
     LargeHashArrayPtr hash = hl.loadHash(DATADIR "/ecoli.header.jf27", false);
@@ -113,7 +113,7 @@ TEST(KAT_JELLYFISH, TEST_SLICE) {
     EXPECT_EQ( nb_records, 1889 );
 }
 
-TEST(KAT_JELLYFISH, TEST_COUNT) {
+TEST(jellyfish, count) {
     
     cout << "Start" << endl;
     HashCounter hc(10000000, 27 * 2, 7, 1);
@@ -153,7 +153,7 @@ TEST(KAT_JELLYFISH, TEST_COUNT) {
     remove("temp.jf");
 }*/
 
-TEST(KAT_JELLYFISH, TEST_DUMP) {
+TEST(jellyfish, dump) {
     
     HashLoader hlBefore;
     LargeHashArrayPtr hashBefore = hlBefore.loadHash(DATADIR "/ecoli.header.jf27", false);

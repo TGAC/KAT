@@ -29,7 +29,7 @@ using kat::SpectraHelper;
 
 namespace kat {
 
-TEST(KAT_SPECTRA_HELPER, TEST_LOAD_HIST) {
+TEST(spectra_helper, load_hist) {
     
     vector<Pos> hist;
     SpectraHelper::loadHist(DATADIR "/kat.hist", hist);
@@ -47,7 +47,7 @@ TEST(KAT_SPECTRA_HELPER, TEST_LOAD_HIST) {
     EXPECT_EQ( last.second, hist[10000].second );
 }
 
-TEST(KAT_SPECTRA_HELPER, TEST_PEAK) {
+TEST(spectra_helper, peak) {
     
     vector<Pos> hist;
     SpectraHelper::loadHist(DATADIR "/kat.hist", hist);

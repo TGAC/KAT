@@ -17,28 +17,17 @@
 
 #include <gtest/gtest.h>
 
-#include <thread>
-using std::thread;
+#include <memory>
+using std::shared_ptr;
+using std::make_shared;
 
-#include <../src/comp.hpp>
-using kat::Comp;
+#include <kat/comp_counters.hpp>
 using kat::ThreadedCompCounters;
 using kat::CompCounters;
     
 
-void addTcc(ThreadedCompCounters& tcc) {
-        
-    shared_ptr<CompCounters> cc = make_shared<CompCounters>();
-    
-    cc->updateHash1Counters(10, 2);
-    cc->updateHash1Counters(20, 4);
-    cc->updateHash2Counters(0, 3);
-    
-    tcc.add(cc);
-}
 
-
-TEST( KAT_COMP, ThreadedCounters ) {
+TEST( comp_counters, threaded_counters ) {
 
     const uint16_t threads = 2;
     

@@ -22,6 +22,7 @@ noinst_HEADERS =    gtest/gtest.h \
 
 check_unit_tests_SOURCES =	check_jellyfish.cc \
 				check_spectra_helper.cc \
+				check_compcounters.cc \
 				check_main.cc
 
 check_unit_tests_LDFLAGS = @AM_LDFLAGS@

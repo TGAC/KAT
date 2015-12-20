@@ -81,7 +81,8 @@ lib_libkat_2_1_la_LDFLAGS = -version-info 2:1:0
 lib_libkat_2_1_la_SOURCES = lib/gnuplot_i.cc \
 			lib/matrix_metadata_extractor.cc \
 			lib/input_handler.cc \
-			lib/jellyfish_helper.cc
+			lib/jellyfish_helper.cc \
+			lib/comp_counters.cc
 
 library_includedir=$(includedir)/kat-@PACKAGE_VERSION@/kat
 KI = include/kat
@@ -94,7 +95,8 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/sparse_matrix.hpp \
 			    $(KI)/spectra_helper.hpp \
 			    $(KI)/str_utils.hpp \
-			    $(KI)/threaded_sparse_matrix.hpp
+			    $(KI)/threaded_sparse_matrix.hpp \
+			    $(KI)/comp_counters.hpp
 
 lib_libkat_2_1_la_CPPFLAGS = -isystem $(srcdir)/deps/jellyfish-2.2.0/include -isystem $(srcdir)/include @AM_CPPFLAGS@
 
