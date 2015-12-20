@@ -32,7 +32,7 @@ namespace kat {
 TEST(KAT_SPECTRA_HELPER, TEST_LOAD_HIST) {
     
     vector<Pos> hist;
-    SpectraHelper::loadHist("data/kat.hist", hist);
+    SpectraHelper::loadHist(DATADIR "/kat.hist", hist);
     
     Pos p1(1, 54015667);
     Pos p10(10, 18649);
@@ -50,7 +50,7 @@ TEST(KAT_SPECTRA_HELPER, TEST_LOAD_HIST) {
 TEST(KAT_SPECTRA_HELPER, TEST_PEAK) {
     
     vector<Pos> hist;
-    SpectraHelper::loadHist("data/kat.hist", hist);
+    SpectraHelper::loadHist(DATADIR "/kat.hist", hist);
     Pos p = SpectraHelper::findPeak(hist);
     
     EXPECT_EQ( 229, p.first );

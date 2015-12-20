@@ -35,7 +35,7 @@ namespace kat {
 
 TEST(KAT_JELLYFISH, TEST_HEADER) {
     
-    file_header header = *(JellyfishHelper::loadHashHeader("data/ecoli.header.jf27"));
+    file_header header = *(JellyfishHelper::loadHashHeader(DATADIR "/ecoli.header.jf27"));
     unsigned int klen = header.key_len();
     unsigned int vlen = header.val_len();    
     unsigned int clen = header.counter_len();
@@ -60,7 +60,7 @@ TEST(KAT_JELLYFISH, TEST_HEADER) {
 TEST(KAT_JELLYFISH, TEST_QUERY) {
     
     HashLoader hl;
-    LargeHashArrayPtr hash = hl.loadHash("data/ecoli.header.jf27", false);
+    LargeHashArrayPtr hash = hl.loadHash(DATADIR "/ecoli.header.jf27", false);
     
     mer_dna kStart("AGCTTTTCATTCTGACTGCAACGGGCA");
     mer_dna kEarly("GCATAGCGCACAGACAGATAAAAATTA");
@@ -91,7 +91,7 @@ TEST(KAT_JELLYFISH, TEST_QUERY) {
 TEST(KAT_JELLYFISH, TEST_SLICE) {
     
     HashLoader hl;
-    LargeHashArrayPtr hash = hl.loadHash("data/ecoli.header.jf27", false);
+    LargeHashArrayPtr hash = hl.loadHash(DATADIR "/ecoli.header.jf27", false);
     
     LargeHashArray::region_iterator r1 = hash->region_slice(0,2);
     LargeHashArray::region_iterator r2 = hash->region_slice(1,2);
@@ -119,7 +119,7 @@ TEST(KAT_JELLYFISH, TEST_COUNT) {
     HashCounter hc(10000000, 27 * 2, 7, 1);
     
     cout << "HC created" << endl;
-    LargeHashArrayPtr hash = JellyfishHelper::countSeqFile("data/EcoliK12.fasta", hc, true, 1);
+    LargeHashArrayPtr hash = JellyfishHelper::countSeqFile(DATADIR "/EcoliK12.fasta", hc, true, 1);
     
     cout << "Counted" << endl;
     
@@ -156,7 +156,7 @@ TEST(KAT_JELLYFISH, TEST_COUNT) {
 TEST(KAT_JELLYFISH, TEST_DUMP) {
     
     HashLoader hlBefore;
-    LargeHashArrayPtr hashBefore = hlBefore.loadHash("data/ecoli.header.jf27", false);
+    LargeHashArrayPtr hashBefore = hlBefore.loadHash(DATADIR "/ecoli.header.jf27", false);
     file_header header = hlBefore.getHeader();
     
     mer_dna kStart("AGCTTTTCATTCTGACTGCAACGGGCA");

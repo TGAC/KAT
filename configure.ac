@@ -20,8 +20,8 @@ AC_CONFIG_MACRO_DIR([m4])
 # Automake initialisation.
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
 
-# Use this to display simplified compilation output
-#AM_SILENT_RULES([yes])
+# Use this to display simplified compilation output (can be explicitly disabled by using --disable-silent-rules option in the configure script)
+AM_SILENT_RULES([yes])
 
 # Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
 AC_LANG_CPLUSPLUS
