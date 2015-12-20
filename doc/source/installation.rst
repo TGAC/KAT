@@ -19,29 +19,43 @@ Should you wish to run tests then you can do this by typing: ```make check```.
 However, if you cloned the software directly from the 
 git repository you must first run ```./autogen.sh``` to create the configure and make 
 files for your project.  If you downloaded a source code distribution tarball those
-scripts are already present so you can skip this step.
+scripts are already present so you can skip this step.  We also supply a script called
+```antigen.sh``` which cleans the KAT configuration to a similar state as if the
+repository was cloned.  After running ```antigen.sh```, ```autogen.sh``` must be
+run in order to create the ```configure``` and ```Makefile```s in order to build the problem.
 
 The configure script contains all the usual options you might expect in particular
 it has the ```--prefix```, which will install KAT to a custom directory.  By default 
 this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by 
-default.
+default.  In addition, the make file should support all the usual targets and options
+such as ```-j <core>```, to increase the number of cores used to compile the program.
 
 
 External Dependencies
 ---------------------
 
-KAT depends on some external software, specifically boost. You will also need "make" and a C++11 capable compiler such as "GCC V4.8+" to 
-compile the code.  Please make sure these programs are correctly configured and installed 
-on your system prior to building KAT.  Consult the each program's installation
-guide separately for instructions on how to do this.  Should you install these dependencies
-into non-standard locations you can direct KAT to them by using the following
-options when running the configure script.
+KAT depends on some external software, in particular boost.  If you don' wish to
+install the full suite of boost libraries KAT only uses the following: 
+ - system
+ - filesystem
+ - program_options
+ - chrono
+ - timer. 
 
-  - "--with-boost=<path_to_boost>"  for specifiying a custom boost installation directory
+You will also need "make", "libtool", "zlib"
+and a C++11 capable compiler such as "GCC V4.8+" to 
+compile the code.  
+
+Please make sure all these programs and libraries are correctly configured and installed 
+on your system prior to building KAT.  Consult the each program's installation
+guide separately for instructions on how to do this.  For boost and zlib KAT
+offers you the ability to build these from non-standard locations without setting
+environment variables by using the following options when running the configure script.
+
+  - "--with-boost=<path_to_boost>"  for specifying a custom boost installation directory
   - "--with-zlib=<path_to_zlib>"  for specifying a custom zlib installation directory
 
-We prefer static linking, which is forced in the configuation script.  Therefore
-you do not need to modify your LD_LIBRARY_PATH to recognise boost at runtime. 
+However, please ensure that all libraries are available on the LD_LIBRARY_PATH at runtime. 
 
 To enable plotting functionality we require either python3, with numpy, scipy and
 matplotlib installed, or gnuplot.  The python plotting method is the preferred
@@ -53,7 +67,7 @@ gnuplot, none.  There is currently no way to select the plotting directory from
 a custom location, so the plotting system needs to be properly installed and configured
 on your system: i.e. python3 or gnuplot must be available on the PATH.
 
-For an example of how to install boost and python3 with matplotlib on a regular system
+For an example of how to install KAT dependencies on a typical system
 take a look at our travis CI script in the root directory: ```.travis.yml```
 
 If you have cloned the repository then you will also need a few additional dependencies installed
@@ -61,7 +75,6 @@ to generate the configuration script.  These are:
  
    - autoconf V2.53+
    - automake V1.11+
-   - libtool V2.4.2+
 
 
 Internal Dependencies

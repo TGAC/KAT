@@ -20,6 +20,7 @@
 #include <iostream>
 using std::endl;
 using std::string;
+using std::cout;
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -38,32 +39,24 @@ namespace kat {
     class KatFS {
     private:
         
+        path exe;
+        
+        bool isAbsolute;
+        bool isRelative;
+        bool isOnPath;
+        
         // Executables
-        path katExe;
+        path canonicalExe;
         
         // Directories
-        path binDir;
-        path rootDir;
-        path libsDir;
         path scriptsDir;
         
-        
-        string exec(const char* cmd) {
-            FILE* pipe = popen(cmd, "r");
-            if (!pipe) return "ERROR";
-            char buffer[512];
-            string result = "";
-            while(!feof(pipe)) {
-                if(fgets(buffer, 512, pipe) != NULL)
-                        result += buffer;
-            }
-            pclose(pipe);
-            return result;
-        }
-    
     public:
        
-        KatFS() {}
+        /**
+         * Assume on PATH by default
+         */
+        KatFS() : KatFS("kat") {}
         
         /**
          * 
@@ -71,98 +64,89 @@ namespace kat {
          */
         KatFS(const char* argv) {
             
-            path exe(argv);
+            isAbsolute = false;
+            isRelative = false;
+            isOnPath = false;
             
-            //cout << exe << endl;
+            exe = argv;
+            
             
             if(exe.is_absolute()) {
                 
-                //cout << "Absolute" << endl;
-                
-                // Easy job... nothing special to do, resolve symlink then take two levels up
-                katExe = fs::canonical(exe);
-                rootDir = katExe.parent_path().parent_path();
+                // Absolute path provided...  Easy job... nothing special to do, 
+                // resolve symlink then take two levels up
+                canonicalExe = fs::canonical(exe);
+                isAbsolute = true;
             }
             else if (exe.string().find('/') != string::npos) {
                 
-                //cout << "Relative" << endl;
-                
-                // Relative with some parent paths... get absolute path, resolving symlinks then take two levels up
-                katExe = fs::canonical(fs::system_complete(exe));
-                rootDir = katExe.parent_path().parent_path();
+                // Relative with some parent paths... get absolute path, resolving 
+                // symlinks then take two levels up
+                canonicalExe = fs::canonical(fs::system_complete(exe));
+                isRelative = true;
             }
             else {
 
-                //cout << "name only" << endl;
-                
-                // Tricky one... just exe name, no indication of where if comes from. Now we have to resort to using which.
-                string cmd = string("which ") + exe.string();
-                string res = exec(cmd.c_str());
-                string fullpath = res.substr(0, res.length() - 1);
-
-                //cout << "fullpath" << fullpath << endl;
-                katExe = fs::canonical(path(fullpath));
-                rootDir = katExe.parent_path().parent_path();
+                // Only name provided
+                // In this case we just have to assume everything is properly installed 
+                canonicalExe = exe;
+                isOnPath = true;     
             }
             
-            binDir = path(rootDir);
-            binDir /= "bin";
-            
-            libsDir = path(rootDir);
-            libsDir /= ".libs";
-            
-            path srcDir = path(rootDir);
-            srcDir /= "src";
-            
-            path testDir = path(rootDir);
-            testDir /= "tests";
                             
-            if (katExe.parent_path() == srcDir || katExe.parent_path() == libsDir || katExe.parent_path() == testDir) {
-                scriptsDir = path(rootDir);
+            // We asseme scripts are on the path if exe was on the path
+            if (isAbsolute || isRelative) {
+                
+                // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests) 
+                // so try 2 and 3 levels.
+                scriptsDir = canonicalExe.parent_path().parent_path();
                 scriptsDir /= "scripts";                 
-            }
-            else {
-                scriptsDir = path(binDir);
+                
+                if (!exists(scriptsDir)) {
+                    scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
+                    scriptsDir /= "scripts";                 
+                    
+                    if (!exists(scriptsDir)) {
+                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                            "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
+                    }                
+                }
+                                
+                // Also double check the kat_distanalysis.py script exists
+                path kda(scriptsDir);
+                kda /= "kat_distanalysis.py";
+                        
+                if (!exists(kda)) {
+                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                        "Found the scripts directory where expected") + scriptsDir.string() + 
+                            ". However, could not find the \"kat_distanalysis.py\" script inside."));
+                }
             }
             
-            if (!exists(scriptsDir)) {
-                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                    "Could not find suitable directory containing KAT scripts at: ") + scriptsDir.c_str()));
-            }
+            
             
         }
-        
-        
         
         
         // **** Destructor ****
         virtual ~KatFS() { }
         
-        path GetBinDir() const {
-            return binDir;
-        }
-
-        path GetKatExe() const {
-            return katExe;
-        }
-
-        path GetRootDir() const {
-            return rootDir;
+        path GetCanonicalExe() const {
+            return canonicalExe;
         }
 
         path GetScriptsDir() const {
             return scriptsDir;
         }
-
+        
         
         friend std::ostream& operator<<(std::ostream &strm, const KatFS& pfs) {
             
-            return strm << "Directories: "<< endl
-                        << " - Root: " << pfs.rootDir << endl
-                        << " - Bin: " << pfs.binDir << endl
-                        << " - Scripts: " << pfs.scriptsDir << endl << endl                    
-                        << "Executables: " << endl
-                        << " - kat: " << pfs.katExe << endl;                        
+            return strm << "KAT paths: "<< endl
+                        << " - argv: " << pfs.exe << endl
+                        << "  - type: " << (pfs.isAbsolute ? "absolute" : pfs.isRelative ? "relative" : "on PATH") << endl
+                        << " - Canonical path: " << pfs.canonicalExe << endl
+                        << " - Scripts dir: " << (pfs.scriptsDir.empty() ? "assuming scripts on PATH" : pfs.scriptsDir) << endl << endl;                   
         }     
     };
     

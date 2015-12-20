@@ -164,7 +164,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "2.1.0"
+#define PACKAGE_VERSION "2.X.X"
 #endif
         
         if (version) {
@@ -179,7 +179,7 @@ int main(int argc, char *argv[])
         
         kat::katFileSystem = KatFS(argv[0]);
         
-        //cout << fs << endl;
+        cout << kat::katFileSystem << endl;
         
         Mode mode = parseMode(modeStr);
         

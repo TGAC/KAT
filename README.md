@@ -31,7 +31,8 @@ Installing from distributable:
  - Confirm dependencies are installed and configured:
   - GCC V4.8+
   - make
-  - Boost V1.53+
+  - libtool V2.4.2+
+  - Boost (system,filesystem,program_options,chrono,timer) V1.53+
   - Plotting engine:
    - Option 1 (preferred) python3 with matplotlib.  We recommend installing anaconda as this has all the required packages preinstalled.
    - Option 2 gnuplot 
@@ -50,7 +51,6 @@ Installing from cloned repository
   - Ensure these tools are correctly installed and available on your system:
       - autoconf V2.53+
       - automake V1.11+
-      - libtool V2.4.2+
   - Create configuration script by typing: ```./autogen.sh```.
   - Follow all steps described in "Installing from a distributable" (except for the download and decompress tarball steps).```
 

@@ -24,7 +24,7 @@ using std::endl;
 #include <boost/filesystem.hpp>
 using boost::filesystem::remove;
 
-#include <../src/inc/spectra_helper.hpp>
+#include <kat/spectra_helper.hpp>
 using kat::SpectraHelper;
 
 namespace kat {

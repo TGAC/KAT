@@ -27,7 +27,7 @@ using std::chrono::duration_cast;
 template<typename DtnType>
 inline double as_seconds(DtnType dtn) { return duration_cast<duration<double>>(dtn).count(); }
 
-#include <../src/jellyfish_helper.hpp>
+#include <kat/jellyfish_helper.hpp>
 using kat::JellyfishHelper;
 using kat::HashLoader;
 

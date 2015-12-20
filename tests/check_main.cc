@@ -17,7 +17,7 @@
 
 #include <gtest/gtest.h>
 
-#include <../src/inc/kat_fs.hpp>
+#include <kat/kat_fs.hpp>
 using kat::KatFS;
 
 KatFS kat::katFileSystem;

@@ -5,6 +5,6 @@ includedir=@includedir@
 
 Name: kat
 Description: The K-mer Analysis Toolkit.
-Version: 2.1.0
+Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lkat-2.1 -lpthread
-Cflags: -I${includedir}/kat-2.1.0
+Cflags: -I${includedir}/kat-@PACKAGE_VERSION@
