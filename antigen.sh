@@ -14,8 +14,16 @@ if test -f Makefile; then
   make distclean
 fi
 
-# Remove all tar-files (assuming there are some packages).
+# Also clean docs
+cd doc
+if test -f Makefile; then
+    make clean
+fi
+cd ..
+
+# Remove all tar-files (assuming there are some packages), and any expanded directories.
 rm -f *.tar.* *.tgz
+rm -Rf kat-*/
 
 # Remove the build_aux directory
 rm -Rf build-aux
@@ -24,4 +32,21 @@ rm -Rf build-aux
 rm -Rf autom4te.cache
 
 # Remove rest of the generated files.
-rm -f Makefile.in aclocal.m4 configure depcomp install-sh missing
+rm -f Makefile.in tests/Makefile.in config.* aclocal.m4 configure depcomp install-sh missing libtool ltmain.sh 
+
+# And do the same for jellyfish
+cd deps/jellyfish-2.2.0
+
+# Also remove the autotools cache directory.
+rm -Rf autom4te.cache
+
+# Remove rest of the generated files.
+rm -f Makefile.in config.* aclocal.m4 configure depcomp install-sh missing libtool ltmain.sh compile test-driver
+
+# Move to seqan
+cd ../seqan-library-2.0.0
+
+rm -f Makefile.in
+
+# Move back
+cd ../../

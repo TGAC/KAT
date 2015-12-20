@@ -17,7 +17,7 @@ dist_bin_SCRIPTS =
 data_DATA =
 BUILT_SOURCES = $(YAGGO_SOURCES)
 CLEANFILES =
-DISTCLEANFILES = $(BUILT_SOURCES)
+DISTCLEANFILES = 
 
 # Yaggo automatic rules with silencing
 V_YAGGO = $(V_YAGGO_$(V))

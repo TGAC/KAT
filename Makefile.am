@@ -37,7 +37,7 @@ lib_LTLIBRARIES = libkat-2.1.la
 
 src_kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@
 
-src_kat_CPPFLAGS = -isystem $(srcdir)/deps/seqan-library-2.0.0/include -isystem $(srcdir)/deps/jellyfish-2.2.0/include -isystem include @AM_CPPFLAGS@
+src_kat_CPPFLAGS = -isystem $(srcdir)/deps/seqan-library-2.0.0/include -isystem $(srcdir)/deps/jellyfish-2.2.0/include -isystem $(srcdir)/include @AM_CPPFLAGS@
 
 src_kat_LDADD = deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.la \
 		libkat-2.1.la \
@@ -97,7 +97,7 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/str_utils.hpp \
 			    $(KI)/threaded_sparse_matrix.hpp
 
-libkat_2_1_la_CPPFLAGS = -isystem deps/jellyfish-2.2.0/include -isystem include @AM_CPPFLAGS@
+libkat_2_1_la_CPPFLAGS = -isystem $(srcdir)/deps/jellyfish-2.2.0/include -isystem $(srcdir)/include @AM_CPPFLAGS@
 
 
 # SRC DIRS

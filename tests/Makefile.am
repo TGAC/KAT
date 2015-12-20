@@ -24,7 +24,7 @@ check_unit_tests_SOURCES =	check_jellyfish.cc \
 	
 check_unit_tests_LDADD =    ../deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.la \
 			    libgtest.la \
-			    ../libkat-2.1.la
+			    ../libkat-2.1.la \
 			    @AM_LIBS@
 	
 include gtest.mk
