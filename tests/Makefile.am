@@ -11,7 +11,7 @@ CPPFLAGS =  -isystem $(srcdir)/../deps/seqan-library-2.0.0/include \
 
 
 
-TESTS = check_unit_tests
+TESTS = check_unit_tests test_sect.sh test_comp.sh
 
 check_PROGRAMS = check_unit_tests
 

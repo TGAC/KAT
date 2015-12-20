@@ -1,3 +1,4 @@
+/temp/
 /.deps/
 /.libs/
 /*.log
@@ -15,3 +16,4 @@ callgrind.out.*
 /libgtest.la
 /libgtest_main.la
 /check_unit_tests
+/compat.sh

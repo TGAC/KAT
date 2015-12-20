@@ -531,10 +531,10 @@ void kat::Comp::plot(const string& output_type) {
         vector<string> args;
         args.push_back("kat_plot_density.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(string("--x_label=") + xLabel);
-        args.push_back(string("--y_label=") + yLabel);
-        args.push_back(string("--z_label=") + zLabel);
-        args.push_back(string("--title=") + title);
+        args.push_back(string("--x_label='") + xLabel + "'");
+        args.push_back(string("--y_label='") + yLabel + "'");
+        args.push_back(string("--z_label='") + zLabel + "'");
+        args.push_back(string("--title='") + title + "'");
         args.push_back(getMxOutPath().string());            
         Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
 #elif HAVE_GNUPLOT
@@ -556,10 +556,9 @@ void kat::Comp::plot(const string& output_type) {
     }
     else {
         
-        path outputFile = path(getMxOutPath().string() + ".density." + output_type);
+        path outputFile = path(getMxOutPath().string() + ".spectra-cn." + output_type);
         string xLabel = kstr + "-mer frequency for " + input[0].pathString();
         string yLabel = string("# distinct ") + kstr + "-mers";
-        string zLabel = kstr + "mer frequency for " + input[1].pathString();
         string title = string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
         
 #if HAVE_PYTHON
@@ -567,10 +566,9 @@ void kat::Comp::plot(const string& output_type) {
         vector<string> args;
         args.push_back("kat_plot_spectra-cn.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(string("--x_label=") + xLabel);
-        args.push_back(string("--y_label=") + yLabel);
-        args.push_back(string("--z_label=") + zLabel);
-        args.push_back(string("--title=") + title);
+        args.push_back(string("--x_label='") + xLabel + "'");
+        args.push_back(string("--y_label='") + yLabel + "'");
+        args.push_back(string("--title='") + title + "'");
         args.push_back(getMxOutPath().string());
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args);
         
