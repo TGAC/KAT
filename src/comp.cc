@@ -50,7 +50,6 @@ using bfs::path;
 
 #include <kat/matrix_metadata_extractor.hpp>
 #include <kat/sparse_matrix.hpp>
-#include <kat/threaded_sparse_matrix.hpp>
 #include <kat/distance_metrics.hpp>
 #include <kat/input_handler.hpp>
 #include <kat/comp_counters.hpp>
@@ -59,6 +58,8 @@ using kat::InputHandler;
 using kat::HashLoader;
 using kat::CompCounters;
 using kat::ThreadedCompCounters;
+using kat::ThreadedSparseMatrix;
+using kat::SparseMatrix;
 
 #include "plot.hpp"
 #include "plot_spectra_cn.hpp"

@@ -54,7 +54,8 @@ using boost::lexical_cast;
 
 #include <kat/jellyfish_helper.hpp>
 #include <kat/matrix_metadata_extractor.hpp>
-#include <kat/threaded_sparse_matrix.hpp>
+#include <kat/kat_fs.hpp>
+using kat::KatFS;
 
 #include "sect.hpp"
 
@@ -92,12 +93,7 @@ void kat::Sect::execute() {
     
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
+    KatFS::ensureDirectoryExists(parentDir);
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {

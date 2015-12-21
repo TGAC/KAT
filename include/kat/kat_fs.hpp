@@ -94,37 +94,48 @@ namespace kat {
             }
             
                             
-            // We asseme scripts are on the path if exe was on the path
+            // We assume scripts are on the path if exe was on the path
             if (isAbsolute || isRelative) {
                 
-                // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests) 
-                // so try 2 and 3 levels.
-                scriptsDir = canonicalExe.parent_path().parent_path();
-                scriptsDir /= "scripts";                 
-                
-                if (!exists(scriptsDir)) {
-                    scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
-                    scriptsDir /= "scripts";                 
-                    
-                    if (!exists(scriptsDir)) {
-                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                            "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
-                    }                
-                }
-                                
-                // Also double check the kat_distanalysis.py script exists
-                path kda(scriptsDir);
+                // Check to see if scripts are adjacent to exe first
+                path kda(canonicalExe.parent_path());
                 kda /= "kat_distanalysis.py";
+                if (exists(kda)) {
+                    scriptsDir = canonicalExe.parent_path();
+                }
+                else {
+                
+                    // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests) 
+                    // so try 2, 3 and 4 levels.
+                    scriptsDir = canonicalExe.parent_path().parent_path();
+                    scriptsDir /= "scripts";                 
+
+                    if (!exists(scriptsDir)) {
+                        scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
+                        scriptsDir /= "scripts";       
                         
-                if (!exists(kda)) {
-                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                        "Found the scripts directory where expected") + scriptsDir.string() + 
-                            ". However, could not find the \"kat_distanalysis.py\" script inside."));
+                        if (!exists(scriptsDir)) {
+                            scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
+                            scriptsDir /= "scripts";        
+
+                            if (!exists(scriptsDir)) {
+                                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                                    "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
+                            }
+                        }
+                    }
+
+                    // Also double check the kat_distanalysis.py script exists
+                    kda = scriptsDir;
+                    kda /= "kat_distanalysis.py";
+
+                    if (!exists(kda)) {
+                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                            "Found the scripts directory where expected") + scriptsDir.string() + 
+                                ". However, could not find the \"kat_distanalysis.py\" script inside."));
+                    }
                 }
             }
-            
-            
-            
         }
         
         

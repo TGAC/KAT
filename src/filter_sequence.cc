@@ -57,8 +57,10 @@ using bfs::path;
 #include <kat/str_utils.hpp>
 #include <kat/input_handler.hpp>
 #include <kat/jellyfish_helper.hpp>
+#include <kat/kat_fs.hpp>
 using kat::InputHandler;
 using kat::JellyfishHelper;
+using kat::KatFS;
 
 #include "plot_density.hpp"
 using kat::PlotDensity;
@@ -135,12 +137,8 @@ void kat::filter::FilterSeq::execute() {
     
     // Create output directory
     path parentDir = bfs::absolute(output_prefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(FilterSeqException() << FilterSeqErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
+    KatFS::ensureDirectoryExists(parentDir);
+    
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
         input.count(threads);

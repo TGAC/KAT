@@ -85,12 +85,7 @@ void kat::Histogram::execute() {
     
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
+    KatFS::ensureDirectoryExists(parentDir);
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {

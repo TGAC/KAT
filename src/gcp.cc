@@ -46,10 +46,11 @@ using boost::lexical_cast;
 
 #include <kat/jellyfish_helper.hpp>
 #include <kat/sparse_matrix.hpp>
-#include <kat/threaded_sparse_matrix.hpp>
 #include <kat/input_handler.hpp>
 using kat::InputHandler;
 using kat::HashLoader;
+using kat::ThreadedSparseMatrix;
+using kat::SparseMatrix;
 
 #include "plot_density.hpp"
 #include "plot.hpp"
@@ -76,12 +77,7 @@ void kat::Gcp::execute() {
     
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(GcpException() << GcpErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
+    KatFS::ensureDirectoryExists(parentDir);
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {

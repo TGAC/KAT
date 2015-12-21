@@ -44,6 +44,7 @@ using bfs::path;
 #include <kat/gnuplot_i.hpp>
 #include <kat/spectra_helper.hpp>
 #include <kat/sparse_matrix.hpp>
+using kat::SparseMatrix;
 
 #include "plot_spectra_cn.hpp"
 using kat::SpectraHelper;

@@ -17,7 +17,12 @@ EXTRA_DIST =	README.md \
 		tests/data/sect_length_test.fa \
 		tests/data/sect_test.fa \
 		tests/data/ecoli_r1.1K.fastq \
-		tests/data/ecoli_r2.1K.fastq
+		tests/data/ecoli_r2.1K.fastq \
+		tests/test_comp.sh \
+		tests/test_gcp.sh \
+		tests/test_hist.sh \
+		tests/test_sect.sh
+	
 
 # Scripts NOT to install
 dist_noinst_SCRIPTS = autogen.sh antigen.sh
@@ -96,7 +101,6 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/sparse_matrix.hpp \
 			    $(KI)/spectra_helper.hpp \
 			    $(KI)/str_utils.hpp \
-			    $(KI)/threaded_sparse_matrix.hpp \
 			    $(KI)/comp_counters.hpp
 
 lib_libkat_2_1_la_CPPFLAGS = -isystem $(srcdir)/deps/jellyfish-2.2.0/include -isystem $(srcdir)/include @AM_CPPFLAGS@

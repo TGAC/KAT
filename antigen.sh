@@ -31,8 +31,6 @@ rm -Rf build-aux
 # Also remove the autotools cache directory.
 rm -Rf autom4te.cache
 
-rm -Rf tests/temp
-
 # Remove rest of the generated files.
 rm -f Makefile.in tests/Makefile.in config.* aclocal.m4 configure depcomp install-sh missing libtool ltmain.sh 
 

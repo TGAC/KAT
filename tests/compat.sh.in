@@ -1,5 +1,6 @@
 KAT="../src/kat"
 SRCDIR=@abs_top_srcdir@
 BUILDDIR=@abs_top_builddir@
+data=${SRCDIR}/tests/data
 
 set -e

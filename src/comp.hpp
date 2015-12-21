@@ -37,13 +37,13 @@ using bfs::path;
 
 #include <kat/matrix_metadata_extractor.hpp>
 #include <kat/sparse_matrix.hpp>
-#include <kat/threaded_sparse_matrix.hpp>
 #include <kat/jellyfish_helper.hpp>
 #include <kat/input_handler.hpp>
 #include <kat/comp_counters.hpp>
 using kat::JellyfishHelper;
 using kat::InputHandler;
 using kat::ThreadedCompCounters;
+using kat::ThreadedSparseMatrix;
 
 typedef boost::error_info<struct CompError,string> CompErrorInfo;
 struct CompException: virtual boost::exception, virtual std::exception { };
