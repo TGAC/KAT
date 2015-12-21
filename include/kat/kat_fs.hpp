@@ -158,7 +158,24 @@ namespace kat {
                         << "  - type: " << (pfs.isAbsolute ? "absolute" : pfs.isRelative ? "relative" : "on PATH") << endl
                         << " - Canonical path: " << pfs.canonicalExe << endl
                         << " - Scripts dir: " << (pfs.scriptsDir.empty() ? "assuming scripts on PATH" : pfs.scriptsDir) << endl << endl;                   
-        }     
+        }
+        
+        /**
+         * Ensures a directory exists
+         * @param dir
+         */
+        static void ensureDirectoryExists(const path& dir) {
+            
+            path canDir = fs::absolute(dir);
+            if (!fs::exists(canDir) || !fs::is_directory(canDir)) {
+                if (!fs::create_directories(canDir)) {
+                    if (!fs::exists(canDir) || !fs::is_directory(canDir)) { // Check again before throwing
+                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                                "Could not create output directory: ") + canDir.string()));
+                    }
+                }
+            }
+        }
     };
     
        
