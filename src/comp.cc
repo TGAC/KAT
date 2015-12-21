@@ -133,20 +133,13 @@ void kat::Comp::execute() {
         
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
-    
+    KatFS::ensureDirectoryExists(parentDir);
     
     // Create the final K-mer counter matrices
     main_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
 
     // Initialise extra matrices for hash3 (only allocates space if required)
     if (doThirdHash()) {
-
         ends_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
         middle_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
         mixed_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
@@ -191,7 +184,6 @@ void kat::Comp::execute() {
     
     // Load any hashes if necessary
     if (anyLoad) loadHashes();
-     
     
     // Run the threads
     compare();
