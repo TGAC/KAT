@@ -7,7 +7,7 @@ clean-local-check:
 	-rm -rf temp
 
 # additional include paths necessary to compile the C++ library
-CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
+CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
 CPPFLAGS =  -isystem $(srcdir)/../deps/seqan-library-2.0.0/include \
 	    -isystem $(srcdir)/../deps/jellyfish-2.2.0/include \
 	    -isystem $(srcdir)/../include \
