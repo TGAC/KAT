@@ -1,3 +1,5 @@
 *.dirstamp
+*.lo
+*.o
+/.deps/
 /.libs/
-/Makefile

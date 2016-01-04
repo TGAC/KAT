@@ -123,7 +123,7 @@ AX_BOOST_CHRONO
 AX_BOOST_TIMER
 
 
-define([PC_FILE], kat-2.1.pc)
+define([PC_FILE], lib/kat-2.1.pc)
 
 
 # Combine BOOST variables (apart for BOOST_TEST)
@@ -150,7 +150,7 @@ AC_SUBST([AM_LIBS])
 
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile kat-2.1.pc tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
+AC_CONFIG_FILES([Makefile lib/kat-2.1.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 

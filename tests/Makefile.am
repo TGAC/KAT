@@ -8,9 +8,9 @@ clean-local-check:
 
 # additional include paths necessary to compile the C++ library
 CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
-CPPFLAGS =  -isystem $(srcdir)/../deps/seqan-library-2.0.0/include \
-	    -isystem $(srcdir)/../deps/jellyfish-2.2.0/include \
-	    -isystem $(srcdir)/../include \
+CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
+	    -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
+	    -isystem $(top_srcdir)/lib/include \
 	    -DDATADIR=\"$(srcdir)/data\" \
 	    @AM_CPPFLAGS@
 
@@ -34,9 +34,9 @@ check_unit_tests_SOURCES =	check_jellyfish.cc \
 
 check_unit_tests_LDFLAGS = @AM_LDFLAGS@
 	
-check_unit_tests_LDADD =    ../deps/jellyfish-2.2.0/.libs/libkat_jellyfish-2.0.la \
-			    libgtest.la \
+check_unit_tests_LDADD =    ../deps/jellyfish-2.2.0/libkat_jellyfish-2.0.la \
 			    ../lib/libkat-2.1.la \
+			    libgtest.la \
 			    @AM_LIBS@
 	
 include gtest.mk
