@@ -75,7 +75,7 @@ libkat_jellyfish_2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
                               lib/generator_manager.cc
 
 
-library_includedir=$(includedir)/jellyfish-@PACKAGE_VERSION@/jellyfish
+library_includedir=$(includedir)/kat_jellyfish-@PACKAGE_VERSION@/jellyfish
 JFI = include/jellyfish
 library_include_HEADERS = $(JFI)/allocators_mmap.hpp			\
                           $(JFI)/backtrace.hpp $(JFI)/atomic_gcc.hpp	\

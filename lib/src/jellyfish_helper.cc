@@ -265,11 +265,12 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
 
    string ext = filename.extension().string();
 
-   if (boost::iequals(ext, ".gz")) {
+   // Actually we can't handle gz files directly, so turning this off for now
+   /*if (boost::iequals(ext, ".gz")) {
        string name = filename.filename().string();
        string shortName = name.substr(0, name.length() - 3);
        ext = path(shortName).extension().string();
-   }
+   }*/
 
    return  boost::iequals(ext, ".fastq") || 
            boost::iequals(ext, ".fq") || 
