@@ -95,12 +95,14 @@ GNU GPL V3.  See COPYING file for more details.
 
 ##Authors:
 
-Bernardo Clavijo
-Daniel Mapleson
-Darren Heavens
-Sarah Ayling
-Mario Caccamo
-George Kettleborough
+* Bernardo Clavijo
+* Daniel Mapleson
+* Darren Heavens
+* Sarah Ayling
+* Mario Caccamo
+* George Kettleborough
+* Gonzalo Garcia
+* Jon Wright
 
 
 See AUTHORS file for more details.

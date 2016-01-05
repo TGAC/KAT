@@ -8,34 +8,37 @@ in the root directory of the project.  This section of the documentation discuss
 some more details.
 
 KAT is primarily a C++ application with a few python scripts.  We use the 
-GNU build system "Autotools" to assist with package management and to make the 
+GNU build system "Autotools" (autoconf + automake) to assist with package management and to make the 
 software portable across UNIX type operating systems.  Installation of KAT
 therefore follows a similar incantation to other autotools based projects::
 
   ./configure; make; sudo make install;
 
-Should you wish to run tests then you can do this by typing: ```make check```.
+Should you wish to run tests then you can do this by typing: ``make check``.
 
-However, if you cloned the software directly from the 
-git repository you must first run ```./autogen.sh``` to create the configure and make 
+If you cloned the software directly from the git repository you must first run 
+``./autogen.sh`` to create the configure and make 
 files for your project.  If you downloaded a source code distribution tarball those
 scripts are already present so you can skip this step.  We also supply a script called
-```antigen.sh``` which cleans the KAT configuration to a similar state as if the
-repository was cloned.  After running ```antigen.sh```, ```autogen.sh``` must be
-run in order to create the ```configure``` and ```Makefile```s in order to build the problem.
+``antigen.sh`` which cleans the KAT configuration to a similar state as if the
+repository was cloned.  After running ``antigen.sh`` (may require sudo permissions 
+if you installed content or run ``make dist``), ``autogen.sh`` must be
+run in order to create the ``configure`` and ``Makefile`` files in order to 
+build the problem.
 
 The configure script contains all the usual options you might expect in particular
-it has the ```--prefix```, which will install KAT to a custom directory.  By default 
+it has the ``--prefix``, which will install KAT to a custom directory.  By default 
 this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by 
 default.  In addition, the make file should support all the usual targets and options
-such as ```-j <core>```, to increase the number of cores used to compile the program.
+such as ``-j <core>``, to increase the number of cores used to compile the program.
 
 
 External Dependencies
 ---------------------
 
 KAT depends on some external software, in particular boost.  If you don' wish to
-install the full suite of boost libraries KAT only uses the following: 
+install the full suite of boost libraries KAT only uses the following:
+
  - system
  - filesystem
  - program_options
@@ -68,7 +71,7 @@ a custom location, so the plotting system needs to be properly installed and con
 on your system: i.e. python3 or gnuplot must be available on the PATH.
 
 For an example of how to install KAT dependencies on a typical system
-take a look at our travis CI script in the root directory: ```.travis.yml```
+take a look at our travis CI script in the root directory: ``.travis.yml``
 
 If you have cloned the repository then you will also need a few additional dependencies installed
 to generate the configuration script.  These are:
@@ -87,7 +90,7 @@ will create the jellyfish executable in it's bin directory after installation, w
 may conflict with your own jellyfish executable if it was already installed on your
 PATH.  If you do not want KAT to potentially override or conflict with an 
 existing jellyfish installation you might want to consider installing KAT
-to a custom location.  You can do this with the ```--prefix``` option when 
+to a custom location.  You can do this with the ``--prefix`` option when 
 running the configure script.  We might revisit this in the future to remove
 this potential issue.
 
@@ -95,19 +98,19 @@ this potential issue.
 Compilation and Installation
 ----------------------------
 
-First change into the KAT root directory and run ```./configure```, providing
-any options you feel are appropriate.  By default the installation directory is "/usr/local", 
-so the KAT executable would be found at "/usr/local/bin" by default.  If you
+First change into the KAT root directory and run ``./configure``, providing
+any options you feel are appropriate.  By default the installation directory is ``/usr/local``, 
+so the KAT executable would be found at ``/usr/local/bin`` by default.  If you
 want to change this use the ``--prefix`` option as previously described.  For a full
-list of configuration options type ```./configure --help```.
+list of configuration options type ``./configure --help``.
 
-Next compile the software.  This can be done by typing ```make```.  The compiles
+Next compile the software.  This can be done by typing ``make``.  The compiles
 all internal dependencies and KAT itself.
 
 To check the code compiled correct and is operating as expected you can optionally
-type  ```make check``` to runs some tests.  This includes unit tests for jellyfish 
+type  ``make check`` to runs some tests.  This includes unit tests for jellyfish 
 which are embedded in the KAT source tree.  To run only KAT
-unit tests go into the ``tests`` subdirectory and run ```make check``` there.
+unit tests go into the ``tests`` subdirectory and run ``make check`` there.
 
 Finally to install the compiled code to the specified (or default) installation
-directory type ```make install```.
+directory type ``make install``.
