@@ -85,7 +85,7 @@ AX_PYTHON_DEVEL([>= '3.1'])
 
 pymod_good="no"
 if test x"${PYTHON_VERSION}" != x""; then
-    if test x"${PYTHON_LIBS}" == x""; then
+    if test x"${PYTHON_EXTRA_LIBS}" = x""; then
         pymod_good="no"
         AC_MSG_WARN([Python3 detected but Python3 development library was not found.  If you wish to use python plotting please install python3 library.  e.g. "sudo apt-get install python3-dev" on debian systems.])
     fi
