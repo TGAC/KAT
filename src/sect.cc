@@ -184,7 +184,7 @@ void kat::Sect::processSeqFile() {
     }
 
     // Average sequence coverage and GC% scores output stream
-    ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
+    ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.tsv").c_str());
     cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tinvalid_bases\t%_invalid\tnon_zero_bases\t%_non_zero\t%_non_zero_corrected" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
