@@ -5,12 +5,17 @@ KAT Changelog
 
 V2.1.0 - ????
 
-KAT library now available, containing core functionality, such as k-mer 
-counting (i.e. a simplified interface to jellyfish2).
+Added filtering tools for filtering k-mer hashes and sequences based on presence
+or absence of a set of k-mers.
 
 Enhanced plotting functionality through python matplotlib.  Configuration
 scripts still allow for gnuplot plotting, if user's don't have matplotlib
 available on their system
+
+Added online documentation available at: https://readthedocs.org/projects/kat/
+
+KAT library now available, containing core functionality, such as k-mer 
+counting (i.e. a simplified interface to jellyfish2).
 
 Fixed automated testing functionality, unit tests operate only on KAT
 library code, and system tests operate on KAT tools.
@@ -18,15 +23,13 @@ library code, and system tests operate on KAT tools.
 Travis CI integration, checks KAT compiles, passes all tests and can 
 correctly create a distributable after every commit to github.
 
-Added online documentation available at: https://readthedocs.org/projects/kat/
-
 Changed jellyfish output artifacts to have a "kat_" prefix which will prevent
 incompatibilities with existing jellyfish installations.  Also modified all 
 scripts to include a "kat_" prefix as well.
 
 Converted distanalysis script to be python3 code.
 
-Removed checks for .gz extension, jellyfish doesn't directly handle compressed
+Removed checks permitting .gz extension, jellyfish doesn't directly handle compressed
 input.
 
 Updated makefile to put jellyfish headers into a unique directory.
