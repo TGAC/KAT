@@ -8,9 +8,9 @@ PAPER         =
 BUILDDIR      = build
 
 # User-friendly check for sphinx-build
-#ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
+#if test $(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?) = 1; then
 #$(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
-#endif
+#fi
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
@@ -176,7 +176,30 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-EMPTY_AUTOMAKE_TARGETS = all distdir install install-data install-exec uninstall installdirs check installcheck mostlyclean distclean maintainer-clean tags ctags
+EMPTY_AUTOMAKE_TARGETS = \
+	all distdir install-exec installdirs \
+	check installcheck tags ctags\
+	install-dvi install-ps
 .PHONY: $(EMPTY_AUTOMAKE_TARGETS)
 $(EMPTY_AUTOMAKE_TARGETS):
+doc: html man
 pdf: latexpdf
+mostly-clean: clean
+distclean: clean
+maintainer-clean: clean
+
+install: install-data
+install-data:
+#	install-man install-html install-info install-pdf
+	
+install-man:
+#	install build/man/kat.1 "$(DESTDIR)/man"
+#install-html:
+#	$(INSTALL_PROGRAM) $$files "$(DESTDIR)/html"
+install-info:
+#	install $$files "$(DESTDIR)/info"
+#install-pdf:
+#	$(INSTALL_PROGRAM)  "$(DESTDIR)/info"
+uninstall:
+#	rm -f "$(DESTDIR)/man/kat.1"
+	
