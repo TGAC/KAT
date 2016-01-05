@@ -34,7 +34,7 @@ Installing from distributable:
   - libtool V2.4.2+
   - Boost (system,filesystem,program_options,chrono,timer) V1.53+
   - Plotting engine:
-   - Option 1 (preferred) python3 with matplotlib.  We recommend installing anaconda as this has all the required packages preinstalled.
+   - Option 1 (preferred) python3, with matplotlib.  We recommend installing anaconda as this has all the required packages preinstalled.
    - Option 2 gnuplot 
  - Download tarball from https://github.com/TGAC/KAT/releases
  - Decompress and untar: ```tar -xvf kat-<version>.tar.gz```
@@ -60,11 +60,19 @@ The configure script can take several options as arguments.  One commonly modifi
 
 Type ```./configure --help``` for full details.
 
-KAT can also make plots.  To enable plotting functionality we require either python3, with numpy, scipy and matplotlib installed, or gnuplot.  The python plotting method is the preferred method and will produce nicer results.  
-If you don't already have python3 installed on your system we recommend installing anaconda3 as this contains everything you need.  
+KAT can also make plots.  To enable plotting functionality we require either python3, 
+ with numpy, scipy and matplotlib packages installed.  The python installation 
+must come with the python shared library, on debian systems you can install this 
+with "sudo apt-get install python3-dev".  If you don't already have python3 installed on your system 
+we recommend installing anaconda3 as this contains everything you need.  Alternatively,
+you can use gnuplot, although the python plotting method is the preferred method and will 
+produce nicer results.  
 
-The type of plotting engine used will be determined when running the configure script, which will select the first engine detected in the following order: python, gnuplot, none.  
-There is currently no way to select the plotting directory from a custom location, so the plotting system needs to be properly installed and configured on your system: i.e. python3 or gnuplot must be available on the PATH.
+The type of plotting engine used will be determined when running the configure 
+script, which will select the first engine detected in the following order: python, gnuplot, none.  
+There is currently no way to select the plotting directory from a custom location, 
+so the plotting system needs to be properly installed and configured on your 
+system: i.e. python3 or gnuplot must be available on the PATH.
 
 
 ##Operating Instructions:

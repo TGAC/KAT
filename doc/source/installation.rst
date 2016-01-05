@@ -61,23 +61,26 @@ environment variables by using the following options when running the configure 
 However, please ensure that all libraries are available on the LD_LIBRARY_PATH at runtime. 
 
 To enable plotting functionality we require either python3, with numpy, scipy and
-matplotlib installed, or gnuplot.  The python plotting method is the preferred
-method and will produce nicer results.  If you don't already have python3 installed
+matplotlib installed, or gnuplot.  The python installation must come with the python
+shared library, on debian systems you can install this with "sudo apt-get install python3-dev".
+Although, if you don't already have python3 installed
 on your system we recommend installing anaconda3 as this contains everything you
 need.  The type of plotting engine used will be determined when running the configure
 script, which will select the first engine detected in the following order: python,
-gnuplot, none.  There is currently no way to select the plotting directory from
+gnuplot, none.  The python plotting method is the preferred
+method and will produce nicer results.  There is currently no way to select the plotting directory from
 a custom location, so the plotting system needs to be properly installed and configured
 on your system: i.e. python3 or gnuplot must be available on the PATH.
-
-For an example of how to install KAT dependencies on a typical system
-take a look at our travis CI script in the root directory: ``.travis.yml``
 
 If you have cloned the repository then you will also need a few additional dependencies installed
 to generate the configuration script.  These are:
  
    - autoconf V2.53+
    - automake V1.11+
+
+For an example of how to install KAT dependencies on a typical system
+take a look at our travis CI script in the root directory: ``.travis.yml``.
+
 
 
 Internal Dependencies
