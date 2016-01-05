@@ -1,3 +1,5 @@
 *.dirstamp
 /.libs/
 /Makefile
+*.lo
+*.o
