@@ -29,7 +29,7 @@ PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) -c source $(top_srcdir)/doc/source
 # the i18n builder cannot share the environment and doctrees with the others
-I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) -c source $(top_srcdir)/doc/source
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
@@ -72,7 +72,9 @@ DISTFILES = source/index.rst \
 	    source/images/pe_v_rna_bar.png \
 	    source/images/pe_v_rna_shared.png \
 	    source/images/profile.png \
-	    source/images/real_r1_v_r2.png
+	    source/images/real_r1_v_r2.png \
+	    source/images/real_r1_v_r2_shared.png \
+	    source/images/simulated_r1_v_r2.png
 
 	
 
@@ -256,11 +258,11 @@ install-data: install-man install-pdf
 	
 # Fail on error
 install-man: 
-	test -s build && test -s build/man && install build/man/kat.1 $(mandir)/man1/kat.1
+	test -s build && test -s build/man && $(MKDIR_P) $(mandir)/man1 && install build/man/kat.1 $(mandir)/man1/kat.1
 
 # Skip any errors here... we don't require the PDF to be generated
 install-pdf:
-	-test -s build && test -s build/latex && test -s build/latex/KAT.pdf && mkdir -p $(pdfdir) && install build/latex/KAT.pdf $(pdfdir)/KAT.pdf;
+	-test -s build && test -s build/latex && test -s build/latex/KAT.pdf && $(MKDIR_P) $(pdfdir) && install build/latex/KAT.pdf $(pdfdir)/KAT.pdf;
 
 uninstall:
 	rm -f "$(mandir)/man1/kat.1" "$(pdfdir)/KAT.pdf"
