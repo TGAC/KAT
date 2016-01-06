@@ -186,10 +186,10 @@ htmlhelp_basename = 'KATdoc'
 
 latex_elements = {
 # The paper size ('letterpaper' or 'a4paper').
-#'papersize': 'letterpaper',
+'papersize': 'a4paper',
 
 # The font size ('10pt', '11pt' or '12pt').
-#'pointsize': '10pt',
+'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
 #'preamble': '',
@@ -200,10 +200,10 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 
-	'kat.tex', 
-	u'KAT Documentation', 
-	u'Daniel~Mapleson \\and Bernardo~Clavijo \\and George~Kettleborough \\and Gonzalo~Garcia \\and Jon~Wright', 
-	'manual'),
+        'kat.tex', 
+        u'KAT Documentation',
+        u'Daniel~Mapleson \\and Bernardo~Clavijo \\and George~Kettleborough \\and Gonzalo~Garcia \\and Jon~Wright', 
+        'manual')
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -247,8 +247,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'kat', u'KAT Documentation',
-   u'Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright', 
-    'KAT', 
+   u'Daniel Mapleson, Bernardo Clavijo,\nGeorge Kettleborough, Gonzalo Garcia,\nJon Wright', 
+    'kat', 
     'KAT is a suite of tools that generating, analysing and comparing k-mer spectra produced from sequence files.',
     'Miscellaneous'),
 ]
