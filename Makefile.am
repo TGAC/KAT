@@ -6,7 +6,7 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 man: 
 	cd doc && $(MAKE) $(AM_MAKEFLAGS) man
 .PHONY: man
-
+	
 # ADDITIONAL FILES TO INSTALL
 EXTRA_DIST =	README.md \
 		COPYING \
@@ -40,6 +40,11 @@ dist_bin_SCRIPTS =	scripts/kat_distanalysis.py \
 			scripts/kat_plot_spectra-mx.py
 
 # SRC DIRS
-SUBDIRS = deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 lib src tests doc
+make_dirs=deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 lib src tests
+
+if test @MAKE_DOCS@ = 1; then
+    make_dirs +=  doc
+
+SUBDIRS = $(make_dirs)
 
 AUTOMAKE_OPTIONS = subdir-objects

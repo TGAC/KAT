@@ -117,6 +117,16 @@ else
     AC_DEFINE([HAVE_PYTHON], [1], [Python present])
 fi
 
+AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
+if test x"${sphinx}" = x"no"; then
+    AC_MSG_WARN([Sphinx not detected, won't create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
+    MAKE_DOCS=0
+else
+    MAKE_DOCS=1
+fi
+
+AC_SUBST([MAKE_DOCS])
+
 
 ## Check for boost
 AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])

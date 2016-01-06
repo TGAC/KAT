@@ -7,6 +7,15 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = build
 
+# Set autoconf variables
+prefix	      = @prefix@
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+docdir	      = @docdir@
+mandir	      = @mandir@
+htmldir	      = @htmldir@
+pdfdir        = @pdfdir@
+infodir       = @infodir@
+
 # User-friendly check for sphinx-build
 #if test $(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?) = 1; then
 #$(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
@@ -177,29 +186,36 @@ pseudoxml:
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
 EMPTY_AUTOMAKE_TARGETS = \
-	distdir install-exec installdirs \
+	all distdir install-exec installdirs \
 	check installcheck tags ctags\
-	install-dvi install-ps
+	dvi install-dvi install-ps install-html install-info install html
 .PHONY: $(EMPTY_AUTOMAKE_TARGETS)
 $(EMPTY_AUTOMAKE_TARGETS):
+
+# Hook in conventional make targets for building docs
 all: html man
+	
+# Redirect pdf to latexpdf
 pdf: latexpdf
+
+# Redirect all cleaning targets to clean
 mostly-clean: clean
 distclean: clean
 maintainer-clean: clean
 
+# Install and uninstall overrides
 install: install-data
-install-data:
-#	install-man install-html install-info install-pdf
 	
-install-man:
-#	install build/man/kat.1 "$(DESTDIR)/man"
-#install-html:
-#	$(INSTALL_PROGRAM) $$files "$(DESTDIR)/html"
-install-info:
-#	install $$files "$(DESTDIR)/info"
-#install-pdf:
-#	$(INSTALL_PROGRAM)  "$(DESTDIR)/info"
+install-data: install-man install-pdf
+	
+# Fail on error
+install-man: 
+	test -s build && test -s build/man && install build/man/kat.1 $(mandir)/man1/kat.1
+
+# Skip any errors here... we don't require the PDF to be generated
+install-pdf:
+	-test -s build && test -s build/latex && test -s build/latex/KAT.pdf && mkdir -p $(pdfdir) && install build/latex/KAT.pdf $(pdfdir)/KAT.pdf;
+
 uninstall:
-#	rm -f "$(DESTDIR)/man/kat.1"
+	rm -f "$(mandir)/man1/kat.1" "$(pdfdir)/KAT.pdf"
 	

@@ -34,8 +34,9 @@ Installing from distributable:
   - libtool V2.4.2+
   - Boost (system,filesystem,program_options,chrono,timer) V1.53+
   - Plotting engine:
-   - Option 1 (preferred) python3, with matplotlib.  We recommend installing anaconda as this has all the required packages preinstalled.
+   - Option 1 (preferred) python3, with matplotlib.  We recommend installing anaconda3 as this has all the required packages preinstalled.
    - Option 2 gnuplot 
+  - Optional - Sphinx documentation V1.3+ (comes with anaconda3)
  - Download tarball from https://github.com/TGAC/KAT/releases
  - Decompress and untar: ```tar -xvf kat-<version>.tar.gz```
  - Change into directory: ```cd kat-x.x.x```
@@ -74,6 +75,10 @@ There is currently no way to select the plotting directory from a custom locatio
 so the plotting system needs to be properly installed and configured on your 
 system: i.e. python3 or gnuplot must be available on the PATH.
 
+If sphinx is installed and detected on your system then html documentation and man 
+pages are automatically built during the build process.  If it is not detected then this step
+is skipped.  Should you wish to create a PDF version of the manual you can do so
+by typing ```make pdf```, this is not executed by default.  
 
 ##Operating Instructions:
 

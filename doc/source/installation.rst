@@ -32,12 +32,35 @@ this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" b
 default.  In addition, the make file should support all the usual targets and options
 such as ``-j <core>``, to increase the number of cores used to compile the program.
 
+If sphinx is installed and detected on your system then html documentation and man 
+pages are automatically built during the build process.  If it is not detected then this step
+is skipped.  Should you wish to create a PDF version of the manual you can do so
+by typing ```make pdf```, this is not executed by default.
+
 
 External Dependencies
 ---------------------
 
-KAT depends on some external software, in particular boost.  If you don' wish to
-install the full suite of boost libraries KAT only uses the following:
+KAT depends on some external software:
+ * Make
+ * libtool
+ * zlib
+ * C++11 compiler (e.g. GCC V4.8+)
+ * Boost
+ * Optional but recommended - Python3 with matplotlib, scipy, numpy and sphinx (anaconda3)
+ * Optional - Gnuplot
+ * Repo building - automake / autoconf
+
+Please make sure all the mandatory programs and libraries are correctly configured and installed 
+on your system prior to building KAT.  The rest of this section describes how to 
+install these dependencies in more detail. However, for a quick example of how to install KAT dependencies on a typical clean system
+take a look at our travis CI script in the root directory: ``.travis.yml``.
+
+
+Boost
+~~~~~
+
+If you don't wish to install the full suite of boost libraries KAT only uses the following:
 
  - system
  - filesystem
@@ -45,20 +68,28 @@ install the full suite of boost libraries KAT only uses the following:
  - chrono
  - timer. 
 
-You will also need "make", "libtool", "zlib"
-and a C++11 capable compiler such as "GCC V4.8+" to 
-compile the code.  
-
-Please make sure all these programs and libraries are correctly configured and installed 
-on your system prior to building KAT.  Consult the each program's installation
-guide separately for instructions on how to do this.  For boost and zlib KAT
-offers you the ability to build these from non-standard locations without setting
-environment variables by using the following options when running the configure script.
+KAT offers the use the ability to use boost from non-standard locations without setting
+environment variables via the following options when running the configure script::
 
   - "--with-boost=<path_to_boost>"  for specifying a custom boost installation directory
+  
+However, if you choose to do this please ensure that the boost libraries are available 
+on the LD_LIBRARY_PATH at runtime. 
+
+Zlib
+~~~~
+
+Most users will already have this installed and configured on their system, however
+if you don't then please install it.  Should you choose to install it in a custom directory
+then you can use this option in the configure script::
+
   - "--with-zlib=<path_to_zlib>"  for specifying a custom zlib installation directory
 
-However, please ensure that all libraries are available on the LD_LIBRARY_PATH at runtime. 
+Again please be sure to have the LD_LIBRARY_PATH set if you choose to do this.
+
+
+Plotting
+~~~~~~~~
 
 To enable plotting functionality we require either python3, with numpy, scipy and
 matplotlib installed, or gnuplot.  The python installation must come with the python
@@ -72,14 +103,23 @@ method and will produce nicer results.  There is currently no way to select the 
 a custom location, so the plotting system needs to be properly installed and configured
 on your system: i.e. python3 or gnuplot must be available on the PATH.
 
-If you have cloned the repository then you will also need a few additional dependencies installed
-to generate the configuration script.  These are:
- 
-   - autoconf V2.53+
-   - automake V1.11+
 
-For an example of how to install KAT dependencies on a typical system
-take a look at our travis CI script in the root directory: ``.travis.yml``.
+Documentation
+~~~~~~~~~~~~~
+
+Should you wish to build the documentation, you will need python3 with the sphinx
+package installed and the sphinx-build executable on the PATH.  If you have already
+installed anaconda3 then you will have this already.
+
+
+Building from git repo
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you have cloned the repository then you will also need a few additional dependencies installed
+to generate the configuration script.  These are::
+ 
+ * autoconf V2.53+
+ * automake V1.11+
 
 
 
@@ -114,6 +154,9 @@ To check the code compiled correct and is operating as expected you can optional
 type  ``make check`` to runs some tests.  This includes unit tests for jellyfish 
 which are embedded in the KAT source tree.  To run only KAT
 unit tests go into the ``tests`` subdirectory and run ``make check`` there.
+
+Should you have sphinx installed and wish to create a PDF copy of the manual, you
+can do so by typing ``make pdf``.
 
 Finally to install the compiled code to the specified (or default) installation
 directory type ``make install``.
