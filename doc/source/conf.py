@@ -46,7 +46,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'KAT'
+project = u'kat'
 copyright = u'2015, Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -120,7 +120,7 @@ html_theme = 'alabaster'
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-#html_logo = None
+html_logo = '../../doc/source/images/kat_logo.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -156,7 +156,7 @@ html_static_path = ['_static']
 #html_domain_indices = True
 
 # If false, no index is generated.
-#html_use_index = True
+html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
 #html_split_index = False
@@ -199,17 +199,20 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'KAT.tex', u'KAT Documentation',
-   u'Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright', 'manual'),
+  ('index', 
+	'kat.tex', 
+	u'KAT Documentation', 
+	u'Daniel~Mapleson \\and Bernardo~Clavijo \\and George~Kettleborough \\and Gonzalo~Garcia \\and Jon~Wright', 
+	'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
-#latex_logo = None
+latex_logo = '../../doc/source/images/kat_logo.png'
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-#latex_use_parts = False
+latex_use_parts = True
 
 # If true, show page references after internal links.
 #latex_show_pagerefs = False
@@ -243,7 +246,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'KAT', u'KAT Documentation',
+  ('index', 'kat', u'KAT Documentation',
    u'Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright', 
     'KAT', 
     'KAT is a suite of tools that generating, analysing and comparing k-mer spectra produced from sequence files.',
@@ -266,7 +269,7 @@ texinfo_documents = [
 # -- Options for Epub output ----------------------------------------------
 
 # Bibliographic Dublin Core info.
-epub_title = u'KAT'
+epub_title = u'kat'
 epub_author = u'Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright'
 epub_publisher = u'Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright'
 epub_copyright = u'2015, Daniel Mapleson, Bernardo Clavijo, George Kettleborough, Gonzalo Garcia, Jon Wright'

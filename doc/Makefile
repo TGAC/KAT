@@ -251,30 +251,30 @@ maintainer-clean: clean
 
 # Install and uninstall overrides
 install: install-data
-        
+
 install-data: install-man install-pdf install-html
-        
+
 # Fail on error
-install-man: 
-        test -s build && test -s build/man && $(INSTALL) build/man/kat.1 $(DESTDIR)$(mandir)/man1/kat.1
+install-man:
+	test -s build && test -s build/man && $(INSTALL) build/man/kat.1 $(DESTDIR)$(mandir)/man1/kat.1
 
 # Skip any errors here... we don't require the PDF to be generated
 install-pdf:
-        -test -s build && test -s build/latex && test -s build/latex/KAT.pdf && $(INSTALL) build/latex/KAT.pdf $(DESTDIR)$(pdfdir)/KAT.pdf;
+	-test -s build && test -s build/latex && test -s build/latex/kat.pdf && $(INSTALL) build/latex/kat.pdf $(DESTDIR)$(pdfdir)/kat.pdf;
 
 install-html:
-        test -s build && test -s build/html && $(MKDIR_P) $(DESTDIR)$(htmldir) && cp -rf build/html $(DESTDIR)$(htmldir) && chmod 755 -R $(DESTDIR)$(htmldir)
+	test -s build && test -s build/html && $(MKDIR_P) $(DESTDIR)$(htmldir) && cp -rf build/html $(DESTDIR)$(htmldir) && chmod 755 -R $(DESTDIR)$(htmldir)
 
 # Make sure all installation directories (e.g. $(bindir))
 # actually exist by making them if necessary.
 installdirs: mkinstalldirs
-        $(srcdir)/mkinstalldirs \
-                $(DESTDIR)$(pdfdir) \
-                $(DESTDIR)$(htmldir) \
-                $(DESTDIR)$(mandir)/man1
+	$(srcdir)/mkinstalldirs \
+		$(DESTDIR)$(pdfdir) \
+		$(DESTDIR)$(htmldir) \
+		$(DESTDIR)$(mandir)/man1
 
 uninstall:
-        rm -Rf "$(DESTDIR)$(mandir)/man1/kat.1" "$(DESTDIR)$(pdfdir)/KAT.pdf" "$(DESTDIR)$(htmldir)"
+	rm -Rf "$(DESTDIR)$(mandir)/man1/kat.1" "$(DESTDIR)$(pdfdir)/kat.pdf" "$(DESTDIR)$(htmldir)"
 
 	
 distdir: $(DISTFILES)
