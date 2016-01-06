@@ -19,8 +19,8 @@ KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta o
 
 In addition, KAT contains a python script for analysing the mathematical distributions present in the K-mer spectra in order to determine how much content is present in each peak.
 
-This README contain some brief details of how to install and use KAT.  For more
-extensive documentation please visit: https://readthedocs.org/projects/kat/
+This README only contains some brief details of how to install and use KAT.  For more
+extensive documentation please visit: https://kat.readthedocs.org/en/latest/
 
 
 ##Installation:
@@ -82,9 +82,7 @@ by typing ```make pdf```, this is not executed by default.
 
 ##Operating Instructions:
 
-After KAT has been installed, the following tools should be available:
-
- - **kat** - a single executable binary file that contains a number of subtools.
+After KAT has been installed, the ```kat``` executable file should be available which contains a number of subtools.
  
 Running ```kat --help``` will bring up a list of available tools within kat.  To get help on any of these subtools simple type: ```kat <tool> --help```.  For example: ```kat sect --help``` will show details on how to use the sequence coverage estimator tool.
 
@@ -123,8 +121,8 @@ See AUTHORS file for more details.
 
 ##Acknowledgements:
 
-Affiliation: The Genome Analysis Centre (TGAC)
-Funding: The Biotechnology and Biological Sciences Research Council (BBSRC)
+ * Affiliation: The Genome Analysis Centre (TGAC)
+ * Funding: The Biotechnology and Biological Sciences Research Council (BBSRC)
 
 We would also like to thank the authors of Jellyfish: https://github.com/gmarcais/Jellyfish; 
 and SeqAn: http://www.seqan.de/.  Both are embedded inside KAT.
