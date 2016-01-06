@@ -13,7 +13,6 @@ prefix	      = /usr/local
 PACKAGE_TARNAME = kat
 top_srcdir    = ..
 srcdir	      = .
-distdir       = @distdir@
 docdir	      = ${prefix}/share/doc/${PACKAGE_TARNAME}
 mandir	      = ${prefix}/share/man
 htmldir	      = ${docdir}
@@ -28,7 +27,7 @@ infodir       = ${prefix}/share/info
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
+ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) $(top_srcdir)/doc/source
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
