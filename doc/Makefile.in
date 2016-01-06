@@ -6,10 +6,13 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = build
+MKDIR_P	      = mkdir -p
 
 # Set autoconf variables
 prefix	      = @prefix@
 PACKAGE_TARNAME = @PACKAGE_TARNAME@
+top_srcdir    = @top_srcdir@
+srcdir	      = @srcdir@
 docdir	      = @docdir@
 mandir	      = @mandir@
 htmldir	      = @htmldir@
@@ -29,6 +32,49 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) sou
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) source
 
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+
+
+
+DISTFILES = source/index.rst \
+	    source/installation.rst \
+	    source/kmer.rst \
+	    source/using.rst \
+	    source/walkthrough.rst \
+	    source/images/ccoli_comp.png \
+	    source/images/ccoli_gcp.png \
+	    source/images/ccoli_hist.png \
+	    source/images/contaminant_all.png \
+	    source/images/contaminant_MP.png \
+	    source/images/contaminant_ope1.png \
+	    source/images/contaminant_ope2.png \
+	    source/images/contaminant_PE.png \
+	    source/images/dist_analysis.png \
+	    source/images/gc_bias_a.png \
+	    source/images/gc_bias_b.png \
+	    source/images/gc_bias_c.png \
+	    source/images/gc_bias_d.png \
+	    source/images/heterozygous_perfect_1.png \
+	    source/images/heterozygous_perfect_2.png \
+	    source/images/heterozygous_real.png \
+	    source/images/kat_logo.png \
+	    source/images/kmer_spectra1.png \
+	    source/images/kmer_spectra_breakdown.png \
+	    source/images/pe_v_asm_clean.png \
+	    source/images/pe_v_mp_after_density.png \
+	    source/images/pe_v_mp_after_shared.png \
+	    source/images/pe_v_mp_before_density.png \
+	    source/images/pe_v_mp_before_shared.png \
+	    source/images/pe_v_pe_1_density.png \
+	    source/images/pe_v_pe_1_shared.png \
+	    source/images/pe_v_pe_2_density.png \
+	    source/images/pe_v_pe_2_shared_1.png \
+	    source/images/pe_v_pe_2_shared_2.png \
+	    source/images/pe_v_rna_bar.png \
+	    source/images/pe_v_rna_shared.png \
+	    source/images/profile.png \
+	    source/images/real_r1_v_r2.png
+
+	
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -186,9 +232,9 @@ pseudoxml:
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
 EMPTY_AUTOMAKE_TARGETS = \
-	all distdir install-exec installdirs \
+	install-exec installdirs \
 	check installcheck tags ctags\
-	dvi install-dvi install-ps install-html install-info install html
+	dvi install-dvi install-ps install-html install-info install-html
 .PHONY: $(EMPTY_AUTOMAKE_TARGETS)
 $(EMPTY_AUTOMAKE_TARGETS):
 
@@ -219,3 +265,33 @@ install-pdf:
 uninstall:
 	rm -f "$(mandir)/man1/kat.1" "$(pdfdir)/KAT.pdf"
 	
+distdir: $(DISTFILES)
+	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
+	list='$(DISTFILES)'; \
+	  dist_files=`for file in $$list; do echo $$file; done | \
+	  sed -e "s|^$$srcdirstrip/||;t" \
+	      -e "s|^$$topsrcdirstrip/|$(top_builddir)/|;t"`; \
+	case $$dist_files in \
+	  */*) $(MKDIR_P) `echo "$$dist_files" | \
+			   sed '/\//!d;s|^|$(distdir)/|;s,/[^/]*$$,,' | \
+			   sort -u` ;; \
+	esac; \
+	for file in $$dist_files; do \
+	  if test -f $$file || test -d $$file; then d=.; else d=$(srcdir); fi; \
+	  if test -d $$d/$$file; then \
+	    dir=`echo "/$$file" | sed -e 's,/[^/]*$$,,'`; \
+	    if test -d "$(distdir)/$$file"; then \
+	      find "$(distdir)/$$file" -type d ! -perm -700 -exec chmod u+rwx {} \;; \
+	    fi; \
+	    if test -d $(srcdir)/$$file && test $$d != $(srcdir); then \
+	      cp -fpR $(srcdir)/$$file "$(distdir)$$dir" || exit 1; \
+	      find "$(distdir)/$$file" -type d ! -perm -700 -exec chmod u+rwx {} \;; \
+	    fi; \
+	    cp -fpR $$d/$$file "$(distdir)$$dir" || exit 1; \
+	  else \
+	    test -f "$(distdir)/$$file" \
+	    || cp -p $$d/$$file "$(distdir)/$$file" \
+	    || exit 1; \
+	  fi; \
+	done
