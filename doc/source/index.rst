@@ -84,6 +84,10 @@ on the tool in its early stages: Paul Bailey, Jose De Vega, Rocio Enriquez-Gasca
 Marco Ferrarini and Dharanya Sampath.  And more recently, those from further afield
 who have contributed on github.
 
+A big thanks to the author of jellyfish, Guillaume Marcais. Jellyfish is fantastic
+piece of software and is critical to enabling KAT to do what it does in an efficient
+and timely fashion.
+
 Last but not least a very special thanks to the Lab guys on their white coats, trying to make
 sense of all our comments, giving us better data each day and trying to get into
 our heads all the complex explanations for the biases and extra variability we
