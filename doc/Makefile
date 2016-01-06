@@ -7,6 +7,7 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = build
 MKDIR_P	      = mkdir -p
+INSTALL	      = /usr/bin/install -c -m 644
 
 # Set autoconf variables
 prefix	      = /usr/local
@@ -233,16 +234,13 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-EMPTY_AUTOMAKE_TARGETS = \
-	install-exec installdirs \
-	check installcheck tags ctags\
-	dvi install-dvi install-ps install-html install-info install-html
+EMPTY_AUTOMAKE_TARGETS = check installcheck tags ctags dvi install-exec install-dvi install-ps install-info
 .PHONY: $(EMPTY_AUTOMAKE_TARGETS)
 $(EMPTY_AUTOMAKE_TARGETS):
 
 # Hook in conventional make targets for building docs
 all: html man
-	
+        
 # Redirect pdf to latexpdf
 pdf: latexpdf
 
@@ -253,19 +251,31 @@ maintainer-clean: clean
 
 # Install and uninstall overrides
 install: install-data
-	
-install-data: install-man install-pdf
-	
+        
+install-data: install-man install-pdf install-html
+        
 # Fail on error
 install-man: 
-	test -s build && test -s build/man && $(MKDIR_P) $(mandir)/man1 && install build/man/kat.1 $(mandir)/man1/kat.1
+        test -s build && test -s build/man && $(INSTALL) build/man/kat.1 $(DESTDIR)$(mandir)/man1/kat.1
 
 # Skip any errors here... we don't require the PDF to be generated
 install-pdf:
-	-test -s build && test -s build/latex && test -s build/latex/KAT.pdf && $(MKDIR_P) $(pdfdir) && install build/latex/KAT.pdf $(pdfdir)/KAT.pdf;
+        -test -s build && test -s build/latex && test -s build/latex/KAT.pdf && $(INSTALL) build/latex/KAT.pdf $(DESTDIR)$(pdfdir)/KAT.pdf;
+
+install-html:
+        test -s build && test -s build/html && $(MKDIR_P) $(DESTDIR)$(htmldir) && cp -rf build/html $(DESTDIR)$(htmldir) && chmod 755 -R $(DESTDIR)$(htmldir)
+
+# Make sure all installation directories (e.g. $(bindir))
+# actually exist by making them if necessary.
+installdirs: mkinstalldirs
+        $(srcdir)/mkinstalldirs \
+                $(DESTDIR)$(pdfdir) \
+                $(DESTDIR)$(htmldir) \
+                $(DESTDIR)$(mandir)/man1
 
 uninstall:
-	rm -f "$(mandir)/man1/kat.1" "$(pdfdir)/KAT.pdf"
+        rm -Rf "$(DESTDIR)$(mandir)/man1/kat.1" "$(DESTDIR)$(pdfdir)/KAT.pdf" "$(DESTDIR)$(htmldir)"
+
 	
 distdir: $(DISTFILES)
 	@srcdirstrip=`echo "$(srcdir)" | sed 's/[].[^$$\\*]/\\\\&/g'`; \
