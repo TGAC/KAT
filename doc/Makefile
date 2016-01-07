@@ -19,6 +19,8 @@ mandir	      = ${prefix}/share/man
 htmldir	      = ${docdir}
 pdfdir        = ${docdir}
 infodir       = ${prefix}/share/info
+top_distdir   = @top_distdir@
+distdir       = @distdir@
 
 # User-friendly check for sphinx-build
 #if test $(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?) = 1; then
@@ -234,9 +236,13 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
+# Automake targets that we'll ignore
 EMPTY_AUTOMAKE_TARGETS = check installcheck tags ctags dvi install-exec install-dvi install-ps install-info
 .PHONY: $(EMPTY_AUTOMAKE_TARGETS)
 $(EMPTY_AUTOMAKE_TARGETS):
+
+# Automake targets that we'll use (that aren't already described)
+.PHONY: all man pdf mostly-clean distclean maintainer-clean install install-data install-man install-html install-pdf installdirs uninstall distdirs
 
 # Hook in conventional make targets for building docs
 all: html man
