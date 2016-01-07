@@ -11,7 +11,6 @@ man:
 EXTRA_DIST =	README.md \
 		COPYING \
 		AUTHORS \
-		INSTALL \
 		ChangeLog \
 		tests/data/EcoliK12.fasta \
 		tests/data/ecoli.header.jf27 \
