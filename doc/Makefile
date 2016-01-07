@@ -19,8 +19,7 @@ mandir	      = ${prefix}/share/man
 htmldir	      = ${docdir}
 pdfdir        = ${docdir}
 infodir       = ${prefix}/share/info
-top_distdir   = @top_distdir@
-distdir       = @distdir@
+top_builddir  = ..
 
 # User-friendly check for sphinx-build
 #if test $(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?) = 1; then
@@ -37,47 +36,48 @@ I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) -c source $(top_srcdir)/doc
 .PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
 
 
-
-DISTFILES = source/index.rst \
-	    source/installation.rst \
-	    source/kmer.rst \
-	    source/using.rst \
-	    source/walkthrough.rst \
-	    source/images/ccoli_comp.png \
-	    source/images/ccoli_gcp.png \
-	    source/images/ccoli_hist.png \
-	    source/images/contaminant_all.png \
-	    source/images/contaminant_MP.png \
-	    source/images/contaminant_ope1.png \
-	    source/images/contaminant_ope2.png \
-	    source/images/contaminant_PE.png \
-	    source/images/dist_analysis.png \
-	    source/images/gc_bias_a.png \
-	    source/images/gc_bias_b.png \
-	    source/images/gc_bias_c.png \
-	    source/images/gc_bias_d.png \
-	    source/images/heterozygous_perfect_1.png \
-	    source/images/heterozygous_perfect_2.png \
-	    source/images/heterozygous_real.png \
-	    source/images/kat_logo.png \
-	    source/images/kmer_spectra1.png \
-	    source/images/kmer_spectra_breakdown.png \
-	    source/images/pe_v_asm_clean.png \
-	    source/images/pe_v_mp_after_density.png \
-	    source/images/pe_v_mp_after_shared.png \
-	    source/images/pe_v_mp_before_density.png \
-	    source/images/pe_v_mp_before_shared.png \
-	    source/images/pe_v_pe_1_density.png \
-	    source/images/pe_v_pe_1_shared.png \
-	    source/images/pe_v_pe_2_density.png \
-	    source/images/pe_v_pe_2_shared_1.png \
-	    source/images/pe_v_pe_2_shared_2.png \
-	    source/images/pe_v_rna_bar.png \
-	    source/images/pe_v_rna_shared.png \
-	    source/images/profile.png \
-	    source/images/real_r1_v_r2.png \
-	    source/images/real_r1_v_r2_shared.png \
-	    source/images/simulated_r1_v_r2.png
+DPS=$(top_srcdir)/doc/source
+DPI=$(DPS)/images
+DISTFILES = $(DPS)/index.rst \
+	    $(DPS)/installation.rst \
+	    $(DPS)/kmer.rst \
+	    $(DPS)/using.rst \
+	    $(DPS)/walkthrough.rst \
+	    $(DPI)/ccoli_comp.png \
+	    $(DPI)/ccoli_gcp.png \
+	    $(DPI)/ccoli_hist.png \
+	    $(DPI)/contaminant_all.png \
+	    $(DPI)/contaminant_MP.png \
+	    $(DPI)/contaminant_ope1.png \
+	    $(DPI)/contaminant_ope2.png \
+	    $(DPI)/contaminant_PE.png \
+	    $(DPI)/dist_analysis.png \
+	    $(DPI)/gc_bias_a.png \
+	    $(DPI)/gc_bias_b.png \
+	    $(DPI)/gc_bias_c.png \
+	    $(DPI)/gc_bias_d.png \
+	    $(DPI)/heterozygous_perfect_1.png \
+	    $(DPI)/heterozygous_perfect_2.png \
+	    $(DPI)/heterozygous_real.png \
+	    $(DPI)/kat_logo.png \
+	    $(DPI)/kmer_spectra1.png \
+	    $(DPI)/kmer_spectra_breakdown.png \
+	    $(DPI)/pe_v_asm_clean.png \
+	    $(DPI)/pe_v_mp_after_density.png \
+	    $(DPI)/pe_v_mp_after_shared.png \
+	    $(DPI)/pe_v_mp_before_density.png \
+	    $(DPI)/pe_v_mp_before_shared.png \
+	    $(DPI)/pe_v_pe_1_density.png \
+	    $(DPI)/pe_v_pe_1_shared.png \
+	    $(DPI)/pe_v_pe_2_density.png \
+	    $(DPI)/pe_v_pe_2_shared_1.png \
+	    $(DPI)/pe_v_pe_2_shared_2.png \
+	    $(DPI)/pe_v_rna_bar.png \
+	    $(DPI)/pe_v_rna_shared.png \
+	    $(DPI)/profile.png \
+	    $(DPI)/real_r1_v_r2.png \
+	    $(DPI)/real_r1_v_r2_shared.png \
+	    $(DPI)/simulated_r1_v_r2.png
 
 	
 
