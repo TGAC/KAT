@@ -11,7 +11,7 @@ man:
 EXTRA_DIST =	README.md \
 		COPYING \
 		AUTHORS \
-		ChangeLog \
+		NEWS \
 		tests/data/EcoliK12.fasta \
 		tests/data/ecoli.header.jf27 \
 		tests/data/kat.hist \

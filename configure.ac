@@ -3,47 +3,27 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
+AC_PREREQ([2.68])
 AC_INIT([kat],[2.1.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
-
-# Require autoconf 2.53 or higher
-AC_PREREQ([2.53])
-
-# Check that the configure script is being run from the right directory
 AC_CONFIG_SRCDIR([src/kat.cc])
-
-# Put auxillary build scripts in 'build-aux' directory
 AC_CONFIG_AUX_DIR([build-aux])
-
-# Set the macro directory
 AC_CONFIG_MACRO_DIR([m4])
-
-# Automake initialisation.
-AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
-
-# Use this to display simplified compilation output (can be explicitly disabled by using --disable-silent-rules option in the configure script)
-AM_SILENT_RULES([yes])
-
-# Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
 AC_LANG_CPLUSPLUS
-
-# Set output variable CXXCPP to a command that runs the C++ preprocessor. If ‘$CXX -E’ doesn't work, /lib/cpp is used. It is portable to run CXXCPP only on files with a .c, .C, .cc, or .cpp extension.
 AC_PROG_CXXCPP
-
-# Identify a c++ compiler to use
 AC_PROG_CXX
+AC_PROG_INSTALL
 
 # Ensure there's C++11 support
 AX_CXX_COMPILE_STDCXX_11(,[mandatory])
 
-# Create the 'install-sh' script, which is used as the 'install' make target
-AC_PROG_INSTALL
-
-# Required for using the archiver
+# Automake configuration.
+AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
+AM_SILENT_RULES([yes])
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
 
-# Uses libtool for creating libraries
-AC_PROG_LIBTOOL
+# Libtool setup
+LT_INIT
 
 
 ######################################################################
