@@ -1,6 +1,19 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
+EXTRA_DIST = \
+	data/EcoliK12.fasta \
+	data/ecoli.header.jf27 \
+	data/kat.hist \
+	data/sect_length_test.fa \
+	data/sect_test.fa \
+	data/ecoli_r1.1K.fastq \
+	data/ecoli_r2.1K.fastq \
+	test_comp.sh \
+	test_gcp.sh \
+	test_hist.sh \
+	test_sect.sh
+	
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
