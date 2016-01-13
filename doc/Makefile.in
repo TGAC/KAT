@@ -20,6 +20,8 @@ htmldir	      = @htmldir@
 pdfdir        = @pdfdir@
 infodir       = @infodir@
 top_builddir  = @top_builddir@
+datarootdir   = @datarootdir@
+datadir       = @datadir@
 
 # User-friendly check for sphinx-build
 #if test $(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?) = 1; then

@@ -97,14 +97,25 @@ else
     AC_DEFINE([HAVE_PYTHON], [1], [Python present])
 fi
 
+# Check for sphinx to build documentation (optional)
 AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
-if test x"${sphinx}" = x"no"; then
-    AC_MSG_WARN([Sphinx not detected, won't create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
-    MAKE_DOCS=0
+if test x"${sphinx}" = x"yes"; then
+	#Now check if the version is correct
+	sphinx_major_version=`sphinx-build --version 2>&1 | cut -d' ' -f3 | cut -d '.' -f 1 | tr -d " \t\n\r"`
+        sphinx_minor_version=`sphinx-build --version 2>&1 | cut -d' ' -f3 | cut -d '.' -f 2 | tr -d " \t\n\r"`
+	if test x"${sphinx_major_version}" = x""; then sphinx_major_version=0; fi
+	if test x"${sphinx_minor_version}" = x""; then sphinx_minor_version=0; fi
+	major_size=${#sphinx_major_version}
+	minor_size=${#sphinx_minor_version}
+	if (( ("${major_size}" > 2) || ("${minor_size}" > 2) )); then sphinx_major_version=0; sphinx_minor_version=0; fi
+	if (( ("${sphinx_major_version}" < 1 ) || (  ( "${sphinx_major_version}" >= 1 ) && ( "${sphinx_minor_version}" < 3 ) ) )); then
+    		AC_MSG_WARN([Sphinx detected, but version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
+		sphinx="no"
+	fi
 else
-    MAKE_DOCS=1
+    AC_MSG_WARN([Sphinx not detected, wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
 fi
-
+AM_CONDITIONAL([MAKE_DOCS], [test x$sphinx = xyes])
 AC_SUBST([MAKE_DOCS])
 
 
@@ -157,5 +168,9 @@ else
         AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). Should you require plotting functionality, you must install either anaconda3 (or python3 with numpy, scipy and matplotlib) or gnuplot, and then reconfigure and compile to enable plotting in KAT.])
     fi
 fi 
+
+if test x"${sphinx}" = x"no"; then
+    AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
+fi
 
 
