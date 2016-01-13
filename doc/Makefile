@@ -14,12 +14,14 @@ prefix	      = /usr/local
 PACKAGE_TARNAME = kat
 top_srcdir    = ..
 srcdir	      = .
-docdir	      = ${prefix}/share/doc/${PACKAGE_TARNAME}
-mandir	      = ${prefix}/share/man
+docdir	      = ${datarootdir}/doc/${PACKAGE_TARNAME}
+mandir	      = ${datarootdir}/man
 htmldir	      = ${docdir}
 pdfdir        = ${docdir}
-infodir       = ${prefix}/share/info
+infodir       = ${datarootdir}/info
 top_builddir  = ..
+datarootdir   = ${prefix}/share
+datadir       = ${datarootdir}
 
 # User-friendly check for sphinx-build
 #if test $(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?) = 1; then
