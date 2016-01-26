@@ -1,3 +1,4 @@
+![alt text](doc/source/images/kat_logo.png "The K-mer Analysis Toolkit")
 
 #KAT - The K-mer Analysis Toolkit
 

@@ -9,8 +9,13 @@ Welcome to KAT's documentation!
 .. image:: images/kat_logo.png
     :scale: 30%
 
-KAT is a suite of tools that generating, analysing and comparing k-mer spectra 
-produced from sequence files (fasta or fastq).
+KAT provides a suite of tools that, through the use of k-mer counts, help the user address or identify issues such as determining sequencing completeness for assembly, assessing sequencing bias, identifying contaminants, validating genomic assemblies and filtering content.  KAT is geared primarily to work with high-coverage genomic reads from Illumina devices, although can work with any fasta or fastq sequence file.  
+
+At it’s core KAT exploits the concept of k-mer spectra (histograms plotting number of distinct k-mers at each frequency).  By studying properties of the k-mer spectra it’s possible to discover important information about the data quality (level of errors, sequencing biases, completeness of sequencing coverage and potential contamination) and genomic complexity (size, karyotype, levels of heterozygosity and repeat content).  Further information can be gleaned through pairwise comparison of spectra, making KAT useful for WGS library comparisons and assembly validation.
+
+The K-mer counting itself, a critical element for all KAT tools, is accomplished through an integrated and modified version of Jellyfish2's counting method http://www.genome.umd.edu/jellyfish.html.  We selected Jellyfish for this task because it supports large K values and is one of the fastest k-mer counting programs currently available.
+
+
 
 .. toctree::
     :maxdepth: 2
