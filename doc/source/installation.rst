@@ -128,14 +128,11 @@ Internal Dependencies
 
 KAT contains jellyfish and SeqAn in the source tree.  The user does
 not need to do anything special to handle these dependencies as they are automatically
-built and managed inside KAT.  However, it is important to note that KAT
-will create the jellyfish executable in it's bin directory after installation, which
-may conflict with your own jellyfish executable if it was already installed on your
-PATH.  If you do not want KAT to potentially override or conflict with an 
-existing jellyfish installation you might want to consider installing KAT
-to a custom location.  You can do this with the ``--prefix`` option when 
-running the configure script.  We might revisit this in the future to remove
-this potential issue.
+built and managed inside KAT.  
+
+To avoid conflicts with a previously installed version of jellyfish
+on the user's system, we change the name of our jellyfish binary to kat_jellyfish.
+This prefix is applied to the jellyfish libraries and documentation.
 
 
 Compilation and Installation
