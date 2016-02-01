@@ -32,8 +32,9 @@ dist_bin_SCRIPTS = \
 # SRC DIRS
 make_dirs=deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 lib src tests
 
-if test @MAKE_DOCS@ = 1; then
-    make_dirs +=  doc
+if MAKE_DOCS
+    make_dirs += doc
+endif
 
 SUBDIRS = $(make_dirs)
 
