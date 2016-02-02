@@ -91,7 +91,9 @@ namespace kat {
                 // In this case we just have to assume everything is properly installed 
                 canonicalExe = exe;
                 isOnPath = true;  
+#ifdef BINDIR
                 scriptsDir = BINDIR;
+#endif
             }
             
                             
@@ -125,18 +127,18 @@ namespace kat {
                             }
                         }
                     }
-
-                    // Also double check the kat_distanalysis.py script exists
-                    kda = scriptsDir;
-                    kda /= "kat_distanalysis.py";
-
-                    if (!exists(kda)) {
-                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                            "Found the scripts directory where expected") + scriptsDir.string() + 
-                                ". However, could not find the \"kat_distanalysis.py\" script inside."));
-                    }
                 }
-            }            
+            }
+            
+            // Also double check the kat_distanalysis.py script exists
+            path kda = scriptsDir;
+            kda /= "kat_distanalysis.py";
+
+            if (!exists(kda)) {
+                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                    "Found the scripts directory where expected") + scriptsDir.string() + 
+                        ". However, could not find the \"kat_distanalysis.py\" script inside."));
+            }
         }
         
         
