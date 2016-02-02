@@ -44,6 +44,8 @@ parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
+parser.add_argument("--contours", choices=["none", "normal", "smooth"],
+                    default="normal")
 parser.add_argument("--not_rasterised", dest="rasterised",
                     action="store_false",
                     help="Don't rasterise graphics (slower).")
@@ -96,7 +98,9 @@ input_file.close()
 if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
                                                     matrix.shape[1]))
-matrix_smooth = ndimage.gaussian_filter(matrix, sigma=2.0, order=0)
+
+if args.contours == "smooth":
+    matrix_smooth = ndimage.gaussian_filter(matrix, sigma=2.0, order=0)
 
 if args.x_max is None or args.y_max is None or args.z_max is None:
     # find peaks
@@ -152,7 +156,10 @@ cbar = plt.colorbar()
 cbar.set_label(z_label)
 cbar.solids.set_rasterized(args.rasterised)
 levels = np.arange(zmax/8, zmax, zmax/8)
-plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
+if args.contours == "normal":
+    plt.contour(matrix, colors="white", alpha=0.6, levels=levels)
+elif args.contours == "smooth":
+    plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
 
 plt.title(title)
 plt.xlabel(x_label)
