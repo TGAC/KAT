@@ -17,10 +17,16 @@
 
 #pragma once
 
+#include <unistd.h>
+#include <limits.h>
 #include <iostream>
 using std::endl;
 using std::string;
 using std::cout;
+
+#ifdef OS_MAC
+#include <mach-o/dyld.h>
+#endif
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -70,7 +76,6 @@ namespace kat {
             
             exe = argv;
             
-            
             if(exe.is_absolute()) {
                 
                 // Absolute path provided...  Easy job... nothing special to do, 
@@ -89,63 +94,77 @@ namespace kat {
 
                 // Only name provided
                 // In this case we just have to assume everything is properly installed 
-                canonicalExe = exe;
-                isOnPath = true;  
-#ifdef BINDIR
-                scriptsDir = BINDIR;
+#ifdef OS_LINUX
+                canonicalExe = do_readlink();
+#elif OS_MAC
+                canonicalExe = get_mac_exe();
 #else
-                scriptsDir = "/usr/local/bin";
+                canonicalExe = do_readlink(); // Assume linux
 #endif
-                
-                if (!exists(scriptsDir)) {
-                    scriptsDir = "/usr/local/bin";
-                }
+                isOnPath = true;  
             }
-            
-                            
-            // We assume scripts are on the path if exe was on the path
-            if (isAbsolute || isRelative) {
                 
-                // Check to see if scripts are adjacent to exe first
-                path kda(canonicalExe.parent_path());
-                kda /= "kat_distanalysis.py";
-                if (exists(kda)) {
-                    scriptsDir = canonicalExe.parent_path();
-                }
-                else {
-                
-                    // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests) 
-                    // so try 2, 3 and 4 levels.
-                    scriptsDir = canonicalExe.parent_path().parent_path();
-                    scriptsDir /= "scripts";                 
+
+            // Check to see if scripts are adjacent to exe first
+            path kda(canonicalExe.parent_path());
+            kda /= "kat_distanalysis.py";
+            if (exists(kda)) {
+                scriptsDir = canonicalExe.parent_path();
+            }
+            else {
+                // If we are here then we are not running from an installed location, 
+                // we are running from the source tree.
+                // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests) 
+                // so try 2, 3 and 4 levels.
+                scriptsDir = canonicalExe.parent_path().parent_path();
+                scriptsDir /= "scripts";                 
+
+                if (!exists(scriptsDir)) {
+                    scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
+                    scriptsDir /= "scripts";       
 
                     if (!exists(scriptsDir)) {
-                        scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
-                        scriptsDir /= "scripts";       
-                        
-                        if (!exists(scriptsDir)) {
-                            scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
-                            scriptsDir /= "scripts";        
+                        scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
+                        scriptsDir /= "scripts";        
 
-                            if (!exists(scriptsDir)) {
-                                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                                    "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
-                            }
+                        if (!exists(scriptsDir)) {
+                            BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                                "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
                         }
+
                     }
                 }
             }
-            
-            // Also double check the kat_distanalysis.py script exists
-            path kda = scriptsDir;
+            kda=scriptsDir;
             kda /= "kat_distanalysis.py";
-
             if (!exists(kda)) {
                 BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                    "Found the scripts directory where expected") + scriptsDir.string() + 
-                        ". However, could not find the \"kat_distanalysis.py\" script inside."));
+                     "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
             }
+
         }
+        
+
+        std::string do_readlink() {
+            char buff[PATH_MAX];
+            ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
+            if (len != -1) {
+                buff[len] = '\0';
+                return std::string(buff);
+            }
+            BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                     "Could not find locations of executable from /proc/self/exe")));
+                
+        }
+        
+#ifdef OS_MAC
+        std::string get_mac_exe() {
+            char path[1024];
+            uint32_t size = sizeof(path);
+            _NSGetExecutablePath(path, &size);
+            return path;
+        }
+#endif
         
         
         // **** Destructor ****

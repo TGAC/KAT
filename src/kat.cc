@@ -19,6 +19,7 @@
 #include <config.h>
 #endif
 
+#include <sys/ioctl.h>
 #include <string.h>
 #include <exception>
 #include <iostream>
@@ -94,17 +95,19 @@ Mode parseMode(string mode) {
  const string helpMessage() {
      return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
                     "The First argument should be the tool/mode you wish to use:\n\n" \
-                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using\n" \
-                    "             K-mers from another sequence file.\n" \
-                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files.\n" \
-                    "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
-                    "             count.\n" \
-                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to jellyfish histogram\n" \
-                    "             sub command but adds metadata in output for easy plotting, also actually runs multi-threaded.\n" \
-                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on user-defined GC\n" \
-                    "             and coverage limits.\n" \
-                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
-                    "             Requires gnuplot.\n\n" \
+                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
+                    "             a file using K-mers from another sequence file.\n" \
+                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
+                    "             sequence files.\n" \
+                    "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
+                    "             count and a K-mer count.\n" \
+                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
+                    "             jellyfish histogram sub command but adds metadata in output for easy plotting,\n" \
+                    "             also actually runs multi-threaded.\n" \
+                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
+                    "             user-defined GC and coverage limits.\n" \
+                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare\n" \
+                    "             distributions.\n\n" \
                     "Options";
         }
 
@@ -122,9 +125,12 @@ int main(int argc, char *argv[])
         bool verbose;
         bool version;
         bool help;
+        
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     
         // Declare the supported options.
-        po::options_description generic_options(helpMessage(), 100);
+        po::options_description generic_options(helpMessage(), w.ws_col);
         generic_options.add_options()
                 ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
                 ("version", po::bool_switch(&version)->default_value(false), "Print version string")

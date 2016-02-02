@@ -25,6 +25,14 @@ AM_PROG_AR
 # Libtool setup
 LT_INIT
 
+# Detect OS
+UNAME_S=`uname -s`
+if test x"${UNAME_S}" == x"Linux"; then
+    AC_DEFINE([OS_LINUX], [1], [Linux detected])
+fi
+if test x"${UNAME_S}" == x"Darwin"; then
+    AC_DEFINE([OS_MAC], [1], [Mac detected])
+fi
 
 ######################################################################
 # Dependency checks

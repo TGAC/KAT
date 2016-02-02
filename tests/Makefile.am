@@ -25,7 +25,6 @@ CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	    -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	    -isystem $(top_srcdir)/lib/include \
 	    -DDATADIR=\"$(srcdir)/data\" \
-	    -DBINDIR=\"$(bindir)\" \
 	    @AM_CPPFLAGS@
 
 TEST_EXTENSIONS = .sh

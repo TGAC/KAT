@@ -29,7 +29,6 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 libkat_2_1_la_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/lib/include \
-	-DBINDIR=\"$(bindir)\" \
 	@AM_CPPFLAGS@
 	
 libkat_2_1_la_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11  @AM_CXXFLAGS@

@@ -11,7 +11,6 @@ kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/lib/include \
-	-DBINDIR=\"$(bindir)\" \
 	@AM_CPPFLAGS@ @CPPFLAGS@
 
 kat_LDFLAGS = @AM_LDFLAGS@ @LDFLAGS@

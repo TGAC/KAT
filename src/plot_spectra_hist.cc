@@ -26,6 +26,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <sys/ioctl.h>
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -200,9 +201,13 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     bool        y_logscale;
     bool        verbose;
     bool        help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(PlotSpectraHist::helpMessage(), 100);
+    po::options_description generic_options(PlotSpectraHist::helpMessage(), w.ws_col);
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")

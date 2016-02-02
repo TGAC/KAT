@@ -24,6 +24,7 @@
 #include <vector>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 using std::cerr;
 using std::cout;
@@ -207,9 +208,13 @@ int kat::Plot::main(int argc, char *argv[]) {
     vector<string> others;
     bool verbose;
     bool help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(Plot::helpMessage(), 100);
+    po::options_description generic_options(Plot::helpMessage(), w.ws_col);
     generic_options.add_options()
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
