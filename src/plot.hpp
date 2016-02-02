@@ -56,9 +56,9 @@ namespace kat {
         
         static path getPythonScript(const PlotMode mode);
         
-        static void executePythonPlot(const PlotMode mode, vector<string>& args);
+        static void executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose);
         
-        static void executePythonPlot(const PlotMode mode, int argc, char *argv[]);
+        static void executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose);
                 
         
     private:

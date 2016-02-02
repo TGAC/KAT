@@ -114,7 +114,7 @@ wchar_t* kat::Plot::convertCharToWideChar(const char* c) {
     return wc;
 }
 
-void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args) {
+void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose) {
     
     char* char_args[50];
     
@@ -122,14 +122,14 @@ void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args) {
         char_args[i] = strdup(args[i].c_str());
     }
     
-    kat::Plot::executePythonPlot(mode, (int)args.size(), char_args);
+    kat::Plot::executePythonPlot(mode, (int)args.size(), char_args, verbose);
     
     for(size_t i = 0; i < args.size(); i++) {
         free(char_args[i]);
     }
 }
 
-void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
+void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose) {
     
     const path script_name = getPythonScript(mode);
     const path scripts_dir = katFileSystem.GetScriptsDir();
@@ -151,7 +151,9 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
         wargv[i] = convertCharToWideChar("\0");
     }
     
-    //cout << endl << "Effective command line: " << ss.str() << endl << endl;
+    if (verbose) {
+        cout << endl << "Effective command line: " << ss.str() << endl << endl;
+    }
 
     std::ifstream script_in(full_script_path.c_str());
     std::string contents((std::istreambuf_iterator<char>(script_in)), std::istreambuf_iterator<char>());
@@ -203,11 +205,13 @@ int kat::Plot::main(int argc, char *argv[]) {
 
     string modeStr;
     vector<string> others;
+    bool verbose;
     bool help;
 
     // Declare the supported options.
     po::options_description generic_options(Plot::helpMessage(), 100);
     generic_options.add_options()
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
 
@@ -248,7 +252,7 @@ int kat::Plot::main(int argc, char *argv[]) {
 
     // Execute via appropriate method (or error)
 #if HAVE_PYTHON
-    executePythonPlot(mode, modeArgC, modeArgV);
+    executePythonPlot(mode, modeArgC, modeArgV, verbose);
 #elif HAVE_GNUPLOT
     executeGnuplotPlot(mode, modeArgC, modeArgV);
 #else

@@ -217,7 +217,7 @@ void kat::Gcp::plot(const string& output_type) {
         args.push_back(string("--z_label=") + zLabel);
         args.push_back(string("--title=") + title);
         args.push_back(outputPrefix.string() + ".mx");            
-        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
 #elif HAVE_GNUPLOT
     
     PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx." + output_type));

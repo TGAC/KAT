@@ -90,7 +90,8 @@ namespace kat {
                 // Only name provided
                 // In this case we just have to assume everything is properly installed 
                 canonicalExe = exe;
-                isOnPath = true;     
+                isOnPath = true;  
+                scriptsDir = BINDIR;
             }
             
                             
@@ -135,7 +136,7 @@ namespace kat {
                                 ". However, could not find the \"kat_distanalysis.py\" script inside."));
                     }
                 }
-            }
+            }            
         }
         
         
@@ -149,6 +150,19 @@ namespace kat {
         path GetScriptsDir() const {
             return scriptsDir;
         }
+        
+        bool IsAbsolute() const {
+            return isAbsolute;
+        }
+
+        bool IsOnPath() const {
+            return isOnPath;
+        }
+
+        bool IsRelative() const {
+            return isRelative;
+        }
+
         
         
         friend std::ostream& operator<<(std::ostream &strm, const KatFS& pfs) {

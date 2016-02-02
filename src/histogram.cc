@@ -221,7 +221,7 @@ void kat::Histogram::plot(const string& output_type) {
     args.push_back(string("--y_label=\"") + yLabel + "\"");
     args.push_back(string("--title=\"") + title + "\"");
     args.push_back(outputPrefix.string());
-    Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args);
+    Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args, this->verbose);
         
     
 #elif HAVE_GNUPLOT

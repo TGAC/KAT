@@ -529,7 +529,7 @@ void kat::Comp::plot(const string& output_type) {
         args.push_back(string("--z_label='") + zLabel + "'");
         args.push_back(string("--title='") + title + "'");
         args.push_back(getMxOutPath().string());            
-        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
 #elif HAVE_GNUPLOT
         PlotDensity pd(getMxOutPath(), outputFile);
         pd.setXLabel(xLabel);
@@ -563,7 +563,7 @@ void kat::Comp::plot(const string& output_type) {
         args.push_back(string("--y_label='") + yLabel + "'");
         args.push_back(string("--title='") + title + "'");
         args.push_back(getMxOutPath().string());
-        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args);
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args, this->verbose);
         
 #elif HAVE_GNUPLOT
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));

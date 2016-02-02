@@ -119,12 +119,14 @@ int main(int argc, char *argv[])
         // KAT args
         string modeStr;
         std::vector<string> others;
+        bool verbose;
         bool version;
         bool help;
     
         // Declare the supported options.
         po::options_description generic_options(helpMessage(), 100);
         generic_options.add_options()
+                ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
                 ("version", po::bool_switch(&version)->default_value(false), "Print version string")
                 ("help", po::bool_switch(&help)->default_value(false), "Produce help message")
                 ;
@@ -179,7 +181,9 @@ int main(int argc, char *argv[])
         
         kat::katFileSystem = KatFS(argv[0]);
         
-        //cout << kat::katFileSystem << endl;
+        if (verbose) {
+            cout << kat::katFileSystem << endl << endl;
+        }
         
         Mode mode = parseMode(modeStr);
         
