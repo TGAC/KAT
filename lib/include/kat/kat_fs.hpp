@@ -93,7 +93,13 @@ namespace kat {
                 isOnPath = true;  
 #ifdef BINDIR
                 scriptsDir = BINDIR;
+#else
+                scriptsDir = "/usr/local/bin";
 #endif
+                
+                if (!exists(scriptsDir)) {
+                    scriptsDir = "/usr/local/bin";
+                }
             }
             
                             
