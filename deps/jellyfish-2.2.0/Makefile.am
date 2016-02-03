@@ -203,7 +203,7 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 	               unit_tests/test_stdio_filebuf.cc
 bin_test_all_SOURCES += jellyfish/backtrace.cc
 
-bin_test_all_CPPFLAGS = -Dprotected=public -Dprivate=public -DJSON_IS_AMALGAMATION=1
+bin_test_all_CPPFLAGS = -DJSON_IS_AMALGAMATION=1
 bin_test_all_CXXFLAGS = $(AM_CXXFLAGS) -I$(top_srcdir)/unit_tests/gtest/include -I$(top_srcdir)/unit_tests -I$(top_srcdir)/include
 bin_test_all_LDADD = libgtest.la $(LDADD)
 YAGGO_SOURCES += unit_tests/test_main_cmdline.hpp
