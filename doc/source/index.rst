@@ -104,5 +104,7 @@ Credits
 
  - Bernardo Clavijo (KAT's godfather, evangelist and all-round k-mer guru)
  - Daniel Mapleson (The software architect and developer)
+ - Gonzalo Garcia (KAT superuser and primary tester)
  - George Kettleborough (For the recent python plotting functionality)
- - Gonzalo Garcia and Jon Wright (KAT superusers and providers of invaluable feedback)
+ - Jon Wright (KAT superuser and documentation writer)
+ 

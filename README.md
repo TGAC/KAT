@@ -112,8 +112,8 @@ GNU GPL V3.  See COPYING file for more details.
 * Darren Heavens
 * Sarah Ayling
 * Mario Caccamo
-* George Kettleborough
 * Gonzalo Garcia
+* George Kettleborough
 * Jon Wright
 
 
