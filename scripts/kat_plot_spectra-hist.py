@@ -146,7 +146,8 @@ colours = ["#cc0000",
            "#f57900",
            "#edd400"]
 for xt,yt,lb,i in zip(x,y,labels,list(range(len(x)))):
-    plt.plot(xt, yt, label=lb, color=colours[i%len(colours)])
+    plt.plot(xt, yt, "o-", label=lb,
+             color=colours[i%len(colours)], markersize=3)
 
 if args.x_logscale:
     plt.xscale("log")
