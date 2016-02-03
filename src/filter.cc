@@ -67,6 +67,7 @@ int kat::Filter::main(int argc, char *argv[]) {
 
     string modeStr;
     vector<string> others;
+    bool verbose;
     bool help;
     
     struct winsize w;
@@ -76,6 +77,7 @@ int kat::Filter::main(int argc, char *argv[]) {
     // Declare the supported options.
     po::options_description generic_options(Filter::helpMessage(), w.ws_col);
     generic_options.add_options()
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
 
@@ -102,7 +104,7 @@ int kat::Filter::main(int argc, char *argv[]) {
     po::notify(vm);
 
     // Output help information the exit if requested
-    if (argc == 1 || (argc == 2 && help)) {
+    if (argc == 1 || (argc == 2 && verbose) || ((argc == 2 || argc == 3) && help)) {
         cout << generic_options << endl;
         return 1;
     }

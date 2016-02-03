@@ -159,8 +159,13 @@ int main(int argc, char *argv[])
         po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(p).allow_unregistered().run(), vm);
         po::notify(vm);
 
+        kat::katFileSystem = KatFS(argv[0]);
+        
+        if (verbose) {
+            cout << kat::katFileSystem << endl << endl;
+        }
         // Output help information the exit if requested
-        if (argc == 1 || (argc == 2 && help)) {
+        if (argc == 1 || (argc == 2 && verbose) || ((argc == 2 || argc == 3) && help)) {
             cout << generic_options << endl;
             return 1;
         }
@@ -183,12 +188,6 @@ int main(int argc, char *argv[])
         else {
             // Output for the first line in a normal KAT run
             cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
-        }
-        
-        kat::katFileSystem = KatFS(argv[0]);
-        
-        if (verbose) {
-            cout << kat::katFileSystem << endl << endl;
         }
         
         Mode mode = parseMode(modeStr);

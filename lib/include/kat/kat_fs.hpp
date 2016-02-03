@@ -62,7 +62,7 @@ namespace kat {
         /**
          * Assume on PATH by default
          */
-        KatFS() : KatFS("kat") {}
+        KatFS() {}
         
         /**
          * 
@@ -198,7 +198,7 @@ namespace kat {
                         << " - argv: " << pfs.exe << endl
                         << "  - type: " << (pfs.isAbsolute ? "absolute" : pfs.isRelative ? "relative" : "on PATH") << endl
                         << " - Canonical path: " << pfs.canonicalExe << endl
-                        << " - Scripts dir: " << (pfs.scriptsDir.empty() ? "assuming scripts on PATH" : pfs.scriptsDir) << endl << endl;                   
+                        << " - Scripts dir: " << (pfs.scriptsDir.empty() ? "assuming scripts on PATH" : pfs.scriptsDir) << endl;                   
         }
         
         /**

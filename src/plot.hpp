@@ -76,19 +76,20 @@ namespace kat {
             return string("Usage: kat plot <mode>\n\n") +
                     "Create K-mer Plots\n\n" +
                     "First argument should be the plot mode you wish to use:\n" \
-                    "  * density:         Creates a density plot from a matrix created with the \"comp\" tool or the \"GCP\"\n" \
-                    "                     tool.  Typically this is used to compare two K-mer hashes produced by different NGS\n" \
-                    "                     reads, or to represent the kmer coverage vs GC count plots.\n" \
-                    "  * profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output\n" \
-                    "                     coverage from the \"sect\" tool\n" \
-                    "  * spectra-cn:      Creates a stacked histogram using a matrix created with the \"comp\" tool.  Typically\n" \
-                    "                     this is used to compare a jellyfish hash produced from a read set to a jellyfish hash\n" \
-                    "                     produced from an assembly. The plot shows the amount of distinct K-mers absent, as well\n" \
-                    "                     as the copy number variation present within the assembly.\n" \
-                    "  * spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either by jellyfish-\n" \
-                    "                     histo or kat-histo.\n" \
-                    "  * spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived from\n" \
-                    "                     selected rows or columns in a matrix produced by the \"comp\".\n\n" \
+                    "  * density:         Creates a density plot from a matrix created with the \"comp\" tool or the\n" \
+                    "                     \"GCP\" tool.  Typically this is used to compare two K-mer hashes produced\n" \
+                    "                     by different NGS reads, or to represent the kmer coverage vs GC count plots.\n" \
+                    "  * profile:         Creates a K-mer coverage plot for a single sequence.  Takes in fasta\n" \
+                    "                     coverage output from the \"sect\" tool\n" \
+                    "  * spectra-cn:      Creates a stacked histogram using a matrix created with the \"comp\" tool.\n" \
+                    "                     Typically this is used to compare a jellyfish hash produced from a read set\n" \
+                    "                     to a jellyfish hash produced from an assembly. The plot shows the amount of\n" \
+                    "                     distinct K-mers absent, as well as the copy number variation present within\n" \
+                    "                     the assembly.\n" \
+                    "  * spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either\n" \
+                    "                     by jellyfish-histo or kat-histo.\n" \
+                    "  * spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived\n" \
+                    "                     from selected rows or columns in a matrix produced by the \"comp\".\n\n" \
                     "Options";
         }
         
