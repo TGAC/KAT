@@ -102,9 +102,9 @@ were finding day after day.
 Credits
 =======
 
- - Bernardo Clavijo (KAT's godfather, evangelist and all-round k-mer guru)
  - Daniel Mapleson (The software architect and developer)
  - Gonzalo Garcia (KAT superuser and primary tester)
  - George Kettleborough (For the recent python plotting functionality)
  - Jon Wright (KAT superuser and documentation writer)
+ - Bernardo Clavijo (KAT's godfather, evangelist and all-round k-mer guru)
  
