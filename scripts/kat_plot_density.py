@@ -3,6 +3,8 @@
 import argparse
 import numpy as np
 import scipy.ndimage as ndimage
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import kat_plot_colormaps as cmaps
 
