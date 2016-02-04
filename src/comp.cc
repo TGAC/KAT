@@ -565,9 +565,6 @@ void kat::Comp::plot(const string& output_type) {
         
 #elif HAVE_GNUPLOT
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));
-        pscn.setTitle(title);
-        pscn.setYLabel(yLabel);
-        pscn.setXLabel(xLabel);
         pscn.setOutputType(output_type);
         res = pscn.plot();
         
