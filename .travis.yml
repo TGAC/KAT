@@ -27,7 +27,7 @@ install:
 - tar -xf boost.tar.gz
 - cd boost_1_59_0
 - sudo ./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
-- if ["$COMPILER" == "GCC5" ]; then sudo ./b2 -d0 --toolset=gcc-4.9 install; else sudo ./b2 -d0 --toolset=gcc-5 install; fi
+- if [ "$COMPILER" == "GCC5" ]; then sudo ./b2 -d0 --toolset=gcc-5 install; else sudo ./b2 -d0 --toolset=gcc-4.9 install; fi
 - cd ..
 
 
