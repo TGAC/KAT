@@ -519,27 +519,15 @@ void kat::Comp::plot(const string& output_type) {
     if (densityPlot) {
         
         path outputFile = path(getMxOutPath().string() + ".density." + output_type);
-        string xLabel = kstr + "-mer frequency for " + input[0].pathString();
-        string yLabel = kstr + "-mer frequency for " + input[1].pathString();
-        string zLabel = string("# distinct ") + kstr + "-mers";
-        string title = string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
         
 #if HAVE_PYTHON
         vector<string> args;
         args.push_back("kat_plot_density.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(string("--x_label='") + xLabel + "'");
-        args.push_back(string("--y_label='") + yLabel + "'");
-        args.push_back(string("--z_label='") + zLabel + "'");
-        args.push_back(string("--title='") + title + "'");
         args.push_back(getMxOutPath().string());            
         Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
 #elif HAVE_GNUPLOT
         PlotDensity pd(getMxOutPath(), outputFile);
-        pd.setXLabel(xLabel);
-        pd.setYLabel(yLabel);
-        pd.setZLabel(zLabel);
-        pd.setTitle(title);
         pd.setOutputType(output_type);
         res = pd.plot();
         
@@ -579,37 +567,24 @@ void kat::Comp::plot(const string& output_type) {
        
         path outputFile1 = path(outputPrefix.string() + ".1.hist." + output_type);
         path outputFile2 = path(outputPrefix.string() + ".2.hist." + output_type);
-        string xLabel = kstr + "-mer frequency";
-        string yLabel = "# distinct " + kstr + "-mers";
-        string title1 = kstr + "-mer spectra for: " + input[0].pathString();
-        string title2 = kstr + "-mer spectra for: " + input[1].pathString();
         
 #if HAVE_PYTHON        
        
         vector<string> args1;
         args1.push_back("kat_plot_spectra-hist.py");
         args1.push_back(string("--output=") + outputFile1.string());
-        args1.push_back(string("--x_label=") + xLabel);
-        args1.push_back(string("--y_label=") + yLabel);
-        args1.push_back(string("--title=") + title1);
         args1.push_back(outputPrefix.string() + ".1.hist");
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args1);
         
         vector<string> args2;
         args2.push_back("kat_plot_spectra-hist.py");
         args2.push_back(string("--output=") + outputFile2.string());
-        args2.push_back(string("--x_label=\"") + xLabel + "\"");
-        args2.push_back(string("--y_label=\"") + yLabel + "\"");
-        args2.push_back(string("--title=\"") + title2 + "\"");
         args2.push_back(outputPrefix.string() + ".2.hist");
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args2);
 
 #elif HAVE_GNUPLOT
         
         PlotSpectraHist psh(input[0].input, outputFile1);
-        psh.setXLabel(xLabel);
-        psh.setYLabel(yLabel);
-        psh.setTitle(title1);
         psh.setOutputType(output_type);
         bool res1 = psh.plot(); 
         
@@ -619,9 +594,6 @@ void kat::Comp::plot(const string& output_type) {
         }     
         
         PlotSpectraHist psh(input[1].input, outputFile2);
-        psh.setXLabel(xLabel);
-        psh.setYLabel(yLabel);
-        psh.setTitle(title2);
         psh.setOutputType(output_type);
         bool res2 = psh.plot(); 
         

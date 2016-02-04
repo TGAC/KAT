@@ -34,6 +34,7 @@ if test x"${UNAME_S}" == x"Darwin"; then
     AC_DEFINE([OS_MAC], [1], [Mac detected])
 fi
 
+
 ######################################################################
 # Dependency checks
 ######################################################################
@@ -67,6 +68,10 @@ AC_CHECK_HEADERS([glob.h])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
+
+# Plotting
+AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]))
+
 AM_PATH_PYTHON([], [], AC_MSG_ERROR([Python interpreter not found.]))
 
 AX_PYTHON_DEVEL([>= '3.1'])
@@ -93,7 +98,7 @@ if test x"${PYTHON_VERSION}" != x""; then
 fi
 
 # Check for gnuplot on path.  Just emit a warning if not present
-if test x"${pymod_good}" = x"no"; then
+if test x"${pymod_good}" = x"no" || test "x$enable_gnuplot" = "xyes"; then
     AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
     AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
     if test x"${gnuplot_found}" = x"no"; then
@@ -167,11 +172,15 @@ AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat-2.1.pc lib/Mak
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 
-if test x"${pymod_good}" = x"yes"; then
-    echo "Using python plotting"
+if test x"${pymod_good}" = x"yes" && test "x$enable_gnuplot" = "xno"; then
+    AC_MSG_NOTICE([Using python plotting])
 else
     if test x"${gnuplot_found}" = x"yes"; then
-        AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
+        if test "x$enable_gnuplot" = "xno"; then
+            AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
+        else
+            AC_MSG_NOTICE([Using gnuplot plotting])
+        fi
     else
         AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). Should you require plotting functionality, you must install either anaconda3 (or python3 with numpy, scipy and matplotlib) or gnuplot, and then reconfigure and compile to enable plotting in KAT.])
     fi
