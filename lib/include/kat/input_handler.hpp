@@ -54,6 +54,7 @@ namespace kat {
         void setMultipleInputs(const vector<path>& inputs);
         path getSingleInput() { return input[0]; }
         string pathString();
+        string fileName();
         void validateInput();   // Throws if input is not present.  Sets input mode.
         void loadHeader();
         void validateMerLen(const uint16_t merLen);   // Throws if incorrect merlen

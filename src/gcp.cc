@@ -140,14 +140,16 @@ void kat::Gcp::merge() {
 void kat::Gcp::printMainMatrix(ostream &out) {
     SM64 mx = gcp_mx->getFinalMatrix();
 
-    out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << input.pathString() << endl;
-    out << mme::KEY_X_LABEL << "K-mer multiplicity" << endl;
+    out << mme::KEY_TITLE << "K-mer coverage vs GC count plot for: " << input.fileName() << endl;
+    out << mme::KEY_X_LABEL << input.merLen << "-mer frequency" << endl;
     out << mme::KEY_Y_LABEL << "GC count" << endl;
-    out << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl;
+    out << mme::KEY_Z_LABEL << "# distinct " << input.merLen << "-mers" << endl;
     out << mme::KEY_NB_COLUMNS << mx.height() << endl;
     out << mme::KEY_NB_ROWS << mx.width() << endl;
     out << mme::KEY_MAX_VAL << mx.getMaxVal() << endl;
     out << mme::KEY_TRANSPOSE << "0" << endl;
+    out << mme::KEY_KMER << input.merLen << endl;
+    out << mme::KEY_INPUT_1 << input.pathString() << endl;
     out << mme::MX_META_END << endl;
 
     mx.printMatrix(out);
@@ -204,28 +206,16 @@ void kat::Gcp::plot(const string& output_type) {
     string kstr = lexical_cast<string>(this->getMerLen());
     
     string outputFile = outputPrefix.string() + ".mx." + output_type;
-    string zLabel = string("# distinct ") + kstr + "-mers";
-    string xLabel = kstr + "-mer frequency for " + input.pathString();
-    string yLabel = "GC count";
-    string title = string("Spectra Density Plot (GC vs freq) for: ") + input.pathString();
         
 #if HAVE_PYTHON
         vector<string> args;
         args.push_back("kat_plot_density.py");
         args.push_back(string("--output=") + outputFile);
-        args.push_back(string("--x_label=") + xLabel);
-        args.push_back(string("--y_label=") + yLabel);
-        args.push_back(string("--z_label=") + zLabel);
-        args.push_back(string("--title=") + title);
         args.push_back(outputPrefix.string() + ".mx");            
         Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
 #elif HAVE_GNUPLOT
     
     PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx." + output_type));
-    pd.setZLabel("# distinct kmers");
-    pd.setYLabel("GC count");
-    pd.setXLabel("K-mer multiplicity");
-    pd.setTitle(string("GC vs kmer heat map for ") + input.pathString());
     pd.setOutputType(output_type);
     bool res = pd.plot();
     

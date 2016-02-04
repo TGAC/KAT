@@ -111,6 +111,15 @@ string kat::InputHandler::pathString() {
     return boost::trim_right_copy(s);
 }
 
+string kat::InputHandler::fileName() {
+    
+    string s;
+    for(auto& p : input) {
+        s += p.leaf().string() + " ";
+    }
+    return boost::trim_right_copy(s);
+}
+
 void kat::InputHandler::count(const uint16_t threads) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");      

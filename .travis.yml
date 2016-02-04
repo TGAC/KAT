@@ -5,11 +5,10 @@ compiler:
 
 sudo: required
 
-#rvm:
-#- gcc_4.9
-#- gcc_5.2
-#- python_plot
-#- gnuplot
+env:
+- PLOT=none
+- PLOT=python
+- PLOT=gnuplot
 
 # Setup compiler
 before_install:
@@ -33,16 +32,9 @@ install:
 - cd ..
 
 
-# Anaconda installation
-- wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-- bash miniconda.sh -b -p $HOME/miniconda
-- export PATH="$HOME/miniconda/bin:$PATH"
-- hash -r
-- conda config --set always_yes yes --set changeps1 no
-- conda update -q conda
-- conda info -a
-- conda create -q -n test-environment python=3.5 anaconda
-- source activate test-environment
+# Plotting installation
+- if [ "$PLOT" == "python" ]; then ./.travis.install-anaconda.sh; elif [ "$PLOT" == "gnuplot" ]; then sudo apt-get install gnuplot; fi
+
 
 # Build KAT
 - ./autogen.sh

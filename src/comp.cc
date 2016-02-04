@@ -331,13 +331,16 @@ void kat::Comp::printMainMatrix(ostream &out) {
     const SM64& mx = main_matrix.getFinalMatrix();
 
     out << mme::KEY_TITLE << "K-mer comparison plot" << endl
-            << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input[0].getSingleInput().string() << endl
-            << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << input[1].getSingleInput().string() << endl
-            << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl
+            << mme::KEY_X_LABEL << input[0].merLen << "-mer frequency for: " << input[0].fileName() << endl
+            << mme::KEY_Y_LABEL << input[1].merLen << "-mer frequency for: " << input[1].fileName() << endl
+            << mme::KEY_Z_LABEL << "# distinct " << input[0].merLen << "-mers" << endl
             << mme::KEY_NB_COLUMNS << mx.height() << endl
             << mme::KEY_NB_ROWS << mx.width() << endl
             << mme::KEY_MAX_VAL << mx.getMaxVal() << endl
             << mme::KEY_TRANSPOSE << "1" << endl
+            << mme::KEY_KMER << input[0].merLen << endl
+            << mme::KEY_INPUT_1 << input[0].pathString() << endl
+            << mme::KEY_INPUT_2 << input[1].pathString() << endl    
             << mme::MX_META_END << endl;
 
     mx.printMatrix(out);
@@ -347,8 +350,8 @@ void kat::Comp::printMainMatrix(ostream &out) {
 
 void kat::Comp::printEndsMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for: " << input[0].getSingleInput().string() << endl;
-    out << "# Each column represents K-mer multiplicity for sequence ends: " << input[2].getSingleInput().string() << endl;
+    out << "# Each row represents K-mer frequency for: " << input[0].getSingleInput().string() << endl;
+    out << "# Each column represents K-mer frequency for sequence ends: " << input[2].getSingleInput().string() << endl;
 
     ends_matrix.getFinalMatrix().printMatrix(out);
 }
@@ -357,8 +360,8 @@ void kat::Comp::printEndsMatrix(ostream &out) {
 
 void kat::Comp::printMiddleMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for: " << input[0].getSingleInput().string() << endl;
-    out << "# Each column represents K-mer multiplicity for sequence middles: " << input[1].getSingleInput().string() << endl;
+    out << "# Each row represents K-mer frequency for: " << input[0].getSingleInput().string() << endl;
+    out << "# Each column represents K-mer frequency for sequence middles: " << input[1].getSingleInput().string() << endl;
 
     middle_matrix.getFinalMatrix().printMatrix(out);
 }
@@ -367,8 +370,8 @@ void kat::Comp::printMiddleMatrix(ostream &out) {
 
 void kat::Comp::printMixedMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for hash file 1: " << input[0].getSingleInput().string() << endl;
-    out << "# Each column represents K-mer multiplicity for mixed: " << input[1].getSingleInput().string() << " and " << input[2].getSingleInput().string() << endl;
+    out << "# Each row represents K-mer frequency for hash file 1: " << input[0].getSingleInput().string() << endl;
+    out << "# Each column represents K-mer frequency for mixed: " << input[1].getSingleInput().string() << " and " << input[2].getSingleInput().string() << endl;
 
     mixed_matrix.getFinalMatrix().printMatrix(out);
 }
@@ -551,18 +554,12 @@ void kat::Comp::plot(const string& output_type) {
     else {
         
         path outputFile = path(getMxOutPath().string() + ".spectra-cn." + output_type);
-        string xLabel = kstr + "-mer frequency for " + input[0].pathString();
-        string yLabel = string("# distinct ") + kstr + "-mers";
-        string title = string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString();
-        
+                
 #if HAVE_PYTHON
 
         vector<string> args;
         args.push_back("kat_plot_spectra-cn.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(string("--x_label='") + xLabel + "'");
-        args.push_back(string("--y_label='") + yLabel + "'");
-        args.push_back(string("--title='") + title + "'");
         args.push_back(getMxOutPath().string());
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args, this->verbose);
         

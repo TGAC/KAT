@@ -134,9 +134,11 @@ void kat::Histogram::save() {
 
 void kat::Histogram::print(std::ostream &out) {
     // Output header
-    out << mme::KEY_TITLE << input.merLen << "-mer spectra for: " << input.pathString() << endl;
+    out << mme::KEY_TITLE << input.merLen << "-mer spectra for: " << input.fileName() << endl;
     out << mme::KEY_X_LABEL << input.merLen << "-mer frequency" << endl;
     out << mme::KEY_Y_LABEL << "# distinct " << input.merLen << "-mers" << endl;
+    out << mme::KEY_KMER << input.merLen << endl;
+    out << mme::KEY_INPUT_1 << input.pathString() << endl;
     out << mme::MX_META_END << endl;
 
     uint64_t col = base;
@@ -209,18 +211,13 @@ void kat::Histogram::plot(const string& output_type) {
     cout.flush();
     
     path outputFile1 = path(outputPrefix.string() + "." + output_type);
-    string xLabel = string("K-mer frequency");
-    string yLabel = string("# Distinct kmers");
-    string title = string("K-mer spectra for: ") + input.pathString();
+    
         
 #if HAVE_PYTHON        
        
     vector<string> args;
     args.push_back("kat_plot_spectra-hist.py");
     args.push_back(string("--output=") + outputFile1.string());
-    args.push_back(string("--x_label=\"") + xLabel + "\"");
-    args.push_back(string("--y_label=\"") + yLabel + "\"");
-    args.push_back(string("--title=\"") + title + "\"");
     args.push_back(outputPrefix.string());
     Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args, this->verbose);
         
@@ -228,11 +225,8 @@ void kat::Histogram::plot(const string& output_type) {
 #elif HAVE_GNUPLOT
     vector<path> pin;
     pin.push_back(outputPrefix);
-    
+        
     PlotSpectraHist psh(pin, path(outputPrefix.string() + "." + output_type));
-    psh.setXLabel("Kmer frequency");
-    psh.setYLabel("# Distinct kmers");
-    psh.setTitle(string("Kmer spectra for ") + input.pathString());
     psh.setOutputType(output_type);
     bool res = psh.plot();
     
