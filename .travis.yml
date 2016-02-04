@@ -15,11 +15,7 @@ env:
 before_install:
 - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
 - sudo apt-get update -qq
-- if [ "$COMPILER" == "GCC5" ]; then 
-	sudo apt-get install -qq g++-5 && export CXX="g++-5" && export CC="gcc-5"; 
-  else 
-	sudo apt-get install -qq g++-4.9 && export CXX="g++-4.9" && export CC="gcc-4.9"; 
-  fi
+- if [ "$COMPILER" == "GCC5" ]; then sudo apt-get install -qq g++-5 && export CXX="g++-5" && export CC="gcc-5"; else sudo apt-get install -qq g++-4.9 && export CXX="g++-4.9" && export CC="gcc-4.9"; fi
 - gcc --version
 
 # Install dependencies: (Boost and python, and setup KAT)
@@ -31,28 +27,12 @@ install:
 - tar -xf boost.tar.gz
 - cd boost_1_59_0
 - sudo ./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
-- if ["$COMPILER" == "GCC5" ]; then 
-	sudo ./b2 -d0 --toolset=gcc-4.9 install 
-  else
-	sudo ./b2 -d0 --toolset=gcc-5 install
-  fi
+- if ["$COMPILER" == "GCC5" ]; then sudo ./b2 -d0 --toolset=gcc-4.9 install; else sudo ./b2 -d0 --toolset=gcc-5 install; fi
 - cd ..
 
 
 # Plotting installation
-- if [ "$PLOT" == "python" ]; then 
-	wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-	bash miniconda.sh -b -p $HOME/miniconda;
-	export PATH="$HOME/miniconda/bin:$PATH";
-	hash -r;
-	conda config --set always_yes yes --set changeps1 no;
-	conda update -q conda;
-	conda info -a;
-	conda create -q -n test-environment python=3.5 anaconda;	
-	source activate test-environment; 
-  elif [ "$PLOT" == "gnuplot" ]; then 
-	sudo apt-get install gnuplot; 
-  fi
+- if [ "$PLOT" == "python" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;	bash miniconda.sh -b -p $HOME/miniconda; export PATH="$HOME/miniconda/bin:$PATH"; hash -r; conda config --set always_yes yes --set changeps1 no; conda update -q conda;	conda info -a; conda create -q -n test-environment python=3.5 anaconda;	source activate test-environment; elif [ "$PLOT" == "gnuplot" ]; then sudo apt-get install gnuplot; fi
 
 
 # Build KAT
