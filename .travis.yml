@@ -32,7 +32,7 @@ install:
 
 
 # Plotting installation
-- if [ "$PLOT" == "python" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;	bash miniconda.sh -b -p $HOME/miniconda; export PATH="$HOME/miniconda/bin:$PATH"; hash -r; conda config --set always_yes yes --set changeps1 no; conda update -q conda;	conda info -a; conda create -q -n test-environment python=3.5 anaconda;	source activate test-environment; elif [ "$PLOT" == "gnuplot" ]; then sudo apt-get install gnuplot; fi
+- if [ "$PLOT" == "python" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;	bash miniconda.sh -b -p $HOME/miniconda; export PATH="$HOME/miniconda/bin:$PATH"; hash -r; conda config --set always_yes yes --set changeps1 no; conda update -q conda;	conda info -a; conda create -q -n test-environment python=3.5 anaconda;	source activate test-environment; elif [ "$PLOT" == "gnuplot" ]; then sudo apt-get install gnuplot; gnuplot --version; fi
 
 
 # Build KAT
