@@ -244,8 +244,8 @@ int kat::Plot::main(int argc, char *argv[]) {
 
     // Output help information the exit if requested
     // Output help information the exit if requested
-    if (argc == 1 || (argc == 2 && verbose) || ((argc == 2 || argc == 3) && help)) {
-        cout << generic_options << endl;
+    if (argc == 1 || (argc == 2 && verbose) || (argc == 2 && help) || (argc == 3 && verbose && help)) {
+            cout << generic_options << endl;
         return 1;
     }
 

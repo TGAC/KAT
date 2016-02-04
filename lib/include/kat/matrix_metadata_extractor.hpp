@@ -34,9 +34,9 @@ namespace mme {
     const string KEY_X_LABEL = "# XLabel:";
     const string KEY_Y_LABEL = "# YLabel:";
     const string KEY_Z_LABEL = "# ZLabel:";
-    const string KEY_INPUT_1 = "";
-    const string KEY_INPUT_2 = "";
-    const string KEY_KMER = "27";
+    const string KEY_INPUT_1 = "# Input 1:";
+    const string KEY_INPUT_2 = "# Input 2:";
+    const string KEY_KMER = "# Kmer value:";
     const string KEY_TITLE = "# Title:";
     const string KEY_MAX_VAL = "# MaxVal:";
     const string KEY_TRANSPOSE = "# Transpose:";
