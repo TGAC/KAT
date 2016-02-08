@@ -19,7 +19,9 @@
 #include <config.h>
 #endif
 
+#include <iostream>
 #include <glob.h>
+using std::stringstream;
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
@@ -55,13 +57,13 @@ void kat::InputHandler::validateInput() {
                 p = bfs::canonical(p);
             }
             else {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
+                BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
                     "Could not find input file at: ") + p.string() + "; please check the path and try again."));
             }
         }
         
         if (!bfs::exists(p)) {
-            BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
+            BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
                     "Could not find input file at: ") + p.string() + "; please check the path and try again."));
         }
         
@@ -72,7 +74,7 @@ void kat::InputHandler::validateInput() {
         }
         else {
             if (m != mode) {
-                BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
+                BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
                     "Cannot mix sequence files and jellyfish hashes.  Input: ") + p.string()));
             }
         }
@@ -198,14 +200,44 @@ void kat::InputHandler::globFiles(const string& input, vector<path>& globbed) {
     globFiles(pathvec, globbed);
 }
 
+int kat::InputHandler::globerr(const char *path, int eerrno) {
+    
+    fprintf(stderr, "Globbing error: %s: %s\n", path, strerror(eerrno));
+    return eerrno;
+}
+
 void kat::InputHandler::globFiles(const vector<path>& input, vector<path>& globbed) {
 
     glob_t globbuf;
+    
+    if (input.empty()) {
+        BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string("No input provided for this input group")));
+    }
 
     // Translate glob patterns into real paths
     int i = 0;
-    for(auto& g : input) {           
-        glob(g.c_str(), i > 0 ? GLOB_TILDE | GLOB_APPEND : GLOB_TILDE, NULL, &globbuf);
+    for(auto& g : input) {
+        // Build the flags.
+        // This means if the user has listed files 
+        // in this input group separated with a space
+        // then combine results together.
+        // Also expand tildes (home directory) regardless and don't check to see
+        // if the target file exists... let that check happen downstream
+        int flags = GLOB_TILDE | GLOB_NOCHECK;
+        if (i > 0)
+            flags |= GLOB_APPEND;
+        
+        // Run glob
+        int ret = glob(g.c_str(), flags, globerr, &globbuf);
+        if (ret != 0) {
+            stringstream ss;
+            ss << "Problem globbing input pattern: " << g.c_str() << ". Non-zero return code.  Error type: " << 
+                    (   ret == GLOB_ABORTED ? "filesystem problem" :
+                        ret == GLOB_NOMATCH ? "no match of pattern" :
+                        ret == GLOB_NOSPACE ? "no dynamic memory" :
+                        "unknown problem");
+            BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(ss.str()));
+        }
         i++;
     }
 

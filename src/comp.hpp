@@ -45,11 +45,11 @@ using kat::InputHandler;
 using kat::ThreadedCompCounters;
 using kat::ThreadedSparseMatrix;
 
-typedef boost::error_info<struct CompError,string> CompErrorInfo;
-struct CompException: virtual boost::exception, virtual std::exception { };
-
 namespace kat {
-    
+
+    typedef boost::error_info<struct CompError,string> CompErrorInfo;
+    struct CompException: virtual boost::exception, virtual std::exception { };
+
     const string     DEFAULT_COMP_PLOT_OUTPUT_TYPE     = "png";
     
     class Comp {

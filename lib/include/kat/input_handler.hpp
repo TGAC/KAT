@@ -27,6 +27,9 @@ typedef shared_ptr<path> path_ptr;
 
 namespace kat {
     
+    typedef boost::error_info<struct InputFileError,string> InputFileErrorInfo;
+    struct InputFileException: virtual boost::exception, virtual std::exception { };
+    
     class InputHandler {
         
     public:
@@ -64,6 +67,9 @@ namespace kat {
         
         static void globFiles(const string& input, vector<path>& globbed);
         static void globFiles(const vector<path>& input, vector<path>& globbed);
+       
+    private:
+        static int globerr(const char *path, int eerrno);
     };
     
 }

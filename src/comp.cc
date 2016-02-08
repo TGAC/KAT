@@ -732,11 +732,27 @@ int kat::Comp::main(int argc, char *argv[]) {
 
     // Glob input files
     vector<path> vecinput1, vecinput2;
+    if (input1.empty()) {
+        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string("Nothing specified for input group 1")));
+    }
+    else if (verbose) {
+        cerr << "Input 1: " << input1 << endl << endl;
+    }
     InputHandler::globFiles(input1, vecinput1);
+    
+    if (input2.empty()) {
+        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string("Nothing specified for input group 2")));
+    }
+    else if (verbose) {
+        cerr << "Input 2: " << input2 << endl << endl;
+    }
     InputHandler::globFiles(input2, vecinput2);
 
     vector<path> vecinput3;
     if ( !input3.empty() ){
+        if (verbose) {
+            cerr << "Input 3: " << input3 << endl << endl;
+        }
         InputHandler::globFiles(input3, vecinput3);
     }
     
