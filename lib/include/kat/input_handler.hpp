@@ -65,8 +65,8 @@ namespace kat {
         void loadHash();
         void dump(const path& outputPath, const uint16_t threads);
         
-        static void globFiles(const string& input, vector<path>& globbed);
-        static void globFiles(const vector<path>& input, vector<path>& globbed);
+        static shared_ptr<vector<path>> globFiles(const string& input);
+        static shared_ptr<vector<path>> globFiles(const vector<path>& input);
        
     private:
         static int globerr(const char *path, int eerrno);

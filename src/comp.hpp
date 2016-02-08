@@ -66,6 +66,7 @@ namespace kat {
         uint16_t threads;
         bool densityPlot;
         bool outputHists;
+        bool threeInputs;
         bool verbose;
 
         // Threaded matrix data
@@ -79,26 +80,23 @@ namespace kat {
         
         std::mutex mu;
         
-        void init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3);
+        void init(const vector<path>& _input1, const vector<path>& _input2);
 
 
     public:
 
-        Comp();
-        
-        Comp(const path& _input1, const path& _input2);
-        
-        Comp(const path& _input1, const path& _input2, const path& _input3);
-
         Comp(const vector<path>& _input1, const vector<path>& _input2);
-        
-        Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3);
-
         
         virtual ~Comp() {}
         
+        void setThirdInput(const vector<path>& _input3);
+        
+        size_t inputSize() {
+            return doThirdHash() ? 3 : 2;
+        }
+        
         bool doThirdHash() {
-            return input.size() == 3;
+            return threeInputs;
         }
         
         bool isCanonical(uint16_t index) const {

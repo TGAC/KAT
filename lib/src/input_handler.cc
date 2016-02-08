@@ -39,7 +39,7 @@ using kat::JellyfishHelper;
 
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
     for(auto& p : inputs) {
-        input.push_back(p);      
+        input.push_back(p);
     }
 }
 
@@ -187,7 +187,7 @@ void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
     }
 }
 
-void kat::InputHandler::globFiles(const string& input, vector<path>& globbed) {
+shared_ptr<vector<path>> kat::InputHandler::globFiles(const string& input) {
 
     vector<string> inputvec;
     boost::split(inputvec, input, boost::is_any_of(" "));    
@@ -197,7 +197,7 @@ void kat::InputHandler::globFiles(const string& input, vector<path>& globbed) {
         pathvec.push_back(s);
     }
     
-    globFiles(pathvec, globbed);
+    return globFiles(pathvec);
 }
 
 int kat::InputHandler::globerr(const char *path, int eerrno) {
@@ -206,7 +206,7 @@ int kat::InputHandler::globerr(const char *path, int eerrno) {
     return eerrno;
 }
 
-void kat::InputHandler::globFiles(const vector<path>& input, vector<path>& globbed) {
+shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input) {
 
     glob_t globbuf;
     
@@ -221,13 +221,13 @@ void kat::InputHandler::globFiles(const vector<path>& input, vector<path>& globb
         // This means if the user has listed files 
         // in this input group separated with a space
         // then combine results together.
-        // Also expand tildes (home directory) regardless and don't check to see
+        // Also expand tildes (home directory) and braces regardless and don't check to see
         // if the target file exists... let that check happen downstream
-        int flags = GLOB_TILDE | GLOB_NOCHECK;
+        int flags = GLOB_TILDE | GLOB_NOCHECK | GLOB_BRACE;
         if (i > 0)
             flags |= GLOB_APPEND;
         
-        // Run glob
+        // Run glob, puts results in globbuf
         int ret = glob(g.c_str(), flags, globerr, &globbuf);
         if (ret != 0) {
             stringstream ss;
@@ -241,16 +241,21 @@ void kat::InputHandler::globFiles(const vector<path>& input, vector<path>& globb
         i++;
     }
 
+    // Put globbed data into the results array
+    shared_ptr<vector<path>> globbed = make_shared<vector<path>>();
     for( size_t i = 0; i < globbuf.gl_pathc; ++i )
-        globbed.push_back( path(globbuf.gl_pathv[i]) );
+        globbed->push_back( path(string(globbuf.gl_pathv[i])) );
 
+    // Only free glob results if there's something to free
     if( globbuf.gl_pathc > 0 )
         globfree( &globbuf );
 
     // Check for content.  If there isn't any then probably the input file doesn't
     // exist.  But we add the basic input regardless, the user will have to check
     // for file non-existence later.
-    if (globbed.empty()) {
-        globbed.push_back(input[0]);
-    }    
+    if (globbed->empty()) {
+        globbed->push_back(input[0]);
+    }
+    
+    return globbed;
 }

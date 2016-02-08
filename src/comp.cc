@@ -76,44 +76,18 @@ using kat::Plot;
 
     
 // ********* Comp **********
-
-kat::Comp::Comp() :
-    kat::Comp::Comp(path(), path()) {}
-
-kat::Comp::Comp(const path& _input1, const path& _input2) : 
-    kat::Comp::Comp(_input1, _input2, path()) {}
-        
-kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
-    vector<path> vecInput1;
-    vecInput1.push_back(_input1);
-    vector<path> vecInput2;
-    vecInput2.push_back(_input2);
-    vector<path> vecInput3;
-    if (!_input3.empty())
-        vecInput3.push_back(_input3);
-    
-    init(vecInput1, vecInput2, vecInput3);
-}
-    
     
 kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2) : 
-    kat::Comp::Comp(_input1, _input2, vector<path>()) {}
-        
-kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {
-    init(_input1, _input2, _input3);
+    input(3) {
+    init(_input1, _input2);
 }
-
-void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, const vector<path>& _input3) {
-    input = !_input3.empty() ? vector<InputHandler>(3) : vector<InputHandler>(2);
+        
+void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2) {
     
     input[0].setMultipleInputs(_input1);
     input[1].setMultipleInputs(_input2);
     input[0].index = 1;
     input[1].index = 2;
-    if (!_input3.empty()) {
-        input[2].setMultipleInputs(_input3);
-        input[2].index = 3;
-    }
     
     outputPrefix = "kat-comp";
     d1Scale = 1.0;
@@ -122,13 +96,22 @@ void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2, c
     d2Bins = DEFAULT_NB_BINS;
     threads = 1;
     densityPlot = false;
+    threeInputs = false;
     verbose = false;
+}
+
+void kat::Comp::setThirdInput(const vector<path>& _input3) {
+    
+    input[2].setMultipleInputs(_input3);
+    input[2].index = 3;
+    
+    threeInputs = true;
 }
 
 void kat::Comp::execute() {
 
     // Check input files exist and determine input mode
-    for(uint16_t i = 0; i < input.size(); i++) {
+    for(uint16_t i = 0; i < inputSize(); i++) {
         input[i].validateInput();
     }
         
@@ -150,13 +133,13 @@ void kat::Comp::execute() {
     comp_counters = ThreadedCompCounters(
             input[0].getSingleInput(), 
             input[1].getSingleInput(), 
-            input.size() == 3 ? input[2].getSingleInput() : path(),
+            doThirdHash() ? input[2].getSingleInput() : path(),
             std::min(d1Bins, d2Bins));
 
     string merLenStr = lexical_cast<string>(this->getMerLen());
 
     // Count kmers in sequence files if necessary (sets load and hashes and hashcounters as appropriate)
-    for(size_t i = 0; i < input.size(); i++) {
+    for(size_t i = 0; i < inputSize(); i++) {
         if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
             input[i].count(threads);
         }
@@ -165,7 +148,7 @@ void kat::Comp::execute() {
     // Check to see if user specified any hashes to load
     bool anyLoad = false;
     bool allLoad = true;
-    for(size_t i = 0; i < input.size(); i++) {
+    for(size_t i = 0; i < inputSize(); i++) {
         if (input[i].mode == InputHandler::InputMode::LOAD) {
             input[i].loadHeader();
             anyLoad = true;            
@@ -179,7 +162,7 @@ void kat::Comp::execute() {
     // to specify the merLen, so just set it to the merLen found in the header of the first input
     if (allLoad) this->setMerLen(input[0].header->key_len() / 2);
     
-    for(uint16_t i = 0; i < input.size(); i++) {
+    for(uint16_t i = 0; i < inputSize(); i++) {
         input[i].validateMerLen(this->getMerLen());
     }
     
@@ -192,7 +175,7 @@ void kat::Comp::execute() {
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (dumpHashes()) {
-        for(uint16_t i = 0; i < input.size(); i++) {        
+        for(uint16_t i = 0; i < inputSize(); i++) {        
             path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(this->getMerLen()));
             input[i].dump(outputPath, threads);
         }    
@@ -295,24 +278,24 @@ void kat::Comp::loadHashes() {
     // If using parallel IO load hashes in parallel, otherwise do one at a time
     if (threads > 1) {
         
-        vector<thread> threads(input.size());
+        vector<thread> threads(inputSize());
         
         void (kat::InputHandler::*memfunc)() = &kat::InputHandler::loadHash;
         
-        for(size_t i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < inputSize(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                 threads[i] = thread(memfunc, &input[i]);                
             }
         }
         
-        for(size_t i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < inputSize(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                 threads[i].join();                 
             }
         }        
     }
     else {
-        for(size_t i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < inputSize(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                input[i].loadHash();                
             }
@@ -731,14 +714,13 @@ int kat::Comp::main(int argc, char *argv[]) {
          << "------------------------" << endl << endl;
 
     // Glob input files
-    vector<path> vecinput1, vecinput2;
     if (input1.empty()) {
         BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string("Nothing specified for input group 1")));
     }
     else if (verbose) {
         cerr << "Input 1: " << input1 << endl << endl;
     }
-    InputHandler::globFiles(input1, vecinput1);
+    shared_ptr<vector<path>> vecinput1 = InputHandler::globFiles(input1);
     
     if (input2.empty()) {
         BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string("Nothing specified for input group 2")));
@@ -746,18 +728,21 @@ int kat::Comp::main(int argc, char *argv[]) {
     else if (verbose) {
         cerr << "Input 2: " << input2 << endl << endl;
     }
-    InputHandler::globFiles(input2, vecinput2);
+    shared_ptr<vector<path>> vecinput2 = InputHandler::globFiles(input2);
 
-    vector<path> vecinput3;
+    shared_ptr<vector<path>> vecinput3; 
     if ( !input3.empty() ){
         if (verbose) {
             cerr << "Input 3: " << input3 << endl << endl;
         }
-        InputHandler::globFiles(input3, vecinput3);
+        vecinput3 = InputHandler::globFiles(input3);
     }
     
     // Create the sequence coverage object
-    Comp comp(vecinput1, vecinput2, vecinput3);
+    Comp comp(*vecinput1, *vecinput2);
+    if (!input3.empty()) {
+        comp.setThirdInput(*vecinput3);
+    }
     comp.setOutputPrefix(path(output_prefix));
     comp.setD1Scale(d1_scale);
     comp.setD2Scale(d2_scale);
