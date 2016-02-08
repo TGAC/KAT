@@ -658,14 +658,14 @@ int kat::Sect::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("seq_file,S", po::value<path>(&seq_file), "Path to the sequnce file to analyse for kmer coverage.")
-            ("counts_files,i", po::value<std::vector<path>>(&counts_files), "Path(s) to the input files containing kmer counts.")
+            ("seq_file", po::value<path>(&seq_file), "Path to the sequnce file to analyse for kmer coverage.")
+            ("counts_files", po::value<std::vector<path>>(&counts_files), "Path(s) to the input files containing kmer counts.")
             ;
 
     // Positional option for the input bam file
     po::positional_options_description p;
     p.add("seq_file", 1);
-    p.add("counts_files", 100);
+    p.add("counts_files", -1);
 
 
     // Combine non-positional options

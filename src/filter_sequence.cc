@@ -427,7 +427,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     // Positional option for the input bam file
     po::positional_options_description p;
     p.add("seq_file", 1);
-    p.add("inputs", 100);
+    p.add("inputs", -1);
 
     // Combine non-positional options
     po::options_description cmdline_options;

@@ -282,12 +282,12 @@ int kat::Gcp::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("inputs,i", po::value<std::vector<path>>(&inputs), "Path to the input file(s) to process.")
+            ("inputs", po::value<std::vector<path>>(&inputs), "Path to the input file(s) to process.")
             ;
 
     // Positional option for the input bam file
     po::positional_options_description p;
-    p.add("inputs", 100);
+    p.add("inputs", -1);
 
     // Combine non-positional options
     po::options_description cmdline_options;

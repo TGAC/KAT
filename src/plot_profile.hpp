@@ -243,7 +243,7 @@ namespace kat {
             // in config file, but will not be shown to the user.
             po::options_description hidden_options("Hidden options");
             hidden_options.add_options()
-                    ("sect_file,s", po::value<path>(&sect_file), "Path to the sect profile file to plot.")                    
+                    ("sect_file", po::value<path>(&sect_file), "Path to the sect profile file to plot.")                    
                     ;
 
             // Positional option for the input bam file

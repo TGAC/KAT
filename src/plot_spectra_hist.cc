@@ -244,12 +244,12 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("histo_paths,i", po::value<vector<path>>(&histo_paths), "List of histogram files to plot")                    
+            ("histo_paths", po::value<vector<path>>(&histo_paths), "List of histogram files to plot")                    
             ;
 
     // Positional option for the input bam file
     po::positional_options_description p;
-    p.add("histo_paths", 100);
+    p.add("histo_paths", -1);
 
 
     // Combine non-positional options
