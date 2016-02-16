@@ -42,9 +42,9 @@ parser.add_argument("-i", "--ignore_absent", dest="ignore_absent",
 parser.set_defaults(ignore_absent=False)
 parser.add_argument("-m", "--max_dup", type=int, default=6,
                     help="Maximum duplication level to show in plots")
-parser.add_argument("-c", "--columns", type=str,
-                    help="Comma separated string listing columns to " \
-                    "show in plot (overrides -a)")
+parser.add_argument("-c", "--coverage_list", type=str,
+                    help="Comma separated string listing coverage levels " \
+                    "to show in plot (overrides -i)")
 parser.add_argument("-u", "--cumulative", dest="cumulative",
                     action="store_true",
                     help="Plot cumulative distribution of kmers")
@@ -69,23 +69,21 @@ if args.title is not None:
 elif "Title" in header:
     title = header["Title"]
 else:
-    title = "Density Plot"
+    title = "k-mer comparison plot"
 
 if args.x_label is not None:
     x_label = args.x_label
-elif "XLabel" in header:
-    x_label = header["XLabel"]
 else:
-    x_label = "X"
+    x_label = "k-mer multiplicity"
 
 if args.y_label is not None:
     y_label = args.y_label
-elif "YLabel" in header:
-    y_label = header["YLabel"]
 else:
-    y_label = "Y"
+    y_label = "Number of distinct k-mers"
 
 matrix = np.loadtxt(input_file)
+if header["Transpose"] == '1':
+    matrix = np.transpose(matrix)
 input_file.close()
 if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
@@ -109,12 +107,12 @@ else:
     xamount = 0.99
 
 # leave only coverage levels we are interested in
-last_column = np.transpose(np.matrix(np.sum(matrix[:,(mincov+covbands):], 1)))
-matrix = np.concatenate([matrix[:,mincov:(mincov+covbands)], last_column], 1)
+last_row = np.matrix(np.sum(matrix[(mincov+covbands):,:], 0))
+matrix = np.concatenate([matrix[mincov:(mincov+covbands),:], last_row], 0)
 
 # find limits
 if args.x_max is None or args.y_max is None:
-    totals = np.squeeze(np.asarray(np.sum(matrix, 1)))
+    totals = np.squeeze(np.asarray(np.sum(matrix, 0)))
     xmax = len(totals) - 1
     ysum = np.sum(totals)
     ymax = np.max(totals)
@@ -138,22 +136,22 @@ if args.x_max is not None:
 if args.y_max is not None:
     ymax = args.y_max
 
-matrix = matrix[:xmax,:]
+matrix = matrix[:,:xmax]
 
 plt.figure(num = None, figsize=(args.width, args.height))
 plt.axis([0,xmax,0,ymax])
 x = list(range(xmax))
 labels = ["{:d}x".format(l) for l in range(mincov, mincov+covbands+1)]
 labels[-1] = "{:s}+".format(labels[-1])
-bar = plt.bar(x, matrix[:,0],
+bar = plt.bar(x, np.squeeze(np.asarray(matrix[0,:])),
               color=colours[0],
               linewidth=0.1,
               edgecolor=colours[0],
               width=1,
               label=labels[0])
 for level in range(1, covbands+1):
-    bar = plt.bar(x, matrix[:,level],
-                  bottom=np.sum(matrix[:,:level], 1),
+    bar = plt.bar(x, np.squeeze(np.asarray(matrix[level,:])),
+                  bottom=np.squeeze(np.asarray(np.sum(matrix[:level,:], 0))),
                   color=colours[level%len(colours)],
                   linewidth=0.1,
                   edgecolor=colours[level%len(colours)],
