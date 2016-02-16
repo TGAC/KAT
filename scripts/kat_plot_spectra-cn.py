@@ -92,12 +92,12 @@ if args.verbose:
 mincov = 1 if args.ignore_absent else 0
 covbands = args.max_dup
 
-colours = ["#888a85",
+colours = ["#000000",
            "#ef2929",
            "#ad7fa8",
-           "#729fcf",
            "#8ae234",
-           "#e9b96e",
+           "#729fcf",
+           "#f2c27e",
            "#fcaf3e",
            "#fce94f"]
 if mincov > 0:
