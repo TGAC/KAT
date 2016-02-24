@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import textwrap
 
 def readheader(input_file):
     header = {}
@@ -42,4 +43,7 @@ def correct_filename(filename):
         return filename + ".pdf"
     else:
         return filename + "." + types[0]
+
+def wrap(name):
+    return "\n".join(textwrap.wrap(name, 60))
 

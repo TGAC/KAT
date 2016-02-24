@@ -158,11 +158,12 @@ for level in range(1, covbands+1):
                   width=1,
                   label=labels[level])
 
-plt.title(title)
-plt.xlabel(x_label)
-plt.ylabel(y_label)
+plt.title(wrap(title))
+plt.xlabel(wrap(x_label))
+plt.ylabel(wrap(y_label))
 plt.grid(True, color="black", alpha=0.2)
 plt.legend(loc=1)
+plt.tight_layout()
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type

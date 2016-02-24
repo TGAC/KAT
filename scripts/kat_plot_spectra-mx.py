@@ -149,7 +149,7 @@ elif args.intersection:
     labels = ["Dataset 1 exclusive content", "Dataset 1 shared content",
               "Dataset 2 exclusive content", "Dataset 2 shared content"]
 else:
-    sys.exit("Error: Either --list of --intersection must be given.")
+    sys.exit("Error: Either --list or --intersection must be given.")
 
 # find limits
 if args.x_max is None or args.y_max is None:
@@ -199,12 +199,13 @@ if args.y_logscale:
 
 plt.axis([args.x_min, xmax, args.y_min, ymax])
 
-plt.title(title)
-plt.xlabel(x_label)
-plt.ylabel(y_label)
+plt.title(wrap(title))
+plt.xlabel(wrap(x_label))
+plt.ylabel(wrap(y_label))
 plt.grid(True, color="black", alpha=0.2)
 if len(x) > 1:
     plt.legend(loc=1)
+plt.tight_layout()
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
