@@ -96,7 +96,7 @@ namespace kat {
         seqan::StringSet<seqan::CharString> names;
         seqan::StringSet<seqan::CharString> seqs;
         shared_ptr<vector<shared_ptr<vector<uint64_t>>>> counts; // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
-        shared_ptr<vector<shared_ptr<vector<uint16_t>>>> gc_counts; // GC counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
+        shared_ptr<vector<shared_ptr<vector<int16_t>>>> gc_counts; // GC counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
         shared_ptr<vector<uint32_t>> medians; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> means; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> gcs; // GC% for each sequence
@@ -283,6 +283,8 @@ namespace kat {
         void processInterlaced(uint16_t th_id);
 
         void processSeq(const size_t index, const uint16_t th_id);
+        
+        double gcCountToPercentage(int16_t count);
         
         static string helpMessage() {            
         

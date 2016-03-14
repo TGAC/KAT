@@ -164,6 +164,26 @@ namespace kat
         return g_or_c;
     }
     
+    /**
+     * Essentially the same as GC count, except if we encounter an N (or other 
+     * non-canonical character) then we output -1 instead.
+     * @param seq
+     * @return 
+     */
+    static int16_t gcCountN(const string& seq) {
+    
+        int16_t g_or_c = 0;
+
+        for (const auto& c : seq) {
+            if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
+                g_or_c++;
+            else if (c != 'A' && c != 'a' && c != 'T' && c != 't')
+                return -1;
+        }
+        
+        return g_or_c;
+    }
+    
     static bool validKmer(const string& merstr) {
         for(const auto& c: merstr) {        
             switch(c) {

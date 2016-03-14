@@ -289,7 +289,7 @@ void kat::Sect::analyseBatchSlice(int th_id) {
 }
 
 void kat::Sect::destroyBatchVars() {
-    for (uint16_t i = 0; i < counts->size(); i++) {
+    for (size_t i = 0; i < counts->size(); i++) {
         counts->at(i)->clear();
         gc_counts->at(i)->clear();
     }
@@ -310,7 +310,7 @@ void kat::Sect::destroyBatchVars() {
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
     counts = make_shared<vector<shared_ptr<vector<uint64_t>>>>(batchSize);
-    gc_counts = make_shared<vector<shared_ptr<vector<uint16_t>>>>(batchSize);
+    gc_counts = make_shared<vector<shared_ptr<vector<int16_t>>>>(batchSize);
     medians = make_shared<vector<uint32_t>>(batchSize);
     means = make_shared<vector<double>>(batchSize);
     gcs = make_shared<vector<double>>(batchSize);
@@ -342,22 +342,26 @@ void kat::Sect::printCounts(std::ostream &out) {
     }
 }
 
+double kat::Sect::gcCountToPercentage(int16_t count) {    
+    return count == -1 ? -0.1 : (((double)count / (double)this->getMerLen()) * 100.0);
+}
+
 void kat::Sect::printGCCounts(std::ostream &out) {
     for (uint32_t i = 0; i < recordsInBatch; i++) {
-        out << ">" << seqan::toCString(names[i]) << endl;
+        out << ">" << seqan::toCString(names[i]) << std::fixed << std::setprecision(1) << endl;
 
-        shared_ptr<vector<uint16_t>> gcCounts = gc_counts->at(i);
+        shared_ptr<vector<int16_t>> gcCounts = gc_counts->at(i);
 
         if (gcCounts != NULL && !gcCounts->empty()) {
-            out << gcCounts->at(0);
+            out << gcCountToPercentage(gcCounts->at(0));
 
             for (size_t j = 1; j < gcCounts->size(); j++) {
-                out << " " << gcCounts->at(j);
+                out << " " << gcCountToPercentage(gcCounts->at(j));
             }
 
             out << endl;
         } else {
-            out << "0" << endl;
+            out << "0.0" << endl;
         }
     }
 }
@@ -507,7 +511,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     } else {
 
         shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
-        shared_ptr<vector<uint16_t>> gcCounts = make_shared<vector<uint16_t>>(nbCounts, 0);
+        shared_ptr<vector<int16_t>> gcCounts = make_shared<vector<int16_t>>(nbCounts, 0);
 
         uint64_t sum = 0;
 
@@ -518,7 +522,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
             if (!validKmer(merstr)) {
                 (*seqCounts)[i] = 0;
-                (*gcCounts)[i] = 0;
+                (*gcCounts)[i] = -1;
                 nbInvalid++;
             } else {                
                 mer_dna mer(merstr);
