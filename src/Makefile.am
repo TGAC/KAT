@@ -22,6 +22,7 @@ kat_LDADD = \
 	
 noinst_HEADERS = \
 	plot_density.hpp \
+	plot_profile.hpp \
 	plot_spectra_cn.hpp \
 	plot_spectra_mx.hpp \
 	plot_spectra_hist.hpp \
@@ -36,7 +37,7 @@ noinst_HEADERS = \
 	
 kat_SOURCES = \
 	plot_density.cc \
-	plot_profile.hpp \
+	plot_profile.cc \
 	plot_spectra_cn.cc \
 	plot_spectra_mx.cc \
 	plot_spectra_hist.cc \
