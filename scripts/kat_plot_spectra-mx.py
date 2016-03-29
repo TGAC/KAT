@@ -149,7 +149,7 @@ elif args.intersection:
     labels = ["Dataset 1 exclusive content", "Dataset 1 shared content",
               "Dataset 2 exclusive content", "Dataset 2 shared content"]
 else:
-    sys.exit("Error: Either --list of --intersection must be given.")
+    sys.exit("Error: Either --list or --intersection must be given.")
 
 # find limits
 if args.x_max is None or args.y_max is None:
