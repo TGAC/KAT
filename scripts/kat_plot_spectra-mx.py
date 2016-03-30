@@ -99,6 +99,8 @@ else:
     y_label = "Y"
 
 matrix = np.loadtxt(input_file)
+if header["Transpose"] == '1':
+    matrix = np.transpose(matrix)
 input_file.close()
 if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
@@ -199,12 +201,13 @@ if args.y_logscale:
 
 plt.axis([args.x_min, xmax, args.y_min, ymax])
 
-plt.title(title)
-plt.xlabel(x_label)
-plt.ylabel(y_label)
+plt.title(wrap(title))
+plt.xlabel(wrap(x_label))
+plt.ylabel(wrap(y_label))
 plt.grid(True, color="black", alpha=0.2)
 if len(x) > 1:
     plt.legend(loc=1)
+plt.tight_layout()
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type

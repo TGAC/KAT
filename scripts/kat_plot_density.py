@@ -155,7 +155,7 @@ pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis,
                       rasterized=args.rasterised)
 plt.axis([0,xmax,0,ymax])
 cbar = plt.colorbar()
-cbar.set_label(z_label)
+cbar.set_label(wrap(z_label))
 cbar.solids.set_rasterized(args.rasterised)
 levels = np.arange(zmax/8, zmax, zmax/8)
 if args.contours == "normal":
@@ -163,10 +163,11 @@ if args.contours == "normal":
 elif args.contours == "smooth":
     plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
 
-plt.title(title)
-plt.xlabel(x_label)
-plt.ylabel(y_label)
+title = plt.title(wrap(title))
+plt.xlabel(wrap(x_label))
+plt.ylabel(wrap(y_label))
 plt.grid(True, color="white", alpha=0.2)
+plt.tight_layout()
 
 if args.output_type is not None:
     output_name = args.output + '.' + args.output_type
