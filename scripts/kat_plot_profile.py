@@ -35,10 +35,14 @@ parser.add_argument("-b", "--y_label", type=str,
 					help="Label for y-axis")
 parser.add_argument("-c", "--y2_label", type=str,
 					help="Label for second y-axis")
-parser.add_argument("-x", "--x_max", type=int,
+parser.add_argument("-X", "--x_max", type=int,
 					help="Maximum value for x-axis")
-parser.add_argument("-y", "--y_max", type=int,
+parser.add_argument("-x", "--x_min", type=int,
+					help="Minimum value for x-axis")
+parser.add_argument("-Y", "--y_max", type=int,
 					help="Maximum value for y-axis")
+parser.add_argument("-y", "--y_min", type=int,
+					help="Minimum value for y-axis")
 parser.add_argument("-z", "--y2_max", type=int,
 					help="Maximum value for second y-axis")
 parser.add_argument("-w", "--width", type=int, default=8,
@@ -127,7 +131,16 @@ fig, axs = plt.subplots(len(names), 1, figsize=(args.width, args.height * (len(n
 
 pstrs = [profiles[name] for name in names]
 profs = [np.fromstring(pstr, dtype=float, sep=' ') for pstr in pstrs]
-maxlen = max(list(map(len, profs)))
+if args.x_max is not None:
+	maxlen = args.x_max
+else:
+	maxlen = max(list(map(len, profs)))
+
+if args.x_min is not None:
+	minlen = args.x_min
+else:
+	minlen = 1
+
 maxval1 = max(list(map(max, profs)))
 
 pstrs2 = []
@@ -152,15 +165,18 @@ for i in range(len(names)):
 				print("First and second input files are not the same length", file=sys.stderr)
 				exit(1)
 
-		x = np.arange(1, len(profile) + 1)
-
-		ax1 = axs[i]
+		## axis fix
+		if len(names) > 1:
+			ax1 = axs[i]
+		else:
+			ax1 = axs
 
 		ax2 = ax1.twinx()
+		x = np.arange(1, len(profile) + 1)
 
 		ax1.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
 		ax1.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-		ax1.set_xlim(1, maxlen + 1)
+		ax1.set_xlim(minlen, maxlen + 1)
 
 		if i == len(names) - 1:
 			ax1.set_xlabel(x_label)
@@ -173,14 +189,23 @@ for i in range(len(names)):
 				tick.set_rotation(90)
 				tick.set_visible(False)
 
+		## y limits from args or auto
+		if args.y_max is not None:
+			maxval1 = args.y_max
+			maxval2 = args.y_max
+		if args.y_min is not None:
+			minval = args.y_min
+		else:
+			minval = 1
+
 		ax1.set_title(names[i], fontsize=12)
-		ax1.set_ylim(0, maxval1 * 1.1)
+		ax1.set_ylim(minval, maxval1 * 1.1)
 		ax1.set_ylabel(y_label, color='r')
 		ax1.plot(x, profile, 'r-')
 
 		if profile2 is not None:
 			ax2.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-			ax2.set_ylim(0, maxval2 * 1.1)
+			ax2.set_ylim(minval, maxval2 * 1.1)
 			ax2.set_ylabel(y2_label, color='b')
 			ax2.plot(x, profile2, 'b-')
 
