@@ -582,7 +582,7 @@
 # include <pthread.h>  // NOLINT
 
 // For timespec and nanosleep, used below.
-# include <time.h>  // NOLINT
+# include <sys/time.h>  // NOLINT
 #endif
 
 // Determines whether Google Test can use tr1/tuple.  You can define
