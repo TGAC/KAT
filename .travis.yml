@@ -1,45 +1,39 @@
 language: cpp
 
-compiler:
-- gcc
-
-sudo: required
-
-env:
-- PLOT=none
-- PLOT=python
-- PLOT=gnuplot
-- COMPILER=GCC5
-
+matrix:
+    include:
+            - os: linux
+              sudo: required
+              compiler: gcc
+              env: PLOT=none
+            - os: linux
+              sudo: required
+              compiler: gcc
+              env: PLOT=python
+            - os: linux
+              sudo: required
+              env: PLOT=gnuplot
+            - os: linux
+              sudo: required
+              compiler: gcc
+              env: COMPILER=GCC5
+            - os: osx
+              compiler: clang
+            
 # Setup compiler
 before_install:
-- sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-- sudo apt-get update -qq
-- if [ "$COMPILER" == "GCC5" ]; then sudo apt-get install -qq g++-5 && export CXX="g++-5" && export CC="gcc-5"; else sudo apt-get install -qq g++-4.9 && export CXX="g++-4.9" && export CC="gcc-4.9"; fi
-- gcc --version
+- ./.travis/before_install.sh
 
 # Install dependencies: (Boost and python, and setup KAT)
 install:
-
-# Boost installation
-- wget -q http://sourceforge.net/projects/boost/files/boost/1.59.0/boost_1_59_0.tar.gz/download
-- mv download boost.tar.gz
-- tar -xf boost.tar.gz
-- cd boost_1_59_0
-- sudo ./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
-- if [ "$COMPILER" == "GCC5" ]; then sudo ./b2 -d0 --toolset=gcc-5 install; else sudo ./b2 -d0 --toolset=gcc-4.9 install; fi
-- cd ..
-
-
-# Plotting installation
-- if [ "$PLOT" == "python" ]; then wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;	bash miniconda.sh -b -p $HOME/miniconda; export PATH="$HOME/miniconda/bin:$PATH"; hash -r; conda config --set always_yes yes --set changeps1 no; conda update -q conda;	conda info -a; conda create -q -n test-environment python=3.5 anaconda;	source activate test-environment; elif [ "$PLOT" == "gnuplot" ]; then sudo apt-get install gnuplot; gnuplot --version; fi
-
+- ./.travis/install.sh
 
 # Build KAT
 - ./autogen.sh
 
-# Make sure python's available at runtime and then build KAT and run tests
+# Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
-- if [ "$PLOT" == "python" ]; then export LD_LIBRARY_PATH=/home/travis/miniconda/envs/test-environment/lib:%LD_LIBRARY_PATH; fi
+- if [[ "$PLOT" == "python" ] || [ "$TRAVIS_OS_NAME" == "osx" ]]; then export LD_LIBRARY_PATH=/home/travis/miniconda/envs/test-environment/lib:%LD_LIBRARY_PATH; fi
+
 - ./configure --disable-silent-rules && make && make check && make distcheck
 
