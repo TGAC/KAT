@@ -19,6 +19,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <cmath>
 using std::ostream;
 using std::shared_ptr;
 using std::string;

@@ -19,6 +19,7 @@
 
 #include <assert.h>
 #include <vector>
+#include <cmath>
 using std::vector;
 
 namespace kat {
