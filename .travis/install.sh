@@ -2,6 +2,10 @@
 
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 
+	# Install boost -- looks like boost 1.55.0_2 is already installed with brew
+	#brew install boost
+
+
 	# install anaconda
 	wget https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O miniconda.sh;
 	bash miniconda.sh -b -p $HOME/miniconda;
@@ -12,9 +16,6 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 	conda info -a; conda create -q -n test-environment python=3.5 anaconda; 
 	source activate test-environment; 
 
-	# Install boost
-	brew install boost
-
 else
 
 	# Boost installation
@@ -23,7 +24,7 @@ else
 	tar -xf boost.tar.gz
 	cd boost_1_59_0
 	sudo ./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
-	if [ "$COMPILER" == "GCC5" ]; then 
+	if [[ "$COMPILER" == "GCC5" ]]; then 
 		sudo ./b2 -d0 --toolset=gcc-5 install; 
 	else 
 		sudo ./b2 -d0 --toolset=gcc-4.9 install; 
@@ -32,7 +33,7 @@ else
 
 
 	# Plotting installation
-	if [ "$PLOT" == "python" ]; then 
+	if [[ "$PLOT" == "python" ]]; then 
 		wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
 		bash miniconda.sh -b -p $HOME/miniconda;
 		export PATH="$HOME/miniconda/bin:$PATH"; 
@@ -42,7 +43,8 @@ else
 		conda info -a; conda create -q -n test-environment python=3.5 anaconda;	
 		source activate test-environment; 
 	elif [ "$PLOT" == "gnuplot" ]; then 
-		sudo apt-get install gnuplot; gnuplot --version; 
+		sudo apt-get install gnuplot
+		gnuplot --version; 
 	fi
 
 fi
