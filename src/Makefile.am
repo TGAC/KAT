@@ -5,7 +5,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = kat
 
 # Executable inputs
-kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@ @CXXFLAGS@
+kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -std=c++11 @AM_CXXFLAGS@ @CXXFLAGS@
 
 kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
