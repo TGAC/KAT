@@ -33,7 +33,7 @@ install:
 
 # Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
-- if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export LD_LIBRARY_PATH=$HOME/miniconda/envs/test-environment/lib:%LD_LIBRARY_PATH; fi
+- if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export LD_LIBRARY_PATH=$HOME/miniconda/envs/test-environment/lib:$LD_LIBRARY_PATH; fi
 
 - ./configure --disable-silent-rules && make && make check && make distcheck
 
