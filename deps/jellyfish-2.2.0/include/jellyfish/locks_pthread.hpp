@@ -20,6 +20,11 @@
 
 #include <time.h>
 #include <sys/time.h>
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
 #include <pthread.h>
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -52,7 +57,16 @@ public:
   }
   inline int timedwait(time_t seconds) {
     struct timespec curtime;
-#ifdef HAVE_CLOCK_GETTIME
+    
+#ifdef __MACH__ // OS X does not have clock_gettime, use clock_get_time
+    clock_serv_t cclock;
+    mach_timespec_t mts;
+    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+    clock_get_time(cclock, &mts);
+    mach_port_deallocate(mach_task_self(), cclock);
+    curtime.tv_sec = mts.tv_sec;
+    curtime.tv_nsec = mts.tv_nsec;
+#elif HAVE_CLOCK_GETTIME
     clock_gettime(CLOCK_REALTIME, &curtime);
 #else
     struct timeval timeofday;
@@ -60,6 +74,7 @@ public:
     curtime.tv_sec  = timeofday.tv_sec;
     curtime.tv_nsec = timeofday.tv_usec * 1000;
 #endif
+
     curtime.tv_sec += seconds;
     return timedwait(&curtime);
   }
