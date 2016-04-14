@@ -13,8 +13,8 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 	hash -r; 
 	conda config --set always_yes yes --set changeps1 no; 
 	conda update -q conda;  
-	conda info -a; conda create -q -n test-environment python=3.5 anaconda; 
-	source activate test-environment; 
+	conda info -a
+	conda create -q -n test-environment python=3.5 anaconda; 
 
 else
 
@@ -40,8 +40,8 @@ else
 		hash -r; 
 		conda config --set always_yes yes --set changeps1 no; 
 		conda update -q conda;	
-		conda info -a; conda create -q -n test-environment python=3.5 anaconda;	
-		source activate test-environment; 
+		conda info -a
+		conda create -q -n test-environment python=3.5 anaconda;	
 	elif [ "$PLOT" == "gnuplot" ]; then 
 		sudo apt-get install gnuplot
 		gnuplot --version; 
