@@ -86,7 +86,6 @@ namespace kat {
         size_t bucket_size, remaining; 
 
         // Variables that live for the lifetime of this object
-        LargeHashArrayPtr hash;
         shared_ptr<ThreadedSparseMatrix> contamination_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
         uint32_t offset;
         uint16_t recordsInBatch;
