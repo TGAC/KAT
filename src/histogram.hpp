@@ -63,11 +63,10 @@ namespace kat {
         bool            verbose;
 
         // Internal vars
-        uint64_t base, ceil, inc, nb_buckets, nb_slices;
+        uint64_t base, ceil, inc, nb_buckets;
         vector<uint64_t> data;
         vector<shared_ptr<vector<uint64_t>>> threadedData;
-        uint64_t slice_id;
-
+        
     public:
 
         Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc);
