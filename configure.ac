@@ -68,6 +68,14 @@ AC_CHECK_HEADERS([glob.h])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
+# Required for Boost chrono on linux (clock_gettime).  Doesn't exist on Mac
+if test x"${UNAME_S}" != x"Darwin"; then
+    AC_SEARCH_LIBS([clock_gettime], [rt],
+        [RT_LIB="-lrt"],
+        [AC_MSG_ERROR([rt lib not found.  Please ensure that rt is properly built and configured.])])
+else
+    RT_LIB=""
+fi
 
 # Plotting
 AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]), enable_gnuplot="yes", enable_gnuplot="no")
@@ -146,7 +154,7 @@ define([PC_FILE], lib/kat-2.1.pc)
 
 # Combine BOOST variables (apart for BOOST_TEST)
 BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB}"
-BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
+BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${RT_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
 AC_SUBST([BOOST_STATIC_LIBS])
 
 AM_CXXFLAGS="-DCPLUSPLUS"
