@@ -70,7 +70,7 @@ for histo_file in args.histo_files:
     header = readheader(input_file)
 
     matrix = np.loadtxt(input_file)
-    if header["Transpose"] == '1':
+    if "Transpose" in header and header["Transpose"] == '1':
         matrix = np.transpose(matrix)
     input_file.close()
     if args.verbose:
