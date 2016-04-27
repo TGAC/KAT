@@ -153,7 +153,7 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], b
     }
     
     if (verbose) {
-        cout << endl << "Effective command line: " << ss.str() << endl << endl;
+        cout << endl << "Effective command line: " << ss.str() << endl << endl;        
     }
 
     std::ifstream script_in(full_script_path.c_str());
@@ -165,11 +165,18 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], b
     Py_Initialize();
     Py_SetProgramName(wsp);
     PySys_SetArgv(argc, wargv);
-    PyRun_SimpleString(contents.c_str());
+    int res = PyRun_SimpleString(contents.c_str());
     Py_Finalize();
- 
+
+    if (res != 0) {
+        BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
+                "Unexpected python error")));
+    }
+
 #endif
 
+    script_in.close();
+    
     // Cleanup
     delete wsn;
     // No need to free up "wsp" as it is element 0 in the array
