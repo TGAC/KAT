@@ -157,11 +157,12 @@ plt.axis([0,xmax,0,ymax])
 cbar = plt.colorbar()
 cbar.set_label(wrap(z_label))
 cbar.solids.set_rasterized(args.rasterised)
-levels = np.arange(zmax/8, zmax, zmax/8)
-if args.contours == "normal":
-    plt.contour(matrix, colors="white", alpha=0.6, levels=levels)
-elif args.contours == "smooth":
-    plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
+if zmax > 0:
+    levels = np.arange(zmax/8, zmax, zmax/8)
+    if args.contours == "normal":
+        plt.contour(matrix, colors="white", alpha=0.6, levels=levels)
+    elif args.contours == "smooth":
+        plt.contour(matrix_smooth, colors="white", alpha=0.6, levels=levels)
 
 title = plt.title(wrap(title))
 plt.xlabel(wrap(x_label))
