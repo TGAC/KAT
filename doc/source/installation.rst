@@ -54,7 +54,7 @@ KAT depends on some external software:
 Please make sure all the mandatory programs and libraries are correctly configured and installed 
 on your system prior to building KAT.  The rest of this section describes how to 
 install these dependencies in more detail. However, for a quick example of how to install KAT dependencies on a typical clean system
-take a look at our travis CI script in the root directory: ``.travis.yml``.
+take a look at our travis CI script in the root directory: ``.travis.yml`` and ``.travis/install.sh``.
 
 
 Boost
