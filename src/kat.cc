@@ -19,6 +19,7 @@
 #include <config.h>
 #endif
 
+#include <sys/ioctl.h>
 #include <string.h>
 #include <exception>
 #include <iostream>
@@ -29,7 +30,7 @@ using std::string;
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
-#include "inc/kat_fs.hpp"
+#include <kat/kat_fs.hpp>
 using kat::KatFS;
 
 #include "comp.hpp"
@@ -48,6 +49,11 @@ using kat::Sect;
 
 typedef boost::error_info<struct KatError,string> KatErrorInfo;
 struct KatException: virtual boost::exception, virtual std::exception { };
+
+namespace kat {
+// Global variable! :(
+KatFS katFileSystem;
+}
 
 enum Mode {
     COMP,
@@ -89,17 +95,19 @@ Mode parseMode(string mode) {
  const string helpMessage() {
      return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
                     "The First argument should be the tool/mode you wish to use:\n\n" \
-                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using\n" \
-                    "             K-mers from another sequence file.\n" \
-                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files.\n" \
-                    "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer\n" \
-                    "             count.\n" \
-                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to jellyfish histogram\n" \
-                    "             sub command but adds metadata in output for easy plotting, also actually runs multi-threaded.\n" \
-                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on user-defined GC\n" \
-                    "             and coverage limits.\n" \
-                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare distributions.\n" \
-                    "             Requires gnuplot.\n\n" \
+                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
+                    "             a file using K-mers from another sequence file.\n" \
+                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
+                    "             sequence files.\n" \
+                    "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
+                    "             count and a K-mer count.\n" \
+                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
+                    "             jellyfish histogram sub command but adds metadata in output for easy plotting,\n" \
+                    "             also actually runs multi-threaded.\n" \
+                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
+                    "             user-defined GC and coverage limits.\n" \
+                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare\n" \
+                    "             distributions.\n\n" \
                     "Options";
         }
 
@@ -114,12 +122,17 @@ int main(int argc, char *argv[])
         // KAT args
         string modeStr;
         std::vector<string> others;
+        bool verbose;
         bool version;
         bool help;
+        
+        struct winsize w;
+        ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
     
         // Declare the supported options.
-        po::options_description generic_options(helpMessage(), 100);
+        po::options_description generic_options(helpMessage(), w.ws_col);
         generic_options.add_options()
+                ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
                 ("version", po::bool_switch(&version)->default_value(false), "Print version string")
                 ("help", po::bool_switch(&help)->default_value(false), "Produce help message")
                 ;
@@ -146,8 +159,13 @@ int main(int argc, char *argv[])
         po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(p).allow_unregistered().run(), vm);
         po::notify(vm);
 
+        kat::katFileSystem = KatFS(argv[0]);
+        
+        if (verbose) {
+            cout << kat::katFileSystem << endl << endl;
+        }
         // Output help information the exit if requested
-        if (argc == 1 || (argc == 2 && help)) {
+        if (argc == 1 || (argc == 2 && verbose) || (argc == 2 && help) || (argc == 3 && verbose && help)) {
             cout << generic_options << endl;
             return 1;
         }
@@ -159,17 +177,18 @@ int main(int argc, char *argv[])
 #endif
 
 #ifndef PACKAGE_VERSION
-#define PACKAGE_VERSION "2.0.0"
+#define PACKAGE_VERSION "2.X.X"
 #endif
-        cout << PACKAGE_NAME << " V" << PACKAGE_VERSION << endl << endl;
         
-        if (version) {    
+        if (version) {
+            // Output in GNU standard format
+            cout << PACKAGE_NAME << " " << PACKAGE_VERSION << endl;
             return 0;
         }
-        
-        KatFS fs(argv[0]);
-        
-        //cout << fs << endl;
+        else {
+            // Output for the first line in a normal KAT run
+            cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
+        }
         
         Mode mode = parseMode(modeStr);
         
@@ -190,7 +209,7 @@ int main(int argc, char *argv[])
                 Histogram::main(modeArgC, modeArgV);
                 break;
             case PLOT:
-                Plot::main(modeArgC, modeArgV, fs);            
+                Plot::main(modeArgC, modeArgV);            
                 break;
             case SECT:
                 Sect::main(modeArgC, modeArgV);            

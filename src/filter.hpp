@@ -59,7 +59,7 @@ namespace kat {
                     "Filtering tools\n\n" +
                     "First argument should be the filter mode you wish to use:\n" \
                     "  * kmer:            Filters a jellyfish k-mer hash using user defined properties.\n" \
-                    "  * seq:             Filters sequences in a file based on k-mers in a given hash\n" \
+                    "  * seq:             Filters sequences in a file based on k-mers in a given hash\n\n" \
                     "Options";
         }
         

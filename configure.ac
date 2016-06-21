@@ -3,44 +3,36 @@
 ##########################################################################
 
 # Autoconf initialistion.  Sets package name version and contact details
-AC_INIT([Kmer Analysis Toolkit (KAT)],[2.1.0],[bernardo.clavijo@tgac.ac.uk and/or daniel.mapleson@tgac.ac.uk],[kat],[http://www.tgac.ac.uk/kat])
-
-# Require autoconf 2.53 or higher
-AC_PREREQ([2.53])
-
-# Check that the configure script is being run from the right directory
+AC_PREREQ([2.68])
+AC_INIT([kat],[2.1.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 AC_CONFIG_SRCDIR([src/kat.cc])
-
-# Put auxillary build scripts in 'build-aux' directory
 AC_CONFIG_AUX_DIR([build-aux])
-
-# Set the macro directory
 AC_CONFIG_MACRO_DIR([m4])
-
-# Automake initialisation.
-AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
-
-# Use this to display simplified compilation output
-#AM_SILENT_RULES([yes])
-
-# Most of KAT is written in C++.  This is what this macro means: "Do compilation tests using CXX and CXXCPP and use extension .C for test programs. Use compilation flags: CPPFLAGS with CXXCPP, and both CPPFLAGS and CXXFLAGS with CXX."
 AC_LANG_CPLUSPLUS
-
-# Set output variable CXXCPP to a command that runs the C++ preprocessor. If ‘$CXX -E’ doesn't work, /lib/cpp is used. It is portable to run CXXCPP only on files with a .c, .C, .cc, or .cpp extension.
 AC_PROG_CXXCPP
-
-# Identify a c++ compiler to use
 AC_PROG_CXX
+AC_PROG_INSTALL
 
 # Ensure there's C++11 support
 AX_CXX_COMPILE_STDCXX_11(,[mandatory])
 
-# Create the 'install-sh' script, which is used as the 'install' make target
-AC_PROG_INSTALL
-
-# Required for using the archiver
+# Automake configuration.
+AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
+AM_SILENT_RULES([yes])
 m4_pattern_allow([AM_PROG_AR])
 AM_PROG_AR
+
+# Libtool setup
+LT_INIT
+
+# Detect OS
+UNAME_S=`uname -s`
+if test x"${UNAME_S}" == x"Linux"; then
+    AC_DEFINE([OS_LINUX], [1], [Linux detected])
+fi
+if test x"${UNAME_S}" == x"Darwin"; then
+    AC_DEFINE([OS_MAC], [1], [Mac detected])
+fi
 
 
 ######################################################################
@@ -76,27 +68,48 @@ AC_CHECK_HEADERS([glob.h])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 
-AX_PYTHON
+# Required for Boost chrono on linux (clock_gettime).  Doesn't exist on Mac
+if test x"${UNAME_S}" != x"Darwin"; then
+    AC_SEARCH_LIBS([clock_gettime], [rt],
+        [RT_LIB="-lrt"],
+        [AC_MSG_ERROR([rt lib not found.  Please ensure that rt is properly built and configured.])])
+else
+    RT_LIB=""
+fi
 
-pymod_good="yes"
-AX_PYTHON_MODULE(numpy, ,python3)
-if test x"${PYMOD}" = x"no"; then 
-	pymod_good="no" 
-fi
-AX_PYTHON_MODULE(matplotlib, ,python3)
-if test x"${PYMOD}" = x"no"; then 
-	pymod_good="no" 
-fi
-AX_PYTHON_MODULE(scipy, ,python3)
-if test x"${PYMOD}" = x"no"; then 
-	pymod_good="no" 
+# Plotting
+AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]), enable_gnuplot="yes", enable_gnuplot="no")
+
+AM_PATH_PYTHON([], [], AC_MSG_ERROR([Python interpreter not found.]))
+
+AX_PYTHON_DEVEL([>= '3.1'])
+
+pymod_good="no"
+if [[ -n "${PYTHON_VERSION}" ]]; then
+    if [[ -z "${PYTHON_EXTRA_LIBS}" ]]; then
+        pymod_good="no"
+        AC_MSG_WARN([Python3 detected but Python3 development library was not found.  If you wish to use python plotting please install python3 library.  e.g. "sudo apt-get install python3-dev" on debian systems.])
+    fi
+    pymod_good="yes"
+    AX_PYTHON_MODULE(numpy, ,python3)
+    if [[ "${PYMOD}" == "no" ]]; then 
+            pymod_good="no" 
+    fi
+    AX_PYTHON_MODULE(matplotlib, ,python3)
+    if [[ "${PYMOD}" == "no" ]]; then 
+            pymod_good="no" 
+    fi
+    AX_PYTHON_MODULE(scipy, ,python3)
+    if [[ "${PYMOD}" == "no" ]]; then 
+            pymod_good="no" 
+    fi
 fi
 
 # Check for gnuplot on path.  Just emit a warning if not present
-if test x"${pymod_good}" = x"no"; then
+if [[ "${pymod_good}" == "no" ]] || [[ "${enable_gnuplot}" == "yes" ]]; then
     AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
     AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
-    if test x"${gnuplot_found}" = x"no"; then
+    if [[ "${gnuplot_found}" == "no" ]] ; then
         AC_DEFINE([HAVE_GNUPLOT], [0], [Gnuplot not present])
     else
         AC_DEFINE([HAVE_GNUPLOT], [1], [Gnuplot present])
@@ -104,6 +117,27 @@ if test x"${pymod_good}" = x"no"; then
 else
     AC_DEFINE([HAVE_PYTHON], [1], [Python present])
 fi
+
+# Check for sphinx to build documentation (optional)
+AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
+if [[ "${sphinx}" == "yes" ]]; then
+	#Now check if the version is correct
+	sphinx_major_version=`sphinx-build --version 2>&1 | cut -d' ' -f3 | cut -d '.' -f 1 | tr -d " \t\n\r"`
+        sphinx_minor_version=`sphinx-build --version 2>&1 | cut -d' ' -f3 | cut -d '.' -f 2 | tr -d " \t\n\r"`
+	if [[ -z "${sphinx_major_version}" ]] ; then sphinx_major_version=0; fi
+	if [[ -z "${sphinx_minor_version}" ]] ; then sphinx_minor_version=0; fi
+	major_size=${#sphinx_major_version}
+	minor_size=${#sphinx_minor_version}
+	if (( ("${major_size}" > 2) || ("${minor_size}" > 2) )); then sphinx_major_version=0; sphinx_minor_version=0; fi
+	if (( ("${sphinx_major_version}" < 1 ) || (  ( "${sphinx_major_version}" >= 1 ) && ( "${sphinx_minor_version}" < 3 ) ) )); then
+    		AC_MSG_WARN([Sphinx detected, but version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
+		sphinx="no"
+	fi
+else
+    AC_MSG_WARN([Sphinx not detected, wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
+fi
+AM_CONDITIONAL([MAKE_DOCS], [test x$sphinx = xyes])
+AC_SUBST([MAKE_DOCS])
 
 
 ## Check for boost
@@ -113,44 +147,57 @@ AX_BOOST_SYSTEM
 AX_BOOST_PROGRAM_OPTIONS
 AX_BOOST_CHRONO
 AX_BOOST_TIMER
-AX_BOOST_UNIT_TEST_FRAMEWORK
+
+
+define([PC_FILE], lib/kat-2.1.pc)
 
 
 # Combine BOOST variables (apart for BOOST_TEST)
 BOOST_LIBS="${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB} ${BOOST_TIMER_LIB}"
-BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
+BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${RT_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
 AC_SUBST([BOOST_STATIC_LIBS])
 
 AM_CXXFLAGS="-DCPLUSPLUS"
 AC_SUBST([AM_CXXFLAGS])
 
-AM_LDFLAGS="${BOOST_LDFLAGS} -Xlinker -export-dynamic"
-AC_SUBST([AM_LDFLAGS])
-
-if test x"${pymod_good}" = x"yes"; then 
-    AM_CPPFLAGS="${BOOST_CPPFLAGS} -I${PYTHON_INCLUDE_DIR}"
-    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS} -ldl -lutil -lm -l${PYTHON_LIB}"
+if [[ "${pymod_good}" == "yes" ]]; then 
+    AM_CPPFLAGS="${BOOST_CPPFLAGS} ${PYTHON_CPPFLAGS}"
+    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
+    AM_LDFLAGS="${BOOST_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS}"
 else
     AM_CPPFLAGS="${BOOST_CPPFLAGS}"
     AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_STATIC_LIBS}"
+    AM_LDFLAGS="${BOOST_LDFLAGS}"
 fi
 
 AC_SUBST([AM_CPPFLAGS])
+AC_SUBST([AM_LDFLAGS])
 AC_SUBST([AM_LIBS])
 
+
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile deps/seqan-library-2.0.0/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat-2.1.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 
-if test x"${pymod_good}" = x"yes"; then
-    echo "Using python plotting"
+if [[ "${pymod_good}" == "yes" ]] && [[ "$enable_gnuplot" == "no" ]] ; then
+    AC_MSG_NOTICE([Using python plotting])
 else
-    if test x"${gnuplot_found}" = x"yes"; then
-        AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
+    if [[ "${gnuplot_found}" == "yes" ]]; then
+        if [[ "$enable_gnuplot" == "no" ]]; then
+            AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
+        else
+            AC_MSG_NOTICE([Using gnuplot plotting])
+        fi
     else
         AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). Should you require plotting functionality, you must install either anaconda3 (or python3 with numpy, scipy and matplotlib) or gnuplot, and then reconfigure and compile to enable plotting in KAT.])
     fi
 fi 
+
+if [[ "${sphinx}" == "no" ]]; then
+    AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
+else
+    AC_MSG_NOTICE([Building documentation with sphinx])
+fi
 
 

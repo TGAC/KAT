@@ -19,7 +19,7 @@
 #include <memory>
 using std::unique_ptr;
 
-#include "input_handler.hpp"
+#include <kat/input_handler.hpp>
 using kat::InputHandler;
  
 

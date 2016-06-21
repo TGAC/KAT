@@ -35,102 +35,23 @@ using bfs::path;
 
 #include <jellyfish/large_hash_iterator.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-#include "inc/matrix/sparse_matrix.hpp"
-#include "inc/matrix/threaded_sparse_matrix.hpp"
-
-#include "jellyfish_helper.hpp"
-#include "input_handler.hpp"
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/sparse_matrix.hpp>
+#include <kat/jellyfish_helper.hpp>
+#include <kat/input_handler.hpp>
+#include <kat/comp_counters.hpp>
 using kat::JellyfishHelper;
 using kat::InputHandler;
-
-typedef boost::error_info<struct CompError,string> CompErrorInfo;
-struct CompException: virtual boost::exception, virtual std::exception { };
+using kat::ThreadedCompCounters;
+using kat::ThreadedSparseMatrix;
 
 namespace kat {
-    
+
+    typedef boost::error_info<struct CompError,string> CompErrorInfo;
+    struct CompException: virtual boost::exception, virtual std::exception { };
+
     const string     DEFAULT_COMP_PLOT_OUTPUT_TYPE     = "png";
-    const uint32_t   DEFAULT_NB_BINS                   = 1001;
-
-    class CompCounters {
-    public:
-        uint64_t hash1_total;
-        uint64_t hash2_total;
-        uint64_t hash3_total;
-        uint64_t hash1_distinct;
-        uint64_t hash2_distinct;
-        uint64_t hash3_distinct;
-        uint64_t hash1_only_total;
-        uint64_t hash2_only_total;
-        uint64_t hash1_only_distinct;
-        uint64_t hash2_only_distinct;
-        uint64_t shared_hash1_total;
-        uint64_t shared_hash2_total;
-        uint64_t shared_distinct;
-        
-        vector<uint64_t> spectrum1;
-        vector<uint64_t> spectrum2;
-        vector<uint64_t> shared_spectrum1;
-        vector<uint64_t> shared_spectrum2;
-        
-        path hash1_path;
-        path hash2_path;
-        path hash3_path;
-
-        CompCounters();
-        
-        CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size);
-        
-        CompCounters(const CompCounters& o);
-
-        void updateHash1Counters(const uint64_t hash1_count, const uint64_t hash2_count);
-
-        void updateHash2Counters(const uint64_t hash1_count, const uint64_t hash2_count);
-
-        void updateHash3Counters(const uint64_t hash3_count);
-
-        void updateSharedCounters(const uint64_t hash1_count, const uint64_t hash2_count);
-        
-        static void updateSpectrum(vector<uint64_t>& spectrum, const uint64_t count);
-        
-        void printCounts(ostream &out);
-    };
     
-    class ThreadedCompCounters {
-    private: 
-        uint16_t threads;
-
-        CompCounters final_matrix;
-        vector<CompCounters> threaded_counters;
-        
-        static void merge_spectrum(vector<uint64_t>& spectrum, const vector<uint64_t>& threaded_spectrum);
-        
-    public:
-        
-        ThreadedCompCounters();
-        
-        ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size);
-        
-        void printCounts(ostream &out);
-        
-        void add(shared_ptr<CompCounters> cc);
-        
-        size_t size() {
-            return threaded_counters.size();
-        }
-        
-        CompCounters& getFinalMatrix() {
-            return final_matrix;
-        }
-        
-        CompCounters& getThreadedMatrixAt(uint16_t index) {
-            return threaded_counters[index];
-        }
-        
-        void merge();
-    
-    };
-
     class Comp {
     private:
         
@@ -144,6 +65,8 @@ namespace kat {
         uint16_t d2Bins;
         uint16_t threads;
         bool densityPlot;
+        bool outputHists;
+        bool threeInputs;
         bool verbose;
 
         // Threaded matrix data
@@ -157,26 +80,23 @@ namespace kat {
         
         std::mutex mu;
         
-        void init(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3);
+        void init(const vector<path>& _input1, const vector<path>& _input2);
 
 
     public:
 
-        Comp();
-        
-        Comp(const path& _input1, const path& _input2);
-        
-        Comp(const path& _input1, const path& _input2, const path& _input3);
-
-        Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2);
-        
-        Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3);
-
+        Comp(const vector<path>& _input1, const vector<path>& _input2);
         
         virtual ~Comp() {}
         
+        void setThirdInput(const vector<path>& _input3);
+        
+        size_t inputSize() {
+            return doThirdHash() ? 3 : 2;
+        }
+        
         bool doThirdHash() {
-            return input.size() == 3;
+            return threeInputs;
         }
         
         bool isCanonical(uint16_t index) const {
@@ -228,14 +148,14 @@ namespace kat {
         }
 
         path getInput(uint16_t index) const {
-            return *(input[index].input[0]);
+            return input[index].input[0];
         }
 
         void setInput(uint16_t index, path input) {
-            this->input[index].input[0] = make_shared<path>(input);
+            this->input[index].input[0] = input;
         }
 
-        uint8_t getMerLen() const {
+        uint16_t getMerLen() const {
             return input[0].merLen;
         }
 
@@ -297,6 +217,13 @@ namespace kat {
             this->densityPlot = densityPlot;
         }
 
+        bool isOutputHists() const {
+            return outputHists;
+        }
+
+        void setOutputHists(bool outputHists) {
+            this->outputHists = outputHists;
+        }
 
 
         
@@ -342,6 +269,10 @@ namespace kat {
         // Print K-mer statistics
 
         void printCounters(ostream &out);
+        
+        // Print histograms
+        
+        void printHist(ostream &out, InputHandler& input, vector<uint64_t>& hist);
         
         void save();
         

@@ -1,0 +1,218 @@
+
+KAT Changelog
+
+===========================================
+
+V2.1.0 - ????
+
+Added filtering tools for filtering k-mer hashes and sequences based on presence
+or absence of a set of k-mers.
+
+Enhanced plotting functionality through python matplotlib.  Configuration
+scripts still allow for gnuplot plotting, if user's don't have matplotlib
+available on their system
+
+Added online documentation available at: https://readthedocs.org/projects/kat/
+
+KAT library now available, containing core functionality, such as k-mer 
+counting (i.e. a simplified interface to jellyfish2).
+
+Fixed automated testing functionality, unit tests operate only on KAT
+library code, and system tests operate on KAT tools.
+
+Travis CI integration, checks KAT compiles, passes all tests and can 
+correctly create a distributable after every commit to github.
+
+Changed jellyfish output artifacts to have a "kat_" prefix which will prevent
+incompatibilities with existing jellyfish installations.  Also modified all 
+scripts to include a "kat_" prefix as well.
+
+Converted distanalysis script to be python3 code.
+
+Removed checks permitting .gz extension, jellyfish doesn't directly handle compressed
+input.
+
+Updated makefile to put jellyfish headers into a unique directory.
+
+Various bug fixes, performance improvements and tidying up of the codebase.
+
+===========================================
+
+V2.0.8 - 4th December 2015
+
+Modified jellyfish executable to have 'k' suffix to avoid overwriting existing 
+jellyfish2 installs.  Shared libraries and the include directory contains a 'k' 
+prefix before the version number to avoid the same problem.
+
+Fix some issues with unit tests.  Some unit tests removed for jellyfish as these 
+are not appropriate in the KAT codebase.
+
+Remove any install_hooks and simply treat seqan as a proper sub project in KAT 
+with its own Makefile.
+
+===========================================
+
+V2.0.7 - 28th November 2015
+
+Made output type selection an option for all tools that produce plots.
+
+Fixed a bug in the configuration scripts which occurs in some environments 
+caused by spaces rather than tabs.
+
+===========================================
+
+V2.0.6 - 24th September 2015
+
+More fixes for handling inputs correctly.  It seems like in some cases we lost 
+some globbed paths because the paths went out of scope.  I've now forced them to 
+be shared ptrs which ensures they stick around until the input handler goes out 
+of scope.
+
+===========================================
+
+V2.0.5 - 22nd September 2015
+
+Fixed a bug with input handling not throwing exceptions properly.  The issue 
+stemmed from globbing the input strings, and not returning any paths if the 
+files pointed to did not exist.  The fix is to ensure globbing returns the 
+originally specified path if nothing else is returned.
+
+Added additional fields to sect stats output.  Now include number and percent of 
+invalid bases in sequence, plus percent non zero after accounting for invalid 
+bases.
+
+Fixed a bug in SECT when handling sequences with length less than that of kmer 
+length.
+
+===========================================
+
+V2.0.4 - 26th August 2015
+
+Added ability in the comp tool to handle multiple input files listed explicitly 
+and separated by spaces.
+
+Fixed an issue checking for gnuplot during configure.
+
+===========================================
+
+V2.0.3 - 21st August 2015
+
+Removed user option to calculate mean or median in sect, now we just add mean 
+and median to the output anyway.
+
+Added additional output to the sect stats file.  Now outputs # zero count bases 
+for each sequence and the percentage of bases that have some coverage in the 
+sequence.
+
+Fix error which sometimes occurs when creating output directories
+
+Fixed a bug which meant we can't handle non canonical bases in sequences passed 
+to sect. 
+
+===========================================
+
+V2.0.2 - 19th August 2015
+
+Removed an unecessary include directive, which made it difficult to compile on 
+various Mac platforms.
+
+===========================================
+
+V2.0.1 - 12th August 2015
+
+Overhauled code base to incorperate jellyfish 2 and seqan, meaning these bits
+of software are no longer external dependencies.
+
+Can now k-mer count directly from the KAT tools, simplifying the workflow
+
+Various bugfixes and optimisations.
+
+===========================================
+
+V1.0.7 - 24th March 2015
+
+New functionality for sect: ability to request median coverage for each sequence 
+rather than the mean.  This tends to give much better results as occasionally we 
+have a few kmers with extremely high coverage in a sequence which skews the mean 
+coverage.
+
+Fixed a bug in the configuration.  Now correctly includes pthread library when 
+linking the kat and test binaries.
+
+===========================================
+
+V1.0.6 - 17th October 2014
+
+Fixed a bug with the spectra-cn plots where we duplicated the entry for the 
+highest copy number displayed before combining all together.
+
+Added a feature to spectra-cn so that we can show cumulative increases in 
+distinct kmers as kmer coverage increases.
+
+Updated Jellyfish version requirement to 1.1.11
+
+===========================================
+
+V1.0.5 - 28th April 2014
+
+Removed call to auto configure when running the autogen.sh script.
+
+Fixed issue where title could not be overriden by the user in the plotting
+tools.
+
+Changed short option name for the "list" option in spectra-mx plot tool to
+'c'.  This is to avoid a conflict with the "title" option.
+
+Provided a more descriptive error message if the user enters a malformed
+value for the "list" option in the spectra-mx tool.
+
+Removed call to set the size ratio to 1 in the spectra-mx tool
+
+===========================================
+
+V1.0.4 (internal release) - 1st April 2014
+
+Dropped autoconf version to 2.59 to allow KAT to run in more environments.
+
+Changed floats to doubles in sect.  Previously, we may have got imprecise
+mean coverage estimates when using really big sequences, such as whole
+chromosome length.
+
+Fixed spectra-cn issue, where we were not including all high copy kmers in a
+final band of the spectra-cn plot.
+
+===========================================
+
+V1.0.3 - 28th November 2013
+
+Fixed an overflow bug with SECT, where sequences of over 64K in length, were
+not handled correctly.
+
+Fixed an issue with the gnuplot handler, which prevented compilation on Mac
+
+Added and fixed unit tests.  Unit tests can now be run by typing "make check"
+assuming the boost unit test framework is installed.
+
+Overhauled build system.  Added more dependency checks.  Added ability to
+access dependencies in non-standard locations.  Removed auto-generated files
+from repository (configure script can be regenerated with "autogen.sh")
+
+===========================================
+
+V1.0.2 - 8th October 2013
+
+Fix to installation procedure when cloning a fresh repository.
+ - Modified compiler options so that -all-static is off
+ - Added Makefile.in to git repo
+ - Modified README to emphasise that only 1.1.10 works with this version.
+
+Fix to spectra-hist so that x-max can be properly adjusted when logscale is on
+
+===========================================
+
+V1.0.1 - 3rd October 2013
+
+Initial Release of KAT.
+
+===========================================
+

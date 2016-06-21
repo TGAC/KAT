@@ -1,58 +1,52 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+
+# What to build
 bin_PROGRAMS = kat
 
-kat_noinstdir = $(top_srcdir)/src
+# Executable inputs
+kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-unused-command-line-argument -ansi -pedantic -std=c++11 @AM_CXXFLAGS@ @CXXFLAGS@
 
-kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11 @AM_CXXFLAGS@
+kat_CPPFLAGS = \
+	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
+	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-isystem $(top_srcdir)/lib/include \
+	@AM_CPPFLAGS@ @CPPFLAGS@
 
-kat_CPPFLAGS = -DCPLUSPLUS -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include @AM_CPPFLAGS@
+kat_LDFLAGS = @AM_LDFLAGS@ @LDFLAGS@
 
-kat_LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libjellyfish-k2.0.a \
-	    @AM_LIBS@
-
+kat_LDADD = \
+	../deps/jellyfish-2.2.0/libkat_jellyfish-2.0.la \
+	../lib/libkat-2.1.la \
+	@AM_LIBS@
+	
 noinst_HEADERS = \
-		inc/matrix/matrix_metadata_extractor.hpp \
-		jellyfish_helper.hpp \
-		input_handler.hpp \
-		plot_density.hpp \
-		plot_spectra_cn.hpp \
-		plot_spectra_mx.hpp \
-		plot_spectra_hist.hpp \
-		plot.hpp \
-		filter_kmer.hpp \
-		filter_sequence.hpp \
-		filter.hpp \
-		comp.hpp \
-		gcp.hpp \
-		histogram.hpp \
-		sect.hpp
-		
-
+	plot_density.hpp \
+	plot_profile.hpp \
+	plot_spectra_cn.hpp \
+	plot_spectra_mx.hpp \
+	plot_spectra_hist.hpp \
+	plot.hpp \
+	filter_kmer.hpp \
+	filter_sequence.hpp \
+	filter.hpp \
+	comp.hpp \
+	gcp.hpp \
+	histogram.hpp \
+	sect.hpp
+	
 kat_SOURCES = \
-		inc/gnuplot/gnuplot_i.cc \
-		inc/gnuplot/gnuplot_i.hpp \
-		inc/matrix/sparse_matrix.hpp \
-		inc/matrix/threaded_sparse_matrix.hpp \
-		inc/matrix/matrix_metadata_extractor.cc \
-		inc/str_utils.hpp \
-		inc/spectra_helper.hpp \
-		inc/kat_fs.hpp \
-		jellyfish_helper.cc \
-		input_handler.cc \
-		plot_density.cc \
-		plot_profile.hpp \
-		plot_spectra_cn.cc \
-		plot_spectra_mx.cc \
-		plot_spectra_hist.cc \
-		plot.cc \
-		filter_kmer.cc \
-		filter_sequence.cc \
-		filter.cc \
-		comp.cc \
-		gcp.cc \
-		histogram.cc \
-		sect.cc \
-		kat.cc
-
-
+	plot_density.cc \
+	plot_profile.cc \
+	plot_spectra_cn.cc \
+	plot_spectra_mx.cc \
+	plot_spectra_hist.cc \
+	plot.cc \
+	filter_kmer.cc \
+	filter_sequence.cc \
+	filter.cc \
+	comp.cc \
+	gcp.cc \
+	histogram.cc \
+	sect.cc \
+	kat.cc

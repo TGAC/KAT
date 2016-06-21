@@ -1,14 +1,14 @@
 SUBDIRS = . $(MAYBE_SWIG)
 ACLOCAL_AMFLAGS = -I m4
 
-EXTRA_DIST = doc/jellyfish.pdf doc/jellyfish.man README LICENSE # jellyfish.spec
-man1_MANS = doc/jellyfish.man
+EXTRA_DIST = doc/kat_jellyfish.pdf doc/kat_jellyfish.man README LICENSE # jellyfish.spec
+man1_MANS = doc/kat_jellyfish.man
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = jellyfish-k2.0.pc
+pkgconfig_DATA = kat_jellyfish-2.0.pc
 
 AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
-AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
+AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
 AM_CXXFLAGS = $(ALL_CXXFLAGS) -g -O3
 
 noinst_HEADERS = $(YAGGO_SOURCES)
@@ -17,7 +17,7 @@ dist_bin_SCRIPTS =
 data_DATA =
 BUILT_SOURCES = $(YAGGO_SOURCES)
 CLEANFILES =
-DISTCLEANFILES = $(BUILT_SOURCES)
+DISTCLEANFILES = 
 
 # Yaggo automatic rules with silencing
 V_YAGGO = $(V_YAGGO_$(V))
@@ -29,15 +29,15 @@ V_YAGGO_0 = @echo "  YAGGO   " $@;
 YAGGO_SOURCES = # Append all file to be built by yaggo
 
 # What to build
-bin_PROGRAMS += bin/jellyfishk
-lib_LTLIBRARIES = libjellyfish-k2.0.la
-LDADD = libjellyfish-k2.0.la # $(VALGRIND_LIBS)
+bin_PROGRAMS += bin/kat_jellyfish
+lib_LTLIBRARIES = libkat_jellyfish-2.0.la
+LDADD = libkat_jellyfish-2.0.la # $(VALGRIND_LIBS)
 check_PROGRAMS = bin/generate_sequence
 
 ############################
 # Build Jellyfish the exec #
 ############################
-bin_jellyfishk_SOURCES = sub_commands/jellyfish.cc	\
+bin_kat_jellyfish_SOURCES = sub_commands/jellyfish.cc	\
                         sub_commands/count_main.cc	\
                         sub_commands/info_main.cc	\
                         sub_commands/dump_main.cc	\
@@ -49,7 +49,7 @@ bin_jellyfishk_SOURCES = sub_commands/jellyfish.cc	\
                         sub_commands/cite_main.cc	\
                         sub_commands/mem_main.cc	\
                         jellyfish/merge_files.cc
-bin_jellyfishk_LDFLAGS = $(AM_LDFLAGS) $(STATIC_FLAGS)
+bin_kat_jellyfish_LDFLAGS = $(AM_LDFLAGS) $(STATIC_FLAGS)
 
 
 YAGGO_SOURCES += sub_commands/count_main_cmdline.hpp	\
@@ -66,8 +66,8 @@ YAGGO_SOURCES += sub_commands/count_main_cmdline.hpp	\
 ######################################
 # Build Jellyfish the shared library #
 ######################################
-libjellyfish_k2_0_la_LDFLAGS = -version-info 2:0:0
-libjellyfish_k2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
+libkat_jellyfish_2_0_la_LDFLAGS = -version-info 2:0:0
+libkat_jellyfish_2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
                               lib/mer_dna.cc lib/storage.cc		\
                               lib/allocators_mmap.cc lib/misc.cc	\
                               lib/int128.cc lib/thread_exec.cc		\
@@ -75,7 +75,7 @@ libjellyfish_k2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
                               lib/generator_manager.cc
 
 
-library_includedir=$(includedir)/jellyfish-@PACKAGE_VERSION@/jellyfish
+library_includedir=$(includedir)/kat_jellyfish-@PACKAGE_VERSION@/jellyfish
 JFI = include/jellyfish
 library_include_HEADERS = $(JFI)/allocators_mmap.hpp			\
                           $(JFI)/backtrace.hpp $(JFI)/atomic_gcc.hpp	\
@@ -136,7 +136,7 @@ YAGGO_SOURCES += jellyfish/generate_sequence_cmdline.hpp
 # Tests #
 #########
 TEST_EXTENSIONS = .sh
-SH_LOG_COMPILER = /bin/sh
+SH_LOG_COMPILER = $(SHELL)
 AM_SH_LOG_FLAGS =
 
 TESTS = tests/generate_sequence.sh tests/parallel_hashing.sh	\
@@ -203,7 +203,7 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 	               unit_tests/test_stdio_filebuf.cc
 bin_test_all_SOURCES += jellyfish/backtrace.cc
 
-bin_test_all_CPPFLAGS = -Dprotected=public -Dprivate=public -DJSON_IS_AMALGAMATION=1
+bin_test_all_CPPFLAGS = -DJSON_IS_AMALGAMATION=1
 bin_test_all_CXXFLAGS = $(AM_CXXFLAGS) -I$(top_srcdir)/unit_tests/gtest/include -I$(top_srcdir)/unit_tests -I$(top_srcdir)/include
 bin_test_all_LDADD = libgtest.la $(LDADD)
 YAGGO_SOURCES += unit_tests/test_main_cmdline.hpp

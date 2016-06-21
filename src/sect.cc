@@ -26,6 +26,7 @@
 #include <math.h>
 #include <memory>
 #include <thread>
+#include <sys/ioctl.h>
 using std::vector;
 using std::string;
 using std::cerr;
@@ -51,10 +52,11 @@ using bfs::path;
 using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
-#include <jellyfish_helper.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-#include "inc/matrix/threaded_sparse_matrix.hpp"
+#include <kat/jellyfish_helper.hpp>
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/kat_fs.hpp>
+using kat::KatFS;
 
 #include "sect.hpp"
 
@@ -68,6 +70,7 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     cvgLogscale = false;
     threads = 1;
     noCountStats = false;
+    outputGCStats = false;
     extractNR = false;
     extractR = false;
     maxRepeat = 20;
@@ -91,12 +94,7 @@ void kat::Sect::execute() {
     
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(SectException() << SectErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
+    KatFS::ensureDirectoryExists(parentDir);
     
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
@@ -170,6 +168,12 @@ void kat::Sect::processSeqFile() {
         count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-counts.cvg").c_str());
     }
     
+    // Sequence GC counts output stream
+    shared_ptr<ofstream> gc_count_path_stream = nullptr;
+    if (outputGCStats) {
+        gc_count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-counts.gc").c_str());
+    }
+    
     shared_ptr<ofstream> nr_path_stream = nullptr;
     if (extractNR) {
         nr_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-non_repetitive.fa").c_str());
@@ -181,7 +185,7 @@ void kat::Sect::processSeqFile() {
     }
 
     // Average sequence coverage and GC% scores output stream
-    ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.csv").c_str());
+    ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.tsv").c_str());
     cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tinvalid_bases\t%_invalid\tnon_zero_bases\t%_non_zero\t%_non_zero_corrected" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
@@ -211,10 +215,14 @@ void kat::Sect::processSeqFile() {
         if (!noCountStats)
             printCounts(*count_path_stream);
         
+        // Output counts for this batch if (not not) requested
+        if (outputGCStats)
+            printGCCounts(*gc_count_path_stream);
+        
         if (extractNR)
             printRegions(*nr_path_stream, 1, 1);
         
-        if (extractNR)
+        if (extractR)
             printRegions(*r_path_stream, 2, maxRepeat);
 
 
@@ -233,6 +241,7 @@ void kat::Sect::processSeqFile() {
 
     // Close output streams
     if (!noCountStats)  count_path_stream->close();    
+    if (outputGCStats)  gc_count_path_stream->close(); 
     if (extractNR)      nr_path_stream->close();
     if (extractR)       r_path_stream->close();
 
@@ -280,10 +289,13 @@ void kat::Sect::analyseBatchSlice(int th_id) {
 }
 
 void kat::Sect::destroyBatchVars() {
-    for (uint16_t i = 0; i < counts->size(); i++) {
+    for (size_t i = 0; i < counts->size(); i++) {
         counts->at(i)->clear();
+        gc_counts->at(i)->clear();
     }
-    counts->clear();            
+    
+    counts->clear();
+    gc_counts->clear();
     medians->clear();
     means->clear();
     gcs->clear();
@@ -298,6 +310,7 @@ void kat::Sect::destroyBatchVars() {
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
     counts = make_shared<vector<shared_ptr<vector<uint64_t>>>>(batchSize);
+    gc_counts = make_shared<vector<shared_ptr<vector<int16_t>>>>(batchSize);
     medians = make_shared<vector<uint32_t>>(batchSize);
     means = make_shared<vector<double>>(batchSize);
     gcs = make_shared<vector<double>>(batchSize);
@@ -325,6 +338,30 @@ void kat::Sect::printCounts(std::ostream &out) {
             out << endl;
         } else {
             out << "0" << endl;
+        }
+    }
+}
+
+double kat::Sect::gcCountToPercentage(int16_t count) {    
+    return count == -1 ? -0.1 : (((double)count / (double)this->getMerLen()) * 100.0);
+}
+
+void kat::Sect::printGCCounts(std::ostream &out) {
+    for (uint32_t i = 0; i < recordsInBatch; i++) {
+        out << ">" << seqan::toCString(names[i]) << std::fixed << std::setprecision(1) << endl;
+
+        shared_ptr<vector<int16_t>> gcCounts = gc_counts->at(i);
+
+        if (gcCounts != NULL && !gcCounts->empty()) {
+            out << gcCountToPercentage(gcCounts->at(0));
+
+            for (size_t j = 1; j < gcCounts->size(); j++) {
+                out << " " << gcCountToPercentage(gcCounts->at(j));
+            }
+
+            out << endl;
+        } else {
+            out << "0.0" << endl;
         }
     }
 }
@@ -474,6 +511,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     } else {
 
         shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
+        shared_ptr<vector<int16_t>> gcCounts = make_shared<vector<int16_t>>(nbCounts, 0);
 
         uint64_t sum = 0;
 
@@ -484,17 +522,20 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
             // Jellyfish compacted hash does not support Ns so if we find one set this mer count to 0
             if (!validKmer(merstr)) {
                 (*seqCounts)[i] = 0;
+                (*gcCounts)[i] = -1;
                 nbInvalid++;
             } else {                
                 mer_dna mer(merstr);
                 uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
                 sum += count;
                 (*seqCounts)[i] = count;
+                (*gcCounts)[i] = gcCount(merstr);
                 if (count != 0) nbNonZero++;
             }
         }
 
         (*counts)[index] = seqCounts;
+        (*gc_counts)[index] = gcCounts;
         
         // Create a copy of the counts, and sort it first, then take median value
         vector<uint64_t> sortedSeqCounts = *seqCounts;                    
@@ -567,15 +608,20 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint16_t        mer_len;
     uint64_t        hash_size;
     bool            no_count_stats;
+    bool            output_gc_stats;
     bool            extract_nr;
     bool            extract_r;
     uint32_t        max_repeat;
     bool            dump_hash;
     bool            verbose;
     bool            help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(Sect::helpMessage(), 100);
+    po::options_description generic_options(Sect::helpMessage(), w.ws_col);
     generic_options.add_options()
             ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-sect"), 
                 "Path prefix for files generated by this program.")
@@ -597,6 +643,8 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("no_count_stats,n", po::bool_switch(&no_count_stats)->default_value(false),
                 "Tells SECT not to output count stats.  Sometimes when using SECT on read files the output can get very large.  When flagged this just outputs summary stats for each sequence.")
+            ("output_gc_stats,g", po::bool_switch(&output_gc_stats)->default_value(false),
+                "Tells SECT to output GC counts for each k-mer.  Output is a FastA like counts file similar to that produce for the k-mer counts.  This can be slow.")
             ("extract_nr,E", po::bool_switch(&extract_nr)->default_value(false),
                 "Tells SECT extract non-repetitive regions into a separate FastA file.")
             ("extract_r,F", po::bool_switch(&extract_r)->default_value(false),
@@ -614,14 +662,14 @@ int kat::Sect::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("seq_file,S", po::value<path>(&seq_file), "Path to the sequnce file to analyse for kmer coverage.")
-            ("counts_files,i", po::value<std::vector<path>>(&counts_files), "Path(s) to the input files containing kmer counts.")
+            ("seq_file", po::value<path>(&seq_file), "Path to the sequnce file to analyse for kmer coverage.")
+            ("counts_files", po::value<std::vector<path>>(&counts_files), "Path(s) to the input files containing kmer counts.")
             ;
 
     // Positional option for the input bam file
     po::positional_options_description p;
     p.add("seq_file", 1);
-    p.add("counts_files", 100);
+    p.add("counts_files", -1);
 
 
     // Combine non-positional options
@@ -657,6 +705,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
+    sect.setOutputGCStats(output_gc_stats);
     sect.setExtractNR(extract_nr);
     sect.setExtractR(extract_r);
     sect.setMaxRepeat(max_repeat);

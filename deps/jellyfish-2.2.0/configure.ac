@@ -1,4 +1,4 @@
-AC_INIT([jellyfish], [k2.2.0], [gmarcais@umd.edu])
+AC_INIT([kat_jellyfish], [2.2.0], [gmarcais@umd.edu])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([subdir-objects foreign parallel-tests color-tests])
@@ -14,7 +14,7 @@ AC_LANG(C++)
 AC_PROG_CXX
 
 # Major version of the library
-AC_SUBST([PACKAGE_LIB], [k2.0])
+AC_SUBST([PACKAGE_LIB], [2.0])
 
 # Check for md5 or md5sum
 AC_ARG_VAR([MD5], [Path to md5 hashing program])
@@ -27,7 +27,7 @@ AC_ARG_VAR([YAGGO], [Yaggo switch parser generator])
 AS_IF([test "x$YAGGO" = "x"], [AC_PATH_PROG([YAGGO], [yaggo], [false])])
 
 dnl define([concat], $1$2$3)dnl
-define([PC_FILE], jellyfish-k2.0.pc)
+define([PC_FILE], kat_jellyfish-2.0.pc)
 AC_CONFIG_FILES([
     Makefile
     tests/compat.sh

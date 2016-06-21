@@ -40,9 +40,8 @@ using bfs::path;
 
 #include <jellyfish/mer_dna.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-
-#include "input_handler.hpp"
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/input_handler.hpp>
 using kat::InputHandler;
 
 typedef boost::error_info<struct HistogramError,string> HistogramErrorInfo;
@@ -64,11 +63,10 @@ namespace kat {
         bool            verbose;
 
         // Internal vars
-        uint64_t base, ceil, inc, nb_buckets, nb_slices;
+        uint64_t base, ceil, inc, nb_buckets;
         vector<uint64_t> data;
         vector<shared_ptr<vector<uint64_t>>> threadedData;
-        uint64_t slice_id;
-
+        
     public:
 
         Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc);

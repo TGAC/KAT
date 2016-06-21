@@ -26,6 +26,7 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <sys/ioctl.h>
 using std::cerr;
 using std::cout;
 using std::endl;
@@ -44,10 +45,9 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include "inc/gnuplot/gnuplot_i.hpp"
-#include "inc/str_utils.hpp"
-
-#include "inc/spectra_helper.hpp"
+#include <kat/gnuplot_i.hpp>
+#include <kat/str_utils.hpp>
+#include <kat/spectra_helper.hpp>
 using kat::SpectraHelper;
 
 #include "plot_spectra_hist.hpp"
@@ -201,9 +201,13 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     bool        y_logscale;
     bool        verbose;
     bool        help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(PlotSpectraHist::helpMessage(), 100);
+    po::options_description generic_options(PlotSpectraHist::helpMessage(), w.ws_col);
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
@@ -240,12 +244,12 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("histo_paths,i", po::value<vector<path>>(&histo_paths), "List of histogram files to plot")                    
+            ("histo_paths", po::value<vector<path>>(&histo_paths), "List of histogram files to plot")                    
             ;
 
     // Positional option for the input bam file
     po::positional_options_description p;
-    p.add("histo_paths", 100);
+    p.add("histo_paths", -1);
 
 
     // Combine non-positional options

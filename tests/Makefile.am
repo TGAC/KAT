@@ -1,36 +1,55 @@
 AUTOMAKE_OPTIONS = subdir-objects
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
+EXTRA_DIST = \
+	data/EcoliK12.fasta \
+	data/ecoli.header.jf27 \
+	data/kat.hist \
+	data/sect_length_test.fa \
+	data/sect_test.fa \
+	data/ecoli_r1.1K.fastq \
+	data/ecoli_r2.1K.fastq \
+	test_comp.sh \
+	test_gcp.sh \
+	test_hist.sh \
+	test_sect.sh
+	
+clean-local: clean-local-check
+.PHONY: clean-local-check
+clean-local-check:
+	-rm -rf temp
+
 # additional include paths necessary to compile the C++ library
-CPPFLAGS=-DCPLUSPLUS -I$(top_srcdir)/deps/seqan-library-2.0.0/include -I$(top_srcdir)/deps/jellyfish-2.2.0/include -I$(top_srcdir)/src/inc -I$(top_srcdir)/src @AM_CPPFLAGS@
-CXXFLAGS=-g -O0 -Wno-conversion-null -Wno-unused-result -Wno-unused-function -Wno-sign-compare -Wnon-virtual-dtor -std=c++11 @AM_CXXFLAGS@
-LDFLAGS=@AM_LDFLAGS@
-LDADD = $(top_srcdir)/deps/jellyfish-2.2.0/.libs/libjellyfish-k2.0.a \
-	@BOOST_UNIT_TEST_FRAMEWORK_LIB@ \
-	@AM_LIBS@
+CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
+CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
+	    -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
+	    -isystem $(top_srcdir)/lib/include \
+	    -DDATADIR=\"$(srcdir)/data\" \
+	    @AM_CPPFLAGS@
 
-TESTS_ENVIRONMENT=BOOST_TEST_REPORT_LEVEL=detailed BOOST_TEST_LOG_LEVEL=all
+TEST_EXTENSIONS = .sh
+SH_LOG_COMPILER = $(SHELL)
+AM_SH_LOG_FLAGS =
 
-TESTS = check_jellyfish check_spectrahelper check_comp check_sect
+TESTS = check_unit_tests test_hist.sh test_gcp.sh test_sect.sh test_comp.sh
 
-check_PROGRAMS = check_jellyfish check_spectrahelper check_comp check_sect
+check_PROGRAMS = check_unit_tests
 
-check_jellyfish_SOURCES =   ../src/jellyfish_helper.cc \
-			    check_jellyfish.cc
+noinst_HEADERS =    gtest/gtest.h \
+		    gtest/src/gtest-all.cc \
+		    gtest/src/gtest_main.cc
 	
-check_spectrahelper_SOURCES =   check_spectra_helper.cc
 
-check_comp_SOURCES =	../src/inc/gnuplot/gnuplot_i.cc \
-			../src/inc/matrix/matrix_metadata_extractor.cc \
-			../src/input_handler.cc \
-			../src/jellyfish_helper.cc \
-			../src/plot_density.cc \
-			../src/plot_spectra_cn.cc \
-			../src/comp.cc \
-			check_comp.cc
+check_unit_tests_SOURCES =	check_jellyfish.cc \
+				check_spectra_helper.cc \
+				check_compcounters.cc \
+				check_main.cc
+
+check_unit_tests_LDFLAGS = @AM_LDFLAGS@
 	
-check_sect_SOURCES =	../src/input_handler.cc \
-			../src/jellyfish_helper.cc \
-			../src/sect.cc \
-			check_sect.cc
-		    
+check_unit_tests_LDADD =    ../deps/jellyfish-2.2.0/libkat_jellyfish-2.0.la \
+			    ../lib/libkat-2.1.la \
+			    libgtest.la \
+			    @AM_LIBS@
+	
+include gtest.mk

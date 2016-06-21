@@ -43,11 +43,10 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include "inc/gnuplot/gnuplot_i.hpp"
-#include "inc/str_utils.hpp"
-
-#include "inc/matrix/sparse_matrix.hpp"
-#include "inc/matrix/matrix_metadata_extractor.hpp"
+#include <kat/gnuplot_i.hpp>
+#include <kat/str_utils.hpp>
+#include <kat/sparse_matrix.hpp>
+#include <kat/matrix_metadata_extractor.hpp>
 
 typedef boost::error_info<struct PlotSpectraMxError,string> PlotSpectraMxErrorInfo;
 struct PlotSpectraMxException: virtual boost::exception, virtual std::exception { };

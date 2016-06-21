@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: kat
+Description: The K-mer Analysis Toolkit.
+Version: @PACKAGE_VERSION@
+Libs: -L${libdir} -lkat-2.1 -lpthread
+Cflags: -I${includedir}/kat-@PACKAGE_VERSION@

@@ -24,6 +24,7 @@
 #include <vector>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/ioctl.h>
 #include <unistd.h>
 using std::cerr;
 using std::cout;
@@ -45,13 +46,14 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include <kat/kat_fs.hpp>
+
 #include "plot_density.hpp"
 #include "plot_profile.hpp"
 #include "plot_spectra_cn.hpp"
 #include "plot_spectra_hist.hpp"
 #include "plot_spectra_mx.hpp"
 #include "plot.hpp"
-#include "inc/kat_fs.hpp"
 using kat::PlotDensity;
 using kat::PlotProfile;
 using kat::PlotSpectraCn;
@@ -90,15 +92,15 @@ path kat::Plot::getPythonScript(const PlotMode mode) {
     
     switch (mode) {
         case DENSITY:
-            return "density.py";            
+            return "kat_plot_density.py";            
         case PROFILE:
-            return "profile.py";
+            return "kat_plot_profile.py";
         case SPECTRA_CN:
-            return "spectra-cn.py";
+            return "kat_plot_spectra-cn.py";
         case SPECTRA_HIST:
-            return "spectra-hist.py";
+            return "kat_plot_spectra-hist.py";
         case SPECTRA_MX:
-            return "spectra-mx.py";
+            return "kat_plot_spectra-mx.py";
         default:
             BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
                     "Unrecognised KAT PLOT mode")));
@@ -113,10 +115,25 @@ wchar_t* kat::Plot::convertCharToWideChar(const char* c) {
     return wc;
 }
 
-void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], const KatFS& fs) {
+void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose) {
+    
+    char* char_args[50];
+    
+    for(size_t i = 0; i < args.size(); i++) {
+        char_args[i] = strdup(args[i].c_str());
+    }
+    
+    kat::Plot::executePythonPlot(mode, (int)args.size(), char_args, verbose);
+    
+    for(size_t i = 0; i < args.size(); i++) {
+        free(char_args[i]);
+    }
+}
+
+void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose) {
     
     const path script_name = getPythonScript(mode);
-    const path scripts_dir = fs.GetScriptsDir();
+    const path scripts_dir = katFileSystem.GetScriptsDir();
     const path full_script_path = path(scripts_dir.string() + "/" + script_name.string());
     
     stringstream ss;
@@ -131,8 +148,13 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], c
         wargv[i] = convertCharToWideChar(argv[i]);
         ss << " " << argv[i];
     }
+    for(int i = argc; i < 50; i++) {
+        wargv[i] = convertCharToWideChar("\0");
+    }
     
-    cout << "Effective command line: " << ss.str() << endl << endl;
+    if (verbose) {
+        cout << endl << "Effective command line: " << ss.str() << endl << endl;        
+    }
 
     std::ifstream script_in(full_script_path.c_str());
     std::string contents((std::istreambuf_iterator<char>(script_in)), std::istreambuf_iterator<char>());
@@ -143,11 +165,18 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], c
     Py_Initialize();
     Py_SetProgramName(wsp);
     PySys_SetArgv(argc, wargv);
-    PyRun_SimpleString(contents.c_str());
+    int res = PyRun_SimpleString(contents.c_str());
     Py_Finalize();
- 
+
+    if (res != 0) {
+        BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
+                "Unexpected python error")));
+    }
+
 #endif
 
+    script_in.close();
+    
     // Cleanup
     delete wsn;
     // No need to free up "wsp" as it is element 0 in the array
@@ -180,15 +209,21 @@ void kat::Plot::executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]) 
 }
 
        
-int kat::Plot::main(int argc, char *argv[], const KatFS& fs) {
+int kat::Plot::main(int argc, char *argv[]) {
 
     string modeStr;
     vector<string> others;
+    bool verbose;
     bool help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(Plot::helpMessage(), 100);
+    po::options_description generic_options(Plot::helpMessage(), w.ws_col);
     generic_options.add_options()
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false), "Print extra information")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
 
@@ -215,8 +250,9 @@ int kat::Plot::main(int argc, char *argv[], const KatFS& fs) {
     po::notify(vm);
 
     // Output help information the exit if requested
-    if (argc == 1 || (argc == 2 && help)) {
-        cout << generic_options << endl;
+    // Output help information the exit if requested
+    if (argc == 1 || (argc == 2 && verbose) || (argc == 2 && help) || (argc == 3 && verbose && help)) {
+            cout << generic_options << endl;
         return 1;
     }
 
@@ -229,7 +265,7 @@ int kat::Plot::main(int argc, char *argv[], const KatFS& fs) {
 
     // Execute via appropriate method (or error)
 #if HAVE_PYTHON
-    executePythonPlot(mode, modeArgC, modeArgV, fs);
+    executePythonPlot(mode, modeArgC, modeArgV, verbose);
 #elif HAVE_GNUPLOT
     executeGnuplotPlot(mode, modeArgC, modeArgV);
 #else

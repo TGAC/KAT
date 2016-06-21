@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <memory>
 #include <vector>
+#include <sys/ioctl.h>
 using std::cerr;
 using std::endl;
 using std::string;
@@ -41,9 +42,10 @@ namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
-#include "inc/gnuplot/gnuplot_i.hpp"
-#include "inc/spectra_helper.hpp"
-#include "inc/matrix/sparse_matrix.hpp"
+#include <kat/gnuplot_i.hpp>
+#include <kat/spectra_helper.hpp>
+#include <kat/sparse_matrix.hpp>
+using kat::SparseMatrix;
 
 #include "plot_spectra_cn.hpp"
 using kat::SpectraHelper;
@@ -264,9 +266,13 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
     bool        cumulative;
     bool        verbose;
     bool        help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(PlotSpectraCn::helpMessage(), 100);
+    po::options_description generic_options(PlotSpectraCn::helpMessage(), w.ws_col);
     generic_options.add_options()
             ("output_type,p", po::value<string>(&output_type)->default_value(DEFAULT_PSCN_OUTPUT_TYPE), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
@@ -303,7 +309,7 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("mx_file,s", po::value<path>(&mx_file), "Path to the matrix file to plot.")                    
+            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")                    
             ;
 
     // Positional option for the input bam file

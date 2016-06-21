@@ -101,7 +101,7 @@ AC_DEFUN([AX_BOOST_CHRONO],
                 for libextension in `ls $BOOSTLIBDIR/libboost_chrono*.a* 2>/dev/null` ; do
                     ax_static_lib=${libextension}
                     AC_CHECK_FILE($ax_static_lib,
-                        [BOOST_CHRONO_STATIC_LIB="-lrt $ax_static_lib"; AC_SUBST(BOOST_CHRONO_STATIC_LIB) link_chrono_static="yes"; break],
+                        [BOOST_CHRONO_STATIC_LIB="$ax_static_lib"; AC_SUBST(BOOST_CHRONO_STATIC_LIB) link_chrono_static="yes"; break],
                         [link_chrono_static="no"])
                 done
 

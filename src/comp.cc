@@ -27,6 +27,7 @@
 #include <memory>
 #include <mutex>
 #include <thread>
+#include <sys/ioctl.h>
 using std::vector;
 using std::string;
 using std::cerr;
@@ -48,285 +49,45 @@ using bfs::path;
 
 #include <jellyfish/large_hash_iterator.hpp>
 
-#include "inc/matrix/matrix_metadata_extractor.hpp"
-#include "inc/matrix/sparse_matrix.hpp"
-#include "inc/matrix/threaded_sparse_matrix.hpp"
-#include "inc/distance_metrics.hpp"
+#include <kat/matrix_metadata_extractor.hpp>
+#include <kat/sparse_matrix.hpp>
+#include <kat/distance_metrics.hpp>
+#include <kat/input_handler.hpp>
+#include <kat/comp_counters.hpp>
+using kat::JellyfishHelper;
+using kat::InputHandler;
+using kat::HashLoader;
+using kat::CompCounters;
+using kat::ThreadedCompCounters;
+using kat::ThreadedSparseMatrix;
+using kat::SparseMatrix;
 
-#include "input_handler.hpp"
+#include "plot.hpp"
 #include "plot_spectra_cn.hpp"
 #include "plot_density.hpp"
-using kat::JellyfishHelper;
-using kat::HashLoader;
-using kat::InputHandler;
 using kat::PlotSpectraCn;
 using kat::PlotDensity;
+using kat::Plot;
 
 
 #include "comp.hpp"
 
-// ********** CompCounters ***********
 
-kat::CompCounters::CompCounters() : CompCounters("", "", "", DEFAULT_NB_BINS) {}
-
-kat::CompCounters::CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size) :
-        hash1_path(_hash1_path), hash2_path(_hash2_path), hash3_path(_hash3_path) {
-
-    hash1_total = 0;
-    hash2_total = 0;
-    hash3_total = 0;
-    hash1_distinct = 0;
-    hash2_distinct = 0;
-    hash3_distinct = 0;
-    hash1_only_total = 0;
-    hash2_only_total = 0;
-    hash1_only_distinct = 0;
-    hash2_only_distinct = 0;
-    shared_hash1_total = 0;
-    shared_hash2_total = 0;
-    shared_distinct = 0;
-    
-    spectrum1.resize(_dm_size, 0);
-    spectrum2.resize(_dm_size, 0);
-    
-    shared_spectrum1.resize(_dm_size, 0);
-    shared_spectrum2.resize(_dm_size, 0);
-}
-        
-kat::CompCounters::CompCounters(const CompCounters& o) {
-    hash1_path = path(o.hash1_path);
-    hash2_path = path(o.hash2_path);
-    hash3_path = path(o.hash3_path);
-    hash1_total = o.hash1_total;
-    hash2_total = o.hash2_total;
-    hash3_total = o.hash3_total;
-    hash1_distinct = o.hash1_distinct;
-    hash2_distinct = o.hash2_distinct;
-    hash3_distinct = o.hash3_distinct;
-    hash1_only_total = o.hash1_only_total;
-    hash2_only_total = o.hash2_only_total;
-    hash1_only_distinct = o.hash1_only_distinct;
-    hash2_only_distinct = o.hash2_only_distinct;
-    shared_hash1_total = o.shared_hash1_total;
-    shared_hash2_total = o.shared_hash2_total;
-    shared_distinct = o.shared_distinct;
-    spectrum1 = o.spectrum1;
-    spectrum2 = o.spectrum2;
-    shared_spectrum1 = o.shared_spectrum1;
-    shared_spectrum2 = o.shared_spectrum2;
-}
-
-void kat::CompCounters::updateHash1Counters(const uint64_t hash1_count, const uint64_t hash2_count) {
-    hash1_total += hash1_count;
-    hash1_distinct++;
-    updateSpectrum(spectrum1, hash1_count);
-
-    if (!hash2_count) {
-        hash1_only_total += hash1_count;
-        hash1_only_distinct++;
-    }
-}
-
-void kat::CompCounters::updateHash2Counters(const uint64_t hash1_count, const uint64_t hash2_count) {
-    hash2_total += hash2_count;
-    hash2_distinct++;
-    updateSpectrum(spectrum2, hash2_count);
-
-    if (!hash1_count) {
-        hash2_only_total += hash2_count;
-        hash2_only_distinct++;
-    }
-}
-
-void kat::CompCounters::updateHash3Counters(const uint64_t hash3_count) {
-
-    hash3_total += hash3_count;
-    hash3_distinct++;
-}
-
-void kat::CompCounters::updateSharedCounters(const uint64_t hash1_count, const uint64_t hash2_count) {
-
-    if (hash1_count && hash2_count) {
-        shared_hash1_total += hash1_count;
-        shared_hash2_total += hash2_count;
-        shared_distinct++;
-        updateSpectrum(shared_spectrum1, hash1_count);
-        updateSpectrum(shared_spectrum2, hash2_count);
-    }
-}
-
-void kat::CompCounters::updateSpectrum(vector<uint64_t>& spectrum, const uint64_t count) {
-    
-    size_t s_size = spectrum.size();
-    
-    if (count <= 0)
-        ++(spectrum)[0];
-    else if (count >= s_size)
-        ++(spectrum)[s_size - 1];
-    else
-        ++(spectrum)[count];
-}
-
-
-
-void kat::CompCounters::printCounts(ostream &out) {
-
-    out << "K-mer statistics for: " << endl;
-    out << " - Hash 1: " << hash1_path << endl;
-    out << " - Hash 2: " << hash2_path << endl;
-
-    if (hash3_total > 0)
-        out << " - Hash 3: " << hash3_path << endl;
-
-    out << endl;
-
-    out << "Total K-mers in: " << endl;
-    out << " - Hash 1: " << hash1_total << endl;
-    out << " - Hash 2: " << hash2_total << endl;
-
-    if (hash3_total > 0)
-        out << " - Hash 3: " << hash3_total << endl;
-
-    out << endl;
-
-    out << "Distinct K-mers in:" << endl;
-    out << " - Hash 1: " << hash1_distinct << endl;
-    out << " - Hash 2: " << hash2_distinct << endl;
-    if (hash3_total > 0)
-        out << " - Hash 3: " << hash3_distinct << endl;
-
-    out << endl;
-
-    out << "Total K-mers only found in:" << endl;
-    out << " - Hash 1: " << hash1_only_total << endl;
-    out << " - Hash 2: " << hash2_only_total << endl;
-    out << endl;
-
-    out << "Distinct K-mers only found in:" << endl;
-    out << " - Hash 1: " << hash1_only_distinct << endl;
-    out << " - Hash 2: " << hash2_only_distinct << endl << endl;
-
-    out << "Shared K-mers:" << endl;
-    out << " - Total shared found in hash 1: " << shared_hash1_total << endl;
-    out << " - Total shared found in hash 2: " << shared_hash2_total << endl;
-    out << " - Distinct shared K-mers: " << shared_distinct << endl << endl;
-    
-    vector<unique_ptr<DistanceMetric>> dms;
-    dms.push_back(unique_ptr<DistanceMetric>(new ManhattanDistance()));
-    dms.push_back(unique_ptr<DistanceMetric>(new EuclideanDistance()));
-    dms.push_back(unique_ptr<DistanceMetric>(new CosineDistance()));
-    dms.push_back(unique_ptr<DistanceMetric>(new CanberraDistance()));
-    dms.push_back(unique_ptr<DistanceMetric>(new JaccardDistance()));
-        
-    out << "Distance between spectra 1 and 2 (all k-mers):" << endl;
-    for(auto& dm : dms) {
-        out << " - " << dm->getName() << " distance: " << dm->calcDistance(spectrum1, spectrum2) << endl;
-    }
-    out << endl;
-    
-        
-    out << "Distance between spectra 1 and 2 (shared k-mers):" << endl;
-    for(auto& dm : dms) {
-        out << " - " << dm->getName() << " distance: " << dm->calcDistance(shared_spectrum1, shared_spectrum2) << endl;
-    }
-    out << endl;
-    
-}
-     
-
-// ******** ThreadedCompCounters *********
-
-kat::ThreadedCompCounters::ThreadedCompCounters() : ThreadedCompCounters("", "", "", DEFAULT_NB_BINS) {}
-
-kat::ThreadedCompCounters::ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size) {
-    final_matrix = CompCounters(_hash1_path, _hash2_path, _hash3_path, _dm_size);            
-}
-                
-void kat::ThreadedCompCounters::printCounts(ostream &out) {
-    final_matrix.printCounts(out);
-}
-        
-void kat::ThreadedCompCounters::add(shared_ptr<CompCounters> cc) {
-    cc->hash1_path = final_matrix.hash1_path;
-    cc->hash2_path = final_matrix.hash2_path;
-    cc->hash3_path = final_matrix.hash3_path;
-    threaded_counters.push_back(*cc);
-}
-        
-void kat::ThreadedCompCounters::merge() {
-
-    // Merge counters
-    for (const auto& itp : threaded_counters) {
-
-        final_matrix.hash1_total += itp.hash1_total;
-        final_matrix.hash2_total += itp.hash2_total;
-        final_matrix.hash3_total += itp.hash3_total;
-        final_matrix.hash1_distinct += itp.hash1_distinct;
-        final_matrix.hash2_distinct += itp.hash2_distinct;
-        final_matrix.hash3_distinct += itp.hash3_distinct;
-        final_matrix.hash1_only_total += itp.hash1_only_total;
-        final_matrix.hash2_only_total += itp.hash2_only_total;
-        final_matrix.hash1_only_distinct += itp.hash1_only_distinct;
-        final_matrix.hash2_only_distinct += itp.hash2_only_distinct;
-        final_matrix.shared_hash1_total += itp.shared_hash1_total;
-        final_matrix.shared_hash2_total += itp.shared_hash2_total;
-        final_matrix.shared_distinct += itp.shared_distinct;
-        
-        merge_spectrum(final_matrix.spectrum1, itp.spectrum1);
-        merge_spectrum(final_matrix.spectrum2, itp.spectrum2);
-        merge_spectrum(final_matrix.shared_spectrum1, itp.shared_spectrum1);
-        merge_spectrum(final_matrix.shared_spectrum2, itp.shared_spectrum2);
-    }
-}
-
-        
-void kat::ThreadedCompCounters::merge_spectrum(vector<uint64_t>& spectrum, const vector<uint64_t>& threaded_spectrum) {
-    
-    for(size_t i = 0; i < spectrum.size(); i++) {
-        spectrum[i] += threaded_spectrum[i];
-    }
-}
 
     
 // ********* Comp **********
-
-kat::Comp::Comp() :
-    kat::Comp::Comp(path(), path()) {}
-
-kat::Comp::Comp(const path& _input1, const path& _input2) : 
-    kat::Comp::Comp(_input1, _input2, path()) {}
-        
-kat::Comp::Comp(const path& _input1, const path& _input2, const path& _input3) {
-    vector<path_ptr> vecInput1;
-    vecInput1.push_back(make_shared<path>(_input1));
-    vector<path_ptr> vecInput2;
-    vecInput2.push_back(make_shared<path>(_input2));
-    vector<path_ptr> vecInput3;
-    if (!_input3.empty())
-        vecInput3.push_back(make_shared<path>(_input3));    
     
-    init(vecInput1, vecInput2, vecInput3);
+kat::Comp::Comp(const vector<path>& _input1, const vector<path>& _input2) : 
+    input(3) {
+    init(_input1, _input2);
 }
-    
-    
-kat::Comp::Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2) : 
-    kat::Comp::Comp(_input1, _input2, vector<path_ptr>()) {}
         
-kat::Comp::Comp(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3) {    
-    init(_input1, _input2, _input3);
-}
-
-void kat::Comp::init(const vector<path_ptr>& _input1, const vector<path_ptr>& _input2, const vector<path_ptr>& _input3) {
-    input = !_input3.empty() ? vector<InputHandler>(3) : vector<InputHandler>(2);
+void kat::Comp::init(const vector<path>& _input1, const vector<path>& _input2) {
     
     input[0].setMultipleInputs(_input1);
     input[1].setMultipleInputs(_input2);
     input[0].index = 1;
     input[1].index = 2;
-    if (!_input3.empty()) {
-        input[2].setMultipleInputs(_input3);
-        input[2].index = 3;
-    }
     
     outputPrefix = "kat-comp";
     d1Scale = 1.0;
@@ -335,32 +96,34 @@ void kat::Comp::init(const vector<path_ptr>& _input1, const vector<path_ptr>& _i
     d2Bins = DEFAULT_NB_BINS;
     threads = 1;
     densityPlot = false;
-    verbose = false;      
+    threeInputs = false;
+    verbose = false;
+}
+
+void kat::Comp::setThirdInput(const vector<path>& _input3) {
+    
+    input[2].setMultipleInputs(_input3);
+    input[2].index = 3;
+    
+    threeInputs = true;
 }
 
 void kat::Comp::execute() {
 
     // Check input files exist and determine input mode
-    for(uint16_t i = 0; i < input.size(); i++) {
+    for(uint16_t i = 0; i < inputSize(); i++) {
         input[i].validateInput();
     }
         
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
-    if (!bfs::exists(parentDir) || !bfs::is_directory(parentDir)) {
-        if (!bfs::create_directories(parentDir)) {
-            BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string(
-                    "Could not create output directory: ") + parentDir.string()));
-        }
-    }
-    
+    KatFS::ensureDirectoryExists(parentDir);
     
     // Create the final K-mer counter matrices
     main_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
 
     // Initialise extra matrices for hash3 (only allocates space if required)
     if (doThirdHash()) {
-
         ends_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
         middle_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
         mixed_matrix = ThreadedSparseMatrix(d1Bins, d2Bins, threads);
@@ -370,13 +133,13 @@ void kat::Comp::execute() {
     comp_counters = ThreadedCompCounters(
             input[0].getSingleInput(), 
             input[1].getSingleInput(), 
-            input.size() == 3 ? input[2].getSingleInput() : path(),
+            doThirdHash() ? input[2].getSingleInput() : path(),
             std::min(d1Bins, d2Bins));
 
     string merLenStr = lexical_cast<string>(this->getMerLen());
 
     // Count kmers in sequence files if necessary (sets load and hashes and hashcounters as appropriate)
-    for(size_t i = 0; i < input.size(); i++) {
+    for(size_t i = 0; i < inputSize(); i++) {
         if (input[i].mode == InputHandler::InputHandler::InputMode::COUNT) {
             input[i].count(threads);
         }
@@ -385,7 +148,7 @@ void kat::Comp::execute() {
     // Check to see if user specified any hashes to load
     bool anyLoad = false;
     bool allLoad = true;
-    for(size_t i = 0; i < input.size(); i++) {
+    for(size_t i = 0; i < inputSize(); i++) {
         if (input[i].mode == InputHandler::InputMode::LOAD) {
             input[i].loadHeader();
             anyLoad = true;            
@@ -399,13 +162,12 @@ void kat::Comp::execute() {
     // to specify the merLen, so just set it to the merLen found in the header of the first input
     if (allLoad) this->setMerLen(input[0].header->key_len() / 2);
     
-    for(uint16_t i = 0; i < input.size(); i++) {
+    for(uint16_t i = 0; i < inputSize(); i++) {
         input[i].validateMerLen(this->getMerLen());
     }
     
     // Load any hashes if necessary
     if (anyLoad) loadHashes();
-     
     
     // Run the threads
     compare();
@@ -413,7 +175,7 @@ void kat::Comp::execute() {
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (dumpHashes()) {
-        for(uint16_t i = 0; i < input.size(); i++) {        
+        for(uint16_t i = 0; i < inputSize(); i++) {        
             path outputPath(outputPrefix.string() + "-hash" + lexical_cast<string>(input[i].index) + ".jf" + lexical_cast<string>(this->getMerLen()));
             input[i].dump(outputPath, threads);
         }    
@@ -457,9 +219,33 @@ void kat::Comp::save() {
     ofstream stats_out_stream(string(outputPrefix.string() + ".stats").c_str());
     printCounters(stats_out_stream);
     stats_out_stream.close();
+    
+    if (outputHists) {
+        
+        ofstream hist1_out_stream(string(outputPrefix.string() + ".1.hist").c_str());
+        printHist(hist1_out_stream, input[0], comp_counters.getFinalMatrix().getSpectrum1());
+        hist1_out_stream.close();
+        
+        ofstream hist2_out_stream(string(outputPrefix.string() + ".2.hist").c_str());
+        printHist(hist2_out_stream, input[1], comp_counters.getFinalMatrix().getSpectrum2());
+        hist2_out_stream.close();        
+    }
 
     cout << " done.";
     cout.flush();
+}
+
+void kat::Comp::printHist(std::ostream &out, InputHandler& input, vector<uint64_t>& hist) {
+    
+    // Output header
+    out << mme::KEY_TITLE << input.merLen << "-mer spectra for: " << input.pathString() << endl;
+    out << mme::KEY_X_LABEL << input.merLen << "-mer frequency" << endl;
+    out << mme::KEY_Y_LABEL << "# distinct " << input.merLen << "-mers" << endl;
+    out << mme::MX_META_END << endl;
+
+    for (uint64_t i = 0; i < hist.size(); i++) {
+        out << i << " " << hist[i] << "\n";
+    }
 }
 
 void kat::Comp::merge() {
@@ -492,24 +278,24 @@ void kat::Comp::loadHashes() {
     // If using parallel IO load hashes in parallel, otherwise do one at a time
     if (threads > 1) {
         
-        vector<thread> threads(input.size());
+        vector<thread> threads(inputSize());
         
         void (kat::InputHandler::*memfunc)() = &kat::InputHandler::loadHash;
         
-        for(size_t i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < inputSize(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                 threads[i] = thread(memfunc, &input[i]);                
             }
         }
         
-        for(size_t i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < inputSize(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                 threads[i].join();                 
             }
         }        
     }
     else {
-        for(size_t i = 0; i < input.size(); i++) {
+        for(size_t i = 0; i < inputSize(); i++) {
             if (input[i].mode == InputHandler::InputMode::LOAD) {
                input[i].loadHash();                
             }
@@ -528,13 +314,16 @@ void kat::Comp::printMainMatrix(ostream &out) {
     const SM64& mx = main_matrix.getFinalMatrix();
 
     out << mme::KEY_TITLE << "K-mer comparison plot" << endl
-            << mme::KEY_X_LABEL << "K-mer multiplicity for: " << input[0].getSingleInput().string() << endl
-            << mme::KEY_Y_LABEL << "K-mer multiplicity for: " << input[1].getSingleInput().string() << endl
-            << mme::KEY_Z_LABEL << "Distinct K-mers per bin" << endl
+            << mme::KEY_X_LABEL << input[0].merLen << "-mer frequency for: " << input[0].fileName() << endl
+            << mme::KEY_Y_LABEL << input[1].merLen << "-mer frequency for: " << input[1].fileName() << endl
+            << mme::KEY_Z_LABEL << "# distinct " << input[0].merLen << "-mers" << endl
             << mme::KEY_NB_COLUMNS << mx.height() << endl
             << mme::KEY_NB_ROWS << mx.width() << endl
             << mme::KEY_MAX_VAL << mx.getMaxVal() << endl
             << mme::KEY_TRANSPOSE << "1" << endl
+            << mme::KEY_KMER << input[0].merLen << endl
+            << mme::KEY_INPUT_1 << input[0].pathString() << endl
+            << mme::KEY_INPUT_2 << input[1].pathString() << endl    
             << mme::MX_META_END << endl;
 
     mx.printMatrix(out);
@@ -544,8 +333,8 @@ void kat::Comp::printMainMatrix(ostream &out) {
 
 void kat::Comp::printEndsMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for: " << input[0].getSingleInput().string() << endl;
-    out << "# Each column represents K-mer multiplicity for sequence ends: " << input[2].getSingleInput().string() << endl;
+    out << "# Each row represents K-mer frequency for: " << input[0].getSingleInput().string() << endl;
+    out << "# Each column represents K-mer frequency for sequence ends: " << input[2].getSingleInput().string() << endl;
 
     ends_matrix.getFinalMatrix().printMatrix(out);
 }
@@ -554,8 +343,8 @@ void kat::Comp::printEndsMatrix(ostream &out) {
 
 void kat::Comp::printMiddleMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for: " << input[0].getSingleInput().string() << endl;
-    out << "# Each column represents K-mer multiplicity for sequence middles: " << input[1].getSingleInput().string() << endl;
+    out << "# Each row represents K-mer frequency for: " << input[0].getSingleInput().string() << endl;
+    out << "# Each column represents K-mer frequency for sequence middles: " << input[1].getSingleInput().string() << endl;
 
     middle_matrix.getFinalMatrix().printMatrix(out);
 }
@@ -564,8 +353,8 @@ void kat::Comp::printMiddleMatrix(ostream &out) {
 
 void kat::Comp::printMixedMatrix(ostream &out) {
 
-    out << "# Each row represents K-mer multiplicity for hash file 1: " << input[0].getSingleInput().string() << endl;
-    out << "# Each column represents K-mer multiplicity for mixed: " << input[1].getSingleInput().string() << " and " << input[2].getSingleInput().string() << endl;
+    out << "# Each row represents K-mer frequency for hash file 1: " << input[0].getSingleInput().string() << endl;
+    out << "# Each column represents K-mer frequency for mixed: " << input[1].getSingleInput().string() << " and " << input[2].getSingleInput().string() << endl;
 
     mixed_matrix.getFinalMatrix().printMatrix(out);
 }
@@ -703,37 +492,103 @@ void kat::Comp::plot(const string& output_type) {
     
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
 
-    cout << "Creating plot ...";
+    cout << "Creating plot(s) ...";
     cout.flush();
     
     bool res = true;
+    string kstr = lexical_cast<string>(this->getMerLen());
     
     // Plot results
     if (densityPlot) {
-        PlotDensity pd(getMxOutPath(), path(getMxOutPath().string() + ".density." + output_type));
-        pd.setXLabel(string("# Distinct kmers for ") + input[0].pathString());
-        pd.setYLabel(string("# Distinct kmers for ") + input[1].pathString());
-        pd.setZLabel("Kmer multiplicity");
-        pd.setTitle(string("Spectra Density Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
+        
+        path outputFile = path(getMxOutPath().string() + ".density." + output_type);
+        
+#if HAVE_PYTHON
+        vector<string> args;
+        args.push_back("kat_plot_density.py");
+        args.push_back(string("--output=") + outputFile.string());
+        args.push_back(getMxOutPath().string());            
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
+#elif HAVE_GNUPLOT
+        PlotDensity pd(getMxOutPath(), outputFile);
         pd.setOutputType(output_type);
         res = pd.plot();
+        
+        if (!res) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }
+        
+#endif
+
     }
     else {
+        
+        path outputFile = path(getMxOutPath().string() + ".spectra-cn." + output_type);
+                
+#if HAVE_PYTHON
+
+        vector<string> args;
+        args.push_back("kat_plot_spectra-cn.py");
+        args.push_back(string("--output=") + outputFile.string());
+        args.push_back(getMxOutPath().string());
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args, this->verbose);
+        
+#elif HAVE_GNUPLOT
         PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));
-        pscn.setTitle(string("Spectra CN Plot for: ") + input[0].pathString() + " vs " + input[1].pathString());
-        pscn.setYLabel("# Distinct kmers");
-        pscn.setXLabel("Kmer multiplicity");
         pscn.setOutputType(output_type);
         res = pscn.plot();
+        
+        if (!res) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }       
+#endif
     }
-    
-    if (!res) {
-        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+/*    
+    if (outputHists) {
+       
+        path outputFile1 = path(outputPrefix.string() + ".1.hist." + output_type);
+        path outputFile2 = path(outputPrefix.string() + ".2.hist." + output_type);
+        
+#if HAVE_PYTHON        
+       
+        vector<string> args1;
+        args1.push_back("kat_plot_spectra-hist.py");
+        args1.push_back(string("--output=") + outputFile1.string());
+        args1.push_back(outputPrefix.string() + ".1.hist");
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args1);
+        
+        vector<string> args2;
+        args2.push_back("kat_plot_spectra-hist.py");
+        args2.push_back(string("--output=") + outputFile2.string());
+        args2.push_back(outputPrefix.string() + ".2.hist");
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args2);
+
+#elif HAVE_GNUPLOT
+        
+        PlotSpectraHist psh(input[0].input, outputFile1);
+        psh.setOutputType(output_type);
+        bool res1 = psh.plot(); 
+        
+        if (!res1) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }     
+        
+        PlotSpectraHist psh(input[1].input, outputFile2);
+        psh.setOutputType(output_type);
+        bool res2 = psh.plot(); 
+        
+        if (!res2) {
+            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
+            return;
+        }     
+        
+#endif
     }
-    else {    
-        cout << " done.";
-    }
-    
+*/    
+    cout << " done.";
     cout.flush();
 }
 
@@ -744,7 +599,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     string input1;
     string input2;
     string input3;
-    path output_prefix;
+    string output_prefix;
     double d1_scale;
     double d2_scale;
     uint16_t d1_bins;
@@ -764,13 +619,18 @@ int kat::Comp::main(int argc, char *argv[]) {
     bool disable_hash_grow;
     bool density_plot;
     string plot_output_type;
+    bool output_hists;
     bool verbose;
     bool help;
+    
+    struct winsize w;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+    
 
     // Declare the supported options.
-    po::options_description generic_options(Comp::helpMessage(), 100);
+    po::options_description generic_options(Comp::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-comp"), 
+            ("output_prefix,o", po::value<string>(&output_prefix)->default_value("kat-comp"), 
                 "Path prefix for files generated by this program.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use.")
@@ -806,10 +666,12 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "Dumps any jellyfish hashes to disk that were produced during this run.")
             ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false), 
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")   
-            ("density_plot,p", po::bool_switch(&density_plot)->default_value(false),
+            ("density_plot,n", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
+            ("output_hists,h", po::bool_switch(&output_hists)->default_value(false), 
+                "Whether or not to output histogram data and plots for input 1 and input 2")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
@@ -819,12 +681,12 @@ int kat::Comp::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("input_1,i1", po::value<string>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-            ("input_2,i2", po::value<string>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
-            ("input_3,i3", po::value<string>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_1", po::value<string>(&input1), "Path to the first input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_2", po::value<string>(&input2), "Path to the second input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
+            ("input_3", po::value<string>(&input3), "Path to the third input file.  Can be either FastA, FastQ or a jellyfish hash (non bloom filtered)")
             ;
 
-    // Positional option for the input bam file
+    // Positional options for the input file groups
     po::positional_options_description p;
     p.add("input_1", 1);
     p.add("input_2", 1);
@@ -852,17 +714,36 @@ int kat::Comp::main(int argc, char *argv[]) {
          << "------------------------" << endl << endl;
 
     // Glob input files
-    vector<path_ptr> vecinput1 = InputHandler::globFiles(input1);
-    vector<path_ptr> vecinput2 = InputHandler::globFiles(input2);
+    if (input1.empty()) {
+        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string("Nothing specified for input group 1")));
+    }
+    else if (verbose) {
+        cerr << "Input 1: " << input1 << endl << endl;
+    }
+    shared_ptr<vector<path>> vecinput1 = InputHandler::globFiles(input1);
+    
+    if (input2.empty()) {
+        BOOST_THROW_EXCEPTION(CompException() << CompErrorInfo(string("Nothing specified for input group 2")));
+    }
+    else if (verbose) {
+        cerr << "Input 2: " << input2 << endl << endl;
+    }
+    shared_ptr<vector<path>> vecinput2 = InputHandler::globFiles(input2);
 
-    vector<path_ptr> vecinput3;
+    shared_ptr<vector<path>> vecinput3; 
     if ( !input3.empty() ){
+        if (verbose) {
+            cerr << "Input 3: " << input3 << endl << endl;
+        }
         vecinput3 = InputHandler::globFiles(input3);
     }
     
     // Create the sequence coverage object
-    Comp comp(vecinput1, vecinput2, vecinput3);
-    comp.setOutputPrefix(output_prefix);
+    Comp comp(*vecinput1, *vecinput2);
+    if (!input3.empty()) {
+        comp.setThirdInput(*vecinput3);
+    }
+    comp.setOutputPrefix(path(output_prefix));
     comp.setD1Scale(d1_scale);
     comp.setD2Scale(d2_scale);
     comp.setD1Bins(d1_bins);
@@ -878,6 +759,7 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setDumpHashes(dump_hashes);
     comp.setDisableHashGrow(disable_hash_grow);
     comp.setDensityPlot(density_plot);
+    comp.setOutputHists(output_hists);
     comp.setVerbose(verbose);
     
     // Do the work
