@@ -27,8 +27,12 @@ using std::string;
 using std::stringstream;
 using std::istringstream;
 using std::ostringstream;
+using std::wstring;
 using std::vector;
 using std::endl;
+
+#include <boost/locale/encoding_utf.hpp>
+using boost::locale::conv::utf_to_utf;
 
 namespace kat
 {
@@ -36,37 +40,43 @@ namespace kat
     // Note that none of these methods are particularly efficient so don't use them
     // for lots of data.
 
-    static uint16_t strToInt16(string s)
-    {
+    static uint16_t strToInt16(string s) {
         istringstream str_val(s);
         uint16_t int_val;
         str_val >> int_val;
         return int_val;
     }
 
-    static uint32_t strToInt32(string s)
-    {
+    static uint32_t strToInt32(string s) {
         istringstream str_val(s);
         uint32_t int_val;
         str_val >> int_val;
         return int_val;
     }
 
-    static uint64_t strToInt64(string s)
-    {
+    static uint64_t strToInt64(string s) {
         istringstream str_val(s);
         uint64_t int_val;
         str_val >> int_val;
         return int_val;
     }
 
-    static double strToDouble(string s)
-    {
+    static double strToDouble(string s) {
         istringstream str_val(s);
         double double_val;
         str_val >> double_val;
         return double_val;
     }
+    
+    static std::wstring s2ws(const std::string& str) {
+        return utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
+    }
+
+    static std::string ws2s(const std::wstring& str) {
+        return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
+    }      
+    
+
 
 
     static vector<uint32_t> &splitUInt32(const string& s, const char delim, vector<uint32_t> &elems)
