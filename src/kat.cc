@@ -141,8 +141,8 @@ int main(int argc, char *argv[])
         // in config file, but will not be shown to the user.
         po::options_description hidden_options("Hidden options");
         hidden_options.add_options()
-                ("mode", po::value<string>(&modeStr), "KAT mode.")
-                ("others", po::value< std::vector<string> >(&others), "Other options.")
+                ("mode", po::wvalue<string>(&modeStr), "KAT mode.")
+                ("others", po::wvalue< std::vector<string> >(&others), "Other options.")
                 ;
 
         // Positional options
