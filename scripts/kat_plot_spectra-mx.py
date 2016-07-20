@@ -86,17 +86,13 @@ else:
 
 if args.x_label is not None:
     x_label = args.x_label
-elif "XLabel" in header:
-    x_label = header["XLabel"]
 else:
-    x_label = "X"
+    x_label = "k-mer multiplicity"
 
 if args.y_label is not None:
     y_label = args.y_label
-elif "YLabel" in header:
-    y_label = header["YLabel"]
 else:
-    y_label = "Y"
+    y_label = "Number of distinct k-mers"
 
 matrix = np.loadtxt(input_file)
 if "Transpose" in header and header["Transpose"] == '1':
