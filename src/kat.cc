@@ -123,8 +123,8 @@ int main(int argc, char *argv[])
 {
     try {
         // KAT args
-        wstring wmodeStr;
-        std::vector<wstring> wothers;
+        string modeStr;
+        std::vector<string> others;
         bool verbose;
         bool version;
         bool help;
@@ -144,8 +144,8 @@ int main(int argc, char *argv[])
         // in config file, but will not be shown to the user.
         po::options_description hidden_options("Hidden options");
         hidden_options.add_options()
-                ("mode", po::wvalue<wstring>(&wmodeStr), "KAT mode.")
-                ("others", po::wvalue< std::vector<wstring> >(&wothers), "Other options.")
+                ("mode", po::value<string>(&modeStr), "KAT mode.")
+                ("others", po::value< std::vector<string> >(&others), "Other options.")
                 ;
 
         // Positional options
@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 
         // Parse command line
         po::variables_map vm;
-        po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(p).allow_unregistered().run(), vm, true);
+        po::store(po::command_line_parser(argc, argv).options(cmdline_options).positional(p).allow_unregistered().run(), vm);
         po::notify(vm);
 
         kat::katFileSystem = KatFS(argv[0]);
@@ -192,8 +192,6 @@ int main(int argc, char *argv[])
             // Output for the first line in a normal KAT run
             cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
         }
-        
-        string modeStr = kat::ws2s( wmodeStr );
         
         
         Mode mode = parseMode(modeStr);

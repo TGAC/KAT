@@ -34,8 +34,7 @@ using std::endl;
 #include <boost/locale/encoding_utf.hpp>
 using boost::locale::conv::utf_to_utf;
 
-namespace kat
-{
+namespace kat {
     // TODO Should write some templates for these methods
     // Note that none of these methods are particularly efficient so don't use them
     // for lots of data.
@@ -67,20 +66,16 @@ namespace kat
         str_val >> double_val;
         return double_val;
     }
-    
+
     static std::wstring s2ws(const std::string& str) {
         return utf_to_utf<wchar_t>(str.c_str(), str.c_str() + str.size());
     }
 
     static std::string ws2s(const std::wstring& str) {
         return utf_to_utf<char>(str.c_str(), str.c_str() + str.size());
-    }      
-    
+    }
 
-
-
-    static vector<uint32_t> &splitUInt32(const string& s, const char delim, vector<uint32_t> &elems)
-    {
+    static vector<uint32_t> &splitUInt32(const string& s, const char delim, vector<uint32_t> &elems) {
         stringstream ss(s);
         string item;
         while (std::getline(ss, item, delim)) {
@@ -95,8 +90,7 @@ namespace kat
         return elems;
     }
 
-    static vector<uint64_t> &splitUInt64(const string& s, const char delim, vector<uint64_t> &elems)
-    {
+    static vector<uint64_t> &splitUInt64(const string& s, const char delim, vector<uint64_t> &elems) {
         stringstream ss(s);
         string item;
         while (std::getline(ss, item, delim)) {
@@ -111,7 +105,6 @@ namespace kat
         return elems;
     }
 
-
     static vector<string> &splitString(const string &s, const char delim, vector<string> &elems) {
         stringstream ss(s);
         string item;
@@ -121,16 +114,13 @@ namespace kat
         return elems;
     }
 
-
     static vector<string> splitString(const string &s, char delim) {
         vector<string> elems;
         splitString(s, delim, elems);
         return elems;
     }
 
-
-    static string lineBreakString(string &s, const uint16_t line_length, const string line_prefix)
-    {
+    static string lineBreakString(string &s, const uint16_t line_length, const string line_prefix) {
         istringstream ss(s);
         string word;
         ostringstream out_str;
@@ -140,17 +130,13 @@ namespace kat
         uint16_t char_count = 0;
         while (std::getline(ss, word, ' ')) {
 
-            if (word.compare("</br>") == 0)
-            {
+            if (word.compare("</br>") == 0) {
                 out_str << endl << endl << line_prefix;
                 char_count = 0;
-            }
-            else
-            {
+            } else {
                 char_count += word.length();
 
-                if (char_count > line_length)
-                {
+                if (char_count > line_length) {
                     out_str << endl << line_prefix;
                     char_count = word.length();
                 }
@@ -161,19 +147,19 @@ namespace kat
 
         return out_str.str();
     }
-    
+
     static uint32_t gcCount(const string& seq) {
-    
+
         uint32_t g_or_c = 0;
 
         for (const auto& c : seq) {
             if (c == 'G' || c == 'g' || c == 'C' || c == 'c')
                 g_or_c++;
         }
-        
+
         return g_or_c;
     }
-    
+
     /**
      * Essentially the same as GC count, except if we encounter an N (or other 
      * non-canonical character) then we output -1 instead.
@@ -181,7 +167,7 @@ namespace kat
      * @return 
      */
     static int16_t gcCountN(const string& seq) {
-    
+
         int16_t g_or_c = 0;
 
         for (const auto& c : seq) {
@@ -190,13 +176,13 @@ namespace kat
             else if (c != 'A' && c != 'a' && c != 'T' && c != 't')
                 return -1;
         }
-        
+
         return g_or_c;
     }
-    
+
     static bool validKmer(const string& merstr) {
-        for(const auto& c: merstr) {        
-            switch(c) {
+        for (const auto& c : merstr) {
+            switch (c) {
                 case 'A':
                 case 'T':
                 case 'G':
