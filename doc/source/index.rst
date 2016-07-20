@@ -43,8 +43,10 @@ selected and the size of your datasets.
 Citing
 ======
 
-We are currently planning to submit multiple publications around different aspects of KAT.
-In the meantime if you use KAT in your work, please reference our github page `https://github.com/TGAC/KAT <https://github.com/TGAC/KAT>`_
+The KAT paper is currently in submission.  In the meantime, if you use our software
+and wish to cite us please use our bioRxiv preprint:
+
+Daniel Mapleson et al. 2013. KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies. bioRxiv doi: 10.1101/064733
 
 
 
@@ -54,7 +56,7 @@ Issues
 ======
 
 Should you discover any issues with spectre, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
-Alternatively, contact Daniel Mapleson at: daniel.mapleson@tgac.ac.uk
+Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk
 
 
 .. _availability:
