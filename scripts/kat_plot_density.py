@@ -96,6 +96,8 @@ else:
     z_label = "Z"
 
 matrix = np.loadtxt(input_file)
+if "Transpose" in header and header["Transpose"] == '1':
+    matrix = np.transpose(matrix)
 input_file.close()
 if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
