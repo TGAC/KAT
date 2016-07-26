@@ -25,12 +25,14 @@
 #include <iostream>
 using std::exception;
 using std::string;
+using std::wstring;
 
 #include <boost/exception/all.hpp>
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;
 
 #include <kat/kat_fs.hpp>
+#include <kat/str_utils.hpp>
 using kat::KatFS;
 
 #include "comp.hpp"
@@ -92,24 +94,25 @@ Mode parseMode(string mode) {
     }
 }
 
- const string helpMessage() {
-     return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
-                    "The First argument should be the tool/mode you wish to use:\n\n" \
-                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
-                    "             a file using K-mers from another sequence file.\n" \
-                    "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
-                    "             sequence files.\n" \
-                    "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
-                    "             count and a K-mer count.\n" \
-                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
-                    "             jellyfish histogram sub command but adds metadata in output for easy plotting,\n" \
-                    "             also actually runs multi-threaded.\n" \
-                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
-                    "             user-defined GC and coverage limits.\n" \
-                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare\n" \
-                    "             distributions.\n\n" \
-                    "Options";
-        }
+const string helpMessage() {
+    return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
+                   "The First argument should be the tool/mode you wish to use:\n\n" \
+                   "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
+                   "             a file using K-mers from another sequence file.\n" \
+                   "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
+                   "             sequence files.\n" \
+                   "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
+                   "             count and a K-mer count.\n" \
+                   "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
+                   "             jellyfish histogram sub command but adds metadata in output for easy plotting,\n" \
+                   "             also actually runs multi-threaded.\n" \
+                   "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
+                   "             user-defined GC and coverage limits.\n" \
+                   "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare\n" \
+                   "             distributions.\n\n" \
+                   "Options";
+}
+
 
 
 /**
@@ -189,6 +192,7 @@ int main(int argc, char *argv[])
             // Output for the first line in a normal KAT run
             cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
         }
+        
         
         Mode mode = parseMode(modeStr);
         
