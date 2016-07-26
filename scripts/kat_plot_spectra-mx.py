@@ -132,15 +132,15 @@ elif args.intersection:
         print("Intersection mode.")
         print("Dataset 1 cutoff: {:d}".format(args.exc_cutoff_d1))
         print("Dataset 2 cutoff: {:d}".format(args.exc_cutoff_d2))
-    y_exc_d1 = np.transpose(np.sum(matrix[:,:args.exc_cutoff_d1],1))
+    y_exc_d1 = np.sum(matrix[:args.exc_cutoff_d1,:],0)
     x_exc_d1 = np.arange(len(y_exc_d1))
-    y_sha_d1 = np.transpose(np.sum(matrix[args.exc_cutoff_d2:,
-                                          args.exc_cutoff_d1:],1))
+    y_sha_d1 = np.sum(matrix[args.exc_cutoff_d1:,
+                             args.exc_cutoff_d2:],0)
     x_sha_d1 = np.arange(args.exc_cutoff_d2, len(y_exc_d1))
-    y_exc_d2 = np.sum(matrix[:args.exc_cutoff_d2,:],0)
+    y_exc_d2 = np.transpose(np.sum(matrix[:,:args.exc_cutoff_d2],1))
     x_exc_d2 = np.arange(len(y_exc_d2))
-    y_sha_d2 = np.sum(matrix[args.exc_cutoff_d2:,
-                             args.exc_cutoff_d1:],0)
+    y_sha_d2 = np.transpose(np.sum(matrix[args.exc_cutoff_d1:,
+                                          args.exc_cutoff_d2:],1))
     x_sha_d2 = np.arange(args.exc_cutoff_d1, len(y_exc_d2))
     x = [x_exc_d1, x_sha_d1, x_exc_d2, x_sha_d2]
     y = [y_exc_d1, y_sha_d1, y_exc_d2, y_sha_d2]
