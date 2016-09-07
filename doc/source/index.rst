@@ -46,7 +46,7 @@ Citing
 The KAT paper is currently in submission.  In the meantime, if you use our software
 and wish to cite us please use our bioRxiv preprint:
 
-Daniel Mapleson et al. 2016. KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies. bioRxiv doi: 10.1101/064733
+`Daniel Mapleson et al. 2016. KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies. bioRxiv doi: 10.1101/064733 <http://biorxiv.org/content/early/2016/07/19/064733>`_
 
 
 
@@ -56,7 +56,7 @@ Issues
 ======
 
 Should you discover any issues with spectre, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
-Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk
+Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk
 
 
 .. _availability:
