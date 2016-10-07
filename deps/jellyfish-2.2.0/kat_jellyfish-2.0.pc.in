@@ -3,7 +3,7 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: Jellyfish
+Name: kat_jellyfish
 Description: A multi-threaded hash based k-mer counter.
 Version: @PACKAGE_VERSION@
 Libs: -L${libdir} -lkat_jellyfish-2.0 -lpthread

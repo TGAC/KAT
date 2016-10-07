@@ -16,9 +16,10 @@ kat_CPPFLAGS = \
 kat_LDFLAGS = @AM_LDFLAGS@ @LDFLAGS@
 
 kat_LDADD = \
-	../deps/jellyfish-2.2.0/libkat_jellyfish-2.0.la \
-	../lib/libkat-2.1.la \
-	@AM_LIBS@
+	@AM_LIBS@ \
+	-l:libkat-2.1.a \
+	-l:libkat_jellyfish-2.0.a
+
 	
 noinst_HEADERS = \
 	plot_density.hpp \

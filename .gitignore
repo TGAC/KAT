@@ -39,3 +39,4 @@ Makefile.in
 *.Makefile.am.swp
 *.pc
 *.la
+*.out
