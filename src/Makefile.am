@@ -13,11 +13,15 @@ kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/lib/include \
 	@AM_CPPFLAGS@ @CPPFLAGS@
 
-kat_LDFLAGS = @AM_LDFLAGS@ @LDFLAGS@
+kat_LDFLAGS = \
+	-L$(top_srcdir)/lib/.libs \
+	-L$(top_srcdir)/deps/jellyfish-2.2.0/.libs \
+	@AM_LDFLAGS@ \
+	@LDFLAGS@
 
 kat_LDADD = \
 	@AM_LIBS@ \
-	-l:libkat-2.1.a \
+	-l:libkat-2.2.a \
 	-l:libkat_jellyfish-2.0.a
 
 	
