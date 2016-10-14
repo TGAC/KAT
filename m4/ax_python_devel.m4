@@ -88,10 +88,21 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 	#
 	# Check for a version of Python >= 2.1.0
 	#
-	AC_MSG_CHECKING([for a version of Python >= '2.1.0'])
 	ac_supports_python_ver=`$PYTHON -c "import sys; \
 		ver = sys.version.split ()[[0]]; \
 		print (ver >= '2.1.0')"`
+        python_full_ver=`$PYTHON -c "import sys; \
+                ver=sys.version.split ()[[0]]; \
+                print(ver)"`
+        python_short_ver=`$PYTHON -c "import sys; \
+                ver=sys.version.split ()[[0]]; \
+                ver_parts=ver.split('.'); \
+                maj_ver=ver_parts[[0]]; \ 
+                min_ver=ver_parts[[1]]; \
+                print(maj_ver + '.' + min_ver)"`        
+        PYTHON_FULL_VERSION="$python_full_ver"
+        AC_MSG_NOTICE([Found python version: ${PYTHON_FULL_VERSION}])
+        AC_MSG_CHECKING([for a version of Python >= '2.1.0'])
 	if test "$ac_supports_python_ver" != "True"; then
 		if test -z "$PYTHON_NOVERSIONCHECK"; then
 			AC_MSG_RESULT([no])
@@ -109,6 +120,9 @@ to something else than an empty string.
 		fi
 	else
 		AC_MSG_RESULT([yes])
+                if test -z "$PYTHON_VERSION"; then
+                        PYTHON_VERSION=${python_short_ver}
+                fi
 	fi
 
 	#
@@ -119,8 +133,13 @@ to something else than an empty string.
 		ac_supports_python_ver=`$PYTHON -c "import sys; \
 			ver = sys.version.split ()[[0]]; \
 			print (ver $1)"`
+                
 		if test "$ac_supports_python_ver" = "True"; then
 		   AC_MSG_RESULT([yes])
+                   if test -z "$PYTHON_VERSION"; then
+                        PYTHON_VERSION=${python_short_ver}
+                   fi      
+                   
 		else
 			AC_MSG_RESULT([no])
 			AC_MSG_WARN([this package requires Python $1.
@@ -131,6 +150,8 @@ variable to configure. See ``configure --help'' for reference.
 			PYTHON_VERSION=""
 		fi
 	fi
+
+        AC_MSG_NOTICE([Ensuring environment variable 'PYTHON_VERSION' set to: ${PYTHON_VERSION}])
 
 	#
 	# Check if you have distutils, else fail
@@ -146,6 +167,8 @@ Please check your Python installation. The error was:
 $ac_distutils_result])
 		PYTHON_VERSION=""
 	fi
+
+        
 
 	#
 	# Check for Python include path
