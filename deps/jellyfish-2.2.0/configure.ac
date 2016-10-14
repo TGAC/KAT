@@ -27,7 +27,7 @@ AC_ARG_VAR([YAGGO], [Yaggo switch parser generator])
 AS_IF([test "x$YAGGO" = "x"], [AC_PATH_PROG([YAGGO], [yaggo], [false])])
 
 dnl define([concat], $1$2$3)dnl
-define([PC_FILE], kat_jellyfish-2.0.pc)
+define([PC_FILE], kat_jellyfish.pc)
 AC_CONFIG_FILES([
     Makefile
     tests/compat.sh

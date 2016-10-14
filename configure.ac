@@ -102,7 +102,7 @@ if [[ -n "${PYTHON_VERSION}" ]]; then
     fi
     AX_PYTHON_MODULE(scipy, ,${pybin})
     if [[ "${PYMOD}" == "no" ]]; then 
-            pymod_good="no" 
+            pymod_good="no"
     fi
 fi
 
@@ -177,7 +177,7 @@ AC_SUBST([AM_LIBS])
 
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat-2.2.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 

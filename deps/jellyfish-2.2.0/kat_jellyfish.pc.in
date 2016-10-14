@@ -6,5 +6,5 @@ includedir=@includedir@
 Name: kat_jellyfish
 Description: A multi-threaded hash based k-mer counter.
 Version: @PACKAGE_VERSION@
-Libs: -L${libdir} -lkat_jellyfish-2.0 -lpthread
+Libs: -L${libdir} -lkat_jellyfish -lpthread
 Cflags: -I${includedir}/jellyfish-@PACKAGE_VERSION@
