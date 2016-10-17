@@ -26,19 +26,25 @@ extensive documentation please visit: https://kat.readthedocs.org/en/latest/
 
 ##Installation:
 
-Generic installation description can be found in the INSTALL file. There are two ways to install KAT from source, either by cloning the git repository, or by downloading a distributable package, the later method is generally recommended as it reduces the number of installation steps and dependencies required to be on your system.
+There are two ways to install KAT from source, either by cloning the git repository, or by downloading a distributable package, the later method is generally recommended as it reduces the number of installation steps and dependencies required to be on your system.
 
-Installing from distributable:
- - Confirm dependencies are installed and configured:
-  - GCC V4.8+
-  - make
-  - libtool V2.4.2+
-  - Boost (system,filesystem,program_options,chrono,timer) V1.53+
-  - Plotting engine:
-   - Option 1 (preferred) python3, with matplotlib.  We recommend installing anaconda3 as this has all the required packages preinstalled.
-   - Option 2 gnuplot 
-  - Optional - Sphinx documentation V1.3+ (comes with anaconda3)
- - Download tarball from https://github.com/TGAC/KAT/releases
+When installing from distributable first confirm dependencies are installed and configured:
+
+  - **GCC** V4.8+
+  - **make**
+  - **libtool** V2.4.2+
+  - **pthreads** (probably already installed)
+  - **Boost** (*system*,*filesystem*,*program_options*,*chrono*,*timer*) V1.53+
+  - **Sphinx-doc** V1.3+ (Optional: only required for building the documentation.  Sphinx comes with anaconda3, however if not using anaconda3 then install according to the instructions on the sphinx website: [http://www.sphinx-doc.org/en/stable/instructions](http://www.sphinx-doc.org/en/stable/instructions)))
+
+In addition, KAT can only produce plots if one of the following plotting engines is installed:
+
+  - Option 1 (preferred): **python3, with matplotlib**.  We recommend installing anaconda3 as this has all the required packages pre-installed, otherwise we need a python3 installation with development libraries and the *scipy* and *numpy* packages installed.
+  - Option 2: **gnuplot**.  This will produce basic plots but will not be as rich and detailed as with python3.
+  
+Then proceed with the following steps:
+
+ - Download the latest tarball from here: [https://github.com/TGAC/KAT/releases](https://github.com/TGAC/KAT/releases)
  - Decompress and untar: ```tar -xvf kat-<version>.tar.gz```
  - Change into directory: ```cd kat-x.x.x```
  - Generate makefiles and confirm dependencies: ```./configure```
@@ -47,14 +53,15 @@ Installing from distributable:
  - Install: ```sudo make install```
 
 
-Installing from cloned repository
-  - Clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
-  - "cd" into root directory of the installation
+Should you wish to install from a cloned git repository instead, do the following:
+
   - Ensure these tools are correctly installed and available on your system:
-      - autoconf V2.53+
-      - automake V1.11+
+      - **autoconf** V2.53+
+      - **automake** V1.11+
+  - Clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
+  - "cd" into root directory of the installation  
   - Create configuration script by typing: ```./autogen.sh```.
-  - Follow all steps described in "Installing from a distributable" (except for the download and decompress tarball steps).```
+  - Follow all steps described in "Installing from a distributable" (except for the download and decompress tarball steps).
 
 The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by default.  In addition, some options specific to managing KAT dependencies located in non-standard locations are:
 
@@ -62,7 +69,8 @@ The configure script can take several options as arguments.  One commonly modifi
 
 Type ```./configure --help``` for full details.
 
-KAT can also make plots.  To enable plotting functionality we require either python3, 
+As already mentioned KAT can also make plots but requires external software to be 
+available to do this.  To enable plotting functionality we require either python3, 
  with numpy, scipy and matplotlib packages installed.  The python installation 
 must come with the python shared library, on debian systems you can install this 
 with "sudo apt-get install python3-dev".  If you don't already have python3 installed on your system 
@@ -71,8 +79,8 @@ you can use gnuplot, although the python plotting method is the preferred method
 produce nicer results.  
 
 The type of plotting engine used will be determined when running the configure 
-script, which will select the first engine detected in the following order: python, gnuplot, none.  
-There is currently no way to select the plotting directory from a custom location, 
+script, which will select the first engine detected in the following order: python,
+gnuplot, none.  There is currently no way to select the plotting directory from a custom location, 
 so the plotting system needs to be properly installed and configured on your 
 system: i.e. python3 or gnuplot must be available on the PATH.
 
