@@ -177,5 +177,36 @@ TEST(jellyfish, dump) {
     remove("temp_dump.jf");
 }
 
+TEST(jellyfish, negseqtest) {
+    path jfpath = path(DATADIR "/ecoli.header.jf27");
+    
+    bool res = JellyfishHelper::isSequenceFile(jfpath);
+    
+    EXPECT_EQ( res, false );
+}
+
+TEST(jellyfish, fastqseqtest) {
+    path fqpath = path(DATADIR "/ecoli_r1.1K.fastq");
+    
+    bool res = JellyfishHelper::isSequenceFile(fqpath);
+    
+    EXPECT_EQ( res, true );
+}
+
+TEST(jellyfish, fastaseqtest) {
+    path fapath = path(DATADIR "/EcoliK12.fasta");
+    
+    bool res = JellyfishHelper::isSequenceFile(fapath);
+    
+    EXPECT_EQ( res, true );
+}
+
+TEST(jellyfish, unknownexttest) {
+    path unknownpath = path(DATADIR "/unknown.dat");
+    
+    bool res = JellyfishHelper::isSequenceFile(unknownpath);
+    
+    EXPECT_EQ( res, true );
+}
 
 }

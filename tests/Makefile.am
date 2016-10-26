@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	data/sect_test.fa \
 	data/ecoli_r1.1K.fastq \
 	data/ecoli_r2.1K.fastq \
+	data/unknown.dat \
 	test_comp.sh \
 	test_gcp.sh \
 	test_hist.sh \
