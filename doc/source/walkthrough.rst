@@ -30,12 +30,14 @@ The following plot shows what you would expect to see for a completely unbiased
 homozygous PE library of S.coelicolor.
 
 .. image:: images/simulated_r1_v_r2.png
+    :scale: 33
 
 However in reality, various biases can interfere with sequencing experiments and we
 will probably end up with data which isn't quite as clean, such as that shown in 
 the following plot from an Illumina run of S.cerevisiae S288C.
 
 .. image:: images/real_r1_v_r2.png
+    :scale: 33
 
 It's also useful to examine the shared and unique partitioned spectra between R1 
 and R2.  This can be done by using the same matrix file.  The plot below is from
@@ -44,6 +46,7 @@ the same S.cerevisiae S288C dataset, generated using the following command line:
     kat plot spectra-mx -i [options] -o <output_file> <matrix>
 
 .. image:: images/real_r1_v_r2_shared.png
+    :scale: 33
 
 When generating plots, KAT uses input parameters supplied to the tool to generate a 
 plot title and labels for the x- and y-axis.  If you want to change these you can 
@@ -73,13 +76,13 @@ other experiments show a less distinct circle with the PCR-free protocol generat
 truest reflection of the simulated dataset.
 
 .. image:: images/gc_bias_a.png
-    :scale: 10%
+    :scale: 25%
 .. image:: images/gc_bias_b.png
-    :scale: 10%
+    :scale: 25%
 .. image:: images/gc_bias_c.png
-    :scale: 10%
+    :scale: 25%
 .. image:: images/gc_bias_d.png
-    :scale: 10%    
+    :scale: 25%    
 
 
 Checking library consistency
@@ -133,9 +136,9 @@ a large motif duplication in one of the experiments.  This is obvious from the
 spectra-mx plot but not so clear in the density plot.
 
 .. image:: images/pe_v_pe_1_shared.png
-    :scale: 12%
+    :scale: 25%
 .. image:: images/pe_v_pe_1_density.png
-    :scale: 12%
+    :scale: 25%
 
 An interesting comparison to perform is between a PCR-free and a Standard protocol 
 using a k-mer spectra density plot.  Note that the coverage from the standard protocol 
@@ -145,6 +148,7 @@ the standard protocol. The coverage from the standard protocol is less than from
 PCR-free protocol as less sequence was generated from this library.
 
 .. image:: images/pe_v_pe_2_density.png
+    :scale: 33%
 
 The following shared content plots generated from the same comparison show the k-mer 
 spectra split on shared and unique content.  Note how content is “lost” on the standard protocol 
@@ -156,9 +160,9 @@ around K-mer multiplicity = 30).  This should make you think carefully about set
 those low-coverage cutoffs again!
 
 .. image:: images/pe_v_pe_2_shared_1.png
-    :scale: 30%
+    :scale: 25%
 .. image:: images/pe_v_pe_2_shared_2.png
-    :scale: 30%
+    :scale: 25%
 
 PE vs LMP
 ~~~~~~~~~
@@ -174,16 +178,16 @@ In the example shown below, a LMP run is compared to a PE run before processing
 according to the guidelines for the Nextera LMP protocol:
 
 .. image:: images/pe_v_mp_before_density.png
-    :scale: 12%
+    :scale: 25%
 .. image:: images/pe_v_mp_before_shared.png
-    :scale: 12%
+    :scale: 25%
 
 These plots show the same LMP run after processing:
 
 .. image:: images/pe_v_mp_after_density.png
-    :scale: 12%
+    :scale: 25%
 .. image:: images/pe_v_mp_after_shared.png
-    :scale: 12%
+    :scale: 25%
 
 While the motif presence and spectra of the LMP library are certainly better 
 after processing (dataset 2 on the spectra-mx plot), there is content lost 
@@ -227,20 +231,25 @@ genuine content between 10-100X with GC spread from 5-25.  In this case we also 
 some unexpected content shown at approx 200X with GC from 15-25:
 
 .. image:: images/contaminant_MP.png
+    :scale: 33%
     
 The high coverage hot-spot is already suspicious but it becomes even more so after
 looking at other WGS libraries of the same sample:
 
 .. image:: images/contaminant_ope1.png
+    :scale: 25%
 .. image:: images/contaminant_ope2.png
+    :scale: 25%
 .. image:: images/contaminant_PE.png
+    :scale: 25%
 
 No other library contains such a hotspot at GC 15-25.  After merging all libraries
 into one, the contaminant becomes obvious as the coverage has not altered, meaning
 that k-mers from this cluster were not found in the other libraries:
 
 .. image:: images/contaminant_all.png
-    
+    :scale: 33%
+
 We can then use the filtering tools in KAT to extract k-mers inside, or outside
 defined coverage and GC limits.  In this case we could take the original LMP library
 and run the following command::
@@ -304,6 +313,7 @@ would look if we are able to perfectly reconstruct the reference assembly::
     kat comp -t 16 -o pe_vs_assembly 'PE.R?.fastq' assembly.fa
 
 .. image:: images/pe_v_asm_clean.png
+    :scale: 33%
 
 The errors are absent on the assembly, the main unique content is all there,
 exactly once, and all the other distributions are perfectly in place. But from the
@@ -311,6 +321,7 @@ same sequencing, by choosing a wrong k-value during assembly (too small in this 
 we can end up with something more interesting.
 
 .. image:: images/pe_v_asm_wrong.png
+    :scale: 33%
 
 Now, in addition to the absent errors, we have a lot of missing content from the 
 assembly.
@@ -351,6 +362,7 @@ Interestingly, most assemblies don’t look like either case above but show
 duplications, inclusion of extra variation, etc:
 
 .. image:: images/heterozygous_real.png
+    :scale: 33%
 
 
 Finding repetitive regions in assemblies

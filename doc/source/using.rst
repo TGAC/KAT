@@ -188,7 +188,7 @@ Applications:
  * Basic K-mer spectra visualisation
 
 .. image:: images/ccoli_hist.png
-    :scale: 20%
+    :scale: 33%
 
 Density
 ~~~~~~~
@@ -211,9 +211,9 @@ Applications:
 
 
 .. image:: images/ccoli_gcp.png
-    :scale: 20%
+    :scale: 25%
 .. image:: images/ccoli_comp.png
-    :scale: 20%
+    :scale: 25%
 
 
 Profile
@@ -230,7 +230,7 @@ Applications:
  * Visualise coverage (and optionally GC) levels across a sequence or set of sequences
 
 .. image:: images/profile.png
-    :scale: 30%
+    :scale: 66%
 
 
 Spectra_CN
@@ -249,7 +249,7 @@ Applications:
  * Visualise the copy number spectra of WGS data compared against an assembly
 
 .. image:: images/heterozygous_real.png
-    :scale: 75%
+    :scale: 33%
 
 
 
@@ -286,5 +286,5 @@ Applications:
  * Visualising k-mer spectra of arbitrary columns and rows from a matrix
 
 .. image:: images/pe_v_pe_1_shared.png
-    :scale: 50%
+    :scale: 33%
 
