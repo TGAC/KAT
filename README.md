@@ -34,7 +34,7 @@ When installing from distributable first confirm dependencies are installed and 
   - **make**
   - **libtool** V2.4.2+
   - **pthreads** (probably already installed)
-  - **Boost** (*system*,*filesystem*,*program_options*,*chrono*,*timer*) V1.53+
+  - **Boost** (*system*,*filesystem*,*program_options*,*chrono*,*timer*) V1.53+.  KAT will statically link boost libraries when possible so please make sure you have boost static libraries built on your system.
   - **Sphinx-doc** V1.3+ (Optional: only required for building the documentation.  Sphinx comes with anaconda3, however if not using anaconda3 then install according to the instructions on the sphinx website: [http://www.sphinx-doc.org/en/stable/instructions](http://www.sphinx-doc.org/en/stable/instructions)))
 
 In addition, KAT can only produce plots if one of the following plotting engines is installed:
@@ -44,7 +44,7 @@ In addition, KAT can only produce plots if one of the following plotting engines
   
 Then proceed with the following steps:
 
- - Download the latest tarball from here: [https://github.com/TGAC/KAT/releases](https://github.com/TGAC/KAT/releases)
+ - Download the latest tarball from here: [https://github.com/TGAC/KAT/releases](https://github.com/TGAC/KAT/releases).  NOTE: Please make sure not to download the github source code zips.  The KAT distributables have the following filename format ```kat-<version>.tar.gz```.
  - Decompress and untar: ```tar -xvf kat-<version>.tar.gz```
  - Change into directory: ```cd kat-x.x.x```
  - Generate makefiles and confirm dependencies: ```./configure```
@@ -114,10 +114,11 @@ GNU GPL V3.  See COPYING file for more details.
 
 ##Cite:
 
-The KAT paper is currently in submission.  In the meantime, if you use our software
-and wish to cite us please use our bioRxiv preprint:
+If you use KAT in your work and wish to cite us please use the following citation:
 
-Daniel Mapleson et al. 2016. KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies. bioRxiv doi: 10.1101/064733
+Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright, and Bernardo J. Clavijo. 
+**KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies.**
+Bioinformatics, 2016. doi: 10.1093/bioinformatics/btw663
 
 
 ##Authors:
