@@ -28,7 +28,9 @@ template<typename DtnType>
 inline double as_seconds(DtnType dtn) { return duration_cast<duration<double>>(dtn).count(); }
 
 #include <kat/jellyfish_helper.hpp>
+#include <kat/input_handler.hpp>
 using kat::JellyfishHelper;
+using kat::InputHandler;
 using kat::HashLoader;
 
 namespace kat {
@@ -207,6 +209,14 @@ TEST(jellyfish, unknownexttest) {
     bool res = JellyfishHelper::isSequenceFile(unknownpath);
     
     EXPECT_EQ( res, true );
+}
+
+TEST(jellyfish, determineexttest) {
+    path unknownpath = path(DATADIR "/unknown.dat");
+    
+    string ft = InputHandler::determineSequenceFileType(unknownpath);
+    
+    EXPECT_EQ( ft, "fasta" );
 }
 
 }

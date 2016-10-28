@@ -67,6 +67,8 @@ namespace kat {
         
         static shared_ptr<vector<path>> globFiles(const string& input);
         static shared_ptr<vector<path>> globFiles(const vector<path>& input);
+        
+        static string determineSequenceFileType(const path& file);
        
     private:
         static int globerr(const char *path, int eerrno);
