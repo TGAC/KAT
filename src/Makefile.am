@@ -13,12 +13,17 @@ kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/lib/include \
 	@AM_CPPFLAGS@ @CPPFLAGS@
 
-kat_LDFLAGS = @AM_LDFLAGS@ @LDFLAGS@
+kat_LDFLAGS = \
+	-L../lib/.libs \
+	-L../deps/jellyfish-2.2.0/.libs \
+	@AM_LDFLAGS@ \
+	@LDFLAGS@
 
 kat_LDADD = \
-	../deps/jellyfish-2.2.0/libkat_jellyfish-2.0.la \
-	../lib/libkat-2.1.la \
-	@AM_LIBS@
+	@AM_LIBS@ \
+	-l:libkat.a \
+	-l:libkat_jellyfish.a
+
 	
 noinst_HEADERS = \
 	plot_density.hpp \

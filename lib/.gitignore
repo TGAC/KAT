@@ -3,3 +3,4 @@
 /Makefile
 *.lo
 *.o
+*.kat-2.1.pc.swp

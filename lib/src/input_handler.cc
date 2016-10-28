@@ -20,7 +20,9 @@
 #endif
 
 #include <iostream>
+#include <fstream>
 #include <glob.h>
+using std::fstream;
 using std::stringstream;
 
 #include <boost/filesystem.hpp>
@@ -258,4 +260,38 @@ shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input)
     }
     
     return globbed;
+}
+
+string kat::InputHandler::determineSequenceFileType(const path& filename) {
+    
+    string ext = filename.extension().string();
+
+    // Check extension first
+    if (boost::iequals(ext, ".fastq") || boost::iequals(ext, ".fq")) {
+        return "fastq";
+    }
+    else if (   boost::iequals(ext, ".fasta") ||
+                boost::iequals(ext, ".fa") ||
+                boost::iequals(ext, ".fna") ||
+                boost::iequals(ext, ".fas") ||
+                boost::iequals(ext, ".scafSeq")) {
+        return "fasta";
+    }
+    else {
+        // Now check first character of the file
+        char ch;
+        fstream fin(filename.string(), fstream::in);
+        fin >> ch;
+        fin.close();
+
+        if (ch == '>') {
+            return "fasta";
+        }
+        else if (ch == '@') {
+            return "fastq";
+        }
+    }
+
+    // If we've got this far then it's not obviously a sequence file we recognise.
+    BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo("Unknown file type"));
 }

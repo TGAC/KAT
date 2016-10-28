@@ -5,7 +5,7 @@ EXTRA_DIST = doc/kat_jellyfish.pdf doc/kat_jellyfish.man README LICENSE # jellyf
 man1_MANS = doc/kat_jellyfish.man
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = kat_jellyfish-2.0.pc
+pkgconfig_DATA = kat_jellyfish.pc
 
 AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
 AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
@@ -30,8 +30,8 @@ YAGGO_SOURCES = # Append all file to be built by yaggo
 
 # What to build
 bin_PROGRAMS += bin/kat_jellyfish
-lib_LTLIBRARIES = libkat_jellyfish-2.0.la
-LDADD = libkat_jellyfish-2.0.la # $(VALGRIND_LIBS)
+lib_LTLIBRARIES = libkat_jellyfish.la
+LDADD = libkat_jellyfish.la # $(VALGRIND_LIBS)
 check_PROGRAMS = bin/generate_sequence
 
 ############################
@@ -66,8 +66,8 @@ YAGGO_SOURCES += sub_commands/count_main_cmdline.hpp	\
 ######################################
 # Build Jellyfish the shared library #
 ######################################
-libkat_jellyfish_2_0_la_LDFLAGS = -version-info 2:0:0
-libkat_jellyfish_2_0_la_SOURCES = lib/rectangular_binary_matrix.cc		\
+libkat_jellyfish_la_LDFLAGS = -version-info 2:0:0
+libkat_jellyfish_la_SOURCES = lib/rectangular_binary_matrix.cc		\
                               lib/mer_dna.cc lib/storage.cc		\
                               lib/allocators_mmap.cc lib/misc.cc	\
                               lib/int128.cc lib/thread_exec.cc		\

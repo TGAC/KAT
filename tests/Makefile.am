@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	data/sect_test.fa \
 	data/ecoli_r1.1K.fastq \
 	data/ecoli_r2.1K.fastq \
+	data/unknown.dat \
 	test_comp.sh \
 	test_gcp.sh \
 	test_hist.sh \
@@ -35,21 +36,28 @@ TESTS = check_unit_tests test_hist.sh test_gcp.sh test_sect.sh test_comp.sh
 
 check_PROGRAMS = check_unit_tests
 
-noinst_HEADERS =    gtest/gtest.h \
-		    gtest/src/gtest-all.cc \
-		    gtest/src/gtest_main.cc
+noinst_HEADERS = \
+	gtest/gtest.h \
+	gtest/src/gtest-all.cc \
+	gtest/src/gtest_main.cc
 	
 
-check_unit_tests_SOURCES =	check_jellyfish.cc \
-				check_spectra_helper.cc \
-				check_compcounters.cc \
-				check_main.cc
+check_unit_tests_SOURCES = \
+	check_jellyfish.cc \
+	check_spectra_helper.cc \
+	check_compcounters.cc \
+	check_main.cc
 
-check_unit_tests_LDFLAGS = @AM_LDFLAGS@
+check_unit_tests_LDFLAGS = \
+	-L../lib \
+	-L../deps/jellyfish-2.2.0 \
+	@AM_LDFLAGS@ \
+	@LDFLAGS@
 	
-check_unit_tests_LDADD =    ../deps/jellyfish-2.2.0/libkat_jellyfish-2.0.la \
-			    ../lib/libkat-2.1.la \
-			    libgtest.la \
-			    @AM_LIBS@
+check_unit_tests_LDADD = \
+	libgtest.la \
+	-lkat \
+	-lkat_jellyfish \
+	@AM_LIBS@
 	
 include gtest.mk

@@ -4,7 +4,7 @@
 
 # Autoconf initialistion.  Sets package name version and contact details
 AC_PREREQ([2.68])
-AC_INIT([kat],[2.1.1],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
+AC_INIT([kat],[2.2.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 AC_CONFIG_SRCDIR([src/kat.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -80,10 +80,11 @@ fi
 # Plotting
 AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]), enable_gnuplot="yes", enable_gnuplot="no")
 
-AM_PATH_PYTHON([], [], AC_MSG_ERROR([Python interpreter not found.]))
+#AM_PATH_PYTHON([], [], AC_MSG_ERROR([Python interpreter not found.]))
 
 AX_PYTHON_DEVEL([>= '3.1'])
 
+pybin=python${PYTHON_VERSION}
 pymod_good="no"
 if [[ -n "${PYTHON_VERSION}" ]]; then
     if [[ -z "${PYTHON_EXTRA_LIBS}" ]]; then
@@ -91,17 +92,17 @@ if [[ -n "${PYTHON_VERSION}" ]]; then
         AC_MSG_WARN([Python3 detected but Python3 development library was not found.  If you wish to use python plotting please install python3 library.  e.g. "sudo apt-get install python3-dev" on debian systems.])
     fi
     pymod_good="yes"
-    AX_PYTHON_MODULE(numpy, ,python3)
+    AX_PYTHON_MODULE(numpy, ,${pybin})
     if [[ "${PYMOD}" == "no" ]]; then 
             pymod_good="no" 
     fi
-    AX_PYTHON_MODULE(matplotlib, ,python3)
+    AX_PYTHON_MODULE(matplotlib, ,${pybin})
     if [[ "${PYMOD}" == "no" ]]; then 
             pymod_good="no" 
     fi
-    AX_PYTHON_MODULE(scipy, ,python3)
+    AX_PYTHON_MODULE(scipy, ,${pybin})
     if [[ "${PYMOD}" == "no" ]]; then 
-            pymod_good="no" 
+            pymod_good="no"
     fi
 fi
 
@@ -149,7 +150,7 @@ AX_BOOST_CHRONO
 AX_BOOST_TIMER
 
 
-define([PC_FILE], lib/kat-2.1.pc)
+define([PC_FILE], lib/kat-2.2.pc)
 
 
 # Combine BOOST variables (apart for BOOST_TEST)
@@ -176,7 +177,7 @@ AC_SUBST([AM_LIBS])
 
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat-2.1.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 

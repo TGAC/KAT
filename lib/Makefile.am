@@ -1,12 +1,12 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = kat-2.1.pc
+pkgconfig_DATA = kat.pc
 
-lib_LTLIBRARIES = libkat-2.1.la
+lib_LTLIBRARIES = libkat.la
 
-libkat_2_1_la_LDFLAGS = -version-info 2:1:0
-libkat_2_1_la_SOURCES = \
+libkat_la_LDFLAGS = -version-info 2:2:0
+libkat_la_SOURCES = \
 	src/gnuplot_i.cc \
 	src/matrix_metadata_extractor.cc \
 	src/input_handler.cc \
@@ -26,9 +26,9 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/str_utils.hpp \
 			    $(KI)/comp_counters.hpp
 
-libkat_2_1_la_CPPFLAGS = \
+libkat_la_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/lib/include \
 	@AM_CPPFLAGS@
 	
-libkat_2_1_la_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11  @AM_CXXFLAGS@
+libkat_la_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11  @AM_CXXFLAGS@
