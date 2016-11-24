@@ -47,7 +47,9 @@ Citing
 The KAT paper is currently in submission.  In the meantime, if you use our software
 and wish to cite us please use our bioRxiv preprint:
 
-`Daniel Mapleson et al. 2016. KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies. bioRxiv doi: 10.1101/064733 <http://biorxiv.org/content/early/2016/07/19/064733>`_
+Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright, and Bernardo J. Clavijo. 
+**KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies.**
+Bioinformatics, 2016. `doi: 10.1093/bioinformatics/btw663 <http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract>`_
 
 
 
