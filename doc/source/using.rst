@@ -1,12 +1,12 @@
 .. _using:
 
 Using KAT
-================
+=========
 
 KAT is a C++ program containing a number of subtools which can be used in
 isolation or as part of a pipeline.  Typing ``kat --help`` will show a
 list of the available subtools.  Each subtool has its own help system which you 
-can access by typing ``kat <subtool> --help``.  
+can access by typing ``kat <subtool> --help``.
 
 
 HIST

@@ -1,9 +1,40 @@
 
 KAT Changelog
 
+==========================================
+
+V2.3.0 - ????
+
+Modified sequence filtering tool so that it can now handle filtering of paired end reads.
+
+==========================================
+
+V2.2.0 - 28th October 2016
+
+Improved README and documentation
+
+Better checking of python dependencies
+
+Enforcing static linking of kat_jellyfish and kat libraries to executable
+
+Better checking of sequence files, now kat can detect fasta and fastq files for kmer counting, even without a known extension.
+
+
+==========================================
+
+V2.1.1 - 26th July 2016
+
+Updated documentation
+
+Removed dependency on sphinx extensions in order to keep both readthedocs and homebrew happy.
+
+Fixed representation of labels and plotting coordinates based on whether the matrix should be interpretted transposed or not.
+
+Added shebang to python library files, in order for homebrew to be happy including them in the bin directory.
+
 ===========================================
 
-V2.1.0 - ????
+V2.1.0 - 21st June 2016
 
 Added filtering tools for filtering k-mer hashes and sequences based on presence
 or absence of a set of k-mers.

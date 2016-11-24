@@ -25,6 +25,7 @@ The K-mer counting itself, a critical element for all KAT tools, is accomplished
     using
     kmer
     walkthrough
+    faq
 
 .. _system:
 
@@ -55,8 +56,11 @@ and wish to cite us please use our bioRxiv preprint:
 Issues
 ======
 
-Should you discover any issues with spectre, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
-Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk
+Should you discover any issues with KAT, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
+Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk.  
+However, please consult the `Frequently Asked Questions <faq>`_ page first in case your 
+question is already answered there.
+
 
 
 .. _availability:
