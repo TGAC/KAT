@@ -5,7 +5,7 @@ pkgconfig_DATA = kat.pc
 
 lib_LTLIBRARIES = libkat.la
 
-libkat_la_LDFLAGS = -version-info 2:2:0
+libkat_la_LDFLAGS = -version-info 2:3:0
 libkat_la_SOURCES = \
 	src/gnuplot_i.cc \
 	src/matrix_metadata_extractor.cc \
