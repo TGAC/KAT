@@ -153,14 +153,15 @@ Sequence filtering
 The user loads a k-mer hash and then filters sequences (either in or out) depending 
 on whether those sequences contain the k-mer or not.  The user can also apply a 
 threshold requiring X% of k-mers to be in the sequence before filtering is applied.
+The user can also use this tool for filtering paired end reads, and for subsampling.
 
 Basic usage::
 
-    kat filter seq [options] <seq_file> (<k-mer_hash>)
+    kat filter seq [options] --seq <seq_file> <k-mer_hash>
 
 Applications:
 
- * Contamination extraction from read file or assembly file
+ * Contamination extraction from read file or assembly files, extraction of organelles, subsampling high_coverage regions
 
 
 Plotting tools
