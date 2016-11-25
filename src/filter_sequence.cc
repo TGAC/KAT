@@ -206,7 +206,11 @@ void kat::filter::FilterSeq::processSeqFile() {
             outWriter2 = unique_ptr<seqan::SeqFileOut>(new seqan::SeqFileOut(output_path_out2.c_str()));
         }
     }
-        
+    
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> urd;
+    
     // Processes sequences in batches of records to reduce memory requirements
     uint64_t index = 0;
     while (!seqan::atEnd(*reader)) {
@@ -217,10 +221,15 @@ void kat::filter::FilterSeq::processSeqFile() {
             seqan::readRecord(name2, seq2, qual2, *reader2);
         }
         
+        // Generate a random value for this sequence between 0 and 1 (we may use
+        // this for subsampling later, if requested by the user)
+        double val = urd(gen);
+        
         // Process batch with worker threads
         // Process each sequence is processed in a different thread.
         // In each thread lookup each K-mer in the hash
-        processSeq(index++);
+        
+        processSeq(index++, val);
         
         if (index % 100000 == 0) {
             cout << "Processed " << index << (this->isPaired() ? " pairs" : " entries") << endl;
@@ -257,7 +266,7 @@ void kat::filter::FilterSeq::processSeqFile() {
 }
 
 
-void kat::filter::FilterSeq::processSeq(uint64_t index) {
+void kat::filter::FilterSeq::processSeq(uint64_t index, double random_val) {
 
     
     vector<bool> kFound;
@@ -278,14 +287,32 @@ void kat::filter::FilterSeq::processSeq(uint64_t index) {
     
     double ratio = stats.calcRatio();
 
+    
+    bool keep = true;
+    
+    // Check to see if seq stats are within limits, if so keep the sequence
     if ((ratio >= threshold && !invert) || (invert && ratio < threshold)) {
-        keepers++;
-        seqan::writeRecord(*inWriter, name, seq, qual);
-        if (this->isPaired()) {
-            seqan::writeRecord(*inWriter2, name2, seq2, qual2);
+        
+        // Also check to see if we have exceeded the threshold for subsampling
+        if (this->frequency > 0.0 && this->frequency < random_val) {
+            keep = false;
+        }
+        else {
+            // Increase keeper count and output sequence
+            keepers++;
+            seqan::writeRecord(*inWriter, name, seq, qual);
+            if (this->isPaired()) {
+                seqan::writeRecord(*inWriter2, name2, seq2, qual2);
+            }
         }
     }
-    else if (separate) {
+    else {
+        keep = false;
+    }
+    
+    // If the user's requested to seperate the dataset and we are not keeping
+    // this record then output it to the discard file(s)
+    if (separate && !keep) {
         seqan::writeRecord(*outWriter, name, seq, qual);
         if (this->isPaired()) {
             seqan::writeRecord(*outWriter2, name2, seq2, qual2);
@@ -351,6 +378,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     path            output_prefix;
     uint16_t        threads;
     double          threshold;
+    double          frequency;
     bool            invert;
     bool            separate;
     bool            stats;
@@ -381,6 +409,8 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
                 "The sequence file to filter")
             ("seq2", po::value<path>(&seq_file_2),
                 "The second sequence file to filter (use this if you want to filter paired end reads)")
+            ("frequency,f", po::value<double>(&frequency)->default_value(DEFAULT_FILT_SEQ_FREQUENCY),
+                "If a value is set here then only keep the sequence if matching the kmer dataset and a random number is generated between 0 and 1 that exceeds this threshold.  The default is 0.0 which means keep every hit.")
             ("stats", po::bool_switch(&stats)->default_value(false),
                 "Whether to emit statistics about quantity of found k-mers in each sequence.  If the user specifies seq2, then each entry will represent both sequences combined.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
@@ -439,6 +469,7 @@ int kat::filter::FilterSeq::main(int argc, char *argv[]) {
     filter.setCanonical(!non_canonical);
     filter.setInvert(invert);
     filter.setSeparate(separate);
+    filter.setFrequency(frequency);
     filter.setDoStats(stats);
     filter.setMerLen(mer_len);
     filter.setHashSize(hash_size);

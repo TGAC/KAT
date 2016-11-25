@@ -19,6 +19,7 @@
 #include <iostream>
 #include <memory>
 #include <fstream>
+#include <random>
 using std::unique_ptr;
 using std::stringstream;
 using std::ofstream;
@@ -40,6 +41,7 @@ const string    DEFAULT_FILT_SEQ_OUTPUT_PREFIX  = "kat.filter.seq";
 const double    DEFAULT_FILT_SEQ_THRESHOLD      = 0.1;
 const bool      DEFAULT_FILT_SEQ_INVERT         = false;
 const bool      DEFAULT_FILT_SEQ_SEPARATE       = false;
+const bool      DEFAULT_FILT_SEQ_FREQUENCY      = 0.0;
 
 struct SeqStats {
     int64_t index;
@@ -81,6 +83,7 @@ private:
     double      threshold;
     bool        invert;
     bool        separate;
+	double		frequency;
     bool        doStats;
     uint16_t    threads;
     bool        verbose;
@@ -105,7 +108,7 @@ private:
     unique_ptr<seqan::SeqFileOut> outWriter2 = nullptr;
     
     unique_ptr<ofstream> stats_stream = nullptr;
-    
+	
     void init(const vector<path>& _input);
 
 public:
@@ -167,6 +170,14 @@ public:
     void setThreshold(double threshold) {
         this->threshold = threshold;
     }
+	
+	double getFrequency() const {
+		return frequency;
+	}
+
+	void setFrequency(double frequency) {
+		this->frequency = frequency;
+	}
     
     bool isDoStats() const {
         return doStats;
@@ -217,7 +228,7 @@ protected:
     void processSeqFile();
     void processPairedSeqFile();
         
-    void processSeq(uint64_t index);
+    void processSeq(uint64_t index, double random_val);
     
     void getProfile(seqan::CharString& s, vector<bool>& hits);
         
