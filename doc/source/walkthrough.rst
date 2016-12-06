@@ -209,7 +209,7 @@ will not be very useful for scaffolding.
 Contamination detection and extraction
 --------------------------------------
 
-Breaking WGS data into k-mers provides a nice way of identifying contamination, or
+Breaking WGS data into k-mers provides a nice way of identifying contamination, organelles or
 otherwise unexpected content, in your reads or assemblies.  This section will walk
 you through how you might be able to identify and extract contamination in your 
 data.
@@ -260,9 +260,18 @@ This produces a k-mer hash containing only those k-mer found in the defined regi
 We can get the reads (or assembled contigs) associated with these k-mers by
 running the following command::
 
-    kat filter seq --threshold=0.5 <path_to_seq_file_to_filter> <filtered_k-mer hash>
+    kat filter seq --threshold=0.5 --seq=<path_to_seq_file_to_filter> --seq2=<path_to_seq_file_to_filter_2> <filtered_k-mer hash>
+
+The example above assumes you want to filter a paired end library, although if you
+want to filter single end data or and assembly you can do this by simply dropping
+the ``--seq2`` option.
 
 BLASTing some of the sequences removed by the filtering might then identify the contaminant.
+
+You can also use this tool for subsampling the extracted data.  This can be useful
+for reducing expression of highly expressed reads.  To do this add the ``--frequency``
+option and set a threshold indicating how many of the reads to keep: 1.0 implies keep
+all, 0.0 means discard all, 0.5 would imply to keep half of the sequences.
 
 
 In assemblies

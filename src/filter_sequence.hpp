@@ -18,8 +18,11 @@
 
 #include <iostream>
 #include <memory>
+#include <fstream>
+#include <random>
 using std::unique_ptr;
 using std::stringstream;
+using std::ofstream;
 
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
@@ -38,6 +41,7 @@ const string    DEFAULT_FILT_SEQ_OUTPUT_PREFIX  = "kat.filter.seq";
 const double    DEFAULT_FILT_SEQ_THRESHOLD      = 0.1;
 const bool      DEFAULT_FILT_SEQ_INVERT         = false;
 const bool      DEFAULT_FILT_SEQ_SEPARATE       = false;
+const bool      DEFAULT_FILT_SEQ_FREQUENCY      = 0.0;
 
 struct SeqStats {
     int64_t index;
@@ -65,101 +69,63 @@ struct SeqStatsComparator {
     }
 };
 
-class SeqFilterCounter {
-    
-public:
-        
-    vector<shared_ptr<SeqStats> > seq_stats;
-    
-    SeqFilterCounter() {}
-    
-    void add(shared_ptr<SeqStats> k) {
-        seq_stats.push_back(std::move(k));
-    }
-    
-    uint32_t calcKeepers(const double threshold) {
-        uint32_t nb_found = 0;
-        for(const auto& k : seq_stats) {
-            if (k->calcRatio() >= threshold) {
-                nb_found++;
-            }
-        }
-        
-        return nb_found;
-    }
-    
-    size_t size() const {
-        return seq_stats.size();
-    }
-    
-    void sort() {
-        // Sort keeper indices
-        std::sort(seq_stats.begin(), seq_stats.end(), SeqStatsComparator()); 
-    }
-    
-};
-
-class ThreadedSeqStatsCounters {
-private:
-    vector<SeqFilterCounter> counters;
-
-public:
-    
-    ThreadedSeqStatsCounters() : ThreadedSeqStatsCounters(1) {};
-    ThreadedSeqStatsCounters(const uint16_t threads) {
-        counters.resize(threads);
-    }
-    
-    ~ThreadedSeqStatsCounters() {}
-
-    void add(const uint32_t th_id, unique_ptr<SeqStats> keeper) {
-        counters[th_id].add(std::move(keeper));            
-    };
-
-    unique_ptr<SeqFilterCounter> merge();
-    
-    void resize(uint16_t threads) {
-        counters.resize(threads);
-    }
-};
 
 class FilterSeq
 {
 private:
     
-    static const uint16_t BATCH_SIZE = 1024;
-    
     // Args
     InputHandler    input;
-    path            seq_file;
+    path            seq_file_1;
+    path            seq_file_2;
     path            output_prefix;
 
     double      threshold;
     bool        invert;
     bool        separate;
+	double		frequency;
     bool        doStats;
     uint16_t    threads;
     bool        verbose;
     
-    vector<uint32_t> keep;
-    uint16_t recordsInBatch;
-    size_t bucket_size, remaining; 
-    uint32_t offset;
-        
-    seqan::StringSet<seqan::CharString> names;
-    seqan::StringSet<seqan::CharString> seqs;
+    uint64_t    keepers;
+    uint64_t    total;
+    
+    seqan::CharString name;
+    seqan::CharString seq;
+    seqan::CharString qual;
+    seqan::CharString name2;
+    seqan::CharString seq2;
+    seqan::CharString qual2;
     string extension;
     
-    ThreadedSeqStatsCounters stats;
-
+    unique_ptr<seqan::SeqFileIn> reader = nullptr;
+    unique_ptr<seqan::SeqFileIn> reader2 = nullptr;    
+    
+    unique_ptr<seqan::SeqFileOut> inWriter = nullptr;
+    unique_ptr<seqan::SeqFileOut> outWriter = nullptr;
+    unique_ptr<seqan::SeqFileOut> inWriter2 = nullptr;
+    unique_ptr<seqan::SeqFileOut> outWriter2 = nullptr;
+    
+    unique_ptr<ofstream> stats_stream = nullptr;
+	
     void init(const vector<path>& _input);
 
 public:
-    FilterSeq(const path& _seq_file, const path& _input);
+    FilterSeq(const path& _seq_file_1, const path& _seq_file_2, const path& _input);
 
-    FilterSeq(const path& _seq_file, const vector<path>& _input);
+    FilterSeq(const path& _seq_file_1, const path& _seq_file_2, const vector<path>& _input);
 
     ~FilterSeq() {}
+    
+    uint16_t getThreads() const {
+        return threads;
+    }
+
+    void setThreads(uint16_t threads) {
+        this->threads = threads;
+    }
+
 
     bool isInvert() const {
         return invert;
@@ -193,6 +159,10 @@ public:
         this->separate = separate;
     }
     
+    bool isPaired() const {
+        return !this->seq_file_2.empty(); 
+    }
+    
     double getThreshold() const {
         return threshold;
     }
@@ -200,6 +170,14 @@ public:
     void setThreshold(double threshold) {
         this->threshold = threshold;
     }
+	
+	double getFrequency() const {
+		return frequency;
+	}
+
+	void setFrequency(double frequency) {
+		this->frequency = frequency;
+	}
     
     bool isDoStats() const {
         return doStats;
@@ -216,7 +194,7 @@ public:
     void setCanonical(bool canonical) {
         this->input.canonical = canonical;
     }
-
+    
     path getOutput_prefix() const {
         return output_prefix;
     }
@@ -225,14 +203,6 @@ public:
         this->output_prefix = output_prefix;
     }
 
-    uint16_t getThreads() const {
-        return threads;
-    }
-
-    void setThreads(uint16_t threads) {
-        this->threads = threads;
-    }
-    
     uint64_t getHashSize() const {
         return input.hashSize;
     }
@@ -256,22 +226,23 @@ public:
 protected:
 
     void processSeqFile();
+    void processPairedSeqFile();
         
-    void analyseBatch();
-
-    void analyseBatchSlice(int th_id);
+    void processSeq(uint64_t index, double random_val);
     
-    void processSeq(const size_t index, const uint16_t th_id);
+    void getProfile(seqan::CharString& s, vector<bool>& hits);
         
-    void save(vector<shared_ptr<SeqStats> >& stats);
     
     static string helpMessage() {            
         
-        return string(  "Usage: kat filter seq [options] <seq_file_to_filter> <input>\n\n") +
+        return string(  "Usage: kat filter seq [options] <seq_file_to_filter> [<seq_file_2>] <input>\n\n") +
                         "Filter sequences based on whether those sequences contain specific k-mers.\n\n" \
                         "The user loads a k-mer hash and then filters sequences (either in or out) depending on whether those\n" \
                         "sequences contain the k-mer or not.  The user can also apply a threshold requiring X% of k-mers to be\n" \
                         "in the sequence before filtering is applied.\n\n" \
+                        "Should the user have paired-end data to filter the first two positional arguments represent the paired\n" \
+                        "end read files to filter, and the remaining positional arguments are for loading the kmer hash.  If\n" \
+                        "user wants filter paired end reads then the --paired option must be selected\n\n" \
                         "Options";
 
     }

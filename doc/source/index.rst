@@ -25,6 +25,7 @@ The K-mer counting itself, a critical element for all KAT tools, is accomplished
     using
     kmer
     walkthrough
+    faq
 
 .. _system:
 
@@ -46,7 +47,9 @@ Citing
 The KAT paper is currently in submission.  In the meantime, if you use our software
 and wish to cite us please use our bioRxiv preprint:
 
-`Daniel Mapleson et al. 2016. KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies. bioRxiv doi: 10.1101/064733 <http://biorxiv.org/content/early/2016/07/19/064733>`_
+Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright, and Bernardo J. Clavijo. 
+**KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies.**
+Bioinformatics, 2016. `doi: 10.1093/bioinformatics/btw663 <http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract>`_
 
 
 
@@ -55,8 +58,11 @@ and wish to cite us please use our bioRxiv preprint:
 Issues
 ======
 
-Should you discover any issues with spectre, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
-Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk
+Should you discover any issues with KAT, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
+Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk.  
+However, please consult the `Frequently Asked Questions <faq>`_ page first in case your 
+question is already answered there.
+
 
 
 .. _availability:

@@ -45,6 +45,7 @@ DISTFILES = $(DPS)/index.rst \
 	    $(DPS)/kmer.rst \
 	    $(DPS)/using.rst \
 	    $(DPS)/walkthrough.rst \
+	    $(DPS)/faq.rst \
 	    $(DPI)/ccoli_comp.png \
 	    $(DPI)/ccoli_gcp.png \
 	    $(DPI)/ccoli_hist.png \
