@@ -8,8 +8,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = kat_jellyfish.pc
 
 AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
-AM_CPPFLAGS = -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -I$(top_srcdir) -I$(top_srcdir)/include -g -O3 $(VALGRIND_CFLAGS)
-AM_CXXFLAGS = $(ALL_CXXFLAGS) -g -O3
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include $(VALGRIND_CFLAGS)
+AM_CXXFLAGS = $(ALL_CXXFLAGS) -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -g -O3
 
 noinst_HEADERS = $(YAGGO_SOURCES)
 bin_PROGRAMS =
@@ -17,7 +17,7 @@ dist_bin_SCRIPTS =
 data_DATA =
 BUILT_SOURCES = $(YAGGO_SOURCES)
 CLEANFILES =
-DISTCLEANFILES = 
+DISTCLEANFILES =
 
 # Yaggo automatic rules with silencing
 V_YAGGO = $(V_YAGGO_$(V))
@@ -50,7 +50,6 @@ bin_kat_jellyfish_SOURCES = sub_commands/jellyfish.cc	\
                         sub_commands/mem_main.cc	\
                         jellyfish/merge_files.cc
 bin_kat_jellyfish_LDFLAGS = $(AM_LDFLAGS) $(STATIC_FLAGS)
-
 
 YAGGO_SOURCES += sub_commands/count_main_cmdline.hpp	\
                  sub_commands/info_main_cmdline.hpp	\
@@ -181,7 +180,6 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 	               unit_tests/test_offsets_key_value.cc		\
 	               unit_tests/test_simple_circular_buffer.cc	\
 	               unit_tests/test_rectangular_binary_matrix.cc	\
-	               unit_tests/test_mer_dna.cc			\
 	               unit_tests/test_large_hash_array.cc		\
 	               unit_tests/test_mer_overlap_sequence_parser.cc	\
 	               unit_tests/test_file_header.cc			\
@@ -193,7 +191,6 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 	               unit_tests/test_text_dumper.cc			\
 	               unit_tests/test_dumpers.cc			\
 	               unit_tests/test_mapped_file.cc			\
-	               unit_tests/test_int128.cc			\
 	               unit_tests/test_mer_dna_bloom_counter.cc		\
 	               unit_tests/test_whole_sequence_parser.cc		\
 	               unit_tests/test_allocators_mmap.cc		\
@@ -201,10 +198,14 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 	               unit_tests/test_generator_manager.cc		\
 	               unit_tests/test_atomic_bits_array.cc		\
 	               unit_tests/test_stdio_filebuf.cc
+	
+#unit_tests/test_mer_dna.cc
+#unit_tests/test_int128.cc
+	               
 bin_test_all_SOURCES += jellyfish/backtrace.cc
 
-bin_test_all_CPPFLAGS = -DJSON_IS_AMALGAMATION=1
-bin_test_all_CXXFLAGS = $(AM_CXXFLAGS) -I$(top_srcdir)/unit_tests/gtest/include -I$(top_srcdir)/unit_tests -I$(top_srcdir)/include
+bin_test_all_CPPFLAGS = -DJSON_IS_AMALGAMATION=1 -I$(top_srcdir)/unit_tests/gtest/include -I$(top_srcdir)/unit_tests -I$(top_srcdir)/include
+bin_test_all_CXXFLAGS = $(ALL_CXXFLAGS) -g -O3
 bin_test_all_LDADD = libgtest.la $(LDADD)
 YAGGO_SOURCES += unit_tests/test_main_cmdline.hpp
 noinst_HEADERS += unit_tests/test_main.hpp
