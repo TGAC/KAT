@@ -20,4 +20,6 @@ else
         export CC="gcc-4.9"
     fi
     gcc --version
+    g++ --version
+    gcc --print-search-dirs
 fi

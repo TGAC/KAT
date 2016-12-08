@@ -34,7 +34,10 @@ install:
 
 # Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
+- if [[ "$COMPILER" == "GCC5" ]]; then export CXX="g++-5" && export CC="gcc-5"; else export CXX="g++-4.9" && export CC="gcc-4.9"; fi     
 - if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment && export LD_LIBRARY_PATH="$HOME/miniconda/envs/test-environment/lib:$LD_LIBRARY_PATH"; fi
+- gcc --version
+- g++ --version
 - ./configure --disable-silent-rules && make && make check && make distcheck
 
 
