@@ -49,13 +49,15 @@ check_unit_tests_SOURCES = \
 	check_main.cc
 
 check_unit_tests_LDFLAGS = \
+	-static \
+	-L. \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
-	@AM_LDFLAGS@ \
-	@LDFLAGS@
+	@AM_LDFLAGS@
 	
 check_unit_tests_LDADD = \
 	libgtest.la \
+	-lgtest \
 	-lkat \
 	-lkat_jellyfish \
 	@AM_LIBS@

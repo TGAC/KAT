@@ -11,18 +11,18 @@ kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/lib/include \
-	@AM_CPPFLAGS@ @CPPFLAGS@
+	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \
-	-L../lib/.libs \
-	-L../deps/jellyfish-2.2.0/.libs \
-	@AM_LDFLAGS@ \
-	@LDFLAGS@
+	-static \
+	-L../lib \
+	-L../deps/jellyfish-2.2.0 \
+	@AM_LDFLAGS@
 
 kat_LDADD = \
 	@AM_LIBS@ \
-	-l:libkat.a \
-	-l:libkat_jellyfish.a
+	-lkat \
+	-lkat_jellyfish
 
 	
 noinst_HEADERS = \

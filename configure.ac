@@ -4,7 +4,7 @@
 
 # Autoconf initialistion.  Sets package name version and contact details
 AC_PREREQ([2.68])
-AC_INIT([kat],[2.3.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
+AC_INIT([kat],[2.3.1],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 AC_CONFIG_SRCDIR([src/kat.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])

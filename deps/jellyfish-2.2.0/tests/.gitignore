@@ -18,3 +18,4 @@
 /multi_file_fail_cmds
 /bloom_counter_commands
 *.timing
+merge_m40*
