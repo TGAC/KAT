@@ -174,7 +174,7 @@ if [[ "${dynboost}" == "yes" ]]; then
     BOOST_LIBS="${BOOST_DYN_LIBS}"
 else
     if [[ -z "${BOOST_TIMER_STATIC_LIB}" ]] || [[ -z "${BOOST_CHRONO_STATIC_LIB}" ]] || [[ -z "${BOOST_FILESYSTEM_STATIC_LIB}" ]] || [[ -z "${BOOST_PROGRAM_OPTIONS_STATIC_LIB}" ]] || [[ -z "${BOOST_SYSTEM_STATIC_LIB}" ]]; then
-        AC_MSG_WARN([Not all static boost libraries could be found.  Using dynamic libraries instead.])
+        AC_MSG_WARN([Not all static boost libraries could be found.  Will use dynamic libraries instead.])
         BOOST_LIBS="${BOOST_DYN_LIBS}"
     else
         BOOST_LIBS="${BOOST_STATIC_LIBS}"
@@ -227,6 +227,12 @@ if [[ "${sphinx}" == "no" ]]; then
     AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
 else
     AC_MSG_NOTICE([Building documentation with sphinx])
+fi
+
+if [[ "${dynboost}" == "yes" ]]; then
+    AC_MSG_NOTICE([Boost will be dynamically linked to your executable])
+else
+    AC_MSG_NOTICE([Boost will be statically linked to your executable])
 fi
 
 

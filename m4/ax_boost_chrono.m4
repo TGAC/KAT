@@ -106,17 +106,13 @@ AC_DEFUN([AX_BOOST_CHRONO],
                 done
 
                 no_find="no"
-                if test "x$ax_lib" = "x"; then
-                    if test "x$ax_static_lib" = "x"; then
-                        no_find="yes"
-                    fi
+                if [[ -z "$ax_lib" ]] && [[ -z "$ax_static_lib" ]]; then
+                    no_find="yes"
                 fi
 
                 no_link="no"
-                if test "x$link_chrono" != "xyes"; then
-                    if test "x$link_chrono_static" != "xyes"; then
-                        no_link="yes"
-                    fi
+                if [[ "$link_chrono" == "no" ]] && [[ "$link_chrono_static" == "no" ]]; then
+                    no_link="yes"
                 fi
 
             else
@@ -127,21 +123,23 @@ AC_DEFUN([AX_BOOST_CHRONO],
                 done
 
             fi
-            if test "x$ax_lib" = "x"; then
+            if [[ -z "$ax_lib" ]]; then
                 AC_MSG_WARN(Could not find a dynamic version of boost_chrono)
-            elif test "x$ax_static_lib" = "x"; then
+            fi
+            if [[ -z "$ax_static_lib" ]]; then
                 AC_MSG_WARN(Could not find a static version of boost_chrono)
             fi
-            if test "x$no_find" = "xyes"; then
+            if [[ "$no_find" == "yes" ]]; then
                 AC_MSG_ERROR(Could not find any version boost_chrono to link to)
             fi
 
-            if test "x$link_chrono" = "xno"; then
+            if [[ "$link_chrono" = "no" ]]; then
                 AC_MSG_WARN(Could not dynamic link against $ax_lib)
-            elif test "x$link_chrono_static" = "xno"; then
+            fi
+            if [[ "$link_chrono_static" == "no" ]]; then
                 AC_MSG_WARN(Could not static link against $ax_static_lib)
             fi
-            if test "x$no_link" = "xyes"; then
+            if [[ "$no_link" == "yes" ]]; then
                 AC_MSG_ERROR(Could not link against any boost_chrono lib)
             fi
 
