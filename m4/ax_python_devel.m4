@@ -23,7 +23,7 @@
 #   version number. Don't use "PYTHON_VERSION" for this: that environment
 #   variable is declared as precious and thus reserved for the end-user.
 #
-#   This macro should work for all versions of Python >= 2.1.0. As an end
+#   This macro should work for all versions of Python >= 3.1.0. As an end
 #   user, you can disable the check for the python version by setting the
 #   PYTHON_NOVERSIONCHECK environment variable to something else than the
 #   empty string.
@@ -75,9 +75,13 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 	# Allow the use of a (user set) custom python version
 	#
 	AC_ARG_VAR([PYTHON_VERSION],[The installed Python
-		version to use, for example '2.3'. This string
+		version to use, for example '3.4'. This string
 		will be appended to the Python interpreter
 		canonical name.])
+
+        if test -z "$PYTHON_VERSION"; then
+            PYTHON_VERSION="3"
+        fi        
 
 	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
 	if test -z "$PYTHON"; then
@@ -86,11 +90,11 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 	fi
 
 	#
-	# Check for a version of Python >= 2.1.0
+	# Check for a version of Python >= 3.1.0
 	#
 	ac_supports_python_ver=`$PYTHON -c "import sys; \
 		ver = sys.version.split ()[[0]]; \
-		print (ver >= '2.1.0')"`
+		print (ver >= '3.1.0')"`
         python_full_ver=`$PYTHON -c "import sys; \
                 ver=sys.version.split ()[[0]]; \
                 print(ver)"`
@@ -102,7 +106,7 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
                 print(maj_ver + '.' + min_ver)"`        
         PYTHON_FULL_VERSION="$python_full_ver"
         AC_MSG_NOTICE([Found python version: ${PYTHON_FULL_VERSION}])
-        AC_MSG_CHECKING([for a version of Python >= '2.1.0'])
+        AC_MSG_CHECKING([for a version of Python >= '3.1.0'])
 	if test "$ac_supports_python_ver" != "True"; then
 		if test -z "$PYTHON_NOVERSIONCHECK"; then
 			AC_MSG_RESULT([no])

@@ -128,21 +128,21 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 
             fi
             if test "x$ax_lib" = "x"; then
-                AC_MSG_WARN(Could not find a dynamic version of the library!)
+                AC_MSG_WARN(Could not find a dynamic version of boost_system)
             elif test "x$ax_static_lib" = "x"; then
-                AC_MSG_WARN(Could not find a static version of the library!)
+                AC_MSG_WARN(Could not find a static version of boost_system)
             fi
             if test "x$no_find" = "xyes"; then
                 AC_MSG_ERROR(Could not find any version of the library to link to)
             fi
 
             if test "x$link_system" = "xno"; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib !)
+                AC_MSG_WARN(Could not dynamic link against $ax_lib)
             elif test "x$link_system_static" = "xno"; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib!)
+                AC_MSG_WARN(Could not static link against $ax_static_lib)
             fi
             if test "x$no_link" = "xyes"; then
-                AC_MSG_ERROR(Could not link against any boost-system lib)
+                AC_MSG_ERROR(Could not link against any boost_system lib)
             fi
 
         fi

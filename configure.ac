@@ -79,12 +79,11 @@ fi
 
 # Plotting
 pymod_good="no"
-enable_gnuplot = "no"
-AC_ARG_ENABLE([noplot], AS_HELP_STRING([--disable-plotting], [This will disable plotting even if python matplotlib or gnuplot are available]))
-AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]), enable_gnuplot="yes", enable_gnuplot="no")
+AC_ARG_ENABLE([noplotting], AS_HELP_STRING([--disable-plotting], [This will disable plotting even if python matplotlib or gnuplot are available]), do_plotting="no", do_plotting="yes")
+AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]), use_gnuplot="yes", use_gnuplot="no")
 
-if [[ "${enable_plotting}" == "yes" ]]; then
-    if [[ "${enable_gnuplot}" != "yes" ]]; then
+if [[ "${do_plotting}" == "yes" ]]; then
+    if [[ "${use_gnuplot}" == "no" ]]; then
         AX_PYTHON_DEVEL([>= '3.1'])
 
         pybin=python${PYTHON_VERSION}
@@ -110,7 +109,7 @@ if [[ "${enable_plotting}" == "yes" ]]; then
     fi
 
     # Check for gnuplot on path.  Just emit a warning if not present
-    if [[ "${pymod_good}" == "no" ]] || [[ "${enable_gnuplot}" == "yes" ]]; then
+    if [[ "${pymod_good}" == "no" ]] || [[ "${use_gnuplot}" == "yes" ]]; then
         AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
         AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
         if [[ "${gnuplot_found}" == "no" ]] ; then
@@ -145,7 +144,11 @@ AM_CONDITIONAL([MAKE_DOCS], [test x$sphinx = xyes])
 AC_SUBST([MAKE_DOCS])
 
 
+
 ## Check for boost
+
+AC_ARG_ENABLE([dynamic-boost], AS_HELP_STRING([--enable-dynamic-boost], [Boost is statically linked by default.  Use this option if you would prefer to dynamically link boost]), dynboost="yes", dynboost="no")
+
 AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])
 AX_BOOST_FILESYSTEM
 AX_BOOST_SYSTEM
@@ -167,10 +170,15 @@ AC_SUBST([BOOST_STATIC_LIBS])
 # Prefer static linking of boost.  If one or more static libs are not present 
 # (this happens with some default boost installations on some environments) then
 # use dynamic libs instead.
-if [[ -z "${BOOST_TIMER_STATIC_LIB}" ]] || [[ -z "${BOOST_CHRONO_STATIC_LIB}" ]] || [[ -z "${BOOST_FILESYSTEM_STATIC_LIB}" ]] || [[ -z "${BOOST_PROGRAM_OPTIONS_STATIC_LIB}" ]] || [[ -z "${BOOST_SYSTEM_STATIC_LIB}" ]]; then
+if [[ "${dynboost}" == "yes" ]]; then
     BOOST_LIBS="${BOOST_DYN_LIBS}"
 else
-    BOOST_LIBS="${BOOST_STATIC_LIBS}"
+    if [[ -z "${BOOST_TIMER_STATIC_LIB}" ]] || [[ -z "${BOOST_CHRONO_STATIC_LIB}" ]] || [[ -z "${BOOST_FILESYSTEM_STATIC_LIB}" ]] || [[ -z "${BOOST_PROGRAM_OPTIONS_STATIC_LIB}" ]] || [[ -z "${BOOST_SYSTEM_STATIC_LIB}" ]]; then
+        AC_MSG_WARN([Not all static boost libraries could be found.  Using dynamic libraries instead.])
+        BOOST_LIBS="${BOOST_DYN_LIBS}"
+    else
+        BOOST_LIBS="${BOOST_STATIC_LIBS}"
+    fi
 fi
 AC_SUBST([BOOST_LIBS])
 
@@ -197,14 +205,14 @@ AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefil
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 
-if [[ "${enable_plotting}" == "no" ]]; then
+if [[ "${do_plotting}" == "no" ]]; then
     AC_MSG_NOTICE([Plotting disabled])
 else
-    if [[ "${pymod_good}" == "yes" ]] && [[ "$enable_gnuplot" == "no" ]] ; then
+    if [[ "${pymod_good}" == "yes" ]] && [[ "$use_gnuplot" == "no" ]] ; then
         AC_MSG_NOTICE([Using python plotting])
     else
         if [[ "${gnuplot_found}" == "yes" ]]; then
-            if [[ "$enable_gnuplot" == "no" ]]; then
+            if [[ "${use_gnuplot}" == "no" ]]; then
                 AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
             else
                 AC_MSG_NOTICE([Using gnuplot plotting])
