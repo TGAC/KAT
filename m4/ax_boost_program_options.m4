@@ -127,7 +127,7 @@ AC_DEFUN([AX_BOOST_PROGRAM_OPTIONS],
                 AC_MSG_WARN(Could not find a static version of boost_program_options)
             fi
             if test "x$no_find" = "xyes"; then
-                AC_MSG_ERROR(Could not find any version of the library to link to)
+                AC_MSG_ERROR(Could not find any version of boost_program_options to link to)
             fi
 
             if test "x$link_program_options" = "xno"; then
