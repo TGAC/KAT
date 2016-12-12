@@ -21,8 +21,8 @@ clean-local-check:
 	-rm -rf temp
 
 # additional include paths necessary to compile the C++ library
-CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
-CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
+AM_CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
+AM_CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	    -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	    -isystem $(top_srcdir)/lib/include \
 	    -DDATADIR=\"$(srcdir)/data\" \
@@ -49,13 +49,15 @@ check_unit_tests_SOURCES = \
 	check_main.cc
 
 check_unit_tests_LDFLAGS = \
+	-static \
+	-L. \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
-	@AM_LDFLAGS@ \
-	@LDFLAGS@
+	@AM_LDFLAGS@
 	
 check_unit_tests_LDADD = \
 	libgtest.la \
+	-lgtest \
 	-lkat \
 	-lkat_jellyfish \
 	@AM_LIBS@

@@ -108,17 +108,13 @@ AC_DEFUN([AX_BOOST_FILESYSTEM],
                 done
 
                 no_find="no"
-                if test "x$ax_lib" = "x"; then
-                    if test "x$ax_static_lib" = "x"; then
-                        no_find="yes"
-                    fi
+                if [[ -z "$ax_lib" ]] && [[ -z "$ax_static_lib" ]]; then
+                    no_find="yes"
                 fi
 
                 no_link="no"
-                if test "x$link_filesystem" != "xyes"; then
-                    if test "x$link_filesystem_static" != "xyes"; then
-                        no_link="yes"
-                    fi
+                if [[ "$link_filesystem" == "no" ]] && [[ "$link_filesystem_static" == "no" ]]; then
+                    no_link="yes"
                 fi
 
             else
@@ -129,22 +125,24 @@ AC_DEFUN([AX_BOOST_FILESYSTEM],
                 done
 
             fi
-            if test "x$ax_lib" = "x"; then
-                AC_MSG_WARN(Could not find a dynamic version of the library!)
-            elif test "x$ax_static_lib" = "x"; then
-                AC_MSG_WARN(Could not find a static version of the library!)
+            if [[ -z "$ax_lib" ]]; then
+                AC_MSG_WARN(Could not find a dynamic version of boost_filesystem)
             fi
-            if test "x$no_find" = "xyes"; then
-                AC_MSG_ERROR(Could not find any version of the library to link to)
+            if [[ -z "$ax_static_lib" ]]; then
+                AC_MSG_WARN(Could not find a static version of boost_filesystem)
+            fi
+            if [[ "$no_find" == "yes" ]]; then
+                AC_MSG_ERROR(Could not find any version boost_filesystem to link to)
             fi
 
-            if test "x$link_filesystem" = "xno"; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib !)
-            elif test "x$link_filesystem_static" = "xno"; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib!)
+            if [[ "$link_filesystem" = "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against $ax_lib)
             fi
-            if test "x$no_link" = "xyes"; then
-                AC_MSG_ERROR(Could not link against any boost-filesystem lib)
+            if [[ "$link_filesystem_static" == "no" ]]; then
+                AC_MSG_WARN(Could not static link against $ax_static_lib)
+            fi
+            if [[ "$no_link" == "yes" ]]; then
+                AC_MSG_ERROR(Could not link against any boost_filesystem lib)
             fi
 
         fi

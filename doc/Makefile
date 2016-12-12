@@ -66,6 +66,7 @@ DISTFILES = $(DPS)/index.rst \
 	    $(DPI)/kmer_spectra1.png \
 	    $(DPI)/kmer_spectra_breakdown.png \
 	    $(DPI)/pe_v_asm_clean.png \
+	    $(DPI)/pe_v_asm_wrong.png \
 	    $(DPI)/pe_v_mp_after_density.png \
 	    $(DPI)/pe_v_mp_after_shared.png \
 	    $(DPI)/pe_v_mp_before_density.png \

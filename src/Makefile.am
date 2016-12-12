@@ -5,24 +5,29 @@ AUTOMAKE_OPTIONS = subdir-objects
 bin_PROGRAMS = kat
 
 # Executable inputs
-kat_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-unused-command-line-argument -ansi -pedantic -std=c++11 @AM_CXXFLAGS@
+kat_CXXFLAGS = \
+	-g -O3 -fwrapv -Wall -Wextra \
+	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
+	-Wno-unused-variable -Wno-unused-command-line-argument \
+	-ansi -pedantic -std=c++11 \
+	@AM_CXXFLAGS@
 
 kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/lib/include \
-	@AM_CPPFLAGS@ @CPPFLAGS@
+	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \
-	-L../lib/.libs \
-	-L../deps/jellyfish-2.2.0/.libs \
-	@AM_LDFLAGS@ \
-	@LDFLAGS@
+	-static \
+	-L../lib \
+	-L../deps/jellyfish-2.2.0 \
+	@AM_LDFLAGS@
 
 kat_LDADD = \
 	@AM_LIBS@ \
-	-l:libkat.a \
-	-l:libkat_jellyfish.a
+	-lkat \
+	-lkat_jellyfish
 
 	
 noinst_HEADERS = \

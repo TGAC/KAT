@@ -100,17 +100,13 @@ AC_DEFUN([AX_BOOST_PROGRAM_OPTIONS],
                 done
 
                 no_find="no"
-                if test "x$ax_lib" = "x"; then
-                    if test "x$ax_static_lib" = "x"; then
-                        no_find="yes"
-                    fi
+                if [[ -z "$ax_lib" ]] && [[ -z "$ax_static_lib" ]]; then
+                    no_find="yes"
                 fi
 
                 no_link="no"
-                if test "x$link_program_options" != "xyes"; then
-                    if test "x$link_program_options_static" != "xyes"; then
-                        no_link="yes"
-                    fi
+                if [[ "$link_program_options" == "no" ]] && [[ "$link_program_options_static" == "no" ]]; then
+                    no_link="yes"
                 fi
 
             else
@@ -121,22 +117,24 @@ AC_DEFUN([AX_BOOST_PROGRAM_OPTIONS],
                 done
 
             fi
-            if test "x$ax_lib" = "x"; then
-                AC_MSG_WARN(Could not find a dynamic version of the library!)
-            elif test "x$ax_static_lib" = "x"; then
-                AC_MSG_WARN(Could not find a static version of the library!)
+            if [[ -z "$ax_lib" ]]; then
+                AC_MSG_WARN(Could not find a dynamic version of boost_program_options)
             fi
-            if test "x$no_find" = "xyes"; then
-                AC_MSG_ERROR(Could not find any version of the library to link to)
+            if [[ -z "$ax_static_lib" ]]; then
+                AC_MSG_WARN(Could not find a static version of boost_program_options)
+            fi
+            if [[ "$no_find" == "yes" ]]; then
+                AC_MSG_ERROR(Could not find any version boost_program_options to link to)
             fi
 
-            if test "x$link_program_options" = "xno"; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib !)
-            elif test "x$link_program_options_static" = "xno"; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib!)
+            if [[ "$link_program_options" = "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against $ax_lib)
             fi
-            if test "x$no_link" = "xyes"; then
-                AC_MSG_ERROR(Could not link against any boost-program_options lib)
+            if [[ "$link_program_options_static" == "no" ]]; then
+                AC_MSG_WARN(Could not static link against $ax_static_lib)
+            fi
+            if [[ "$no_link" == "yes" ]]; then
+                AC_MSG_ERROR(Could not link against any boost_program_options lib)
             fi
 
         fi
