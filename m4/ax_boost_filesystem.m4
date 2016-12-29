@@ -84,6 +84,13 @@ AC_DEFUN([AX_BOOST_FILESYSTEM],
             AC_DEFINE(HAVE_BOOST_FILESYSTEM,,[define if the Boost::Filesystem library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
 
+            ax_lib=""
+            ax_static_lib=""
+            no_find="yes"
+            no_link="yes"
+            link_filesystem="yes"
+            link_filesystem_static="yes"
+            
             LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_filesystem_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_filesystem*.so* $BOOSTLIBDIR/libboost_filesystem*.dylib* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_filesystem.*\)\.so.*$;\1;' -e 's;^lib\(boost_filesystem.*\)\.dylib.*$;\1;'` ; do
@@ -135,11 +142,11 @@ AC_DEFUN([AX_BOOST_FILESYSTEM],
                 AC_MSG_ERROR(Could not find any version boost_filesystem to link to)
             fi
 
-            if [[ "$link_filesystem" = "no" ]]; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib)
+            if [[ "$link_filesystem" == "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against boost_filesystem)
             fi
             if [[ "$link_filesystem_static" == "no" ]]; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib)
+                AC_MSG_WARN(Could not static link against boost_filesystem)
             fi
             if [[ "$no_link" == "yes" ]]; then
                 AC_MSG_ERROR(Could not link against any boost_filesystem lib)

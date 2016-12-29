@@ -82,6 +82,13 @@ AC_DEFUN([AX_BOOST_SYSTEM],
             AC_DEFINE(HAVE_BOOST_SYSTEM,,[define if the Boost::System library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
 
+            ax_lib=""
+            ax_static_lib=""
+            no_find="yes"
+            no_link="yes"
+            link_system="no"
+            link_system_static="no"
+
             LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_system_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_system*.so* $BOOSTLIBDIR/libboost_system*.dylib* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_system.*\)\.so.*$;\1;' -e 's;^lib\(boost_system.*\)\.dylib.*$;\1;'` ; do
@@ -133,11 +140,11 @@ AC_DEFUN([AX_BOOST_SYSTEM],
                 AC_MSG_ERROR(Could not find any version boost_system to link to)
             fi
 
-            if [[ "$link_system" = "no" ]]; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib)
+            if [[ "$link_system" == "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against boost_system)
             fi
             if [[ "$link_system_static" == "no" ]]; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib)
+                AC_MSG_WARN(Could not static link against boost_system)
             fi
             if [[ "$no_link" == "yes" ]]; then
                 AC_MSG_ERROR(Could not link against any boost_system lib)
@@ -145,7 +152,7 @@ AC_DEFUN([AX_BOOST_SYSTEM],
 
         fi
 
-		CPPFLAGS="$CPPFLAGS_SAVED"
+	CPPFLAGS="$CPPFLAGS_SAVED"
 	LDFLAGS="$LDFLAGS_SAVED"
-	fi
+    fi
 ])

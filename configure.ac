@@ -176,6 +176,7 @@ else
     if [[ -z "${BOOST_TIMER_STATIC_LIB}" ]] || [[ -z "${BOOST_CHRONO_STATIC_LIB}" ]] || [[ -z "${BOOST_FILESYSTEM_STATIC_LIB}" ]] || [[ -z "${BOOST_PROGRAM_OPTIONS_STATIC_LIB}" ]] || [[ -z "${BOOST_SYSTEM_STATIC_LIB}" ]]; then
         AC_MSG_WARN([Not all static boost libraries could be found.  Will use dynamic libraries instead.])
         BOOST_LIBS="${BOOST_DYN_LIBS}"
+        dynboost="yes"
     else
         BOOST_LIBS="${BOOST_STATIC_LIBS}"
     fi
