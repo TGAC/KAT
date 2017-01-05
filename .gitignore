@@ -40,3 +40,4 @@ Makefile.in
 *.pc
 *.la
 *.out
+/tags
