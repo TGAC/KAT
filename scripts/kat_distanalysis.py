@@ -402,8 +402,8 @@ class MXKmerSpectraAnalysis(object):
 					print(" %dx: No significant content" % i)
 
 		gs = self.calcGenomeSize()
-		print("\nEstimated genome size: ", float(gs) / 1000000.0, "Gbp")
-		print("\nHeterozygous rate: ", self.calcHetRate(gs))
+		print("\nEstimated genome size: ", '{0:.2f}'.format(float(gs) / 1000000.0), "Gbp")
+		print("\nHeterozygous rate: ", '{0:.2f}'.format(self.calcHetRate(gs) * 100), "%")
 
 		# step 4, general report
 		return
@@ -426,8 +426,11 @@ class MXKmerSpectraAnalysis(object):
 			genomesize = self.calcGenomeSize()
 
 		sum = 0
+		N = len(self.spectras[0].peaks)
 		for p_i, p in enumerate(self.spectras[0].peaks, start=1):
-			sum += p.elements / k
+			#Skip the last peak
+			if p_i < N:
+				sum += p.elements / k
 
 		return sum / genomesize
 
