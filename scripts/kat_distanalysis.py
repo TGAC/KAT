@@ -207,6 +207,57 @@ class KmerSpectra(object):
 		return
 
 
+	def getHomozygousPeakIndex(self, approx_freq=0):
+		# Work out which peak is the homozygous peak
+		peak_index = len(self.peaks)
+		if approx_freq > 0:
+			print("Processing")
+			min_peak_index = peak_index
+			delta_peak_freq = 1000000
+			for p_i, p in enumerate(self.peaks, start=1):
+				delta = abs(p.mean - approx_freq)
+				print("Delta", delta)
+				if delta_peak_freq > delta:
+					print("Mod")
+					delta_peak_freq = delta
+					min_peak_index = p_i
+			peak_index = min_peak_index
+
+		return peak_index
+
+
+	def calcGenomeSize(self, hom_peak=0):
+
+		hom_peak_index = len(self.peaks) if hom_peak == 0 else hom_peak
+
+		# Just use first spectra for this calculation
+		sum = 0
+		for p_i, p in enumerate(self.peaks, start=1):
+			sum += p_i * p.elements
+
+		return int(sum / hom_peak_index)
+
+
+	def calcHetRate(self, genome_size=0, hom_peak=0):
+
+		genomesize = genome_size if genome_size > 0 else self.calcGenomeSize()
+
+		hom_peak_index = len(self.peaks) if hom_peak == 0 else hom_peak
+
+		sum = 0
+		if hom_peak_index < 2:
+			return 0.0
+
+		for p_i, p in enumerate(self.peaks, start=1):
+			#Skip the last peak
+			if p_i >= hom_peak_index:
+				break
+
+			sum += p.elements / self.k
+
+		return (sum / genomesize) * 100.0
+
+
 class KmerPeak(object):
 	"""A distribution representing kmers covered a certain number of times.
 	Contains methods for fitting to an interval"""
@@ -299,8 +350,12 @@ class KmerSpectraAnalysis(object):
 
 
 class MXKmerSpectraAnalysis(object):
-	def __init__(self, filename, columns=3, points=10000):
+	def __init__(self, filename, columns=3, points=10000, hom_peak_freq=0):
 		self.spectras = [KmerSpectra(filename, points, column=0, cumulative=True)]
+		self.hom_peak = hom_peak_freq
+
+		if self.hom_peak > 0:
+			print("User specified homozygous peak frequency at:", self.hom_peak)
 		for i in range(columns):
 			self.spectras.append(KmerSpectra(filename, points, column=i, cumulative=(i == columns - 1)))
 
@@ -401,38 +456,22 @@ class MXKmerSpectraAnalysis(object):
 				else:
 					print(" %dx: No significant content" % i)
 
-		gs = self.calcGenomeSize()
-		print("\nEstimated genome size: ", '{0:.2f}'.format(float(gs) / 1000000.0), "Gbp")
-		print("\nHeterozygous rate: ", '{0:.2f}'.format(self.calcHetRate(gs) * 100), "%")
+		# Step 4, genome stats
+		hp = self.spectras[0].getHomozygousPeakIndex(self.hom_peak)
+		gs = self.spectras[0].calcGenomeSize(hom_peak=hp)
+		hr = self.spectras[0].calcHetRate(gs)
+		print()
+		print("K-value used:", self.spectras[0].k)
+		print("Peaks in analysis:", len(self.spectras[0].peaks))
+		print("Homozygous peak index:", hp)
+		print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
+		if (hp > 1):
+			print("Heterozygous rate:", '{0:.2f}'.format(hr), "%")
+		print()
 
-		# step 4, general report
 		return
 
-	def calcGenomeSize(self):
 
-		# Just use first spectra for this calculation
-		sum = 0
-		for p_i, p in enumerate(self.spectras[0].peaks, start=1):
-			sum += p_i * p.elements
-
-		return int(sum / len(self.spectras[0].peaks))
-
-
-	def calcHetRate(self, genomesize=0):
-
-		k = self.spectras[0].k
-
-		if genomesize == 0:
-			genomesize = self.calcGenomeSize()
-
-		sum = 0
-		N = len(self.spectras[0].peaks)
-		for p_i, p in enumerate(self.spectras[0].peaks, start=1):
-			#Skip the last peak
-			if p_i < N:
-				sum += p.elements / k
-
-		return sum / genomesize
 
 
 if __name__ == '__main__':
@@ -445,7 +484,7 @@ if __name__ == '__main__':
 
 	parser.add_argument("-c", "--cns", type=int, default=4,
 						help="The number of copy numbers to consider in the analysis")
-	parser.add_argument("-f", "--freq_cutoff", type=int, default=200,
+	parser.add_argument("-f", "--freq_cutoff", type=int, default=500,
 						help="The maximum frequency cutoff point to consider.  Analysis will be done up to this frequency.")
 	parser.add_argument("-p", "--min_perc", type=int, default=1,
 						help="Any new distribution that adds less to min perc kmers on the iterative analysis will not be added.")
@@ -453,11 +492,13 @@ if __name__ == '__main__':
 						help="Any new distribution that adds less to min elem kmers on the iterative analysis will not be added.")
 	parser.add_argument("--plot", action='store_true',
 						help="Plot fitted distributions to each peak.")
+	parser.add_argument("-z", "--homozygous_peak", type=int, default=0,
+						help="The approximate kmer frequency for the homozygous peak.  Allows us to calculate a more accurate genome size estimate.")
 
 
 	args = parser.parse_args()
 
-	a = MXKmerSpectraAnalysis(args.matrix_file, args.cns, args.freq_cutoff)
+	a = MXKmerSpectraAnalysis(args.matrix_file, args.cns, args.freq_cutoff, args.homozygous_peak)
 	a.analyse(min_perc=args.min_perc, min_elem=args.min_elem)
 	a.peak_stats()
 	if args.plot:
