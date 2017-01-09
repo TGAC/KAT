@@ -3,6 +3,8 @@
 import argparse
 import abc
 import sys
+import traceback
+import time
 
 import numpy as np
 from scipy import mean, optimize
@@ -12,6 +14,8 @@ import matplotlib.pyplot as plt
 def plot_hist(h, points, cap, label=""):
 	plt.plot([min(cap, x) for x in h[:points]], label=label)
 
+
+R2PI = np.sqrt(2.0 * np.pi)
 
 class KmerSpectra(object):
 	"""A kmer spectra, comprised of different peaks.
@@ -23,13 +27,16 @@ class KmerSpectra(object):
 		self.histogram = histogram
 		self.peaks = []
 		self.k = k
+		self.fitted_histogram = [0] * len(self.histogram)
+		self.fmax = 0
+		self.fmin = 0
+		self.maxval = 0
 
 	def total_values(self, start=1, end=10000):
-		return list(map(sum, list(zip(*[x.points(start, end) for x in self.peaks]))))
+		self.fitted_histogram = list(map(sum, list(zip(*[x.points(start, min(end, len(self.histogram))) for x in self.peaks]))))
+		return self.fitted_histogram
 
 	###----------------- FIND AND CREATE PEAKS --------------------
-
-
 	def analyse(self,min_perc=1, min_elem=100000, verbose=False):
 		if verbose:
 			print("Creating initial peaks...", end="")
@@ -38,7 +45,7 @@ class KmerSpectra(object):
 
 		if self.peaks:
 			if verbose:
-				print("done.", len(self.peaks), "peaks initially created. fmin=%d (%d) | fmax=%d (%d)" % (self.fmin,self.histogram[self.fmin],self.fmax,self.histogram[self.fmax]))
+				print("done.", len(self.peaks), "peaks initially created at", (", ".join([str(s.mean) for s in self.peaks])), ". Freq@min=%d (%d) | Freq@max=%d (%d)" % (self.fmin,self.histogram[self.fmin],self.fmax,self.histogram[self.fmax]))
 			self.optimize_peaks(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
 			if verbose:
 				print("Optimising all peaks in spectra...", end="")
@@ -49,9 +56,6 @@ class KmerSpectra(object):
 				self.printPeaks()
 		elif verbose:
 			print("done. No peaks created")
-
-	def deriv(self, histogram):
-		return [histogram[i + 2] - histogram[i] for i in range(len(histogram) - 2)]
 
 	def progsmoothderiv(self, histo):
 		''' Smoothed df/dx (dx=2 units)'''
@@ -98,49 +102,69 @@ class KmerSpectra(object):
 
 		# TODO: discard maxima if not 1% of the already contained elements on peaks are there
 		if sum(hs) < min((float(min_perc) / 100) * sum([x.elements for x in self.peaks]), min_elem):
-			print("Distribution on %d too small to be considered (%d elements)" % (center - radius + fmax, sum(hs)))
+			print("Distribution at %d too small to be considered (%d elements)" % (start + fmax, sum(hs)))
 			return 0
 		# TODO: do further validation
 		# print "maxima found on %d, for %s" % (fmax,hs)
-		return center - radius + fmax
+		return start + fmax
 
 	def add_peak_and_update_cuts(self, lm, reset_opt=False):
 		# Receives a local maxima, adds a peak there if there was none, updates the cuts.
 		# If reset_opt is set, it will reset all the peak counts/sd and only keep the means
+
+		# Check if peak is below fmin.  If so skip it.
+		if lm < self.fmin:
+			return False
+
+		# Validation.  Extract means for all peaks and ensure they are not too close to one another
 		fdists = [x.mean for x in self.peaks]
 		for f in fdists:
-			if lm >= f - f / 5 and lm <= f + f / 5:
-				print("WARNING!!! Dist on %d is not to be added, because existing dist on %d is too close to it." % (
-				lm, f))
+			if lm >= f - f / 4 and lm <= f + f / 4:
+				#print("WARNING!!! Dist at %d is not to be added, because existing dist at %d is too close to it." % (lm, f))
 				return False
+
+		# Add the new peak and sort
 		fdists.append(lm)
 		fdists.sort()
+
+		# Use what is hopefully the cutoff frequency as the start of the first peak
+		# Then try to segment the spectra into different sections based on the peak frequencies
 		self.cuts = [self.fmin]
 		for i in range(len(fdists) - 1):
 			self.cuts.append(int(fdists[i] * (1 + float(fdists[i]) / (fdists[i] + fdists[i + 1]))))
 		self.cuts.append(int(min(len(self.histogram) - 1, fdists[-1] * 1.5)))
-		# print "cuts on %s" % str(self.cuts)
+		self.cuts.sort()
+		#print("Cuts: %s" % str(self.cuts))
 		if reset_opt:
 			self.peaks = []
+
 		for i in range(len(fdists)):
 			if reset_opt or i == fdists.index(lm):
-				self.peaks.append(KmerPeak(lm, fdists[i], fdists[i] / 6,
-										   sum([self.histogram[j] for j in range(self.cuts[i], self.cuts[i + 1])]),
-										   self.histogram[fdists[i]]))
-				self.peaks.sort(key=lambda x: x.mean)
+					self.peaks.append(KmerPeak(
+											fdists[i], 			# Mean
+											fdists[i] / 6,		# Shape
+											sum([self.histogram[j] for j in range(self.cuts[i], self.cuts[i+1])]),	# Elements
+											self.histogram[fdists[i]], #Peak
+											self.cuts[i], 		# Left
+											self.cuts[i+1]))	# Right
+					self.peaks.sort(key=lambda x: x.mean)
 		return True
 
 	def create_peaks(self, min_perc, min_elem, verbose=False):
-		fmin = 0
+
 		# walk till first local minimum (d(f)>0)
-		for i in range(len(self.histogram)):
-			if self.histogram[i] < self.histogram[i + 1]:
+		# Double check the following two steps, rather than just the next one.
+		# Sometimes we can get a strange laddering affect in alternate frequencies which prevent
+		# us from correct detecting the minima
+		fmin = 0
+		for i in range(len(self.histogram) - 2):
+			if self.histogram[i] < self.histogram[i+1] and self.histogram[i] < self.histogram[i+2]:
 				fmin = i
 				break
+
+		# Sometimes we might not find a local minima, it depends on what sort of content is in the spectra.
+		# In this case just reset all spectra measures
 		if not fmin:
-			print()
-			print(self.histogram[:25])
-			print("Could not find local minima")
 			self.fmax = 0
 			self.maxval = 0
 
@@ -148,24 +172,22 @@ class KmerSpectra(object):
 		fmax = self.histogram.index(max(self.histogram[fmin:]))
 
 		if fmax < 10:
-			print("fmax<10, no analysis can be performed")
+			#print("Kmer count at max frequency  is < 10.  Not enough data to perform analysis.")
 			return
+
+		# Set measures to class variables
 		self.fmax = fmax
 		self.fmin = fmin
 		self.maxval = self.histogram[fmax]
+
 		# Explore fm/x and fm*x for x in [1,4]
 		for f in [fmax / 4.0, fmax / 3.0, fmax / 2.0, fmax, fmax * 2, fmax * 3, fmax * 4]:
 			if int(f / 5.0) > 0 and f + f / 5.0 < len(self.histogram):
 				lm = self.find_maxima(int(f), int(f / 5.0), min_perc, min_elem)
 				if lm:
 					self.add_peak_and_update_cuts(lm, reset_opt=True)
-					# if not fdists:
-					#    print "Local maxima not found, skipping further analysis"
-					#    return
-					# Guess counts for all relevant distributions
-					# print "Local maxima found on %s" %(str(fdists))
 
-	###----------------- OPTIMIZATION --------------------
+	# ----------------- OPTIMIZATION --------------------
 
 	def optimize_peaks(self, min_perc, min_elem, verbose=False):
 		sortedpeaks = [x for x in self.peaks]
@@ -174,17 +196,18 @@ class KmerSpectra(object):
 		# create a base as the histogram and start from there
 		base = [x for x in self.histogram]
 		for p_i, p in enumerate(sortedpeaks):
-			i = self.peaks.index(p)
-			# locally optimize the preak
 			if verbose:
-				print("Optimizing peak:", p_i)
-				print(" - current:", p, "at [%d,%d]" % (self.cuts[i], self.cuts[i + 1]))
-			p.constrained_opt(self.cuts[i], base[self.cuts[i]:self.cuts[i + 1]])
+				print("Constrained optimisation of peak:", p_i)
+				print(" - current:", p)
+			# locally optimize the preak
+			p.constrained_opt(p.left, base[p.left:p.right])
 			if verbose:
 				print(" - new    :", p)
 			# substract the peak effect from the baseline
 			for i in range(len(self.histogram)):
 				base[i] = base[i] - p.point(i)
+
+		# Seach around max frequency to find other peaks
 		updated = False
 		for f in [self.fmax / 4, self.fmax / 3, self.fmax / 2, self.fmax, self.fmax * 2, self.fmax * 3, self.fmax * 4]:
 			if int(f + f / 5) < len(self.histogram) and sum(
@@ -194,27 +217,20 @@ class KmerSpectra(object):
 				if lm:
 					if self.add_peak_and_update_cuts(lm, reset_opt=False):
 						updated = True
-						# else:
-						#    print "No new maxima found on %d +/- %d" % (f,f/5)
 		if updated: self.optimize_peaks(min_perc, min_elem)
 
 	def residues(self, p):
 		"""p has a triplet for each distribution"""
 		# print p
 		for i in range(len(self.peaks)):
-			self.peaks[i].mean = p[i * 3]
-			self.peaks[i].shape = p[i * 3 + 1]
-			self.peaks[i].elements = p[i * 3 + 2]
-		tv = self.total_values()
-		r = [tv[i] - self.histogram[i] for i in range(self.cuts[0], self.cuts[-1])]
-		# a lot more penalty for being UP:
-		for i in range(len(r)):
-			if r[i] > 0:
-				r[i] = 2 * r[i]
-		# for j in xrange(len(self.peaks)):
-		#    if p[0]>self.peaks[j].target_max*1.1 or p[0]<self.peaks[j].target_max*.9:
-		#        #for i in xrange(len(r)): r[i]+=r[i]*10*(float(p[j*3]-self.peaks[j].target_max)/self.peaks[j].target_max)
-		#        for i in xrange(len(r)): r[i]+=r[i]*2
+			self.peaks[i].mean = p[i * 5]
+			self.peaks[i].shape = p[i * 5 + 1]
+			self.peaks[i].elements = p[i * 5 + 2]
+			self.peaks[i].left = p[i * 5 + 3]
+			self.peaks[i].right = p[i * 5 + 4]
+
+		self.total_values()
+		r = [self.fitted_histogram[i] - self.histogram[i] for i in range(self.cuts[0], self.cuts[-1])]
 		return r
 
 	def optimize_overall(self):
@@ -223,6 +239,10 @@ class KmerSpectra(object):
 			p.append(pk.mean)
 			p.append(pk.shape)
 			p.append(pk.elements)
+			p.append(pk.left)
+			p.append(pk.right)
+
+		# Optimise
 		optimize.leastsq(self.residues, p)
 		# once the better fit is found, check if by taking the unfitted elements new distributions arise.
 		return
@@ -259,9 +279,7 @@ class KmerSpectra(object):
 	def calcHetRate(self, genome_size=0, hom_peak=0):
 
 		genomesize = genome_size if genome_size > 0 else self.calcGenomeSize()
-
 		hom_peak_index = len(self.peaks) if hom_peak == 0 else hom_peak
-
 		sum = 0
 		if hom_peak_index < 2:
 			return 0.0
@@ -270,7 +288,6 @@ class KmerSpectra(object):
 			#Skip the last peak
 			if p_i >= hom_peak_index:
 				break
-
 			sum += p.elements / self.k
 
 		return (sum / genomesize) * 100.0
@@ -298,69 +315,57 @@ class KmerSpectra(object):
 		print("Mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
 
 		hp = self.getHomozygousPeakIndex(hom_peak_freq)
-		print("Homozygous peak index:", hp)
+		print("Homozygous peak index:", hp, ("" if hom_peak_freq > 0 else "(assumed)"))
 		gs = self.calcGenomeSize(hom_peak=hp)
 		print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
 		if (hp > 1):
 			hr = self.calcHetRate(gs)
-			print("Estimated heterozygous rate:", '{0:.2f}'.format(hr), "%")
-		
+			print("Estimated heterozygous rate:", "{0:.2f}".format(hr) + "%")
+
 
 class KmerPeak(object):
 	"""A distribution representing kmers covered a certain number of times.
 	Contains methods for fitting to an interval"""
 
-	def __init__(self, target_max, mean, shape, elements, peak):
-		self.target_max = target_max
+	def __init__(self, mean, shape, elements, peak, left, right):
 		self.mean = mean
 		self.shape = shape
-
 		self.elements = elements
 		self.peak = peak
+		self.left = left
+		self.right = right
 
 	def __str__(self):
-		return "<Kmer distribution peak of %d at %dx, with volume of %d elements>" % (self.peak, self.mean, self.elements)
+		return "Peak of " + str(self.peak) + " at frequency " + str(int(self.mean)) + ", with volume of " + \
+			str(int(self.elements)) + " elements between frequencies of " + str(self.left) + " and " + str(self.right) + ".  Shape: " + str(self.shape)
 
 	def toTabString(self):
-		return "\t".join([str(int(self.mean)), str(int(self.peak)), str(int(self.elements))])
+		return "\t".join([str(int(self.left)), str(int(self.mean)), str(int(self.right)), str(int(self.peak)), str(int(self.elements))])
 
 	@staticmethod
 	def getTabHeader():
-		return "Freq\tMax\tVolume"
+		return "Left\tMean\tRight\tMax\tVolume"
 
 	def point(self, x):
 		"""Normalized Gaussian"""
-		return float(self.elements) / np.sqrt(2 * np.pi) / self.shape * np.exp(
-			-(x - self.mean) ** 2 / 2. / self.shape ** 2)
+		#return float(self.elements) / R2PI / self.shape * np.exp(-(x - self.mean) ** 2 / 2. / self.shape ** 2)
+		return self.__p1 * np.exp(-(x - self.mean) ** 2 / 2. / self.shape ** 2)
 
 	def points(self, start, end):
+		self.__p1 = float(self.elements) / R2PI / self.shape
 		return [self.point(x) for x in range(start, end)]
 
 	def residues(self, p, offset, histogram):
-		"""residues of fitting self with parameters p to offset obj[0] with values obj[1]"""
-		# TODO: enforce a constrain?
-		self.mean = p[0]
-		self.shape = p[1]
-		self.elements = p[2]
+		"""residues of fitting self to offset obj[0] with values obj[1]"""
+		self.__p1 = float(self.elements) / R2PI / self.shape
 		r = [self.point(offset + i) - histogram[i] for i in range(len(histogram))]
-		# a lot more penalty for being UP:
-		for i in range(len(r)):
-			if r[i] > 0:
-				r[i] = 2 * r[i]
-				# if p[0]>self.target_max*1.1 or p[0]<self.target_max*.9:
-				# for i in xrange(len(r)): r[i]+=r[i]*10*(float(p[0]-self.target_max)/self.target_max)
-		# for i in xrange(len(r)): r[i]+=r[i]*2
-		# penalizatin for moving the mean
-
 		return r
 
 	def constrained_opt(self, offset, histogram):
 		"""Does a constrained optimization of fitting to match the histogram"""
-		# print "Optimizing peak %s" % str(self)
+		if len(histogram) == 0:
+			raise RuntimeError("Encountered peak with no range")
 		optimize.leastsq(self.residues, (self.mean, self.shape, self.elements), (offset, histogram))
-		# self.mean=p[0]
-		# self.shape=p[1]
-		# self.elements=p[2]
 		pass
 
 def plot_hist(h, points, cap, label=""):
@@ -500,6 +505,8 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 			if s.peaks:
 				self.limy = int(max(int(s.maxval * 1.1 / 1000) * 1000, self.limy))
 				self.limx = int(max(min(s.peaks[-1].mean * 2, len(s.histogram)), self.limx))
+			elif s_i == 0:
+				raise RuntimeError("No peaks detected for full spectra.  Can't continue.")
 
 		print("\nAnalysed spectra for all requested copy numbers.")
 
@@ -634,12 +641,19 @@ def main():
 		a = HistKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 
 	if not a:
-		raise ValueError("Couldn't generate a valid spectra analysis")
+		raise RuntimeError("Couldn't generate a valid spectra analysis")
 
-	a.analyse(min_perc=args.min_perc, min_elem=args.min_elem, verbose=args.verbose)
-	a.peak_stats()
-	if args.plot:
-		a.plot()
+	try:
+		start = time.time()
+		a.analyse(min_perc=args.min_perc, min_elem=args.min_elem, verbose=args.verbose)
+		end = time.time()
+		print("\nTime taken to analyse data: ", end - start, "seconds")
+		a.peak_stats()
+		if args.plot:
+			a.plot()
+	except Exception:
+		print("\nERROR\n-----", file=sys.stderr)
+		traceback.print_exc(file=sys.stderr)
 
 if __name__ == '__main__':
 	main()
