@@ -243,7 +243,10 @@ class KmerSpectra(object):
 			p.append(pk.right)
 
 		# Optimise
-		optimize.leastsq(self.residues, p)
+		res = optimize.leastsq(self.residues, p, full_output=True)
+		if res[-1] < 1 or res[-1] > 4:
+			raise RuntimeError("It is likely that the spectra is too complex to analyse properly.  Stopping analysis.\nOptimisation results:\n" + str(res[-2]))
+
 		# once the better fit is found, check if by taking the unfitted elements new distributions arise.
 		return
 
