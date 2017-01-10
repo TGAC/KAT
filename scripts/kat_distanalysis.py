@@ -50,10 +50,14 @@ class KmerSpectra(object):
 			if verbose:
 				print("Optimising all peaks in spectra...", end="")
 				sys.stdout.flush()
-			self.optimize_overall()
-			if verbose:
-				print("done.", len(self.peaks), "peaks present after optimisation:")
-				self.printPeaks()
+			try:
+				self.optimize_overall()
+				if verbose:
+					print("done.", len(self.peaks), "peaks present after optimisation:")
+					self.printPeaks()
+			except:
+				print("\n\nWARNING: problem optimising peaks. Output for this spectra may not be valid.\n", file=sys.stderr)
+				pass
 		elif verbose:
 			print("done. No peaks created")
 
