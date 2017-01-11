@@ -85,7 +85,7 @@ if args.title is not None:
 elif "Title" in header:
     title = headers[0]["Title"]
 else:
-    title = "Spectra Copy Number Plot"
+    title = "Spectra Histogram Plot"
 
 if args.x_label is not None:
     x_label = args.x_label
