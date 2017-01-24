@@ -64,13 +64,12 @@ void kat::InputHandler::validateInput() {
             }
         }
         
-        if (!bfs::exists(p)) {
+        if (!JellyfishHelper::isPipe(p) && !bfs::exists(p)) {
             BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
                     "Could not find input file at: ") + p.string() + "; please check the path and try again."));
         }
         
         InputMode m = JellyfishHelper::isSequenceFile(p) ? InputMode::COUNT : InputMode::LOAD;
-        
         if (start) {
             mode = m;
         }
@@ -109,8 +108,10 @@ void kat::InputHandler::validateMerLen(const uint16_t merLen) {
 string kat::InputHandler::pathString() {
     
     string s;
+    uint16_t index = 1;
     for(auto& p : input) {
-        s += p.string() + " ";
+        string msg = JellyfishHelper::isPipe(p) ? string("<pipe>") : p.string();
+        s += msg + " ";
     }
     return boost::trim_right_copy(s);
 }
@@ -131,7 +132,7 @@ void kat::InputHandler::count(const uint16_t threads) {
     hashCounter = make_shared<HashCounter>(hashSize, merLen * 2, 7, threads);
     hashCounter->do_size_doubling(!disableHashGrow);
         
-    cout << "Input is a sequence file.  Counting kmers for " << pathString() << "...";
+    cout << "Input " << index << " is a sequence file.  Counting kmers for input " << index << " (" << pathString() << ") ...";
     cout.flush();
 
     hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads);

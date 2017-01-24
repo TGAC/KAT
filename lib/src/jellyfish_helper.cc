@@ -50,6 +50,7 @@ using jellyfish::Offsets;
 using jellyfish::quadratic_reprobes;
 
 #include <kat/jellyfish_helper.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 using kat::JellyfishHelper;
 
 /**
@@ -255,6 +256,11 @@ void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, 
     dumper.dump(ary);
 }
 
+bool kat::JellyfishHelper::isPipe(const path& filename) {
+    return boost::starts_with(filename.string(), "/proc") || boost::starts_with(filename.string(), "/dev");
+}
+
+
 /**
  * Returns whether or not the specified file path looks like it belongs to
  * a sequence file (either FastA or FastQ).  Gzipped sequence files are
@@ -264,6 +270,9 @@ void kat::JellyfishHelper::dumpHash(LargeHashArrayPtr ary, file_header& header, 
  */
 bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
 
+    // If we have a pipe as input then assume we are working with a sequence file
+    if (JellyfishHelper::isPipe(filename)) return true;
+    
     string ext = filename.extension().string();
 
     // Actually we can't handle gz files directly, so turning this off for now
