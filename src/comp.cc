@@ -667,7 +667,7 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false), 
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")   
             ("density_plot,n", po::bool_switch(&density_plot)->default_value(false),
-                "Makes a spectra_mx plot.  By default we create a spectra_cn plot.")
+                "Makes a density plot.  By default we create a spectra_cn plot.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE), 
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("output_hists,h", po::bool_switch(&output_hists)->default_value(false), 
