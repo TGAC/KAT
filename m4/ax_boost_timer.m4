@@ -83,6 +83,13 @@ AC_DEFUN([AX_BOOST_TIMER],
             AC_DEFINE(HAVE_BOOST_TIMER,,[define if the Boost::Timer library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
 
+            ax_lib=""
+            ax_static_lib=""
+            no_find="yes"
+            no_link="yes"
+            link_timer="no"
+            link_timer_static="no"
+
             LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_timer_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_timer*.so* $BOOSTLIBDIR/libboost_timer*.dylib* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_timer.*\)\.so.*$;\1;' -e 's;^lib\(boost_timer.*\)\.dylib.*$;\1;'` ; do
@@ -134,11 +141,11 @@ AC_DEFUN([AX_BOOST_TIMER],
                 AC_MSG_ERROR(Could not find any version boost_timer to link to)
             fi
 
-            if [[ "$link_timer" = "no" ]]; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib)
+            if [[ "$link_timer" == "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against boost_timer)
             fi
             if [[ "$link_timer_static" == "no" ]]; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib)
+                AC_MSG_WARN(Could not static link against boost_timer)
             fi
             if [[ "$no_link" == "yes" ]]; then
                 AC_MSG_ERROR(Could not link against any boost_timer lib)

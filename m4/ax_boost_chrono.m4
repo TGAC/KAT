@@ -82,6 +82,13 @@ AC_DEFUN([AX_BOOST_CHRONO],
             AC_DEFINE(HAVE_BOOST_CHRONO,,[define if the Boost::Chrono library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
 
+            ax_lib=""
+            ax_static_lib=""
+            no_find="yes"
+            no_link="yes"
+            link_chrono="no"
+            link_chrono_static="no"
+
             LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_chrono_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_chrono*.so* $BOOSTLIBDIR/libboost_chrono*.dylib* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_chrono.*\)\.so.*$;\1;' -e 's;^lib\(boost_chrono.*\)\.dylib.*$;\1;'` ; do
@@ -133,11 +140,11 @@ AC_DEFUN([AX_BOOST_CHRONO],
                 AC_MSG_ERROR(Could not find any version boost_chrono to link to)
             fi
 
-            if [[ "$link_chrono" = "no" ]]; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib)
+            if [[ "$link_chrono" == "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against boost_chrono)
             fi
             if [[ "$link_chrono_static" == "no" ]]; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib)
+                AC_MSG_WARN(Could not static link against boost_chrono)
             fi
             if [[ "$no_link" == "yes" ]]; then
                 AC_MSG_ERROR(Could not link against any boost_chrono lib)

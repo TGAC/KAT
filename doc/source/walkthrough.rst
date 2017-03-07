@@ -308,8 +308,9 @@ Genome assembly analysis using k-mer spectra
 --------------------------------------------
 
 One of the most frequently used tools in KAT are the so called "assembly spectra
-copy number plots" or spectra-cn. We use these as a fast first analysis for assembly coherence
-to the data in the reads they are representing. Basically we represent how many elements
+copy number plots" or spectra-cn. We use these as a fast first analysis to check
+assembly coherence against
+the content within reads that were used to produce the assembly. Basically we represent how many elements
 of each frequency on the read’s spectrum ended up not included in the assembly, included
 once, included twice etc.
 
@@ -372,6 +373,36 @@ duplications, inclusion of extra variation, etc:
 
 .. image:: images/heterozygous_real.png
     :scale: 33%
+
+
+Distribution decomposition analysis
+-----------------------------------
+
+It's useful to be able to fit distributions to each peak in a k-mer histogram or spectra-cn matrix
+in order to work out how many distinct k-mers can be associated with those distributions.  By counting
+k-mers in this way we can make predictions around genome size, heterozygous rates (if diploid) and 
+assembly completeness.  To this end we bundle a script with kat called kat_distanalysis.py.  It takes
+in either a spectra-cn matrix file, or kat histogram file as input, then proceeds to identify peaks
+and fit distributions to each one.  In the case of spectra-cn matrix files it also identifies peaks
+for each copy number for an assembly.
+
+The user can help to get correct predictions out of the tool by providing an approximate frequency for
+the homozygous part of the distribution.  By default, this is assumed to be the last peak.  For example,
+this command::
+
+        kat_distanalysis.py --plot spectra-cn.mx
+
+might produce the following output for this tetraploid genome:
+
+.. image:: images/distanalysis_console.png
+    :scale: 100%
+
+.. image:: images/distanalysis_plot.png
+    :scale: 100%
+
+
+
+
 
 
 Finding repetitive regions in assemblies

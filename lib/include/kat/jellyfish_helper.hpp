@@ -169,6 +169,12 @@ namespace kat {
         */
         static void printHeader(const file_header& header, ostream& out);
         
+		/**
+		 * Checks if path refers to a pipe rather than a real file
+		 * @param filename Path to input file
+		 * @return Whether or not the path refers to a pipe
+		 */
+		static bool isPipe(const path& filename);
  
         /**
          * Returns whether or not the specified file path looks like it belongs to

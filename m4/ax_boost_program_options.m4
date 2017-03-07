@@ -76,6 +76,13 @@ AC_DEFUN([AX_BOOST_PROGRAM_OPTIONS],
             AC_DEFINE(HAVE_BOOST_PROGRAM_OPTIONS,,[define if the Boost::Program_Options library is available])
             BOOSTLIBDIR=`echo $BOOST_LDFLAGS | sed -e 's/@<:@^\/@:>@*//'`
 
+            ax_lib=""
+            ax_static_lib=""
+            no_find="yes"
+            no_link="yes"
+            link_program_options="no"
+            link_program_options_static="no"
+
             LDFLAGS_SAVE=$LDFLAGS
             if test "x$ax_boost_user_program_options_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_program_options*.so* $BOOSTLIBDIR/libboost_program_options*.dylib* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_program_options.*\)\.so.*$;\1;' -e 's;^lib\(boost_program_options.*\)\.dylib.*$;\1;'` ; do
@@ -127,11 +134,11 @@ AC_DEFUN([AX_BOOST_PROGRAM_OPTIONS],
                 AC_MSG_ERROR(Could not find any version boost_program_options to link to)
             fi
 
-            if [[ "$link_program_options" = "no" ]]; then
-                AC_MSG_WARN(Could not dynamic link against $ax_lib)
+            if [[ "$link_program_options" == "no" ]]; then
+                AC_MSG_WARN(Could not dynamic link against boost_program_options)
             fi
             if [[ "$link_program_options_static" == "no" ]]; then
-                AC_MSG_WARN(Could not static link against $ax_static_lib)
+                AC_MSG_WARN(Could not static link against boost_program_options)
             fi
             if [[ "$no_link" == "yes" ]]; then
                 AC_MSG_ERROR(Could not link against any boost_program_options lib)

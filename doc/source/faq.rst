@@ -4,10 +4,11 @@
 Frequently Asked Questions
 ==========================
 
-Can KAT handle gzipped sequence files?
---------------------------------------
+Can KAT handle compressed sequence files?
+-----------------------------------------
 
-Yes, but only via named pipes.  For example, say we wanted to run ``kat hist`` using
+Yes, via named pipes.  Anonymous named pipes (process substitution) is also supported.
+For example, say we wanted to run ``kat hist`` using
 gzipped paired end dataset, we can use a named pipe to do this as follows::
 
     mkfifo pe_dataset.fq && gunzip -c pe_dataset_?.fq.gz > pe_dataset.fq &
@@ -21,7 +22,17 @@ consuming from the named pipe will take data that has been gunzipped first.  To 
 clear this means you do not have to decompress the gzipped files to disk, this happens
 on the fly as consumed by KAT.
 
-Thanks to John Davey for suggesting this.
+Alternatively, using process substitution we could write the previous example more 
+concisely in a single line like this::
+
+    kat hist -o oe_dataset.hist <(gunzip -c pe_dataset_?.fq.gz)
+
+As a more complex example, the KAT comp tool can be driven in spectra-cn mode using
+both compressed paired end reads and a compressed assembly as follows::
+
+    kat comp -o oe_spectra_cn <(gunzip -c pe_dataset_?.fq.gz) <(gunzip -c asm.fa.gz)
+
+Thanks to John Davey and Torsten Seeman for suggesting this.
 
 
 Why is jellyfish bundled with KAT?
