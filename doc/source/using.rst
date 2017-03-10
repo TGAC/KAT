@@ -176,11 +176,11 @@ SECT
 
 Estimates coverage levels across sequences in the provided input sequence file.
 This tool will produce a FastA style representation of the input sequence file 
-containing K-mer coverage counts mapped across each sequence.  K-mer coverage is 
+containing K-mer coverage counts mapped across each sequence separated by spaces.  
+K-mer coverage is 
 determined from the provided counts input file, which can be either one jellyfish 
-hash, or one or more FastA / FastQ files.  In addition, a space separated table 
-file containing the mean coverage score and GC of each sequence is produced.  The 
-row order is identical to the original sequence file.
+hash, or one or more FastA / FastQ files.  In addition, a file containing statistics
+about each target sequence is produced.
 
 NOTE: K-mers containing any Ns derived from sequences in the sequence file not be 
 included.
@@ -200,7 +200,7 @@ output might look like this::
 
 With an associated tab separated stats file which looks like this::
 
-    seq_name median       mean      gc%  seq_length  invalid_kmers  %_invalid  non_zero_bases  %_non_zero  %_non_zero_corrected
+    seq_name median       mean      gc%  seq_length  invalid_kmers  %_invalid  non_zero_kmers  %_non_zero  %_non_zero_corrected
     Chr4         26  362.45141  0.36204    18585056           3214    0.01729        18549840    99.81065              99.82792
 
 The column headers have the following meaning:
