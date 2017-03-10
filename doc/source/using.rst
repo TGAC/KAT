@@ -200,8 +200,8 @@ output might look like this::
 
 With an associated tab separated stats file which looks like this::
 
-    seq_name median       mean      gc%  seq_length  invalid_kmers  %_invalid  non_zero_kmers  %_non_zero  %_non_zero_corrected
-    Chr4         26  362.45141  0.36204    18585056           3214    0.01729        18549840    99.81065              99.82792
+    seq_name median       mean      gc%  seq_length  kmers_in_seq  invalid_kmers  %_invalid  non_zero_kmers  %_non_zero  %_non_zero_corrected
+    Chr4         26  362.45141  0.36204    18585056      18585036           3214    0.01729        18549840    99.81065              99.82792
 
 The column headers have the following meaning:
  * seq_name - The name of the FastA/Q sequence
@@ -209,6 +209,7 @@ The column headers have the following meaning:
  * mean - The mean K-mer coverage across the sequence
  * gc% - The GC% of the sequence
  * seq_length - The length of the sequence
+ * kmers_in_seq - The number of K-mers in the sequence.  i.e. seq_length - K + 1
  * invalid_kmers - The number of K-mers in the sequence that cannot be counted, most likely due to being non-canonical.  i.e. non A,T,G,C
  * %_invalid - The percentage of the sequence which contains invalid K-mers
  * non_zero_kmers - The number of K-mers that have a coverage of 1 or greater
