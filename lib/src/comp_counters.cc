@@ -39,6 +39,8 @@ using kat::DistanceMetric;
 
 kat::CompCounters::CompCounters() : CompCounters("", "", "", DEFAULT_NB_BINS) {}
 
+kat::CompCounters::CompCounters(const size_t _dm_size) : CompCounters("", "", "", _dm_size) {}
+
 kat::CompCounters::CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size) :
         hash1_path(_hash1_path), hash2_path(_hash2_path), hash3_path(_hash3_path) {
 
@@ -207,6 +209,8 @@ void kat::CompCounters::printCounts(ostream &out) {
 // ******** ThreadedCompCounters *********
 
 kat::ThreadedCompCounters::ThreadedCompCounters() : ThreadedCompCounters("", "", "", DEFAULT_NB_BINS) {}
+
+kat::ThreadedCompCounters::ThreadedCompCounters(const size_t _dm_size) : ThreadedCompCounters("", "", "", _dm_size) {}
 
 kat::ThreadedCompCounters::ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size) {
     final_matrix = CompCounters(_hash1_path, _hash2_path, _hash3_path, _dm_size);            

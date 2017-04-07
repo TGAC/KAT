@@ -253,7 +253,6 @@ void kat::Comp::merge() {
 
     cout << "Merging results ...";
     cout.flush();
-
     // Merge results from the threads
     main_matrix.mergeThreadedMatricies();
     if (doThirdHash()) {
@@ -390,7 +389,7 @@ void kat::Comp::compare() {
 
 void kat::Comp::compareSlice(int th_id) {
 
-    shared_ptr<CompCounters> cc = make_shared<CompCounters>();
+    shared_ptr<CompCounters> cc = make_shared<CompCounters>(std::min(this->d1Bins, this->d2Bins));
 
     // Setup iterator for this thread's chunk of hash1
     LargeHashArray::eager_iterator hash1Iterator = input[0].hash->eager_slice(th_id, threads);
