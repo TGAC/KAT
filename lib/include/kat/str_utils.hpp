@@ -184,9 +184,13 @@ namespace kat {
         for (const auto& c : merstr) {
             switch (c) {
                 case 'A':
+				case 'a':
                 case 'T':
+				case 't':
                 case 'G':
+				case 'g':
                 case 'C':
+				case 'c':
                     break;
                 default:
                     return false;

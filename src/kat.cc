@@ -19,6 +19,8 @@
 #include <config.h>
 #endif
 
+#include <execinfo.h>
+#include <signal.h>
 #include <sys/ioctl.h>
 #include <string.h>
 #include <exception>
@@ -114,6 +116,21 @@ const string helpMessage() {
 }
 
 
+void handler(int sig) {
+    void *array[10];
+    size_t size;
+
+    // get void*'s for all entries on the stack
+    size = backtrace(array, 10);
+
+    // print out all the frames to stderr
+    fprintf(stderr, "Error: signal %d:\n", sig);
+    fprintf(stderr, "Stack trace:\n");
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    exit(1);
+}
+
+
 
 /**
  * Start point for KAT.  Processes the start of the command line and then
@@ -121,6 +138,7 @@ const string helpMessage() {
  */
 int main(int argc, char *argv[])
 {
+    signal(SIGSEGV, handler);
     try {
         // KAT args
         string modeStr;
@@ -224,11 +242,11 @@ int main(int argc, char *argv[])
         }
                 
     } catch(po::error& e) { 
-        cerr << "Error: Parsing Command Line: " << e.what() << endl; 
-        return 1; 
+        cerr << "Error: Parsing Command Line: " << e.what() << endl;
+                return 1;
     } 
     catch (boost::exception &e) { 
-        cerr << boost::diagnostic_information(e); 
+        cerr << boost::diagnostic_information(e);
         return 4;
     } catch (exception& e) {
         cerr << "Error: " << e.what() << endl;

@@ -186,7 +186,7 @@ void kat::Sect::processSeqFile() {
 
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.tsv").c_str());
-    cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tinvalid_bases\t%_invalid\tnon_zero_bases\t%_non_zero\t%_non_zero_corrected" << endl;
+    cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tkmers_in_seq\tinvalid_kmers\t%_invalid\tnon_zero_kmers\t%_non_zero\t%_non_zero_corrected" << endl;
     
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
@@ -425,7 +425,8 @@ void kat::Sect::printStatTable(std::ostream &out) {
             << (*medians)[i] << "\t" 
             << (*means)[i] << "\t" 
             << (*gcs)[i] << "\t" 
-            << (*lengths)[i] << "\t" 
+            << (*lengths)[i] << "\t"
+            << (*lengths)[i] - this->input.merLen + 1 << "\t"
             << (*invalid)[i] << "\t"
             << (*percentInvalid)[i] << "\t"
             << (*nonZero)[i] << "\t"

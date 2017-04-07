@@ -27,6 +27,33 @@ Basic usage::
     kat hist [options] (<input>)+
 
 
+Output:
+
+Produces a histogram file and associated `Spectra hist`_ plot.
+The histogram file starts with a header describing settings used to generate the
+histogram.  Each header line starts with a '#' character.  The histogram that follows
+describes each K-mer frequency followed by the number of distinct K-mers found
+at that frequency separated by a space.  Each frequency / count pair is line separated.
+For example::
+
+    # Title:27-mer spectra for: SRR519624_1.1M.fastq
+    # XLabel:27-mer frequency
+    # YLabel:# distinct 27-mers
+    # Kmer value:27
+    # Input 1:SRR519624_1.1M.fastq
+    ###
+    1 47573743
+    2 4737789
+    3 732453
+    4 184505
+    5 100293
+    6 78699
+    7 68553
+    8 59589
+    9 50926
+    ...
+
+
 Applications:
 
  * Assess data quality: estimates of kmers deriving from errors; sequencing bias
@@ -50,6 +77,28 @@ which often appear as separate spots at unexpected GC and coverage levels.
 Basic usage::
 
     kat gcp (<input>)+
+
+Output:
+
+Produces a matrix file and associated `Density`_ plot. The matrix file starts with 
+a header describing settings used to generate the matrix.  Each header line starts 
+with a '#' character.  The matrix that follows contains a space separated list of
+distinct k-mer counts for the GC-count indexed by the row.  Each column index represents
+the K-mer Frequency. For example::
+
+    # Title:K-mer coverage vs GC count plot for: ERR409722_1.fastq ERR409722_2.fastq 
+    # XLabel:K-mer multiplicity
+    # YLabel:GC count
+    # ZLabel:Distinct K-mers per bin
+    # Columns:1001
+    # Rows:27
+    # MaxVal:7705834
+    # Transpose:0
+    ###
+    0 65392 10715 6038 4615 3769 3140 2690 2133 1748 1519 1370 1098 840 ...
+    0 189337 30772 20040 16630 15579 13673 12809 11890 10380 9605 8403 7370 6302 ...
+    0 428150 66753 41453 37478 34599 34622 34572 32740 31487 30356 28369 26880 ...
+    ...
 
 Applications:
 
@@ -88,11 +137,37 @@ an assembly::
 
     kat comp -t 8 -o pe_v_asm_test 'PE1.R?.fq' asm.fa
 
+... or if the reads are gzipped::
+    
+    kat comp -t 8 -o pe_v_asm_test <(gunzip -c 'PE1.R?.fq') asm.fa
+
+Output:
+
+Produces a matrix file and by default a `Spectra CN`_ plot, although can also produce
+a `Density` plot if requested. The matrix file is structured in a similar way to the
+GCP tool with a header describing settings used to generate the matrix.  Each header line starts 
+with a '#' character.  The matrix that follows contains a space separated list of
+distinct k-mer counts for the frequency in each input file represented by the row 
+and column index. For example::
+
+    # Title:K-mer comparison plot
+    # XLabel:K-mer multiplicity for: ERR409722_1.fastq
+    # YLabel:K-mer multiplicity for: ERR409722_2.fastq
+    # ZLabel:Distinct K-mers per bin
+    # Columns:1001
+    # Rows:1001
+    # MaxVal:57106148
+    # Transpose:1
+    ###
+    0 57106148 2133673 428934 134189 45267 16399 6603 3374 2066 1371 930 752 490 ...
+    50919938 10364720 1613532 607932 239439 89985 36398 16589 8811 5469 3369 ...
+    1990321 1605550 1061952 561999 271443 125163 61769 34379 22459 15647 11171 ...
+    ...
 
 Applications:
 
  * Determine sequencing bias between left and right read pairs.
- * Compare the kmer spectrum of input reads against an assembly to gauge assembly completeness
+ * Compare the kmer spectrum of input reads against an assembly to gauge assembly completeness.
 
 
 
@@ -100,12 +175,12 @@ SECT
 ----
 
 Estimates coverage levels across sequences in the provided input sequence file.
-This tool will produce a fasta style representation of the input sequence file 
-containing K-mer coverage counts mapped across each sequence.  K-mer coverage is 
+This tool will produce a FastA style representation of the input sequence file 
+containing K-mer coverage counts mapped across each sequence separated by spaces.  
+K-mer coverage is 
 determined from the provided counts input file, which can be either one jellyfish 
-hash, or one or more FastA / FastQ files.  In addition, a space separated table 
-file containing the mean coverage score and GC of each sequence is produced.  The 
-row order is identical to the original sequence file.
+hash, or one or more FastA / FastQ files.  In addition, a file containing statistics
+about each target sequence is produced.
 
 NOTE: K-mers containing any Ns derived from sequences in the sequence file not be 
 included.
@@ -114,12 +189,39 @@ Basic usage::
 
     kat sect [options] <sequence_file> (<input>)+
 
+Output:
+
+Produces a FastA-style representation of the K-mer frequency across each target sequence
+as well as a file describing statistics for each target sequence.  The FastA-style
+output might look like this::
+
+    >Chr4
+    31 31 31 29 29 29 28 27 27 28 28 28 30 30 30 29 29 29 29 31 32 32 33 33 33 31 29 30 ...
+
+With an associated tab separated stats file which looks like this::
+
+    seq_name median       mean      gc%  seq_length  kmers_in_seq  invalid_kmers  %_invalid  non_zero_kmers  %_non_zero  %_non_zero_corrected
+    Chr4         26  362.45141  0.36204    18585056      18585036           3214    0.01729        18549840    99.81065              99.82792
+
+The column headers have the following meaning:
+ * seq_name - The name of the FastA/Q sequence
+ * median - The median K-mer coverage across the sequence
+ * mean - The mean K-mer coverage across the sequence
+ * gc% - The GC% of the sequence
+ * seq_length - The length of the sequence
+ * kmers_in_seq - The number of K-mers in the sequence.  i.e. seq_length - K + 1
+ * invalid_kmers - The number of K-mers in the sequence that cannot be counted, most likely due to being non-canonical.  i.e. non A,T,G,C
+ * %_invalid - The percentage of the sequence which contains invalid K-mers
+ * non_zero_kmers - The number of K-mers that have a coverage of 1 or greater
+ * %_non_zero - The percentage of the sequence which has a K-mer coverage greater than 1
+ * %_non_zero_corrected - The percentage of the sequence which has a K-mer coverage greater than 1 but ignoring any parts of the sequence represented by invalid K-mers.
+
 
 Applications:
 
- * Analyse kmer coverage across assembled sequences
- * Compare assemblies using kmers, helpful to levels of contamination of a specific organism.
- * Contamination detection - Compare kmer spectrum against assembly providing average coverage and GC values for each contig, which can be 2D binned and plot as a heatmap
+ * Analyse K-mer coverage across assembled sequences
+ * Compare assemblies using K-mers, helpful to levels of contamination of a specific organism.
+ * Contamination detection - Compare K-mer spectrum against assembly providing average coverage and GC values for each contig, which can be 2D binned and plot as a heatmap
 
 
 Filtering tools
@@ -173,7 +275,7 @@ modify axis, titles, limits, size, resolution, etc, although they will all try t
 intelligent defaults directly from the data provided.  
 
 
-Spectra_hist
+Spectra hist
 ~~~~~~~~~~~~
 
 Visualises the K-mer spectra from ``kat hist`` or ``jellyfish histo`` output.  
@@ -234,7 +336,7 @@ Applications:
     :scale: 66%
 
 
-Spectra_CN
+Spectra CN
 ~~~~~~~~~~
 
 Shows K-mer duplication levels, which correspond to copy number variation within 
@@ -254,7 +356,7 @@ Applications:
 
 
 
-Spectra_mx
+Spectra MX
 ~~~~~~~~~~
 
 Produces K-mer spectras from rows or columns in a matrix generated by ``kat comp``.  

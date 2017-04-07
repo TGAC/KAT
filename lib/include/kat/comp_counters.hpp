@@ -57,6 +57,8 @@ public:
     path hash3_path;
 
     CompCounters();
+	
+	CompCounters(const size_t _dm_size);
 
     CompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size);
 
@@ -92,6 +94,8 @@ private:
 public:
 
     ThreadedCompCounters();
+	
+	ThreadedCompCounters(const size_t _dm_size);
 
     ThreadedCompCounters(const path& _hash1_path, const path& _hash2_path, const path& _hash3_path, const size_t _dm_size);
 
