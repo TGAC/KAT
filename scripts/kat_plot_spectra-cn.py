@@ -35,11 +35,10 @@ parser.add_argument("-w", "--width", type=int, default=8,
                     help="Width of canvas")
 parser.add_argument("-l", "--height", type=int, default=6,
                     help="Height of canvas")
-parser.add_argument("-i", "--ignore_absent", dest="ignore_absent",
-                    action="store_true",
-                    help="Ignore K-mers in reads but absent from the " \
-                    "assembly")
-parser.set_defaults(ignore_absent=False)
+parser.add_argument("-i", "--min_assembly_frequency", dest="min_assm_freq",
+                    action="store",
+                    help="Display K-mers that appear less than n times in the genome")
+parser.set_defaults(min_assm_freq=False)
 parser.add_argument("-m", "--max_dup", type=int, default=6,
                     help="Maximum duplication level to show in plots")
 parser.add_argument("-c", "--coverage_list", type=str,
@@ -89,7 +88,11 @@ if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
                                                     matrix.shape[1]))
 
-mincov = 1 if args.ignore_absent else 0
+if args.min_assm_freq:
+  mincov=int(args.min_assm_freq)
+else:
+  mincov=0
+
 covbands = args.max_dup
 
 colours = ["#000000",
@@ -101,7 +104,7 @@ colours = ["#000000",
            "#fcaf3e",
            "#fce94f"]
 if mincov > 0:
-    colours = colours[1:]
+    colours = colours[mincov:]
     xamount = 0.65
 else:
     xamount = 0.99
