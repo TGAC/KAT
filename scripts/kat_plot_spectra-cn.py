@@ -132,7 +132,7 @@ for b in bands:
     i += 1
 
 if combine_last_row:
-    nm[-1] = np.matrix(np.sum(matrix[(covbands):,:]))
+    nm[-1] = np.sum(matrix[(covbands):,:], axis=0)
 
 #print(nm)
 
