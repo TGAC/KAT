@@ -45,10 +45,10 @@ parser.add_argument("-m", "--max_dup", type=int, default=6,
 parser.add_argument("-c", "--coverage_list", type=str,
                     help="Comma separated string listing coverage levels " \
                     "to show in plot (overrides -i and -u)")
-parser.add_argument("-u", "--no_cumulative", dest="no_cumulative",
+parser.add_argument("-u", "--accumulate", dest="accumulate",
                     action="store_true",
-                    help="Do not combine remaining copy numbers in matrix")
-parser.set_defaults(no_cumulative=False)
+                    help="Append a new band that is the accumulation all remaining copy numbers in matrix.")
+parser.set_defaults(accumulate=False)
 parser.add_argument("--dpi", type=int, default=300,
                     help="Resolution in dots per inch of output graphic.")
 parser.add_argument("-v", "--verbose", dest="verbose",
@@ -106,7 +106,7 @@ else:
     covbands = args.max_dup
     for i in range(mincov, covbands):
         bands.append(i)
-    if not args.no_cumulative:
+    if args.accumulate:
         combine_last_row = True
         bands.append(bands[-1]+1)    
 
