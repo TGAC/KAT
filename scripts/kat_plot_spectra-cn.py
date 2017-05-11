@@ -44,11 +44,11 @@ parser.add_argument("-m", "--max_dup", type=int, default=6,
                     help="Maximum duplication level to show in plots")
 parser.add_argument("-c", "--coverage_list", type=str,
                     help="Comma separated string listing coverage levels " \
-                    "to show in plot (overrides -i)")
-parser.add_argument("-u", "--cumulative", dest="cumulative",
+                    "to show in plot (overrides -i and -u)")
+parser.add_argument("-u", "--no_cumulative", dest="no_cumulative",
                     action="store_true",
-                    help="Plot cumulative distribution of kmers")
-parser.set_defaults(cumulative=False)
+                    help="Do not combine remaining copy numbers in matrix")
+parser.set_defaults(no_cumulative=False)
 parser.add_argument("--dpi", type=int, default=300,
                     help="Resolution in dots per inch of output graphic.")
 parser.add_argument("-v", "--verbose", dest="verbose",
@@ -88,9 +88,30 @@ input_file.close()
 if args.verbose:
     print("{:d} by {:d} matrix file loaded.".format(matrix.shape[0],
                                                     matrix.shape[1]))
+bands = []
+combine_last_row = False
+xvolume_cutoff = 0.99
+mincov = 0
+maxcov = 0
+if args.coverage_list:
+    parts = args.coverage_list.split(',')
+    for p in parts:
+        b = p.strip()
+        if b != "":
+            bands.append(int(b))
+    mincov = bands[0]
+    covbands = bands[-1]
+else:
+    mincov = 1 if args.ignore_absent else 0
+    covbands = args.max_dup
+    for i in range(mincov, covbands):
+        bands.append(i)
+    if not args.no_cumulative:
+        combine_last_row = True
+        bands.append(bands[-1]+1)    
 
-mincov = 1 if args.ignore_absent else 0
-covbands = args.max_dup
+if args.verbose:    
+    print("Printing these rows:", bands)
 
 colours = ["#000000",
            "#ef2929",
@@ -102,56 +123,77 @@ colours = ["#000000",
            "#fce94f"]
 if mincov > 0:
     colours = colours[1:]
-    xamount = 0.65
-else:
-    xamount = 0.99
 
 # leave only coverage levels we are interested in
-last_row = np.matrix(np.sum(matrix[(mincov+covbands):,:], 0))
-matrix = np.concatenate([matrix[mincov:(mincov+covbands),:], last_row], 0)
+nm = np.zeros((len(bands),len(matrix[0])))
+i = 0
+for b in bands:
+    nm[i] = matrix[b,:]
+    i += 1
+
+if combine_last_row:
+    nm[-1] = np.sum(matrix[(covbands):,:], axis=0)
+
+#print(nm)
 
 # find limits
 if args.x_max is None or args.y_max is None:
-    totals = np.squeeze(np.asarray(np.sum(matrix, 0)))
+    totals = np.sum(nm, 0)
     xmax = len(totals) - 1
     ysum = np.sum(totals)
     ymax = np.max(totals)
+    #print(xmax)
+    #print(totals)
+    #print(ysum)
+
+    if mincov == 0:
+        xvolume_cutoff -= ((totals[0] / np.sum(totals[1:])) / 2.0)
+
+    if combine_last_row:
+        xvolume_cutoff -= (totals[-1] / np.sum(totals[:-1]))
 
     peakx = findpeaks(totals)
-    peakx = peakx[peakx != 1]
+    peakx = peakx[peakx != 1]   # Required to avoid frequency 1 k-mers, which are likely to be very high
     peaky = totals[peakx]
 
-    for i in range(1, xmax, int(xmax/100) + 1):
-        if np.sum(totals[:i]) >= ysum * xamount:
+    for i in range(1, xmax, 1):
+        c = np.sum(totals[0:i])
+        #print(i, c)
+        if c >= float(ysum) * xvolume_cutoff:
             xmax = i
             break
     ymax = np.max(peaky) * 1.1
     if args.verbose:
         print("Automatically detected axis limits:")
-        print("xmax: ", xmax)
-        print("ymax: ", ymax)
+        print("X volume cutoff:", xvolume_cutoff)
+        print("xmax:", xmax)
+        print("ymax:", ymax)
 
 if args.x_max is not None:
     xmax = args.x_max
 if args.y_max is not None:
     ymax = args.y_max
 
-matrix = matrix[:,:xmax]
+nm = nm[:,:xmax]
 
 plt.figure(num = None, figsize=(args.width, args.height))
 plt.axis([0,xmax,0,ymax])
-x = list(range(xmax))
-labels = ["{:d}x".format(l) for l in range(mincov, mincov+covbands+1)]
-labels[-1] = "{:s}+".format(labels[-1])
-bar = plt.bar(x, np.squeeze(np.asarray(matrix[0,:])),
+x = list(range(min(xmax,len(nm[0]))))
+labels = ["{:d}x".format(l) for l in bands]
+
+if combine_last_row:
+    labels[-1] = "{:s}+".format(labels[-1])
+
+bar = plt.bar(x, np.squeeze(np.asarray(nm[0,:])),
               color=colours[0],
               linewidth=0.1,
               edgecolor=colours[0],
               width=1,
               label=labels[0])
-for level in range(1, covbands+1):
-    bar = plt.bar(x, np.squeeze(np.asarray(matrix[level,:])),
-                  bottom=np.squeeze(np.asarray(np.sum(matrix[:level,:], 0))),
+
+for level in range(1, len(bands)):
+    bar = plt.bar(x, np.squeeze(np.asarray(nm[level,:])),
+                  bottom=np.squeeze(np.asarray(np.sum(nm[:level,:], 0))),
                   color=colours[level%len(colours)],
                   linewidth=0.1,
                   edgecolor=colours[level%len(colours)],
