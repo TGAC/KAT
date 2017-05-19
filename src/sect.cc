@@ -702,7 +702,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setCvgBins(cvg_bins);
     sect.setCvgLogscale(cvg_logscale);
     sect.setThreads(threads);
-    sect.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
+    sect.setCanonical(non_canonical ? false : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
