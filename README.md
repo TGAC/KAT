@@ -1,6 +1,7 @@
 ![alt text](doc/source/images/kat_logo.png "The K-mer Analysis Toolkit")
 
-#KAT - The K-mer Analysis Toolkit
+KAT - The K-mer Analysis Toolkit
+================================
 
 KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta or fastq) using kmer counts.  The following tools are currently available in KAT:
 
@@ -24,7 +25,8 @@ This README only contains some brief details of how to install and use KAT.  For
 extensive documentation please visit: https://kat.readthedocs.org/en/latest/
 
 
-##Installation:
+Installation
+------------
 
 There are two ways to install KAT from source, either by cloning the git repository, or by downloading a distributable package, the later method is generally recommended as it reduces the number of installation steps and dependencies required to be on your system.
 
@@ -89,7 +91,8 @@ pages are automatically built during the build process.  If it is not detected t
 is skipped.  Should you wish to create a PDF version of the manual you can do so
 by typing ```make pdf```, this is not executed by default.  
 
-##Operating Instructions:
+Operating Instructions
+----------------------
 
 After KAT has been installed, the ```kat``` executable file should be available which contains a number of subtools.
  
@@ -108,11 +111,14 @@ Both commands do the same thing.
 
 
 
-##Licensing:
+Licensing
+---------
+
 
 GNU GPL V3.  See COPYING file for more details.
 
-##Cite:
+Cite
+----
 
 If you use KAT in your work and wish to cite us please use the following citation:
 
@@ -121,7 +127,8 @@ Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright
 Bioinformatics, 2016. [doi: 10.1093/bioinformatics/btw663](http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract)
 
 
-##Authors:
+Authors
+-------
 
 * Daniel Mapleson (The software architect and developer)
 * Gonzalo Garcia (KAT superuser and primary tester)
@@ -132,7 +139,8 @@ Bioinformatics, 2016. [doi: 10.1093/bioinformatics/btw663](http://bioinformatics
 See AUTHORS file for more details.
 
 
-##Acknowledgements:
+Acknowledgements
+----------------
 
  * Affiliation: Earlham Institute (EI)
  * Funding: The Biotechnology and Biological Sciences Research Council (BBSRC)
