@@ -271,6 +271,9 @@ class KmerSpectra(object):
 
 		hom_peak_index = len(self.peaks) if hom_peak == 0 else hom_peak
 
+		if hom_peak_index == 0:
+			return 0
+
 		# Just use first spectra for this calculation
 		sum = 0
 		for p_i, p in enumerate(self.peaks, start=1):
@@ -299,7 +302,7 @@ class KmerSpectra(object):
 	def calcKmerCoverage(self):
 		tot_vol = sum([x.elements for x in self.peaks])
 		weighted = sum([x.mean * x.elements for x in self.peaks])
-		return int(weighted / tot_vol)
+		return int(weighted / tot_vol) if tot_vol > 0 else 0
 
 	def printPeaks(self):
 		if len(self.peaks) > 0:
