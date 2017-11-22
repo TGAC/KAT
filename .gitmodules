@@ -1,0 +1,20 @@
+[submodule "chrono"]
+	path = deps/boost/chrono
+	url = git@github.com:boostorg/chrono.git
+	branch = master
+[submodule "program_options"]
+	path = deps/boost/program_options
+	url = git@github.com:boostorg/program_options.git
+	branch = master
+[submodule "timer"]
+	path = deps/boost/timer
+	url = git@github.com:boostorg/timer.git
+	branch = master
+[submodule "filesystem"]
+	path = deps/boost/filesystem
+	url = git@github.com:boostorg/filesystem.git
+	branch = master
+[submodule "system"]
+	path = deps/boost/system
+	url = git@github.com:boostorg/system.git
+	branch = master
