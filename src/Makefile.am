@@ -15,6 +15,7 @@ kat_CXXFLAGS = \
 kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-isystem $(top_srcdir)/deps/boost \
 	-isystem $(top_srcdir)/lib/include \
 	@AM_CPPFLAGS@
 
@@ -22,14 +23,19 @@ kat_LDFLAGS = \
 	-static \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
+	-L../deps/boost/stage/lib \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
 	@AM_LIBS@ \
 	-lkat \
-	-lkat_jellyfish
-
-	
+	-lkat_jellyfish \
+	-lboost_timer \
+	-lboost_chrono \
+	-lboost_filesystem \
+	-lboost_program_options \
+	-lboost_system
+		
 noinst_HEADERS = \
 	plot_density.hpp \
 	plot_profile.hpp \
