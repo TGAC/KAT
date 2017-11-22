@@ -41,3 +41,6 @@ Makefile.in
 *.la
 *.out
 /tags
+/.idea/
+/cmake-build-debug/
+/CMakeLists.txt
