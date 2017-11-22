@@ -29,8 +29,19 @@ dist_bin_SCRIPTS = \
 	scripts/kat_plot_spectra-hist.py \
 	scripts/kat_plot_spectra-mx.py
 
+#BOOST
+foo.c: foo.in
+        FOOPLACE=`./thescript`; $(FOOPLACE) -c -o $@ $<
+
+#git submodule update --init tools/build/ tools/auto_index/ tools/bcp tools/boostdep tools/inspect tools/litre
+#git submodule update --init libs/program_options libs/chrono libs/timer libs/filesystem libs/system libs/stacktrace
+#./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system,stacktrace
+#./b2 --prefix=?? install ???
+
+
+
 # SRC DIRS
-make_dirs=deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 lib src tests
+make_dirs=deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 deps/boost lib src tests
 
 if MAKE_DOCS
     make_dirs += doc
