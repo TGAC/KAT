@@ -9,7 +9,7 @@ kat_CXXFLAGS = \
 	-g -O3 -fwrapv -Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
 	-Wno-unused-variable -Wno-unused-command-line-argument \
-	-ansi -pedantic -std=c++11 \
+	-ansi -std=c++11 \
 	@AM_CXXFLAGS@
 
 kat_CPPFLAGS = \
@@ -35,7 +35,7 @@ kat_LDADD = \
 	-lboost_filesystem \
 	-lboost_program_options \
 	-lboost_system
-		
+
 noinst_HEADERS = \
 	plot_density.hpp \
 	plot_profile.hpp \
@@ -50,7 +50,7 @@ noinst_HEADERS = \
 	gcp.hpp \
 	histogram.hpp \
 	sect.hpp
-	
+
 kat_SOURCES = \
 	plot_density.cc \
 	plot_profile.cc \

@@ -8,8 +8,8 @@ lib_LTLIBRARIES = libkat.la
 libkat_la_LDFLAGS = \
 	-version-info 2:3:0 \
 	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/stage/lib \
-	
+	-L../deps/boost/stage/lib
+
 libkat_la_SOURCES = \
 	src/gnuplot_i.cc \
 	src/matrix_metadata_extractor.cc \
@@ -36,5 +36,9 @@ libkat_la_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/boost \
 	-isystem $(top_srcdir)/lib/include \
 	@AM_CPPFLAGS@
-	
-libkat_la_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11  @AM_CXXFLAGS@
+
+libkat_la_CXXFLAGS = -g -O3 -fwrapv \
+										-Wall -Wextra \
+										-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
+										-ansi -pedantic -Werror -std=c++11 \
+										@AM_CXXFLAGS@
