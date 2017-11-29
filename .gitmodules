@@ -1,3 +1,3 @@
 [submodule "deps/boost"]
 	path = deps/boost
-	url = git@github.com:boostorg/boost.git
+	url = https://github.com/boostorg/boost.git
