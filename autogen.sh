@@ -5,15 +5,14 @@ test -n "$srcdir" || srcdir=`dirname "$0"`
 test -n "$srcdir" || srcdir=.
 
 # Ensure the boost submodule is present
-git submodule update --init deps/boost
+git submodule sync
+git submodule update --recursive --init deps/boost
 
 # Ensure all required boost submodules are present
 cd deps/boost
-git submodule update --init tools/build/ tools/auto_index/ tools/bcp tools/boostdep tools/inspect tools/litre
-git submodule update --init libs/config libs/program_options libs/chrono libs/timer libs/filesystem libs/system libs/stacktrace
 
 # Build boost
-./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system,stacktrace
+./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
 ./b2
 
 # Build configure script
