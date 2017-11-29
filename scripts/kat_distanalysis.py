@@ -210,8 +210,8 @@ class KmerSpectra(object):
 
 		updated = False
 		for f in [self.fmax / 4, self.fmax / 3, self.fmax / 2, self.fmax, self.fmax * 2, self.fmax * 3, self.fmax * 4]:
-            if f < 10:
-                continue
+			if f <= 5:
+				continue
 
 			if int(f + f / 5) < len(self.histogram) and sum(
 					[base[x] for x in range(int(f - f / 5), int(f + f / 5))]) > .01 * sum(

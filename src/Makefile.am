@@ -9,12 +9,13 @@ kat_CXXFLAGS = \
 	-g -O3 -fwrapv -Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
 	-Wno-unused-variable -Wno-unused-command-line-argument \
-	-ansi -pedantic -std=c++11 \
+	-ansi -std=c++11 \
 	@AM_CXXFLAGS@
 
 kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-isystem $(top_srcdir)/deps/boost \
 	-isystem $(top_srcdir)/lib/include \
 	@AM_CPPFLAGS@
 
@@ -27,9 +28,13 @@ kat_LDFLAGS = \
 kat_LDADD = \
 	@AM_LIBS@ \
 	-lkat \
-	-lkat_jellyfish
+	-lkat_jellyfish \
+	../deps/boost/stage/lib/libboost_timer.a \
+	../deps/boost/stage/lib/libboost_chrono.a \
+	../deps/boost/stage/lib/libboost_filesystem.a \
+	../deps/boost/stage/lib/libboost_program_options.a \
+	../deps/boost/stage/lib/libboost_system.a
 
-	
 noinst_HEADERS = \
 	plot_density.hpp \
 	plot_profile.hpp \
@@ -44,7 +49,7 @@ noinst_HEADERS = \
 	gcp.hpp \
 	histogram.hpp \
 	sect.hpp
-	
+
 kat_SOURCES = \
 	plot_density.cc \
 	plot_profile.cc \

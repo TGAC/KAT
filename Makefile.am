@@ -3,17 +3,17 @@
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # Blank man target (used in doc)
-man: 
+man:
 	cd doc && $(MAKE) $(AM_MAKEFLAGS) man
 .PHONY: man
-	
+
 # ADDITIONAL FILES TO INSTALL
 EXTRA_DIST = \
 	README.md \
 	COPYING \
 	AUTHORS \
 	NEWS
-	
+
 
 # Scripts NOT to install
 dist_noinst_SCRIPTS = autogen.sh antigen.sh
@@ -28,6 +28,7 @@ dist_bin_SCRIPTS = \
 	scripts/kat_plot_spectra-cn.py \
 	scripts/kat_plot_spectra-hist.py \
 	scripts/kat_plot_spectra-mx.py
+
 
 # SRC DIRS
 make_dirs=deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 lib src tests

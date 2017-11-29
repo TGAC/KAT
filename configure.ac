@@ -4,7 +4,7 @@
 
 # Autoconf initialistion.  Sets package name version and contact details
 AC_PREREQ([2.68])
-AC_INIT([kat],[2.3.4],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
+AC_INIT([kat],[2.4.1],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 AC_CONFIG_SRCDIR([src/kat.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -94,15 +94,15 @@ if [[ "${do_plotting}" == "yes" ]]; then
             fi
             pymod_good="yes"
             AX_PYTHON_MODULE(numpy, ,${pybin})
-            if [[ "${PYMOD}" == "no" ]]; then 
-                    pymod_good="no" 
+            if [[ "${PYMOD}" == "no" ]]; then
+                    pymod_good="no"
             fi
             AX_PYTHON_MODULE(matplotlib, ,${pybin})
-            if [[ "${PYMOD}" == "no" ]]; then 
-                    pymod_good="no" 
+            if [[ "${PYMOD}" == "no" ]]; then
+                    pymod_good="no"
             fi
             AX_PYTHON_MODULE(scipy, ,${pybin})
-            if [[ "${PYMOD}" == "no" ]]; then 
+            if [[ "${PYMOD}" == "no" ]]; then
                     pymod_good="no"
             fi
         fi
@@ -138,62 +138,25 @@ if [[ "${sphinx}" == "yes" ]]; then
 		sphinx="no"
 	fi
 else
-    AC_MSG_WARN([Sphinx not detected, wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
+    AC_MSG_WARN([Sphinx not detected, wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
 fi
 AM_CONDITIONAL([MAKE_DOCS], [test x$sphinx = xyes])
 AC_SUBST([MAKE_DOCS])
 
 
-
-## Check for boost
-
-AC_ARG_ENABLE([dynamic-boost], AS_HELP_STRING([--enable-dynamic-boost], [Boost is statically linked by default.  Use this option if you would prefer to dynamically link boost]), dynboost="yes", dynboost="no")
-
-AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])
-AX_BOOST_FILESYSTEM
-AX_BOOST_SYSTEM
-AX_BOOST_PROGRAM_OPTIONS
-AX_BOOST_CHRONO
-AX_BOOST_TIMER
-
-
 define([PC_FILE], lib/kat-2.2.pc)
 
-
-# Combine BOOST variables (apart for BOOST_TEST)
-BOOST_DYN_LIBS="${BOOST_TIMER_LIB} ${BOOST_CHRONO_LIB} ${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB}"
-AC_SUBST([BOOST_DYN_LIBS])
-
-BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
-AC_SUBST([BOOST_STATIC_LIBS])
-
-# Prefer static linking of boost.  If one or more static libs are not present 
-# (this happens with some default boost installations on some environments) then
-# use dynamic libs instead.
-if [[ "${dynboost}" == "yes" ]]; then
-    BOOST_LIBS="${BOOST_DYN_LIBS}"
-else
-    if [[ -z "${BOOST_TIMER_STATIC_LIB}" ]] || [[ -z "${BOOST_CHRONO_STATIC_LIB}" ]] || [[ -z "${BOOST_FILESYSTEM_STATIC_LIB}" ]] || [[ -z "${BOOST_PROGRAM_OPTIONS_STATIC_LIB}" ]] || [[ -z "${BOOST_SYSTEM_STATIC_LIB}" ]]; then
-        AC_MSG_WARN([Not all static boost libraries could be found.  Will use dynamic libraries instead.])
-        BOOST_LIBS="${BOOST_DYN_LIBS}"
-        dynboost="yes"
-    else
-        BOOST_LIBS="${BOOST_STATIC_LIBS}"
-    fi
-fi
-AC_SUBST([BOOST_LIBS])
-
-AM_CXXFLAGS="-DCPLUSPLUS"
+AM_CXXFLAGS=""
 AC_SUBST([AM_CXXFLAGS])
 
-if [[ "${pymod_good}" == "yes" ]]; then 
-    AM_CPPFLAGS="${BOOST_CPPFLAGS} ${PYTHON_CPPFLAGS}"
-    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_LIBS} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
-    AM_LDFLAGS="${BOOST_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS}"
+if [[ "${pymod_good}" == "yes" ]]; then
+    AM_CPPFLAGS="${PYTHON_CPPFLAGS}"
+    AM_LIBS="${PTHREAD_CFLAGS} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
+    AM_LDFLAGS="${PYTHON_EXTRA_LDFLAGS}"
 else
-    AM_CPPFLAGS="${BOOST_CPPFLAGS}"
-    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_LIBS} ${RT_LIB}"
-    AM_LDFLAGS="${BOOST_LDFLAGS}"
+    AM_CPPFLAGS=""
+    AM_LIBS="${PTHREAD_CFLAGS} ${RT_LIB}"
+    AM_LDFLAGS=""
 fi
 
 AC_SUBST([AM_CPPFLAGS])
@@ -225,15 +188,7 @@ else
 fi
 
 if [[ "${sphinx}" == "no" ]]; then
-    AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
+    AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
 else
     AC_MSG_NOTICE([Building documentation with sphinx])
 fi
-
-if [[ "${dynboost}" == "yes" ]]; then
-    AC_MSG_NOTICE([Boost will be dynamically linked to your executable])
-else
-    AC_MSG_NOTICE([Boost will be statically linked to your executable])
-fi
-
-
