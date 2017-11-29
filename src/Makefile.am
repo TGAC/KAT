@@ -23,18 +23,17 @@ kat_LDFLAGS = \
 	-static \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/stage/lib \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
 	@AM_LIBS@ \
 	-lkat \
 	-lkat_jellyfish \
-	-lboost_timer \
-	-lboost_chrono \
-	-lboost_filesystem \
-	-lboost_program_options \
-	-lboost_system
+	../deps/boost/stage/lib/libboost_timer.a \
+	../deps/boost/stage/lib/libboost_chrono.a \
+	../deps/boost/stage/lib/libboost_filesystem.a \
+	../deps/boost/stage/lib/libboost_program_options.a \
+	../deps/boost/stage/lib/libboost_system.a
 
 noinst_HEADERS = \
 	plot_density.hpp \

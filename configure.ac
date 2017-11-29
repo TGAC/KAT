@@ -4,7 +4,7 @@
 
 # Autoconf initialistion.  Sets package name version and contact details
 AC_PREREQ([2.68])
-AC_INIT([kat],[2.3.4],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
+AC_INIT([kat],[2.4.1],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 AC_CONFIG_SRCDIR([src/kat.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
@@ -146,7 +146,7 @@ AC_SUBST([MAKE_DOCS])
 
 define([PC_FILE], lib/kat-2.2.pc)
 
-AM_CXXFLAGS="-DCPLUSPLUS"
+AM_CXXFLAGS=""
 AC_SUBST([AM_CXXFLAGS])
 
 if [[ "${pymod_good}" == "yes" ]]; then

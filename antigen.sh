@@ -22,7 +22,7 @@ fi
 cd ..
 
 # Remove boost
-#rm -Rf deps/boost
+rm -Rf deps/boost
 
 # Remove all tar-files (assuming there are some packages), and any expanded directories.
 rm -f *.tar.* *.tgz
@@ -35,7 +35,7 @@ rm -Rf build-aux
 rm -Rf autom4te.cache
 
 # Remove rest of the generated files.
-rm -f Makefile.in tests/Makefile.in config.* aclocal.m4 configure depcomp install-sh missing libtool ltmain.sh 
+rm -f Makefile.in tests/Makefile.in config.* aclocal.m4 configure depcomp install-sh missing libtool ltmain.sh
 
 # And do the same for jellyfish
 cd deps/jellyfish-2.2.0
