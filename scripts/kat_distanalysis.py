@@ -202,7 +202,7 @@ class KmerSpectra(object):
 		# create a base as the histogram and start from there
 		base = [x for x in self.histogram]
 		for p_i, p in enumerate(sortedpeaks):
-			# locally optimize the preak
+			# locally optimize the peak
 			p.constrained_opt(p.left, base[p.left:p.right])
 			# substract the peak effect from the baseline
 			for i in range(len(self.histogram)):
@@ -210,6 +210,9 @@ class KmerSpectra(object):
 
 		updated = False
 		for f in [self.fmax / 4, self.fmax / 3, self.fmax / 2, self.fmax, self.fmax * 2, self.fmax * 3, self.fmax * 4]:
+            if f < 10:
+                continue
+
 			if int(f + f / 5) < len(self.histogram) and sum(
 					[base[x] for x in range(int(f - f / 5), int(f + f / 5))]) > .01 * sum(
 					[p.elements for p in self.peaks]):
