@@ -1,5 +1,8 @@
 language: cpp
 
+git:
+  submodules: false
+
 matrix:
     include:
             - os: linux
@@ -26,7 +29,7 @@ branches:
   only:
   - master
   - develop
-  
+
 # Setup compiler
 before_install:
 - ./.travis/before_install.sh
@@ -40,7 +43,7 @@ install:
 
 # Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
-- if [[ "$COMPILER" == "GCC5" ]]; then export CXX="g++-5" && export CC="gcc-5"; elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX="g++-4.9" && export CC="gcc-4.9"; fi     
+- if [[ "$COMPILER" == "GCC5" ]]; then export CXX="g++-5" && export CC="gcc-5"; elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX="g++-4.9" && export CC="gcc-4.9"; fi
 - if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment && export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/miniconda/envs/test-environment/lib"; fi
 - gcc --version
 - g++ --version
@@ -48,6 +51,3 @@ script:
 - make V=1
 - make V=1 check
 #- make V=1 distcheck
-
-
-

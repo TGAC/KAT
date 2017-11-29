@@ -13,8 +13,8 @@ git submodule update --init tools/build/ tools/auto_index/ tools/bcp tools/boost
 git submodule update --init libs/config libs/program_options libs/chrono libs/timer libs/filesystem libs/system libs/stacktrace
 
 # Build boost
-#./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system,stacktrace
-#./b2
+./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system,stacktrace
+./b2
 
 # Build configure script
 cd ../..
