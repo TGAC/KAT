@@ -14,7 +14,7 @@ EXTRA_DIST = \
 	test_gcp.sh \
 	test_hist.sh \
 	test_sect.sh
-	
+
 clean-local: clean-local-check
 .PHONY: clean-local-check
 clean-local-check:
@@ -24,6 +24,7 @@ clean-local-check:
 AM_CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
 AM_CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	    -isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
+			-isystem $(top_srcdir)/deps/boost \
 	    -isystem $(top_srcdir)/lib/include \
 	    -DDATADIR=\"$(srcdir)/data\" \
 	    @AM_CPPFLAGS@
@@ -40,7 +41,7 @@ noinst_HEADERS = \
 	gtest/gtest.h \
 	gtest/src/gtest-all.cc \
 	gtest/src/gtest_main.cc
-	
+
 
 check_unit_tests_SOURCES = \
 	check_jellyfish.cc \
@@ -53,13 +54,19 @@ check_unit_tests_LDFLAGS = \
 	-L. \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
+	-L../deps/boost/stage/lib \
 	@AM_LDFLAGS@
-	
+
 check_unit_tests_LDADD = \
 	libgtest.la \
 	-lgtest \
 	-lkat \
 	-lkat_jellyfish \
+	../deps/boost/stage/lib/libboost_timer.a \
+	../deps/boost/stage/lib/libboost_chrono.a \
+	../deps/boost/stage/lib/libboost_filesystem.a \
+	../deps/boost/stage/lib/libboost_program_options.a \
+	../deps/boost/stage/lib/libboost_system.a \
 	@AM_LIBS@
-	
+
 include gtest.mk

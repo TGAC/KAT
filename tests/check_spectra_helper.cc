@@ -21,7 +21,7 @@
 using std::cout;
 using std::endl;
 
-#include <boost/filesystem.hpp>
+#include <boost/filesystem/operations.hpp>
 using boost::filesystem::remove;
 
 #include <kat/spectra_helper.hpp>
@@ -30,15 +30,15 @@ using kat::SpectraHelper;
 namespace kat {
 
 TEST(spectra_helper, load_hist) {
-    
+
     vector<Pos> hist;
     SpectraHelper::loadHist(DATADIR "/kat.hist", hist);
-    
+
     Pos p1(1, 54015667);
     Pos p10(10, 18649);
     Pos p10000(10000, 0);
     Pos last(10001, 358);
-    
+
     EXPECT_EQ( hist.size(), 10001 );
     EXPECT_EQ( p1.first, hist[0].first );
     EXPECT_EQ( p1.second, hist[0].second );
@@ -48,11 +48,11 @@ TEST(spectra_helper, load_hist) {
 }
 
 TEST(spectra_helper, peak) {
-    
+
     vector<Pos> hist;
     SpectraHelper::loadHist(DATADIR "/kat.hist", hist);
     Pos p = SpectraHelper::findPeak(hist);
-    
+
     EXPECT_EQ( 229, p.first );
     EXPECT_EQ( 9762, p.second );
 }

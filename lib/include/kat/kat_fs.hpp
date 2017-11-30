@@ -29,6 +29,7 @@ using std::cout;
 #endif
 
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/exception/exception.hpp>
 #include <boost/exception/info.hpp>
 namespace fs = boost::filesystem;
