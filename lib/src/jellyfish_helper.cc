@@ -27,7 +27,6 @@ using std::vector;
 using std::fstream;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/timer/timer.hpp>
@@ -93,7 +92,7 @@ void kat::JellyfishHelper::printHeader(const file_header& header, ostream& out) 
  * Loads an existing jellyfish hash into memory
  * @param jfHashPath
  * @param verbose
- * @return 
+ * @return
  */
 LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose) {
 
@@ -272,7 +271,7 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
 
     // If we have a pipe as input then assume we are working with a sequence file
     if (JellyfishHelper::isPipe(filename)) return true;
-    
+
     string ext = filename.extension().string();
 
     // Actually we can't handle gz files directly, so turning this off for now
@@ -299,10 +298,9 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
     fstream fin(filename.string(), fstream::in);
     fin >> ch;
     fin.close();
-    
+
     if (ch == '>' || ch == '@') return true;
-    
+
     // If we've got this far then it's not obviously a fasta or fastq file.
     return false;
 }
-

@@ -8,13 +8,11 @@ test -n "$srcdir" || srcdir=.
 git submodule sync
 git submodule update --recursive --init deps/boost
 
-# Ensure all required boost submodules are present
-cd deps/boost
-
 # Build boost
-./bootstrap.sh --with-libraries=chrono,timer,program_options,filesystem,system
+cd deps/boost
+./bootstrap.sh
 ./b2
-
-# Build configure script
 cd ../..
+
+# Create configure script
 autoreconf --force --install --verbose "$srcdir"

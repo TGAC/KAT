@@ -30,11 +30,9 @@ using std::shared_ptr;
 using std::make_shared;
 using std::thread;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
@@ -50,10 +48,10 @@ struct HistogramException: virtual boost::exception, virtual std::exception { };
 namespace kat {
 
     const string     DEFAULT_HIST_PLOT_OUTPUT_TYPE     = "png";
-    
+
     class Histogram {
     private:
-        
+
         // Arguments from user
         InputHandler    input;
         path            outputPrefix;
@@ -66,14 +64,14 @@ namespace kat {
         uint64_t base, ceil, inc, nb_buckets;
         vector<uint64_t> data;
         vector<shared_ptr<vector<uint64_t>>> threadedData;
-        
+
     public:
 
         Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc);
 
         virtual ~Histogram() {
         }
-        
+
         bool isCanonical() const {
             return input.canonical;
         }
@@ -81,7 +79,7 @@ namespace kat {
         void setCanonical(bool canonical) {
             this->input.canonical = canonical;
         }
-        
+
         uint64_t getHashSize() const {
             return input.hashSize;
         }
@@ -89,7 +87,7 @@ namespace kat {
         void setHashSize(uint64_t hash_size) {
             this->input.hashSize = hash_size;
         }
-        
+
         uint16_t getMerLen() const {
             return input.merLen;
         }
@@ -137,7 +135,7 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
-        
+
         bool isDumpHash() const {
             return input.dumpHash;
         }
@@ -157,15 +155,15 @@ namespace kat {
 
 
         void execute();
-        
+
         void print(std::ostream &out);
-        
+
         void save();
-        
+
         void plot(const string& output_type);
-        
+
     protected:
-        
+
         uint64_t calcBase() {
             return low > 1 ? (1 >= low ? 1 : low - 1) : 1;
         }
@@ -173,15 +171,15 @@ namespace kat {
         uint64_t calcCeil() {
             return high + 1;
         }
-        
+
         void merge();
-        
+
         void bin();
-         
+
         void binSlice(int th_id);
-        
+
         static string helpMessage(){
-            
+
             return string("Usage: kat hist [options] (<input>)+\n\n") +
                             "Create an histogram of k-mer occurrences from the input.\n\n" +
                             "Create an histogram with the number of k-mers having a given count, derived from the input, which can " \
@@ -195,9 +193,9 @@ namespace kat {
                             "Options";
 
         }
-      
+
     public:
-        
+
         static int main(int argc, char *argv[]);
     };
 }

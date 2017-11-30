@@ -30,11 +30,10 @@ using std::ifstream;
 using std::istringstream;
 using std::ostringstream;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
+#include <boost/filesystem/operations.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
 
@@ -50,7 +49,7 @@ typedef boost::error_info<struct PlotDensityError,string> PlotDensityErrorInfo;
 struct PlotDensityException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
-    
+
     const string DEFAULT_PD_TITLE      = "Density plot";
     const string DEFAULT_PD_X_LABEL    = "X";
     const string DEFAULT_PD_Y_LABEL    = "Y";
@@ -58,15 +57,15 @@ namespace kat {
     const uint32_t DEFAULT_PD_X_MAX    = 1000;
     const uint32_t DEFAULT_PD_Y_MAX    = 1000;
     const uint64_t DEFAULT_PD_Z_MAX    = 10000;
-    const string DEFAULT_PD_OUTPUT_TYPE   = "png"; 
+    const string DEFAULT_PD_OUTPUT_TYPE   = "png";
     const uint16_t DEFAULT_PD_WIDTH       = 1024;
     const uint16_t DEFAULT_PD_HEIGHT      = 1024;
 
-    
+
     class PlotDensity {
     private:
-        
-        path        mxFile;           
+
+        path        mxFile;
         string      outputType;
         path        output;
         string      title;
@@ -79,9 +78,9 @@ namespace kat {
         uint32_t    yMax;
         uint64_t    zMax;
         bool        verbose;
-        
+
     public:
-        
+
         PlotDensity(const path& _mxFile, const path& _outFile) {
             mxFile = _mxFile;
             output = _outFile;
@@ -94,10 +93,10 @@ namespace kat {
             height = DEFAULT_PD_HEIGHT;
             xMax = 0;
             yMax = 0;
-            zMax = 0;            
+            zMax = 0;
             verbose = false;
         }
-        
+
         uint16_t getHeight() const {
             return height;
         }
@@ -201,10 +200,10 @@ namespace kat {
         void setZMax(uint64_t zMax) {
             this->zMax = zMax;
         }
-        
+
         bool plot();
 
-            
+
     protected:
         static string helpMessage() {
             return string("Usage: kat plot density [options] <matrix_file>\n\n") +
@@ -215,10 +214,10 @@ namespace kat {
                     "multiplicity matricies produced by the \"kat gcp\" tool.\n\n" \
                     "Options";
         }
-        
+
 
     public:
-       
+
         static int main(int argc, char *argv[]);
     };
 }

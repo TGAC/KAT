@@ -35,11 +35,10 @@ using std::ostringstream;
 using std::ifstream;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
+#include <boost/filesystem/operations.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
 
@@ -52,22 +51,22 @@ typedef boost::error_info<struct PlotSpectraMxError,string> PlotSpectraMxErrorIn
 struct PlotSpectraMxException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
-    
+
     const string DEFAULT_PSMX_TITLE         = "Spectra MX plot";
-    const string DEFAULT_PSMX_OUTPUT_TYPE   = "png"; 
+    const string DEFAULT_PSMX_OUTPUT_TYPE   = "png";
     const string DEFAULT_PSMX_X_LABEL       = "X";
     const string DEFAULT_PSMX_Y_LABEL       = "Y";
     const uint32_t DEFAULT_PSMX_X_MAX       = 1000;
     const uint32_t DEFAULT_PSMX_Y_MAX       = 1000;
     const uint16_t DEFAULT_PSMX_WIDTH       = 1024;
     const uint16_t DEFAULT_PSMX_HEIGHT      = 1024;
-    
-            
+
+
     class PlotSpectraMx {
-        
+
     private:
-        
-        path        mxFile;           
+
+        path        mxFile;
         string      outputType;
         path        output;
         string      title;
@@ -86,9 +85,9 @@ namespace kat {
         bool        xLogscale;
         bool        yLogscale;
         bool        verbose;
-        
+
     public:
-        
+
         PlotSpectraMx(const path& _mxFile, const path& _outFile) {
             mxFile = _mxFile;
             output = _outFile;
@@ -110,7 +109,7 @@ namespace kat {
             yLogscale = false;
             verbose = false;
         }
-        
+
         uint16_t getExcCutoffD1() const {
             return excCutoffD1;
         }
@@ -262,17 +261,17 @@ namespace kat {
         void setYMin(uint32_t yMin) {
             this->yMin = yMin;
         }
-        
+
         bool plot();
 
-        
+
     protected:
-        
+
         string getDataFromList(const path& mx_file, string list);
 
 
         string getIntersectionData(const path& mx_file, uint16_t exc_cutoff_d1, uint16_t exc_cutoff_d2);
-        
+
         static string helpMessage() {
             return string("Usage: kat plot spectra-mx [options] {--list <comma_seperated_list> | --intersection} <mx_file>\n\n") +
                     "Creates K-mer Spectra Plot from selected rows and/or columns in a \"comp\" matrix.\n\n" +
@@ -292,7 +291,7 @@ namespace kat {
                     "Options";
         }
 
-        
+
     public:
 
         static int main(int argc, char *argv[]);

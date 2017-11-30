@@ -34,10 +34,11 @@ using std::thread;
 using std::ofstream;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -56,7 +57,7 @@ using kat::Plot;
 #include "histogram.hpp"
 
 kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, uint64_t _inc) {
-    
+
     input.setMultipleInputs(_inputs);
     input.index = 1;
     outputPrefix = "kat-hist";
@@ -64,11 +65,11 @@ kat::Histogram::Histogram(vector<path> _inputs, uint64_t _low, uint64_t _high, u
     high = _high;
     inc = _inc;
     threads = 1;
-    
+
     // Calculate other vars required for this run
     base = calcBase();
     ceil = calcCeil();
-    nb_buckets = ceil + 1 - base;     
+    nb_buckets = ceil + 1 - base;
 }
 
 
@@ -77,56 +78,56 @@ void kat::Histogram::execute() {
     // Some validation first
     if (high < low) {
         BOOST_THROW_EXCEPTION(HistogramException() << HistogramErrorInfo(string(
-                "High count value must be >= to low count value.  High: ") + lexical_cast<string>(high) + 
-                "; Low: " + lexical_cast<string>(low))); 
+                "High count value must be >= to low count value.  High: ") + lexical_cast<string>(high) +
+                "; Low: " + lexical_cast<string>(low)));
     }
 
     // Validate input
     input.validateInput();
-    
+
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
     KatFS::ensureDirectoryExists(parentDir);
-    
+
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
         input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash();                
+        input.loadHash();
     }
-    
+
     data = vector<uint64_t>(nb_buckets, 0);
     threadedData = vector<shared_ptr<vector<uint64_t>>>();
-    
+
     // Do the work
     bin();
-    
+
     // Dump any hashes that were previously counted to disk if requested
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(input.merLen));
-        input.dump(outputPath, threads);     
+        input.dump(outputPath, threads);
     }
     // Merge results
     merge();
-    
-    
+
+
 }
 
 void kat::Histogram::save() {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Saving results to disk ...";
     cout.flush();
-    
+
     // Send main matrix to output file
     ofstream main_hist_out_stream(outputPrefix.c_str());
     print(main_hist_out_stream);
     main_hist_out_stream.close();
-    
+
     cout << " done.";
     cout.flush();
 }
@@ -149,7 +150,7 @@ void kat::Histogram::print(std::ostream &out) {
 
 
 void kat::Histogram::merge() {
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Merging counts ...";
     cout.flush();
@@ -159,14 +160,14 @@ void kat::Histogram::merge() {
             data[i] += threadedData[j]->at(i);
         }
     }
-    
+
     cout << " done.";
     cout.flush();
 }
 
 void kat::Histogram::bin() {
 
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Bining kmers ...";
     cout.flush();
@@ -186,9 +187,9 @@ void kat::Histogram::bin() {
 }
 
 void kat::Histogram::binSlice(int th_id) {
-    
+
     shared_ptr<vector<uint64_t>> hist = make_shared<vector<uint64_t>>(nb_buckets);
-    
+
     LargeHashArray::region_iterator it = input.hash->region_slice(th_id, threads);
     while (it.next()) {
         uint64_t val = it.val();
@@ -199,42 +200,42 @@ void kat::Histogram::binSlice(int th_id) {
         else
             ++(*hist)[(val - base) / inc];
     }
-    
+
     threadedData.push_back(hist);
 }
 
 void kat::Histogram::plot(const string& output_type) {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Creating plot ...";
     cout.flush();
-    
+
     path outputFile1 = path(outputPrefix.string() + "." + output_type);
-    
-        
-#if HAVE_PYTHON        
-       
+
+
+#if HAVE_PYTHON
+
     vector<string> args;
     args.push_back("kat_plot_spectra-hist.py");
     args.push_back(string("--output=") + outputFile1.string());
     args.push_back(outputPrefix.string());
     Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args, this->verbose);
-        
-    
+
+
 #elif HAVE_GNUPLOT
     vector<path> pin;
     pin.push_back(outputPrefix);
-        
+
     PlotSpectraHist psh(pin, path(outputPrefix.string() + "." + output_type));
     psh.setOutputType(output_type);
     bool res = psh.plot();
-    
+
     if (!res) {
         cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
         return;
     }
-    
+
 #endif
     cout << " done.";
     cout.flush();
@@ -251,29 +252,29 @@ int kat::Histogram::main(int argc, char *argv[]) {
     bool            canonical;      // Deprecated... for removal in KAT 3.0
     bool            non_canonical;
     uint16_t        mer_len;
-    uint64_t        hash_size; 
+    uint64_t        hash_size;
     bool            dump_hash;
     string          plot_output_type;
     bool            verbose;
     bool            help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(Histogram::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat.hist"), 
+            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat.hist"),
                 "Path prefix for files generated by this program.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use")
             ("low,l", po::value<uint64_t>(&low)->default_value(1),
-                "Low count value of histogram")    
+                "Low count value of histogram")
             ("high,h", po::value<uint64_t>(&high)->default_value(10000),
-                "High count value of histogram")    
+                "High count value of histogram")
             ("inc,i", po::value<uint64_t>(&inc)->default_value(1),
-                "Increment for each bin") 
+                "Increment for each bin")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
@@ -282,11 +283,11 @@ int kat::Histogram::main(int argc, char *argv[]) {
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
-            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
-                        "Dumps any jellyfish hashes to disk that were produced during this run.") 
-            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_HIST_PLOT_OUTPUT_TYPE), 
-                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")            
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false),
+                        "Dumps any jellyfish hashes to disk that were produced during this run.")
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_HIST_PLOT_OUTPUT_TYPE),
+                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -319,7 +320,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
 
 
 
-    auto_cpu_timer timer(1, "KAT HIST completed.\nTotal runtime: %ws\n\n");        
+    auto_cpu_timer timer(1, "KAT HIST completed.\nTotal runtime: %ws\n\n");
 
     cout << "Running KAT in HIST mode" << endl
          << "------------------------" << endl << endl;
@@ -336,10 +337,10 @@ int kat::Histogram::main(int argc, char *argv[]) {
 
     // Do the work
     histo.execute();
-    
+
     // Save results
     histo.save();
-    
+
     // Plot
     histo.plot(plot_output_type);
 

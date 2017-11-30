@@ -25,8 +25,8 @@
 using std::fstream;
 using std::stringstream;
 
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/timer/timer.hpp>
 #include <boost/algorithm/string.hpp>
 namespace bfs = boost::filesystem;
@@ -46,14 +46,14 @@ void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
 }
 
 void kat::InputHandler::validateInput() {
-    
+
     bool start = true;
-    
+
     // Check input file(s) exists
     for(auto& rp : input) {
-    
+
         path p(rp);
-        
+
         if (bfs::is_symlink(p)) {
             if (bfs::symbolic_link_exists(p)) {
                 p = bfs::canonical(p);
@@ -63,12 +63,12 @@ void kat::InputHandler::validateInput() {
                     "Could not find input file at: ") + p.string() + "; please check the path and try again."));
             }
         }
-        
+
         if (!JellyfishHelper::isPipe(p) && !bfs::exists(p)) {
             BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
                     "Could not find input file at: ") + p.string() + "; please check the path and try again."));
         }
-        
+
         InputMode m = JellyfishHelper::isSequenceFile(p) ? InputMode::COUNT : InputMode::LOAD;
         if (start) {
             mode = m;
@@ -80,33 +80,33 @@ void kat::InputHandler::validateInput() {
             }
         }
     }
-    
-    
+
+
 }
 
 void kat::InputHandler::loadHeader() {
     if (mode == InputMode::LOAD) {
         header = JellyfishHelper::loadHashHeader(input[0]);
-    }    
+    }
 }
 
-void kat::InputHandler::validateMerLen(const uint16_t merLen) {    
-    
+void kat::InputHandler::validateMerLen(const uint16_t merLen) {
+
     if (mode == InputMode::LOAD) {
         if (header->key_len() != merLen * 2) {
 
             BOOST_THROW_EXCEPTION(JellyfishException() << JellyfishErrorInfo(string(
                 "Cannot process hashes that were created with different K-mer lengths.  Expected: ") +
-                lexical_cast<string>(merLen) + 
-                ".  Key length was " + 
-                lexical_cast<string>(header->key_len() / 2) + 
+                lexical_cast<string>(merLen) +
+                ".  Key length was " +
+                lexical_cast<string>(header->key_len() / 2) +
                 " for : " + input[0].string()));
         }
     }
 }
 
 string kat::InputHandler::pathString() {
-    
+
     string s;
     uint16_t index = 1;
     for(auto& p : input) {
@@ -117,7 +117,7 @@ string kat::InputHandler::pathString() {
 }
 
 string kat::InputHandler::fileName() {
-    
+
     string s;
     for(auto& p : input) {
         s += p.leaf().string() + " ";
@@ -126,17 +126,17 @@ string kat::InputHandler::fileName() {
 }
 
 void kat::InputHandler::count(const uint16_t threads) {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");      
-    
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
+
     hashCounter = make_shared<HashCounter>(hashSize, merLen * 2, 7, threads);
     hashCounter->do_size_doubling(!disableHashGrow);
-        
+
     cout << "Input " << index << " is a sequence file.  Counting kmers for input " << index << " (" << pathString() << ") ...";
     cout.flush();
 
     hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads);
-    
+
     // Create header for newly counted hash
     header = make_shared<file_header>();
     header->fill_standard();
@@ -144,30 +144,30 @@ void kat::InputHandler::count(const uint16_t threads) {
     header->counter_len(4);  // Hard code for now.
     header->canonical(canonical);
     header->format(binary_dumper::format);
-    
+
     cout << " done.";
-    cout.flush();    
+    cout.flush();
 }
 
 void kat::InputHandler::loadHash() {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Loading hashes into memory...";
-    cout.flush();  
-    
+    cout.flush();
+
     hashLoader = make_shared<HashLoader>();
-    hashLoader->loadHash(input[0], false); 
+    hashLoader->loadHash(input[0], false);
     hash = hashLoader->getHash();
     canonical = hashLoader->getCanonical();
     merLen = hashLoader->getMerLen();
-    
+
     cout << " done.";
-    cout.flush();    
+    cout.flush();
 }
 
 void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
-    
+
     // Remove anything that exists at the target location
     if (bfs::is_symlink(outputPath) || bfs::exists(outputPath)) {
         bfs::remove(outputPath.c_str());
@@ -175,8 +175,8 @@ void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
 
     // Either dump or symlink as appropriate
     if (mode == InputHandler::InputHandler::InputMode::COUNT) {
-    
-        auto_cpu_timer timer(1, "  Time taken: %ws\n\n"); 
+
+        auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
         cout << "Dumping hash to " << outputPath.string() << " ...";
         cout.flush();
 
@@ -193,18 +193,18 @@ void kat::InputHandler::dump(const path& outputPath, const uint16_t threads) {
 shared_ptr<vector<path>> kat::InputHandler::globFiles(const string& input) {
 
     vector<string> inputvec;
-    boost::split(inputvec, input, boost::is_any_of(" "));    
-    
+    boost::split(inputvec, input, boost::is_any_of(" "));
+
     vector<path> pathvec;
     for(auto& s : inputvec) {
         pathvec.push_back(s);
     }
-    
+
     return globFiles(pathvec);
 }
 
 int kat::InputHandler::globerr(const char *path, int eerrno) {
-    
+
     fprintf(stderr, "Globbing error: %s: %s\n", path, strerror(eerrno));
     return eerrno;
 }
@@ -212,7 +212,7 @@ int kat::InputHandler::globerr(const char *path, int eerrno) {
 shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input) {
 
     glob_t globbuf;
-    
+
     if (input.empty()) {
         BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string("No input provided for this input group")));
     }
@@ -221,7 +221,7 @@ shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input)
     int i = 0;
     for(auto& g : input) {
         // Build the flags.
-        // This means if the user has listed files 
+        // This means if the user has listed files
         // in this input group separated with a space
         // then combine results together.
         // Also expand tildes (home directory) and braces regardless and don't check to see
@@ -229,12 +229,12 @@ shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input)
         int flags = GLOB_TILDE | GLOB_NOCHECK | GLOB_BRACE;
         if (i > 0)
             flags |= GLOB_APPEND;
-        
+
         // Run glob, puts results in globbuf
         int ret = glob(g.c_str(), flags, globerr, &globbuf);
         if (ret != 0) {
             stringstream ss;
-            ss << "Problem globbing input pattern: " << g.c_str() << ". Non-zero return code.  Error type: " << 
+            ss << "Problem globbing input pattern: " << g.c_str() << ". Non-zero return code.  Error type: " <<
                     (   ret == GLOB_ABORTED ? "filesystem problem" :
                         ret == GLOB_NOMATCH ? "no match of pattern" :
                         ret == GLOB_NOSPACE ? "no dynamic memory" :
@@ -259,12 +259,12 @@ shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input)
     if (globbed->empty()) {
         globbed->push_back(input[0]);
     }
-    
+
     return globbed;
 }
 
 string kat::InputHandler::determineSequenceFileType(const path& filename) {
-    
+
     string ext = filename.extension().string();
 
     // Check extension first

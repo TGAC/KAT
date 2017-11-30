@@ -35,11 +35,9 @@ using std::ostringstream;
 using std::ifstream;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
@@ -52,21 +50,21 @@ typedef boost::error_info<struct PlotSpectraHistError,string> PlotSpectraHistErr
 struct PlotSpectraHistException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
-    
+
     const string DEFAULT_SH_TITLE       = "Kmer histograms";
     const string DEFAULT_SH_X_LABEL     = "X";
     const string DEFAULT_SH_Y_LABEL     = "Y";
-    const string DEFAULT_SH_OUTPUT_TYPE   = "png"; 
+    const string DEFAULT_SH_OUTPUT_TYPE   = "png";
     const uint32_t DEFAULT_SH_X_MAX       = 1000;
     const uint32_t DEFAULT_SH_Y_MAX       = 1000;
     const uint16_t DEFAULT_SH_WIDTH       = 1024;
     const uint16_t DEFAULT_SH_HEIGHT      = 1024;
 
-    
+
     class PlotSpectraHist {
-    
+
     private:
-        vector<path> histoPaths;        
+        vector<path> histoPaths;
         string      outputType;
         path        output;
         string      title;
@@ -81,7 +79,7 @@ namespace kat {
         bool        xLogscale;
         bool        yLogscale;
         bool        verbose;
-           
+
     public:
         PlotSpectraHist(const vector<path>& input, const path& _output) {
             histoPaths = input;
@@ -100,7 +98,7 @@ namespace kat {
             yLogscale = false;
             verbose = false;
         }
-        
+
         uint16_t getHeight() const {
             return height;
         }
@@ -222,9 +220,9 @@ namespace kat {
         }
 
         bool plot();
-        
+
     protected:
-        
+
         static string helpMessage() {
             return string("Usage: kat plot spectra-hist [options] <histo_file> [<histo_file> ...]*\n\n") +
                     "Creates K-mer Spectra Plot from one or more histograms.\n\n" +
@@ -233,9 +231,9 @@ namespace kat {
                     "datasets.\n\n" \
                     "Options";
         }
-        
+
     public:
-  
+
         // Start point
         static int main(int argc, char *argv[]);
 

@@ -19,22 +19,25 @@
 #include <memory>
 using std::unique_ptr;
 
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
+
 #include <kat/input_handler.hpp>
 using kat::InputHandler;
- 
+
 
 typedef boost::error_info<struct FilterKmerError,string> FilterKmerErrorInfo;
 struct FilterKmerException: virtual boost::exception, virtual std::exception { };
 
 namespace kat { namespace filter {
-    
+
 const uint64_t  DEFAULT_FILT_KMER_LOW_COUNT    = 0;
 const uint64_t  DEFAULT_FILT_KMER_HIGH_COUNT   = 10000;
 const uint16_t  DEFAULT_FILT_KMER_LOW_GC       = 0;
 const uint16_t  DEFAULT_FILT_KMER_HIGH_GC      = 31;
 const bool      DEFAULT_FILT_KMER_INVERT       = false;
 const bool      DEFAULT_FILT_KMER_SEPARATE     = false;
-    
+
 
 class Counter {
 public:
@@ -45,12 +48,12 @@ public:
     {}
 
     ~Counter() {}
-    
+
     void increment(const uint64_t total_inc) {
         distinct++;
         total += total_inc;
     }
-    
+
     string toString() const;
 };
 
@@ -59,18 +62,18 @@ private:
     vector<Counter> counter;
 
 public:
-    
+
     ThreadedCounter() : ThreadedCounter(1) {};
     ThreadedCounter(const uint16_t threads) {
         counter.resize(threads);
     }
-    
+
     ~ThreadedCounter() {}
 
     void increment(const uint16_t th_id, const uint64_t total_inc);
 
     unique_ptr<Counter> merge();
-    
+
     void resize(uint16_t threads) {
         counter.resize(threads);
     }
@@ -168,7 +171,7 @@ public:
     void setSeparate(bool separate) {
         this->separate = separate;
     }
-    
+
     bool isCanonical() const {
         return input.canonical;
     }
@@ -192,7 +195,7 @@ public:
     void setThreads(uint16_t threads) {
         this->threads = threads;
     }
-    
+
     uint64_t getHashSize() const {
         return input.hashSize;
     }
@@ -200,7 +203,7 @@ public:
     void setHashSize(uint64_t hashSize) {
         this->input.hashSize = hashSize;
     }
-            
+
     bool isVerbose() const {
         return verbose;
     }
@@ -211,7 +214,7 @@ public:
 
 
     void execute();
-    
+
     void plot();
 
 
@@ -226,9 +229,9 @@ protected:
     void dump(path& out_path, HashCounter* hash, file_header& header);
 
     void merge();
-    
-    static string helpMessage() {            
-        
+
+    static string helpMessage() {
+
         return string(  "Usage: kat filter kmer [options] <input>\n\n") +
                         "Filter kmers to those within defined bounds and those outside.\n\n" \
                         "The user can produce K-mer hashes, within and outside user defined GC and k-mer coverage bounds.\n" \
@@ -244,4 +247,3 @@ public:
 
 };
 }}
-

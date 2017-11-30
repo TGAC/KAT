@@ -33,10 +33,13 @@ using std::istringstream;
 using std::ostringstream;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -54,9 +57,9 @@ bool kat::PlotDensity::plot() {
     if (!bfs::exists(mxFile) && !bfs::symbolic_link_exists(mxFile))
     {
         BOOST_THROW_EXCEPTION(PlotDensityException() << PlotDensityErrorInfo(string(
-            "Could not find matrix file at: ") + mxFile.string() + "; please check the path and try again.")); 
+            "Could not find matrix file at: ") + mxFile.string() + "; please check the path and try again."));
     }
-    
+
     // Determine auto ranges
     SparseMatrix<uint64_t> tmx(mxFile);
     vector<Pos> cumulativeSpectraX(tmx.height());
@@ -76,7 +79,7 @@ bool kat::PlotDensity::plot() {
 
     Pos posY = SpectraHelper::findPeak(cumulativeSpectraY, false);
 
-    // We choose the min rather than max because on the Y axis we will include 
+    // We choose the min rather than max because on the Y axis we will include
     // the error kmer peak in the data, which we want to avoid.  Also normally
     // there is no harm in oversaturating the image.
     uint32_t maxZ = std::min(posX.second, posY.second);
@@ -88,7 +91,7 @@ bool kat::PlotDensity::plot() {
 
     // Don't go over any limits in the data for the X and Y axis
     autoXMax = std::min((uint16_t)mme::getNumeric(mxFile, mme::KEY_NB_COLUMNS), autoXMax);
-    autoYMax = std::min((uint16_t)mme::getNumeric(mxFile, mme::KEY_NB_ROWS), autoYMax);            
+    autoYMax = std::min((uint16_t)mme::getNumeric(mxFile, mme::KEY_NB_ROWS), autoYMax);
 
     // Get plotting properties, either from file, or user.  User args have precedence.
     uint16_t x_range = xMax != 0 && xMax != DEFAULT_PD_X_MAX ? xMax : autoXMax;
@@ -165,15 +168,15 @@ bool kat::PlotDensity::plot() {
     if (!density.is_valid()) {
         return false;
     }
-    
+
     density.cmd(plotstr.str());
-    
+
     return true;
 }
 
 int kat::PlotDensity::main(int argc, char *argv[]) {
 
-    path        mx_file;           
+    path        mx_file;
     string      output_type;
     path        output;
     string      title;
@@ -187,15 +190,15 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
     uint64_t    z_max;
     bool        verbose;
     bool        help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(PlotDensity::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
+            ("output_type,p", po::value<string>(&output_type)->default_value("png"),
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("output,o", po::value<path>(&output),
                 "The path to the output file")
@@ -217,7 +220,7 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
                 "Width of canvas")
             ("height,h", po::value<uint16_t>(&height)->default_value(1024),
                 "Height of canvas")
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -226,7 +229,7 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")                    
+            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")
             ;
 
     // Positional option for the input bam file
@@ -248,13 +251,13 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
-    
+
     if (output.empty()) {
         BOOST_THROW_EXCEPTION(PlotDensityException() << PlotDensityErrorInfo(string(
-            "Output file not specified.  Please use the '-o' option."))); 
+            "Output file not specified.  Please use the '-o' option.")));
     }
-    
-        
+
+
     PlotDensity pd(mx_file, output);
     pd.setHeight(height);
     pd.setOutputType(output_type);
@@ -266,7 +269,7 @@ int kat::PlotDensity::main(int argc, char *argv[]) {
     pd.setYLabel(y_label);
     pd.setYMax(y_max);
     pd.setZLabel(z_label);
-    pd.setZMax(z_max);            
+    pd.setZMax(z_max);
     pd.plot();
 
     return 0;

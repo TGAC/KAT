@@ -42,10 +42,11 @@ using std::unique_ptr;
 using std::make_shared;
 using std::thread;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -71,19 +72,19 @@ string kat::filter::Counter::toString() const {
 }
 
 unique_ptr<kat::filter::Counter> kat::filter::ThreadedCounter::merge() {
-    
+
     unique_ptr<kat::filter::Counter> merged( new Counter() );
-    
+
     for(const auto& c : counter) {
         merged->distinct += c.distinct;
         merged->total += c.total;
     }
-    
+
     return merged;
 }
 
 void kat::filter::ThreadedCounter::increment(const uint16_t th_id, const uint64_t total_inc) {
-    
+
     counter[th_id].increment(total_inc);
 }
 
@@ -93,38 +94,38 @@ kat::filter::FilterKmer::FilterKmer(const path& _input) {
     vecInput.push_back(_input);
     init(vecInput);
 }
-    
+
 
 kat::filter::FilterKmer::FilterKmer(const vector<path>& _input) {
-    
+
     init(_input);
 }
 
 void kat::filter::FilterKmer::init(const vector<path>& _input) {
-    
+
     input.setMultipleInputs(_input);
     output_prefix = "kat.filter-kmer";
-    
+
     threads = 1;
     input.canonical = false;
-    verbose = false; 
-    
+    verbose = false;
+
     low_count = DEFAULT_FILT_KMER_LOW_COUNT;
     high_count = DEFAULT_FILT_KMER_HIGH_COUNT;
     low_gc = DEFAULT_FILT_KMER_LOW_GC;
     high_gc = DEFAULT_FILT_KMER_HIGH_GC;
     invert = DEFAULT_FILT_KMER_INVERT;
-    separate = DEFAULT_FILT_KMER_SEPARATE;    
+    separate = DEFAULT_FILT_KMER_SEPARATE;
 }
 
 void kat::filter::FilterKmer::execute() {
-    
+
     // Some validation first
     if(high_count < low_count) {
         BOOST_THROW_EXCEPTION(FilterKmerException() << FilterKmerErrorInfo(string(
                 "High kmer count value must be >= to low kmer count value")));
     }
-        
+
     if(high_gc < low_gc) {
         BOOST_THROW_EXCEPTION(FilterKmerException() << FilterKmerErrorInfo(string(
                 "High GC count value must be >= to low GC count value")));
@@ -132,25 +133,25 @@ void kat::filter::FilterKmer::execute() {
 
     // Validate input
     input.validateInput();
-    
+
     // Create output directory
     path parentDir = bfs::absolute(output_prefix).parent_path();
     KatFS::ensureDirectoryExists(parentDir);
-    
+
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
         input.count(threads);
     }
     else {
         input.loadHeader();
-        input.loadHash();                
+        input.loadHash();
     }
-    
+
     size_t size = input.header->size();
     unsigned int key_len = input.header->key_len();
     unsigned int val_len = input.header->val_len();
-    
-    
+
+
     if(verbose)
     {
         cerr << "Attempting to create output hash with the following settings: " << endl
@@ -161,7 +162,7 @@ void kat::filter::FilterKmer::execute() {
              << " max reprobe index = " << input.header->max_reprobe() << endl
              << " nb mers           = " << input.header->nb_hashes() << endl << endl;
     }
-    
+
     file_header out_header;
     out_header.fill_standard();
     out_header.canonical(input.header->canonical());
@@ -173,35 +174,35 @@ void kat::filter::FilterKmer::execute() {
     out_header.nb_hashes(input.header->nb_hashes());
     out_header.size(input.header->size());
     out_header.val_len(input.header->val_len());
-    
+
     HashCounter* inCounter = new HashCounter(size, key_len, val_len, threads);
     inCounter->do_size_doubling(false);   // We know the size of the hash
-    
+
     HashCounter* outCounter = separate ? new HashCounter(size, key_len, val_len, threads) : nullptr;
     if (separate) {
         outCounter->do_size_doubling(false);
     }
-    
+
     // Resize all the counters to the requested number of threads
     all.resize(threads);
     in.resize(threads);
     out.resize(threads);
-    
+
     // Do the work
     filter(*inCounter, *outCounter);
-    
+
     // Merge (and print) results
     merge();
 
     // Output to disk
     path in_path(output_prefix.string() + "-in.jf" + lexical_cast<string>(input.merLen));
     path out_path(output_prefix.string() + "-out.jf" + lexical_cast<string>(input.merLen));
-    
+
     // Dumping automatically destroys hash counters
-    dump(in_path, inCounter, out_header);    
+    dump(in_path, inCounter, out_header);
     if (separate) {
         dump(out_path, outCounter, out_header);
-    }    
+    }
 }
 
 void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash, file_header& header) {
@@ -210,10 +211,10 @@ void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash, file_heade
         bfs::remove(out_path.c_str());
     }
 
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n"); 
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
     cout << "Dumping hash to " << out_path.string() << " ...";
     cout.flush();
-    
+
     JellyfishHelper::dumpHash(hash->ary(), header, threads, out_path);
 
     cout << " done.";
@@ -221,24 +222,24 @@ void kat::filter::FilterKmer::dump(path& out_path, HashCounter* hash, file_heade
 }
 
 void kat::filter::FilterKmer::merge() {
-    
+
     unique_ptr<Counter> all_counts = all.merge();
     unique_ptr<Counter> in_counts = in.merge();
-        
+
     cout << "K-mers in input   : " << all_counts->toString() << endl
          << "K-mers to keep    : " << in_counts->toString() << endl;
-    
+
     if (separate) {
         unique_ptr<Counter> out_counts = out.merge();
         cout << "K-mers to discard : " << out_counts->toString() << endl;
     }
-    
+
     cout << endl;
 }
 
 void kat::filter::FilterKmer::filter(HashCounter& inCounter, HashCounter& outCounter) {
 
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Filtering kmers ...";
     cout.flush();
@@ -258,16 +259,16 @@ void kat::filter::FilterKmer::filter(HashCounter& inCounter, HashCounter& outCou
 }
 
 void kat::filter::FilterKmer::filterSlice(int th_id, HashCounter& inCounter, HashCounter& outCounter) {
-    
+
     LargeHashArray::region_iterator it = input.hash->region_slice(th_id, threads);
-    while (it.next()) {        
-        
+    while (it.next()) {
+
         bool in_bounds = inBounds(it.key().to_str(), it.val());
-        
+
         all.increment(th_id, it.val());
-        
+
         // Logic to allocate kmer into correct counter
-        if (!separate) {            
+        if (!separate) {
             if((in_bounds && !invert) || (!in_bounds && invert)) {
                 inCounter.add(it.key(), it.val());
                 in.increment(th_id, it.val());
@@ -288,7 +289,7 @@ void kat::filter::FilterKmer::filterSlice(int th_id, HashCounter& inCounter, Has
     }
 
     inCounter.done();
-    
+
     if (separate)
         outCounter.done();
 }
@@ -296,7 +297,7 @@ void kat::filter::FilterKmer::filterSlice(int th_id, HashCounter& inCounter, Has
 
 
 bool kat::filter::FilterKmer::inBounds(const string& kmer_seq, const uint64_t& kmer_count) {
-    
+
     // Calculate GC
     uint32_t gc_count = kat::gcCount(kmer_seq);
 
@@ -327,24 +328,24 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
     uint64_t        hash_size;
     bool            verbose;
     bool            help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(FilterKmer::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat.filter.kmer"), 
+            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat.filter.kmer"),
                 "Path prefix for files generated by this program.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use")
             ("low_count,c", po::value<uint64_t>(&low_count)->default_value(1),
-                "Low count threshold")    
+                "Low count threshold")
             ("high_count,d", po::value<uint64_t>(&high_count)->default_value(10000),
-                "High count threshold")    
+                "High count threshold")
             ("low_gc,g", po::value<uint16_t>(&low_gc)->default_value(1),
-                "Low GC count threshold") 
+                "Low GC count threshold")
             ("high_gc,h", po::value<uint16_t>(&high_gc)->default_value(100),
                 "Low GC count threshold")
             ("invert,i", po::bool_switch(&invert)->default_value(false),
@@ -357,7 +358,7 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -390,7 +391,7 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
 
 
 
-    auto_cpu_timer timer(1, "KAT filter kmer completed.\nTotal runtime: %ws\n\n");        
+    auto_cpu_timer timer(1, "KAT filter kmer completed.\nTotal runtime: %ws\n\n");
 
     cout << "Running KAT in filter kmer mode" << endl
          << "-------------------------------" << endl << endl;
@@ -412,6 +413,6 @@ int kat::filter::FilterKmer::main(int argc, char *argv[]) {
 
     // Do the work
     filter.execute();
-        
+
     return 0;
 }

@@ -37,11 +37,12 @@ using std::vector;
 #endif
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -67,7 +68,7 @@ Plot::PlotMode kat::Plot::parseMode(const string& mode) {
     string upperMode = boost::to_upper_copy(mode);
 
     if (upperMode == string("DENSITY")) {
-        return DENSITY;                
+        return DENSITY;
     }
     else if (upperMode == string("PROFILE")) {
         return PROFILE;
@@ -88,11 +89,11 @@ Plot::PlotMode kat::Plot::parseMode(const string& mode) {
 }
 
 path kat::Plot::getPythonScript(const PlotMode mode) {
-    
-    
+
+
     switch (mode) {
         case DENSITY:
-            return "kat_plot_density.py";            
+            return "kat_plot_density.py";
         case PROFILE:
             return "kat_plot_profile.py";
         case SPECTRA_CN:
@@ -111,36 +112,36 @@ wchar_t* kat::Plot::convertCharToWideChar(const char* c) {
     const size_t cSize = strlen(c)+1;
     wchar_t* wc = new wchar_t[cSize];
     mbstowcs (wc, c, cSize);
-    
+
     return wc;
 }
 
 void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose) {
-    
+
     char* char_args[50];
-    
+
     for(size_t i = 0; i < args.size(); i++) {
         char_args[i] = strdup(args[i].c_str());
     }
-    
+
     kat::Plot::executePythonPlot(mode, (int)args.size(), char_args, verbose);
-    
+
     for(size_t i = 0; i < args.size(); i++) {
         free(char_args[i]);
     }
 }
 
 void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose) {
-    
+
     const path script_name = getPythonScript(mode);
     const path scripts_dir = katFileSystem.GetScriptsDir();
     const path full_script_path = path(scripts_dir.string() + "/" + script_name.string());
-    
+
     stringstream ss;
-    
+
     // Create wide char alternatives
     wchar_t* wsn = convertCharToWideChar(script_name.c_str());
-    wchar_t* wsp = convertCharToWideChar(full_script_path.c_str());    
+    wchar_t* wsp = convertCharToWideChar(full_script_path.c_str());
     wchar_t* wargv[50]; // Can't use variable length arrays!
     wargv[0] = wsp;
     ss << full_script_path.c_str();
@@ -151,15 +152,15 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], b
     for(int i = argc; i < 50; i++) {
         wargv[i] = convertCharToWideChar("\0");
     }
-    
+
     if (verbose) {
-        cout << endl << "Effective command line: " << ss.str() << endl << endl;        
+        cout << endl << "Effective command line: " << ss.str() << endl << endl;
     }
 
     std::ifstream script_in(full_script_path.c_str());
     std::string contents((std::istreambuf_iterator<char>(script_in)), std::istreambuf_iterator<char>());
 
-#if HAVE_PYTHON    
+#if HAVE_PYTHON
 
     // Run python script
     Py_Initialize();
@@ -176,7 +177,7 @@ void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], b
 #endif
 
     script_in.close();
-    
+
     // Cleanup
     delete wsn;
     // No need to free up "wsp" as it is element 0 in the array
@@ -200,7 +201,7 @@ void kat::Plot::executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]) 
         PlotSpectraHist::main(argc, argv);
         break;
     case SPECTRA_MX:
-        PlotSpectraMx::main(argc, argv);            
+        PlotSpectraMx::main(argc, argv);
         break;
     default:
         BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
@@ -208,17 +209,17 @@ void kat::Plot::executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]) 
     }
 }
 
-       
+
 int kat::Plot::main(int argc, char *argv[]) {
 
     string modeStr;
     vector<string> others;
     bool verbose;
     bool help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(Plot::helpMessage(), w.ws_col);
@@ -272,7 +273,6 @@ int kat::Plot::main(int argc, char *argv[]) {
     BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
                 "No suitable plotting environment detected.  We recommend you install anaconda3 to get a python plotting environment setup.  Otherwise install gnuplot.")));
 #endif
-    
+
     return 0;
 }
-

@@ -38,10 +38,13 @@ using std::ifstream;
 using std::vector;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -58,7 +61,7 @@ bool kat::PlotSpectraMx::plot() {
     // Check input file exists
     if (!bfs::exists(mxFile) && !bfs::symbolic_link_exists(mxFile)) {
         BOOST_THROW_EXCEPTION(PlotSpectraMxException() << PlotSpectraMxErrorInfo(string(
-                    "Could not find matrix file at: ") + mxFile.string() + "; please check the path and try again.")); 
+                    "Could not find matrix file at: ") + mxFile.string() + "; please check the path and try again."));
     }
 
 
@@ -138,17 +141,17 @@ bool kat::PlotSpectraMx::plot() {
     if (!spectra_mx_plot.is_valid()) {
         return false;
     }
-    
+
     spectra_mx_plot.cmd(plot_str.str());
 
     if (verbose)
         //cerr << "Data Plotted." << endl;
         cerr << "Plotted data: " << plot_str.str() << endl;
-    
+
     return true;
 }
 
-       
+
 string kat::PlotSpectraMx::getDataFromList(const path& mx_file, string list)
 {
     ostringstream data_str;
@@ -178,7 +181,7 @@ string kat::PlotSpectraMx::getDataFromList(const path& mx_file, string list)
 
         if (parts[i].substr(1).compare(index_str) != 0) {
             BOOST_THROW_EXCEPTION(PlotSpectraMxException() << PlotSpectraMxErrorInfo(string(
-                    "Your row or column index is not valid.")));                                        
+                    "Your row or column index is not valid.")));
         }
 
 
@@ -199,7 +202,7 @@ string kat::PlotSpectraMx::getDataFromList(const path& mx_file, string list)
         else
         {
             BOOST_THROW_EXCEPTION(PlotSpectraMxException() << PlotSpectraMxErrorInfo(string(
-                    "Unrecognised list item identifier.  Expected 'c' or 'r'."))); 
+                    "Unrecognised list item identifier.  Expected 'c' or 'r'.")));
         }
 
         data_str << "e\n";
@@ -270,12 +273,12 @@ string kat::PlotSpectraMx::getIntersectionData(const path& mx_file, uint16_t exc
 
     return data_str.str();
 }
-       
+
 int kat::PlotSpectraMx::main(int argc, char *argv[]) {
 
 
 
-    path        mx_file;           
+    path        mx_file;
     string      output_type;
     path        output;
     string      title;
@@ -295,15 +298,15 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
     bool        y_logscale;
     bool        verbose;
     bool        help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(PlotSpectraMx::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
+            ("output_type,p", po::value<string>(&output_type)->default_value("png"),
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("output,o", po::value<path>(&output),
                 "The path to the output file")
@@ -337,7 +340,7 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
                 "X-axis is logscale.  This overrides the x_min and x_max limits.")
             ("y_logscale,m", po::bool_switch(&y_logscale)->default_value(false),
                 "Y-axis is logscale.  This overrides the y_min and y_max limits.")
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -346,7 +349,7 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")                    
+            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")
             ;
 
     // Positional option for the input bam file
@@ -368,12 +371,12 @@ int kat::PlotSpectraMx::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
-    
+
     if (output.empty()) {
         BOOST_THROW_EXCEPTION(PlotSpectraMxException() << PlotSpectraMxErrorInfo(string(
-            "Output file not specified.  Please use the '-o' option."))); 
+            "Output file not specified.  Please use the '-o' option.")));
     }
-    
+
 
     PlotSpectraMx psmx(mx_file, output);
     psmx.setExcCutoffD1(exc_cutoff_d1);

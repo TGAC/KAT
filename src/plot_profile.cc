@@ -36,10 +36,13 @@ using std::endl;
 using std::cerr;
 using std::cout;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -168,7 +171,7 @@ int kat::PlotProfile::main(int argc, char *argv[]) {
     const int32_t DEFAULT_Y_MAX     = 1000;
     const uint32_t DEFAULT_FASTA_INDEX = 0;
 
-    path        sect_file;         
+    path        sect_file;
     string      output_type;
     path        output;
     string      title;
@@ -191,7 +194,7 @@ int kat::PlotProfile::main(int argc, char *argv[]) {
     // Declare the supported options.
     po::options_description generic_options(PlotProfile::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
+            ("output_type,p", po::value<string>(&output_type)->default_value("png"),
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("output,o", po::value<path>(&output),
                 "The path to the output file")
@@ -215,7 +218,7 @@ int kat::PlotProfile::main(int argc, char *argv[]) {
                 "Fasta header of fasta entry to plot.  NOTE: \'--header\' has priority over index")
             ("y_logscale,m", po::bool_switch(&y_logscale)->default_value(false),
                 "Y-axis is logscale.  This overrides the y_min and y_max limits.")
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -230,7 +233,7 @@ int kat::PlotProfile::main(int argc, char *argv[]) {
     // Positional option for the input bam file
     po::positional_options_description p;
     p.add("sect_file", 1);
-    
+
     // Combine non-positional options
     po::options_description cmdline_options;
     cmdline_options.add(generic_options).add(hidden_options);
@@ -314,4 +317,3 @@ int kat::PlotProfile::main(int argc, char *argv[]) {
 
     return 0;
 }
-

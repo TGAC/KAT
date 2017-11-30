@@ -36,11 +36,7 @@ using std::ostringstream;
 using std::vector;
 using std::endl;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
@@ -48,9 +44,9 @@ using bfs::path;
 #include <kat/str_utils.hpp>
 
 namespace kat {
-    
+
     class PlotProfile {
-    
+
     protected:
         static int readRecord(std::ifstream& stream, string& id, string& counts);
 
@@ -64,10 +60,10 @@ namespace kat {
          *  Finds the nth entry from the fasta file and returns the associated sequence
          **/
         static int getEntryFromFasta(const path& fasta_path, uint32_t n, string& header, string& sequence);
-        
+
         static string autoTitle(string& title, string& header);
-        
-                
+
+
     protected:
         static string helpMessage() {
             return string("Usage: kat plot profile [options] <sect_profile>\n\n") +
@@ -75,11 +71,11 @@ namespace kat {
                     "Shows k-mer coverage across one or more sequences.\n\n" \
                     "Options";
         }
-        
+
 
     public:
-       
+
        static int main(int argc, char *argv[]);
     };
-      
+
 }

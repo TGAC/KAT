@@ -22,38 +22,36 @@
 using std::string;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
 typedef boost::error_info<struct KatFilterError,string> KatFilterErrorInfo;
 struct KatFilterException: virtual boost::exception, virtual std::exception { };
-   
-    
+
+
 namespace kat {
-    
-    
+
+
     class Filter {
-    
+
     public:
-        
+
         enum FilterMode {
             KMER,
             SEQ
         };
-        
+
         static bool validateFilterOutputType();
-        
+
         static int main(int argc, char *argv[]);
-        
+
     protected:
-        
+
         static FilterMode parseMode(const string& mode);
-        
+
         static string helpMessage() {
             return string("Usage: kat filter <mode>\n\n") +
                     "Filtering tools\n\n" +
@@ -62,9 +60,8 @@ namespace kat {
                     "  * seq:             Filters sequences in a file based on k-mers in a given hash\n\n" \
                     "Options";
         }
-        
-    
-    };
-    
-}
 
+
+    };
+
+}

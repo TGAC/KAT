@@ -31,7 +31,8 @@ using std::shared_ptr;
 using std::make_shared;
 using std::vector;
 
-#include <boost/exception/all.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/lexical_cast.hpp>
@@ -70,33 +71,33 @@ namespace kat {
 
     typedef boost::error_info<struct JellyfishError,string> JellyfishErrorInfo;
     struct JellyfishException: virtual boost::exception, virtual std::exception { };
-    
+
     const uint64_t DEFAULT_HASH_SIZE = 100000000;
     const uint16_t DEFAULT_MER_LEN = 27;
-    
+
     class HashLoader {
-        
+
     private:
-        
+
         LargeHashArrayPtr hash;
         bool canonical;
         uint16_t merLen;
         file_header header;
-        
+
     public:
-        
+
         HashLoader() {
             hash = nullptr;
             canonical = false;
             merLen = 0;
         }
-        
+
         virtual ~HashLoader() {
-            
+
             if (hash != nullptr)
                 delete hash;
         }
-        
+
         /**
          * Loads an entire jellyfish hash into memory.  Results stored at the "hash" pointer variable,
          * which is also returned from this function.
@@ -105,24 +106,24 @@ namespace kat {
          * @return The hash array
          */
         LargeHashArrayPtr loadHash(const path& jfHashPath, bool verbose);
-        
+
         LargeHashArrayPtr getHash() { return hash; }
-        
+
         bool getCanonical() { return header.canonical(); }
-        
+
         uint16_t getMerLen() { return merLen; }
-        
+
         const file_header& getHeader() { return header; }
     };
-    
-    
+
+
     class JellyfishHelper {
 
-        
+
     public:
 
         static uint64_t getCount(LargeHashArrayPtr hash, const mer_dna& kmer, bool canonical);
-        
+
         /**
         * Simple count routine
         * @param ary Hash array which contains the counted kmers
@@ -151,31 +152,31 @@ namespace kat {
          */
         static LargeHashArrayPtr countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads);
 
-        
-        
+
+
         static void dumpHash(LargeHashArrayPtr ary, file_header& header, uint16_t threads, const path& outputFile);
-        
+
         /**
         * Extracts the jellyfish hash file header
         * @param jfHashPath Path to the jellyfish hash file
         * @return The hash header
         */
         static shared_ptr<file_header> loadHashHeader(const path& jfHashPath);
-        
+
         /**
         * Output header in human-readable format
         * @param header Jellyfish hash header
         * @param out Output stream
         */
         static void printHeader(const file_header& header, ostream& out);
-        
+
 		/**
 		 * Checks if path refers to a pipe rather than a real file
 		 * @param filename Path to input file
 		 * @return Whether or not the path refers to a pipe
 		 */
 		static bool isPipe(const path& filename);
- 
+
         /**
          * Returns whether or not the specified file path looks like it belongs to
          * a sequence file (either FastA or FastQ).  Gzipped sequence files are
@@ -184,9 +185,9 @@ namespace kat {
          * @return Whether or not the file is a seqeunce file
          */
         static bool isSequenceFile(const path& filename);
-        
+
     protected:
 
-        
+
     };
 }

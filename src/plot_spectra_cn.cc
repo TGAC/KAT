@@ -34,10 +34,13 @@ using std::shared_ptr;
 using std::make_shared;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -52,7 +55,7 @@ using kat::SpectraHelper;
 using kat::PlotSpectraCn;
 
 bool kat::PlotSpectraCn::plot() {
-    
+
     // Check input file exists
     if (!bfs::exists(mxFile) && !bfs::symbolic_link_exists(mxFile))
     {
@@ -114,7 +117,7 @@ bool kat::PlotSpectraCn::plot() {
 
 
         if (cumulative) {
-            plot_str << "a = 0" << endl 
+            plot_str << "a = 0" << endl
                      << "cum_sum(x)=(a=a+x,a)" << endl;
         }
 
@@ -157,17 +160,17 @@ bool kat::PlotSpectraCn::plot() {
 
         if (verbose)
             cerr << "Gnuplot command: " << plot_str.str() << endl;
-        
+
         if (!spectra_cn_plot.is_valid()) {
             return false;
         }
-        
+
         spectra_cn_plot.cmd(plot_str.str());
-        
+
     }
     return true;
 }
-        
+
 string kat::PlotSpectraCn::createLineStyleStr(uint16_t i, const char* colour) {
     ostringstream line_style_str;
     line_style_str << "set style line " << i << " lc rgb \"" << colour << "\"";
@@ -250,7 +253,7 @@ shared_ptr<vector<uint16_t>> kat::PlotSpectraCn::getUserDefinedCols(const string
 
 int kat::PlotSpectraCn::main(int argc, char *argv[]) {
 
-    path        mx_file;           
+    path        mx_file;
     string      output_type;
     path        output;
     string      title;
@@ -266,15 +269,15 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
     bool        cumulative;
     bool        verbose;
     bool        help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(PlotSpectraCn::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_type,p", po::value<string>(&output_type)->default_value(DEFAULT_PSCN_OUTPUT_TYPE), 
+            ("output_type,p", po::value<string>(&output_type)->default_value(DEFAULT_PSCN_OUTPUT_TYPE),
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("output,o", po::value<path>(&output),
                 "The path to the output file")
@@ -300,7 +303,7 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
                 "Comma separated string listing columns to show in plot.  If used, this overrides \"--ignore_absent\"")
             ("cumulative,u", po::bool_switch(&cumulative)->default_value(false),
                 "Plot cumulative distribution of kmers")
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -309,7 +312,7 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")                    
+            ("mx_file", po::value<path>(&mx_file), "Path to the matrix file to plot.")
             ;
 
     // Positional option for the input bam file
@@ -331,12 +334,12 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
-    
+
     if (output.empty()) {
         BOOST_THROW_EXCEPTION(PlotSpectraCnException() << PlotSpectraCnErrorInfo(string(
-            "Output file not specified.  Please use the '-o' option."))); 
+            "Output file not specified.  Please use the '-o' option.")));
     }
-    
+
 
     PlotSpectraCn pscn(mx_file, output);
     pscn.setHeight(height);
@@ -353,7 +356,7 @@ int kat::PlotSpectraCn::main(int argc, char *argv[]) {
     pscn.setColumns(columns);
     pscn.setCumulative(cumulative);
 
-    pscn.plot();            
+    pscn.plot();
 
     return 0;
 }

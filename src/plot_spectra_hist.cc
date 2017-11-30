@@ -37,10 +37,11 @@ using std::ostringstream;
 using std::ifstream;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -57,7 +58,7 @@ bool kat::PlotSpectraHist::plot() {
     for(uint16_t i = 0; i < histoPaths.size(); i++) {
         if (!bfs::exists(histoPaths[i]) && !bfs::symbolic_link_exists(histoPaths[i])) {
             BOOST_THROW_EXCEPTION(PlotSpectraHistException() << PlotSpectraHistErrorInfo(string(
-                "Could not find the histogram file at index ") + lexical_cast<string>(i) + 
+                "Could not find the histogram file at index ") + lexical_cast<string>(i) +
                 ": " + histoPaths[i].string() + "; please check the path and try again."));
         }
     }
@@ -72,7 +73,7 @@ bool kat::PlotSpectraHist::plot() {
         SpectraHelper::loadHist(hp, hist);
         Pos pos = SpectraHelper::findPeak(hist);
         Pos xlim = SpectraHelper::lim97(hist);
-        
+
         if (xlim.first > maxPos.first)
             maxPos.first = xlim.first;
 
@@ -155,7 +156,7 @@ bool kat::PlotSpectraHist::plot() {
                 uint64_t distinct_kmers = parts[1];
 
                 data_str << kmer_multiplicity << " " << distinct_kmers << "\n";
-            }            
+            }
         }
 
         infile.close();
@@ -174,7 +175,7 @@ bool kat::PlotSpectraHist::plot() {
     if (!spectra_hist_plot.is_valid()) {
         return false;
     }
-    
+
     spectra_hist_plot.cmd(plot_str.str());
 
     if (verbose)
@@ -182,10 +183,10 @@ bool kat::PlotSpectraHist::plot() {
 
     return true;
 }
-        
+
 int kat::PlotSpectraHist::main(int argc, char *argv[]) {
-            
-    vector<path> histo_paths;        
+
+    vector<path> histo_paths;
     string      output_type;
     path        output;
     string      title;
@@ -201,15 +202,15 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     bool        y_logscale;
     bool        verbose;
     bool        help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(PlotSpectraHist::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_type,p", po::value<string>(&output_type)->default_value("png"), 
+            ("output_type,p", po::value<string>(&output_type)->default_value("png"),
                 "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
             ("output,o", po::value<path>(&output),
                 "The path to the output file")
@@ -235,7 +236,7 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
                 "X-axis is logscale.  This overrides the x_min and x_max limits.")
             ("y_logscale,m", po::bool_switch(&y_logscale)->default_value(false),
                 "Y-axis is logscale.  This overrides the y_min and y_max limits.")
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -244,7 +245,7 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
     // in config file, but will not be shown to the user.
     po::options_description hidden_options("Hidden options");
     hidden_options.add_options()
-            ("histo_paths", po::value<vector<path>>(&histo_paths), "List of histogram files to plot")                    
+            ("histo_paths", po::value<vector<path>>(&histo_paths), "List of histogram files to plot")
             ;
 
     // Positional option for the input bam file
@@ -266,12 +267,12 @@ int kat::PlotSpectraHist::main(int argc, char *argv[]) {
         cout << generic_options << endl;
         return 1;
     }
-    
+
     if (output.empty()) {
         BOOST_THROW_EXCEPTION(PlotSpectraHistException() << PlotSpectraHistErrorInfo(string(
-            "Output file not specified.  Please use the '-o' option."))); 
+            "Output file not specified.  Please use the '-o' option.")));
     }
-    
+
 
     PlotSpectraHist sh(histo_paths, output);
     sh.setHeight(height);

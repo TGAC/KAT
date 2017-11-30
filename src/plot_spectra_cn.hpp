@@ -33,11 +33,9 @@ using std::shared_ptr;
 using std::make_shared;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
@@ -52,9 +50,9 @@ typedef boost::error_info<struct PlotSpectraCnError,string> PlotSpectraCnErrorIn
 struct PlotSpectraCnException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
-    
+
     const string     DEFAULT_PSCN_TITLE           = "Spectra Copy Number Plot";
-    const string     DEFAULT_PSCN_OUTPUT_TYPE     = "png"; 
+    const string     DEFAULT_PSCN_OUTPUT_TYPE     = "png";
     const string     DEFAULT_PSCN_X_LABEL         = "X";
     const string     DEFAULT_PSCN_Y_LABEL         = "Y";
     const uint16_t   DEFAULT_PSCN_WIDTH           = 1024;
@@ -63,8 +61,8 @@ namespace kat {
 
     class PlotSpectraCn {
     private:
-        
-        path        mxFile;           
+
+        path        mxFile;
         string      outputType;
         path        output;
         string      title;
@@ -79,10 +77,10 @@ namespace kat {
         string      columns;
         bool        cumulative;
         bool        verbose;
-    
-            
+
+
     public:
-            
+
         PlotSpectraCn(const path& _mxFile, const path& _outFile) {
             mxFile = _mxFile;
             output = _outFile;
@@ -100,7 +98,7 @@ namespace kat {
             cumulative = false;
             verbose = false;
         }
-        
+
         string getColumns() const {
             return columns;
         }
@@ -222,17 +220,17 @@ namespace kat {
         }
 
         bool plot();
-        
+
     protected:
 
         string createSinglePlotString(const path& data_file, uint16_t idx, uint16_t level_count, bool cumulative);
-        
+
         string createLineStyleStr(uint16_t i, const char* colour);
 
         shared_ptr<vector<uint16_t>> getStandardCols(bool ignoreAbsent, uint16_t maxDuplication);
 
         shared_ptr<vector<uint16_t>> getUserDefinedCols(const string& columns);
-        
+
         static string helpMessage() {
             return string("Usage: kat plot spectra-cn [options] <matrix_file>\n\n") +
                     "Creates a stacked histogram showing the level of duplication in an assembly.\n\n" \
@@ -246,5 +244,5 @@ namespace kat {
 
         static int main(int argc, char *argv[]);
     };
-    
+
 }

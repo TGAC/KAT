@@ -21,12 +21,8 @@
 #include <stdint.h>
 using std::string;
 
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
-namespace bfs = boost::filesystem;
-using bfs::path;
+using boost::filesystem::path;
 
 namespace mme {
     const string KEY_NB_COLUMNS = "# Columns:";
@@ -46,4 +42,3 @@ namespace mme {
     int getNumeric(const path& path, const string& key);
     string getString(const path& path, const string& key);
 }
-

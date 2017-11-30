@@ -29,8 +29,14 @@ using std::exception;
 using std::string;
 using std::wstring;
 
-#include <boost/exception/all.hpp>
-#include <boost/program_options.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 
 #include <kat/kat_fs.hpp>
@@ -69,11 +75,11 @@ enum Mode {
 };
 
 Mode parseMode(string mode) {
-    
+
     string upperMode = boost::to_upper_copy(mode);
-    
+
     if (upperMode == string("COMP")) {
-        return COMP;                
+        return COMP;
     }
     else if (upperMode == string("FILTER")) {
         return FILTER;
@@ -86,7 +92,7 @@ Mode parseMode(string mode) {
     }
     else if (upperMode == string("PLOT")) {
         return PLOT;
-    }    
+    }
     else if (upperMode == string("SECT")) {
         return SECT;
     }
@@ -146,10 +152,10 @@ int main(int argc, char *argv[])
         bool verbose;
         bool version;
         bool help;
-        
+
         struct winsize w;
         ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
         // Declare the supported options.
         po::options_description generic_options(helpMessage(), w.ws_col);
         generic_options.add_options()
@@ -170,7 +176,7 @@ int main(int argc, char *argv[])
         po::positional_options_description p;
         p.add("mode", 1);
         p.add("others", 100);
-        
+
         // Combine non-positional options
         po::options_description cmdline_options;
         cmdline_options.add(generic_options).add(hidden_options);
@@ -181,7 +187,7 @@ int main(int argc, char *argv[])
         po::notify(vm);
 
         kat::katFileSystem = KatFS(argv[0]);
-        
+
         if (verbose) {
             cout << kat::katFileSystem << endl << endl;
         }
@@ -192,7 +198,7 @@ int main(int argc, char *argv[])
         }
 
         // Always output version information but exit if version info was all user requested
-        
+
 #ifndef PACKAGE_NAME
 #define PACKAGE_NAME "KAT"
 #endif
@@ -200,7 +206,7 @@ int main(int argc, char *argv[])
 #ifndef PACKAGE_VERSION
 #define PACKAGE_VERSION "2.X.X"
 #endif
-        
+
         if (version) {
             // Output in GNU standard format
             cout << PACKAGE_NAME << " " << PACKAGE_VERSION << endl;
@@ -210,13 +216,13 @@ int main(int argc, char *argv[])
             // Output for the first line in a normal KAT run
             cout << "Kmer Analysis Toolkit (KAT) V" << PACKAGE_VERSION << endl << endl;
         }
-        
-        
+
+
         Mode mode = parseMode(modeStr);
-        
+
         const int modeArgC = argc-1;
         char** modeArgV = argv+1;
-        
+
         switch(mode) {
             case COMP:
                 Comp::main(modeArgC, modeArgV);
@@ -231,21 +237,21 @@ int main(int argc, char *argv[])
                 Histogram::main(modeArgC, modeArgV);
                 break;
             case PLOT:
-                Plot::main(modeArgC, modeArgV);            
+                Plot::main(modeArgC, modeArgV);
                 break;
             case SECT:
-                Sect::main(modeArgC, modeArgV);            
+                Sect::main(modeArgC, modeArgV);
                 break;
             default:
                 BOOST_THROW_EXCEPTION(KatException() << KatErrorInfo(string(
                     "Unrecognised KAT mode: ") + modeStr));
         }
-                
-    } catch(po::error& e) { 
+
+    } catch(po::error& e) {
         cerr << "Error: Parsing Command Line: " << e.what() << endl;
                 return 1;
-    } 
-    catch (boost::exception &e) { 
+    }
+    catch (boost::exception &e) {
         cerr << boost::diagnostic_information(e);
         return 4;
     } catch (exception& e) {
@@ -259,5 +265,5 @@ int main(int argc, char *argv[])
         return 7;
     }
 
-    return 0;    
+    return 0;
 }
