@@ -469,6 +469,90 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		print("------------------")
 		self.spectra.printGenomeStats(self.hom_peak)
 
+class GCKmerSpectraAnalysis(SpectraAnalysis):
+	def __init__(self, filename, freq_cutoff=10000, hom_peak_freq=0, k=27):
+		SpectraAnalysis.__init__(self, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
+		cov_histo, gc_histo = self.read_file(filename, freq_cutoff)
+		self.mean_gc = sum([i * x for i, x in enumerate(gc_histo)]) / sum(gc_histo)
+		self.cov_spectra = KmerSpectra(cov_histo, k=k)
+		self.gc_dist = KmerSpectra(gc_histo, k=k)		# Not really a Kmer spectra but let's shoehorn it in anyway
+
+
+	def read_file(self, name, freq_cutoff=10000, k=27):
+		f = open(name)
+		cov_histogram = None
+		gc_histogram = []
+		for x in f.readlines():
+			if x and x[0] != '#':
+				# Kmer coverage histo
+				parts = x.split()
+				gc_histogram.append(sum([int(y) for y in parts]))
+				if not cov_histogram:
+					cov_histogram = [0] * len(parts)
+				for i, y in enumerate(parts):
+					cov_histogram[i] += int(y)
+		f.close()
+		return cov_histogram, gc_histogram
+
+	def plot(self, points=0, cap=0, to_screen=False, to_files=None):
+		if 0 == points: points = self.limx
+		if 0 == cap: cap = self.limy
+		print()
+		print("Creating plot")
+		print("-------------")
+		print()
+		self.spectra.printPeaks()
+
+		fig = plt.figure()
+		plot_hist(self.spectra.histogram, points, cap, label="Histogram")
+		plot_hist(self.spectra.total_values(1, points + 1), points, cap, label="Fitted distribution")
+
+		for p_i, p in enumerate(self.spectra.peaks, start=1):
+			plot_hist(p.points(1, points + 1), points, cap, label="fit dist %d" % p_i)
+
+		if to_screen:
+			plt.show()
+
+		if to_files:
+			filename = to_files + ".dists.png"
+			fig.savefig(filename)
+			print("Saved plot to:", filename)
+
+		print()
+
+	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
+
+		# Create the peaks
+		print("\nAnalysing K-mer coverage spectra")
+		self.cov_spectra.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
+		if self.cov_spectra.peaks:
+			self.limy = int(max(int(self.spectra.maxval * 1.1 / 1000) * 1000, self.limy))
+			self.limx = int(max(min(self.spectra.peaks[-1].mean * 2, len(self.spectra.histogram)), self.limx))
+
+		if verbose:
+			print("\nPlot limits: y->%d, x->%d" % (self.limy, self.limx))
+
+		# Create the peaks
+		print("\nAnalysing GC distribution")
+		self.gc_dist.analyse(min_perc=1, min_elem=len(self.gc_dist.histogram), verbose=verbose)
+
+	def peak_stats(self):
+		print()
+		print("K-mer Coverage Spectra statistics")
+		print("---------------------------------")
+		self.cov_spectra.printGenomeStats(self.hom_peak)
+		print()
+		print("GC distribution statistics")
+		print("---------------------------------")
+		# Step 4, genome stats
+		print("K-value used:", str(self.gc_dist.k))
+		print("Peaks in analysis:", str(len(self.gc_dist.peaks)))
+		self.gc_dist.printPeaks()
+		print("Mean GC:", "{0:.2f}".format(self.mean_gc * (100.0 / self.gc_dist.k)) + "%")
+
+
+
+
 class MXKmerSpectraAnalysis(SpectraAnalysis):
 	def __init__(self, filename, cns_cutoff=3, freq_cutoff=10000, hom_peak_freq=0, k=27):
 		SpectraAnalysis.__init__(self, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
@@ -617,6 +701,7 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 def get_properties_from_file(input_file):
 	k = 27
 	mx = False
+	gcp = False
 
 	f = open(input_file)
 	i = 0
@@ -629,10 +714,12 @@ def get_properties_from_file(input_file):
 				k = int(line.split(":")[1])
 			elif line.startswith("# Rows:"):
 				mx = True
+			elif line.startswith("# YLabel:GC count"):
+				gcp = True
 		i+=1
 	f.close()
 
-	return k, mx
+	return k, mx, gcp
 
 def main():
 	# ----- command line parsing -----
@@ -661,15 +748,20 @@ def main():
 
 	args = parser.parse_args()
 
-	k, mx = get_properties_from_file(args.input)
+	k, mx, gcp = get_properties_from_file(args.input)
 	print("Input file generated using K", k)
-	print("Input is a", "matrix" if mx else "histogram", "file")
 
 	a = None
 	if mx:
-		print("Processing", args.cns, "spectra")
-		a = MXKmerSpectraAnalysis(args.input, cns_cutoff=args.cns, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
+		if gcp:
+			print("GC vs Coverage matrix file detected")
+			a = GCKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
+		else:
+			print("Copy number spectra matrix file detected")
+			print("Processing", args.cns, "spectra")
+			a = MXKmerSpectraAnalysis(args.input, cns_cutoff=args.cns, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 	else:
+		print("Kmer coverage histogram file detected")
 		a = HistKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 
 	if not a:
