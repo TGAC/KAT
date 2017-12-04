@@ -161,9 +161,9 @@ class KmerSpectra(object):
 		# walk till first local minimum (d(f)>0)
 		# Double check the following two steps, rather than just the next one.
 		# Sometimes we can get a strange laddering affect in alternate frequencies which prevent
-		# us from correct detecting the minima
+		# us from correctly detecting the minima
 		fmin = 0
-		for i in range(len(self.histogram) - 2):
+		for i in range(1, len(self.histogram) - 2):
 			if self.histogram[i] < self.histogram[i+1] and self.histogram[i] < self.histogram[i+2]:
 				fmin = i
 				break
@@ -377,18 +377,18 @@ class KmerPeak(object):
 		optimize.leastsq(self.residues, (self.mean, self.shape, self.elements), (offset, histogram))
 		pass
 
-def plot_hist(h, points, cap, label="", to_screen=False, to_file=None):
+def plot_hist(h, points, cap, label="", to_screen=False, to_file=None, xlab='Kmer Frequency', ylab='# Distinct Kmers'):
 	plt.plot([min(cap, x) for x in h[:points]], label=label)
-	plt.xlabel('Kmer Frequency')
-	plt.ylabel('# Distinct Kmers')
+	plt.xlabel(xlab)
+	plt.ylabel(ylab)
 	plt.legend()
 
 
 
-def plot_hist_df(self, h, points, cap):
+def plot_hist_df(self, h, points, cap, xlab='Kmer Frequency', ylab='# Distinct Kmers'):
 	plt.plot([max(-cap, min(cap, x)) for x in [h[i + 1] - h[i] for i in range(points)]])
-	plt.xlabel('Kmer Frequency')
-	plt.ylabel('# Distinct Kmers')
+	plt.xlabel(xlab)
+	plt.ylabel(ylab)
 	plt.legend()
 
 class SpectraAnalysis(object):
@@ -494,31 +494,61 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		f.close()
 		return cov_histogram, gc_histogram
 
+
 	def plot(self, points=0, cap=0, to_screen=False, to_files=None):
 		if 0 == points: points = self.limx
 		if 0 == cap: cap = self.limy
-		print()
-		print("Creating plot")
-		print("-------------")
-		print()
-		self.spectra.printPeaks()
-
-		fig = plt.figure()
-		plot_hist(self.spectra.histogram, points, cap, label="Histogram")
-		plot_hist(self.spectra.total_values(1, points + 1), points, cap, label="Fitted distribution")
-
-		for p_i, p in enumerate(self.spectra.peaks, start=1):
-			plot_hist(p.points(1, points + 1), points, cap, label="fit dist %d" % p_i)
-
-		if to_screen:
-			plt.show()
-
-		if to_files:
-			filename = to_files + ".dists.png"
-			fig.savefig(filename)
-			print("Saved plot to:", filename)
 
 		print()
+		print("Creating plots")
+		print("--------------")
+		print()
+		if len(self.cov_spectra.peaks) == 0:
+			print("No peaks in K-mer coverage histogram.  Not plotting.")
+		else:
+
+			self.cov_spectra.printPeaks()
+
+			fig = plt.figure()
+			plot_hist(self.cov_spectra.histogram, points, cap, label="Histogram")
+			plot_hist(self.cov_spectra.total_values(1, points + 1), points, cap, label="Fitted distribution")
+
+			for p_i, p in enumerate(self.cov_spectra.peaks, start=1):
+				plot_hist(p.points(1, points + 1), points, cap, label="fit dist %d" % p_i)
+
+			if to_screen:
+				plt.show()
+
+			if to_files:
+				filename = to_files + ".dists.png"
+				fig.savefig(filename)
+				print("Saved plot to:", filename)
+
+		if len(self.gc_dist.peaks) == 0:
+			print("No peaks in GC distribution.  Not plotting.")
+		else:
+			self.gc_dist.printPeaks()
+
+			points = self.gc_dist.k
+			cap = max(self.gc_dist.histogram) * 1.1
+
+			fig = plt.figure()
+			plot_hist(self.gc_dist.histogram, points, cap, label="Histogram", xlab="GC count")
+			plot_hist(self.gc_dist.total_values(1, points + 1), points, cap, label="Fitted distribution", xlab="GC count")
+
+			for p_i, p in enumerate(self.gc_dist.peaks, start=1):
+				plot_hist(p.points(1, points + 1), points, cap, label="fit dist %d" % p_i, xlab="GC count")
+
+			if to_screen:
+				plt.show()
+
+			if to_files:
+				filename = to_files + ".gc.png"
+				fig.savefig(filename)
+				print("Saved plot to:", filename)
+
+		print()
+
 
 	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
 
@@ -526,8 +556,8 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		print("\nAnalysing K-mer coverage spectra")
 		self.cov_spectra.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
 		if self.cov_spectra.peaks:
-			self.limy = int(max(int(self.spectra.maxval * 1.1 / 1000) * 1000, self.limy))
-			self.limx = int(max(min(self.spectra.peaks[-1].mean * 2, len(self.spectra.histogram)), self.limx))
+			self.limy = int(max(int(self.cov_spectra.maxval * 1.1 / 1000) * 1000, self.limy))
+			self.limx = int(max(min(self.cov_spectra.peaks[-1].mean * 2, len(self.cov_spectra.histogram)), self.limx))
 
 		if verbose:
 			print("\nPlot limits: y->%d, x->%d" % (self.limy, self.limx))
@@ -535,6 +565,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		# Create the peaks
 		print("\nAnalysing GC distribution")
 		self.gc_dist.analyse(min_perc=1, min_elem=len(self.gc_dist.histogram), verbose=verbose)
+
 
 	def peak_stats(self):
 		print()
