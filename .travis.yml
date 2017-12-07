@@ -38,6 +38,9 @@ before_install:
 install:
 - ./.travis/install.sh
 
+# Build boost
+- ./build_boost.sh
+
 # Build KAT
 - ./autogen.sh
 
