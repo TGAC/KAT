@@ -25,6 +25,9 @@ AS_IF([test "x$MD5" = "x"], AC_MSG_ERROR([Could not find md5 hashing program in 
 AC_ARG_VAR([YAGGO], [Yaggo switch parser generator])
 AS_IF([test "x$YAGGO" = "x"], [AC_PATH_PROG([YAGGO], [yaggo], [false])])
 
+#Check for zlib
+AX_CHECK_ZLIB(, [AC_MSG_ERROR([zlib not found.  Please ensure that zlib is properly built and configured.])])
+
 dnl define([concat], $1$2$3)dnl
 define([PC_FILE], kat_jellyfish.pc)
 AC_CONFIG_FILES([
@@ -138,5 +141,3 @@ maybe_swig=
 #      [AC_CONFIG_FILES([swig/Makefile])])
 
 AC_OUTPUT
-
-

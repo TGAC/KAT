@@ -26,10 +26,30 @@
 
 #include <jellyfish/locks_pthread.hpp>
 #include <jellyfish/err.hpp>
+#include <jellyfish/gzstream.hpp>
 
 namespace jellyfish {
 template<typename PathIterator>
 class stream_manager {
+
+igzstream *_igz;
+  /// A wrapper around an ifstream for a standard file. Standard in
+  /// opposition to a pipe_stream below, but the file may be a regular
+  /// file or a pipe. The file is opened once and notifies the manager
+  /// that it is closed upon destruction.
+  class gz_file_stream : public igzstream {
+    stream_manager& manager_;
+  public:
+    gz_file_stream(const char* path, stream_manager& manager) :
+      igzstream(path),
+      manager_(manager)
+    {
+      manager_.take_file();
+    }
+    virtual ~gz_file_stream() { manager_.release_file(); }
+  };
+  friend class gz_file_stream;
+
   /// A wrapper around an ifstream for a standard file. Standard in
   /// opposition to a pipe_stream below, but the file may be a regular
   /// file or a pipe. The file is opened once and notifies the manager
@@ -94,9 +114,14 @@ public:
   stream_type next() {
     locks::pthread::mutex_lock lock(mutex_);
     stream_type res;
-    open_next_file(res);
+    // Try gz file first
+    open_next_gzfile(res);
+    // If that didn't work try uncompressed file
     if(!res)
-      open_next_pipe(res);
+      open_next_file(res);
+      // If that didn't work try pipe
+      if(!res)
+        open_next_pipe(res);
     return res;
   }
 
@@ -107,6 +132,21 @@ public:
   int nb_streams() const { return concurrent_files() + concurrent_pipes(); }
 
 protected:
+
+  void open_next_gzfile(stream_type& res) {
+    if(files_open_ >= concurrent_files_)
+      return;
+    while(paths_cur_ != paths_end_) {
+      std::string path = *paths_cur_;
+      ++paths_cur_;
+      res.reset(new gz_file_stream(path.c_str(), *this));
+      if(res->good())
+        return;
+      res.reset();
+      throw std::runtime_error(err::msg() << "Can't open file '" << path << "'");
+    }
+  }
+
   void open_next_file(stream_type& res) {
     if(files_open_ >= concurrent_files_)
       return;
