@@ -67,6 +67,8 @@ AC_CHECK_HEADERS([glob.h])
 
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
+#Check for zlib
+AX_CHECK_ZLIB(, [AC_MSG_ERROR([zlib not found.  Please ensure that zlib is properly built and configured.])])
 
 # Required for Boost chrono on linux (clock_gettime).  Doesn't exist on Mac
 if test x"${UNAME_S}" != x"Darwin"; then
@@ -150,13 +152,13 @@ AM_CXXFLAGS=""
 AC_SUBST([AM_CXXFLAGS])
 
 if [[ "${pymod_good}" == "yes" ]]; then
-    AM_CPPFLAGS="${PYTHON_CPPFLAGS}"
-    AM_LIBS="${PTHREAD_CFLAGS} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
-    AM_LDFLAGS="${PYTHON_EXTRA_LDFLAGS}"
+    AM_CPPFLAGS="$(ZLIB_CPPFLAGS) ${PYTHON_CPPFLAGS}"
+    AM_LIBS="${PTHREAD_CFLAGS} $(ZLIB_LIB) ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
+    AM_LDFLAGS="$(ZLIB_LDFLAGS) ${PYTHON_EXTRA_LDFLAGS}"
 else
-    AM_CPPFLAGS=""
-    AM_LIBS="${PTHREAD_CFLAGS} ${RT_LIB}"
-    AM_LDFLAGS=""
+    AM_CPPFLAGS="$(ZLIB_CPPFLAGS)"
+    AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB}"
+    AM_LDFLAGS="$(ZLIB_LDFLAGS)"
 fi
 
 AC_SUBST([AM_CPPFLAGS])
