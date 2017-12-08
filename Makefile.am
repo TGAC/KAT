@@ -16,7 +16,7 @@ EXTRA_DIST = \
 
 
 # Scripts NOT to install
-dist_noinst_SCRIPTS = autogen.sh antigen.sh
+dist_noinst_SCRIPTS = autogen.sh antigen.sh build_boost.sh
 
 # Scripts to install
 dist_bin_SCRIPTS = \
