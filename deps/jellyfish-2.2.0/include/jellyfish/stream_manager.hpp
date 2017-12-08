@@ -24,6 +24,8 @@
 #include <list>
 #include <set>
 
+#include <sys/stat.h>
+
 #include <jellyfish/locks_pthread.hpp>
 #include <jellyfish/err.hpp>
 #include <jellyfish/gzstream.hpp>
@@ -32,7 +34,6 @@ namespace jellyfish {
 template<typename PathIterator>
 class stream_manager {
 
-igzstream *_igz;
   /// A wrapper around an ifstream for a standard file. Standard in
   /// opposition to a pipe_stream below, but the file may be a regular
   /// file or a pipe. The file is opened once and notifies the manager
@@ -114,14 +115,10 @@ public:
   stream_type next() {
     locks::pthread::mutex_lock lock(mutex_);
     stream_type res;
-    // Try gz file first
     open_next_gzfile(res);
-    // If that didn't work try uncompressed file
-    if(!res)
-      open_next_file(res);
-      // If that didn't work try pipe
-      if(!res)
-        open_next_pipe(res);
+    if(!res) {
+      open_next_pipe(res);
+    }
     return res;
   }
 
