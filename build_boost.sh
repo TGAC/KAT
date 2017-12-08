@@ -6,6 +6,6 @@ git submodule update --recursive --init deps/boost
 
 # Build boost
 cd deps/boost
-./bootstrap.sh --without-libraries=python
+./bootstrap.sh --without-libraries=python,wave,math,graph_parallel,mpi,iostreams
 ./b2 link=static
 cd ../..
