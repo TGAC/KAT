@@ -14,7 +14,7 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
 
 else
     # Install zlib
-    sudo apt-get install zlib1g
+    sudo apt-get install zlib1g zlib1g-dev
 
     # Plotting installation
     if [[ "$PLOT" == "python" ]]; then
