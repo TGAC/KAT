@@ -9,6 +9,7 @@ AC_PROG_LIBTOOL
 
 # Change default compilation flags
 AC_SUBST([ALL_CXXFLAGS], [-std=c++0x])
+m4_pattern_allow([AC_MSG_ERROR])
 AC_LANG(C++)
 AC_PROG_CXX
 
