@@ -13,6 +13,8 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     conda create -q -n test-environment python=3.5 anaconda;
 
 else
+    # Install zlib
+    sudo apt-get install zlib1g
 
     # Plotting installation
     if [[ "$PLOT" == "python" ]]; then

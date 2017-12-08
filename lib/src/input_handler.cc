@@ -265,7 +265,15 @@ shared_ptr<vector<path>> kat::InputHandler::globFiles(const vector<path>& input)
 
 string kat::InputHandler::determineSequenceFileType(const path& filename) {
 
+    string fn_str = filename.string();
     string ext = filename.extension().string();
+
+    // Check for gz extension first, if found remove it
+    if (boost::iequals(ext, ".gz")) {
+        size_t lastindex = fn_str.find_last_of(".");
+        path wogz_filename = path(fn_str.substr(0, lastindex));
+        ext = wogz_filename.extension().string();
+    }
 
     // Check extension first
     if (boost::iequals(ext, ".fastq") || boost::iequals(ext, ".fq")) {

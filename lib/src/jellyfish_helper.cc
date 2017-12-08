@@ -272,14 +272,15 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
     // If we have a pipe as input then assume we are working with a sequence file
     if (JellyfishHelper::isPipe(filename)) return true;
 
+    string fn_str = filename.string();
     string ext = filename.extension().string();
 
-    // Actually we can't handle gz files directly, so turning this off for now
-    /*if (boost::iequals(ext, ".gz")) {
-        string name = filename.filename().string();
-        string shortName = name.substr(0, name.length() - 3);
-        ext = path(shortName).extension().string();
-    }*/
+    // Check for gz extension first, if found remove it
+    if (boost::iequals(ext, ".gz")) {
+        size_t lastindex = fn_str.find_last_of(".");
+        path wogz_filename = path(fn_str.substr(0, lastindex));
+        ext = wogz_filename.extension().string();
+    }
 
     // Check extension first
     bool seqext = boost::iequals(ext, ".fastq") ||
