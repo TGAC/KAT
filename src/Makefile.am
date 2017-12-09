@@ -26,14 +26,14 @@ kat_LDFLAGS = \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
-	@AM_LIBS@ \
 	-lkat \
 	-lkat_jellyfish \
 	../deps/boost/stage/lib/libboost_timer.a \
 	../deps/boost/stage/lib/libboost_chrono.a \
 	../deps/boost/stage/lib/libboost_filesystem.a \
 	../deps/boost/stage/lib/libboost_program_options.a \
-	../deps/boost/stage/lib/libboost_system.a
+	../deps/boost/stage/lib/libboost_system.a \
+	@AM_LIBS@
 
 noinst_HEADERS = \
 	plot_density.hpp \
