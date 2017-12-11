@@ -760,12 +760,12 @@ int kat::Comp::main(int argc, char *argv[]) {
     for (auto& v : d2_5ptrim_strs) d2_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
     vector<string> d1_3ptrim_strs;
     vector<uint16_t> d1_3ptrim_vals;
-    boost::split(d1_3ptrim_strs,d1_3ptrim,boost::is_any_of(","));
-    for (auto& v : d1_3ptrim_strs) d1_3ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
+    //boost::split(d1_3ptrim_strs,d1_3ptrim,boost::is_any_of(","));
+    //for (auto& v : d1_3ptrim_strs) d1_3ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
     vector<string> d2_3ptrim_strs;
     vector<uint16_t> d2_3ptrim_vals;
-    boost::split(d1_3ptrim_strs,d2_3ptrim,boost::is_any_of(","));
-    for (auto& v : d2_3ptrim_strs) d2_3ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
+    //boost::split(d1_3ptrim_strs,d2_3ptrim,boost::is_any_of(","));
+    //for (auto& v : d2_3ptrim_strs) d2_3ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
 
     // Create the sequence coverage object
     Comp comp(*vecinput1, *vecinput2);
