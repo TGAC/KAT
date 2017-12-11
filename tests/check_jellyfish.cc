@@ -121,7 +121,7 @@ TEST(jellyfish, count) {
     HashCounter hc(10000000, 27 * 2, 7, 1);
 
     cout << "HC created" << endl;
-    LargeHashArrayPtr hash = JellyfishHelper::countSeqFile(DATADIR "/EcoliK12.fasta", hc, true, 1);
+    LargeHashArrayPtr hash = JellyfishHelper::countSeqFile(DATADIR "/EcoliK12.fasta", hc, true, 1, 0, 0);
 
     cout << "Counted" << endl;
 
