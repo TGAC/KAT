@@ -138,10 +138,14 @@ namespace kat {
          * @param seqFile Sequence file to count
          * @return The hash array counter
          */
-        static LargeHashArrayPtr countSeqFile(const path& p, HashCounter& hashCounter, bool canonical, uint16_t threads) {
+        static LargeHashArrayPtr countSeqFile(const path& p, HashCounter& hashCounter, bool canonical, uint16_t threads, uint16_t trim5p, uint16_t trim3p) {
             vector<path> paths;
             paths.push_back(p);
-            return countSeqFile(paths, hashCounter, canonical, threads);
+            vector<uint16_t> trim5plist;
+            trim5plist.push_back(trim5p);
+            vector<uint16_t> trim3plist;
+            trim3plist.push_back(trim3p);
+            return countSeqFile(paths, hashCounter, canonical, threads, trim5plist, trim3plist);
         }
 
         /**
@@ -150,7 +154,7 @@ namespace kat {
          * @param seqFile Sequence file to count
          * @return The hash array counter
          */
-        static LargeHashArrayPtr countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads);
+        static LargeHashArrayPtr countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads, const vector<uint16_t>& trim5p, const vector<uint16_t>& trim3p);
 
 
 

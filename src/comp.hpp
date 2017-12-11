@@ -107,6 +107,11 @@ namespace kat {
             this->input[index].canonical = canonical;
         }
 
+        void setTrim(uint16_t index, const vector<uint16_t>& _5ptrim, const vector<uint16_t>& _3ptrim) {
+            this->input[index].set5pTrim(_5ptrim);
+            this->input[index].set3pTrim(_3ptrim);
+        }
+
         uint16_t getD1Bins() const {
             return d1Bins;
         }

@@ -604,6 +604,10 @@ int kat::Comp::main(int argc, char *argv[]) {
     double d2_scale;
     uint16_t d1_bins;
     uint16_t d2_bins;
+    string d1_5ptrim;
+    string d2_5ptrim;
+    string d1_3ptrim;
+    string d2_3ptrim;
     uint16_t threads;
     uint16_t mer_len;
     bool canonical_1;       // Deprecated... for removal in KAT 3.0
@@ -642,6 +646,14 @@ int kat::Comp::main(int argc, char *argv[]) {
                 "Number of bins for the first dataset.  i.e. number of rows in the matrix")
             ("d2_bins,j", po::value<uint16_t>(&d2_bins)->default_value(1001),
                 "Number of bins for the second dataset.  i.e. number of rows in the matrix")
+            ("d1_5ptrim", po::value<string>(&d1_5ptrim)->default_value("0"),
+                "Ignore the first X bases from reads in dataset 1.  If more that one file is provided for dataset 1 you can specify different values for each file by seperating with commas.")
+            ("d2_5ptrim", po::value<string>(&d2_5ptrim)->default_value("0"),
+                "Ignore the first X bases from reads in dataset 2.  If more that one file is provided for dataset 2 you can specify different values for each file by seperating with commas.")
+            //("d1_3ptrim", po::value<string>(&d1_3ptrim)->default_value("0"),
+            //    "Ignore the last X bases from reads in dataset 1.  If more that one file is provided for dataset 1 you can specify different values for each file by seperating with commas.")
+            //("d1_3ptrim", po::value<string>(&d2_3ptrim)->default_value("0"),
+            //    "Ignore the last X bases from reads in dataset 2.  If more that one file is provided for dataset 2 you can specify different values for each file by seperating with commas.")
             ("canonical1,C", po::bool_switch(&canonical_1)->default_value(false),
                 "(DEPRECATED) If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("canonical2,D", po::bool_switch(&canonical_2)->default_value(false),
@@ -738,6 +750,23 @@ int kat::Comp::main(int argc, char *argv[]) {
         vecinput3 = InputHandler::globFiles(input3);
     }
 
+    vector<string> d1_5ptrim_strs;
+    vector<uint16_t> d1_5ptrim_vals;
+    boost::split(d1_5ptrim_strs,d1_5ptrim,boost::is_any_of(","));
+    for (auto& v : d1_5ptrim_strs) d1_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
+    vector<string> d2_5ptrim_strs;
+    vector<uint16_t> d2_5ptrim_vals;
+    boost::split(d2_5ptrim_strs,d2_5ptrim,boost::is_any_of(","));
+    for (auto& v : d2_5ptrim_strs) d2_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
+    vector<string> d1_3ptrim_strs;
+    vector<uint16_t> d1_3ptrim_vals;
+    boost::split(d1_3ptrim_strs,d1_3ptrim,boost::is_any_of(","));
+    for (auto& v : d1_3ptrim_strs) d1_3ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
+    vector<string> d2_3ptrim_strs;
+    vector<uint16_t> d2_3ptrim_vals;
+    boost::split(d1_3ptrim_strs,d2_3ptrim,boost::is_any_of(","));
+    for (auto& v : d2_3ptrim_strs) d2_3ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
+
     // Create the sequence coverage object
     Comp comp(*vecinput1, *vecinput2);
     if (!input3.empty()) {
@@ -746,6 +775,8 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setOutputPrefix(path(output_prefix));
     comp.setD1Scale(d1_scale);
     comp.setD2Scale(d2_scale);
+    comp.setTrim(0, d1_5ptrim_vals, d1_3ptrim_vals);
+    comp.setTrim(1, d2_5ptrim_vals, d2_3ptrim_vals);
     comp.setD1Bins(d1_bins);
     comp.setD2Bins(d2_bins);
     comp.setThreads(threads);

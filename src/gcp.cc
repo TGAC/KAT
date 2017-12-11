@@ -238,6 +238,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
     uint16_t        threads;
     double          cvg_scale;
     uint16_t        cvg_bins;
+    string          trim5p;
     bool            canonical;      // Deprecated... for removal in KAT 3.0
     bool            non_canonical;
     uint16_t        mer_len;
@@ -262,6 +263,8 @@ int kat::Gcp::main(int argc, char *argv[]) {
                 "Number of bins for the gc data when creating the contamination matrix.")
             ("cvg_bins,y", po::value<uint16_t>(&cvg_bins)->default_value(1000),
                 "Number of bins for the cvg data when creating the contamination matrix.")
+            ("5ptrim", po::value<string>(&trim5p)->default_value("0"),
+                "Ignore the first X bases from reads.  If more that one file is provided you can specify different values for each file by seperating with commas.")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
@@ -305,7 +308,10 @@ int kat::Gcp::main(int argc, char *argv[]) {
         return 1;
     }
 
-
+    vector<string> d1_5ptrim_strs;
+    vector<uint16_t> d1_5ptrim_vals;
+    boost::split(d1_5ptrim_strs,trim5p,boost::is_any_of(","));
+    for (auto& v : d1_5ptrim_strs) d1_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
 
     auto_cpu_timer timer(1, "KAT GCP completed.\nTotal runtime: %ws\n\n");
 
@@ -317,6 +323,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
     gcp.setThreads(threads);
     gcp.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
     gcp.setCvgBins(cvg_bins);
+    gcp.setTrim(d1_5ptrim_vals);
     gcp.setCvgScale(cvg_scale);
     gcp.setHashSize(hash_size);
     gcp.setMerLen(mer_len);

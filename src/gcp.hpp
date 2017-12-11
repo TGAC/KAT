@@ -77,6 +77,10 @@ namespace kat {
         virtual ~Gcp() {
         }
 
+        void setTrim(const vector<uint16_t>& _5ptrim) {
+            this->input.set5pTrim(_5ptrim);
+        }
+
         bool isCanonical() const {
             return input.canonical;
         }

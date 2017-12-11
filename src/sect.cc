@@ -606,6 +606,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint16_t        cvg_bins;
     bool            cvg_logscale;
     uint16_t        threads;
+    string          trim5p;
     bool            canonical;  // Deprecated... for removal in KAT 3.0
     bool            non_canonical;
     uint16_t        mer_len;
@@ -636,6 +637,8 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "Compresses cvg scores into logscale for determining the cvg bins within the contamination matrix. Otherwise compresses cvg scores by a factor of 0.1 into the available bins.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use")
+            ("5ptrim", po::value<string>(&trim5p)->default_value("0"),
+                "Ignore the first X bases from reads.  If more that one file is provided you can specify different values for each file by seperating with commas.")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
@@ -690,6 +693,10 @@ int kat::Sect::main(int argc, char *argv[]) {
         return 1;
     }
 
+    vector<string> d1_5ptrim_strs;
+    vector<uint16_t> d1_5ptrim_vals;
+    boost::split(d1_5ptrim_strs,trim5p,boost::is_any_of(","));
+    for (auto& v : d1_5ptrim_strs) d1_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
 
 
     auto_cpu_timer timer(1, "KAT SECT completed.\nTotal runtime: %ws\n\n");
@@ -704,6 +711,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setCvgBins(cvg_bins);
     sect.setCvgLogscale(cvg_logscale);
     sect.setThreads(threads);
+    sect.setTrim(d1_5ptrim_vals);
     sect.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);

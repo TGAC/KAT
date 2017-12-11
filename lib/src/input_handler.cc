@@ -40,14 +40,66 @@ using kat::JellyfishHelper;
 #include <kat/input_handler.hpp>
 
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
+    input.clear();
     for(auto& p : inputs) {
         input.push_back(p);
+    }
+}
+
+void kat::InputHandler::set5pTrim(const vector<uint16_t>& trim_list) {
+    trim5p.clear();
+    if (trim_list.empty()) {
+        for(auto& p : input) {
+            trim5p.push_back(0);
+        }
+    }
+    else if (trim_list.size() == 1 && input.size() > 1) {
+        for(auto& p : input) {
+            trim5p.push_back(trim_list[0]);
+        }
+    }
+    else if (trim_list.size() == input.size()) {
+        for(auto& p : trim_list) {
+            trim5p.push_back(p);
+        }
+    }
+    else {
+        BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
+            "Inconsistent number of inputs and trimming settings.  Please establish your inputs before trying to set trimming vector.  Also ensure you have the same number of input files to trimming settings.")));
+    }
+}
+
+void kat::InputHandler::set3pTrim(const vector<uint16_t>& trim_list) {
+    trim3p.clear();
+    if (trim_list.empty()) {
+        for(auto& p : input) {
+            trim3p.push_back(0);
+        }
+    }
+    else if (trim_list.size() == 1 && input.size() > 1) {
+        for(auto& p : input) {
+            trim3p.push_back(trim_list[0]);
+        }
+    }
+    else if (trim_list.size() == input.size()) {
+        for(auto& p : trim_list) {
+            trim3p.push_back(p);
+        }
+    }
+    else {
+        BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
+            "Inconsistent number of inputs and trimming settings.  Please establish your inputs before trying to set trimming vector.  Also ensure you have the same number of input files to trimming settings.")));
     }
 }
 
 void kat::InputHandler::validateInput() {
 
     bool start = true;
+    //if (input.size() != trim3p.size() || trim3p.size() != trim5p.size()) {
+    if (input.size() != trim5p.size()) {
+        BOOST_THROW_EXCEPTION(InputFileException() << InputFileErrorInfo(string(
+            "Inconsistent number of inputs and trimming settings.")));
+    }
 
     // Check input file(s) exists
     for(auto& rp : input) {
@@ -80,8 +132,6 @@ void kat::InputHandler::validateInput() {
             }
         }
     }
-
-
 }
 
 void kat::InputHandler::loadHeader() {
@@ -135,7 +185,7 @@ void kat::InputHandler::count(const uint16_t threads) {
     cout << "Input " << index << " is a sequence file.  Counting kmers for input " << index << " (" << pathString() << ") ...";
     cout.flush();
 
-    hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads);
+    hash = JellyfishHelper::countSeqFile(input, *hashCounter, canonical, threads, trim5p, trim3p);
 
     // Create header for newly counted hash
     header = make_shared<file_header>();

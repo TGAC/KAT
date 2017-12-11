@@ -249,6 +249,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     uint64_t        low;
     uint64_t        high;
     uint64_t        inc;
+    string          trim5p;
     bool            canonical;      // Deprecated... for removal in KAT 3.0
     bool            non_canonical;
     uint16_t        mer_len;
@@ -275,6 +276,8 @@ int kat::Histogram::main(int argc, char *argv[]) {
                 "High count value of histogram")
             ("inc,i", po::value<uint64_t>(&inc)->default_value(1),
                 "Increment for each bin")
+            ("5ptrim", po::value<string>(&trim5p)->default_value("0"),
+                "Ignore the first X bases from reads.  If more that one file is provided you can specify different values for each file by seperating with commas.")
             ("canonical,C", po::bool_switch(&canonical)->default_value(false),
                 "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
@@ -318,6 +321,10 @@ int kat::Histogram::main(int argc, char *argv[]) {
         return 1;
     }
 
+    vector<string> d1_5ptrim_strs;
+    vector<uint16_t> d1_5ptrim_vals;
+    boost::split(d1_5ptrim_strs,trim5p,boost::is_any_of(","));
+    for (auto& v : d1_5ptrim_strs) d1_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
 
 
     auto_cpu_timer timer(1, "KAT HIST completed.\nTotal runtime: %ws\n\n");
@@ -329,6 +336,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     Histogram histo(inputs, low, high, inc);
     histo.setOutputPrefix(output_prefix);
     histo.setThreads(threads);
+    histo.setTrim(d1_5ptrim_vals);
     histo.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
     histo.setMerLen(mer_len);
     histo.setHashSize(hash_size);

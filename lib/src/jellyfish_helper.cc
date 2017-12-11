@@ -216,7 +216,7 @@ void kat::JellyfishHelper::countSlice(HashCounter& ary, SequenceParser& parser, 
  * @param seqFile Sequence file to count
  * @return The hash array
  */
-LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads) {
+LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads, const vector<uint16_t>& trim5p, const vector<uint16_t>& trim3p) {
 
     // Convert paths to a format jellyfish is happy with
     vector<const char*> paths;
@@ -230,7 +230,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
 
     StreamManager streams(paths.begin(), paths.end(), (const int) std::min(paths.size(), (size_t) threads));
 
-    SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
+    SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams, trim5p);
 
     vector<thread> t(threads);
 
