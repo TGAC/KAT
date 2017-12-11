@@ -131,10 +131,11 @@ if args.x_max is None or args.y_max is None or args.z_max is None:
         if np.sum(xsums[:i]) >= msum * 0.995:
             xmax = i
             break
-    for i in range(1, len(ysums), int(len(ysums)/40) + 1):
-        if np.sum(ysums[:i]) >= msum * 0.995:
-            ymax = i
-            break
+    if y_label != "GC count":
+        for i in range(1, len(ysums), int(len(ysums)/40) + 1):
+            if np.sum(ysums[:i]) >= msum * 0.995:
+                ymax = i
+                break
 
     zmax = np.max(peakz) * 1.1
 
@@ -178,4 +179,3 @@ else:
     output_name = args.output
 
 plt.savefig(correct_filename(output_name), dpi=args.dpi)
-
