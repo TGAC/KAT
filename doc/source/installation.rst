@@ -21,14 +21,14 @@ In addition, KAT can only produce plots if one of the following plotting engines
 
 Then proceed with the following steps:
 
-  - Clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
-  - Change directory into KAT project: ```cd KAT```
-  - Build boost (this may take some time): ```./build_boost.sh```
-  - Setup the KAT configuration scripts by typing: ```./autogen.sh```.
-  - Generate makefiles and confirm dependencies: ```./configure```. The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is ```/usr/local```, so the KAT executable would be found at ```/usr/local/bin``` by default.  Type ```./configure --help``` for full details.  Please check the output to ensure the configuration is setup as you'd expect (especially with regards to python / gnuplot).
-  - Compile software: ```make```
-  - Run tests (optional) ```make check```
-  - Install: ```make install```.  If you've not provided a specific installation directory, you will likely need to prefix this command with ```sudo``` in order to provide the permissions required to install to ```/usr/local```.
+- Clone the git repository (For ssh: ```git clone git@github.com:TGAC/KAT.git```; or for https: ```git clone https://github.com/TGAC/KAT.git```), into a directory on your machine.
+- Change directory into KAT project: ```cd KAT```
+- Build boost (this may take some time): ```./build_boost.sh```
+- Setup the KAT configuration scripts by typing: ```./autogen.sh```.
+- Generate makefiles and confirm dependencies: ```./configure```. The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is ```/usr/local```, so the KAT executable would be found at ```/usr/local/bin``` by default.  In addition, it is useful to add ```--with-sse``` in order to enable the SSE instruction set.  Type ```./configure --help``` for full list of options.  Please check the output to ensure the configuration is setup as you'd expect (especially with regards to python / gnuplot).
+- Compile software: ```make```.  You can leverage extra cores duing the compilation process using the ```-j <#cores>``` option.  Also you can see all command lines used to build the software by setting ```V=1```.
+- Run tests (optional) ```make check```.  (The ```-j``` and ```V=1``` options described above are also supported here.)
+- Install: ```make install```.  If you've not provided a specific installation directory, you will likely need to prefix this command with ```sudo``` in order to provide the permissions required to install to ```/usr/local```.
 
 If sphinx is installed and detected on your system then html documentation and man
-pages are automatically built during the build process.  If it is not detected then this step is skipped.  Should you wish to create a PDF version of the manual you can do so by typing ```make pdf```, this is not executed by default.
+pages are automatically built during the build process.  If it is not detected then this step is skipped.  Should you wish to create a PDF version of the manual you can do so by entering the ```doc``` directory and typing ```make pdf```, this is not executed by default.  
