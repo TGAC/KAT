@@ -431,25 +431,30 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		if 0 == points: points = self.limx
 		if 0 == cap: cap = self.limy
 		print()
-		print("Creating plot")
-		print("-------------")
+		print("Creating plots")
+		print("--------------")
 		print()
-		self.spectra.printPeaks()
 
-		fig = plt.figure()
-		plot_hist(self.spectra.histogram, points, cap, label="Histogram")
-		plot_hist(self.spectra.total_values(1, points + 1), points, cap, label="Fitted distribution")
+		if len(self.cov_spectra.peaks) == 0:
+			print("No peaks in K-mer frequency histogram.  Not plotting.")
+		else:
+			print("Plotting K-mer frequency distributions...")
+			#self.spectra.printPeaks()
 
-		for p_i, p in enumerate(self.spectra.peaks, start=1):
-			plot_hist(p.points(1, points + 1), points, cap, label="fit dist %d" % p_i)
+			fig = plt.figure()
+			plot_hist(self.spectra.histogram, points, cap, label="Histogram")
+			plot_hist(self.spectra.total_values(1, points + 1), points, cap, label="Fitted distribution")
 
-		if to_screen:
-			plt.show()
+			for p_i, p in enumerate(self.spectra.peaks, start=1):
+				plot_hist(p.points(1, points + 1), points, cap, label="fit dist %d" % p_i)
 
-		if to_files:
-			filename = to_files + ".dists.png"
-			fig.savefig(filename)
-			print("Saved plot to:", filename)
+			if to_screen:
+				plt.show()
+
+			if to_files:
+				filename = to_files + ".dists.png"
+				fig.savefig(filename)
+				print("- Saved plot to:", filename)
 
 		print()
 
@@ -510,7 +515,9 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			print("No peaks in K-mer frequency histogram.  Not plotting.")
 		else:
 
-			self.cov_spectra.printPeaks()
+			print("Plotting K-mer frequency distributions...")
+
+			#self.cov_spectra.printPeaks()
 
 			fig = plt.figure()
 			plot_hist(self.cov_spectra.histogram, points, cap, label="Histogram")
@@ -525,12 +532,13 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			if to_files:
 				filename = to_files + ".dists.png"
 				fig.savefig(filename)
-				print("Saved plot to:", filename)
+				print(" - Saved plot to:", filename)
 
 		if len(self.gc_dist.peaks) == 0:
 			print("No peaks in GC distribution.  Not plotting.")
 		else:
-			self.gc_dist.printPeaks()
+			print("Plotting GC distributions...")
+			#self.gc_dist.printPeaks()
 
 			points = self.gc_dist.k
 			cap = max(self.gc_dist.histogram) * 1.1
@@ -548,7 +556,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			if to_files:
 				filename = to_files + ".gc.png"
 				fig.savefig(filename)
-				print("Saved plot to:", filename)
+				print(" - Saved plot to:", filename)
 
 		print()
 
@@ -639,7 +647,7 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 					suffix = ".general.png"
 				filename = to_files + suffix
 				fig.savefig(filename)
-				print("Saved plot to:", filename)
+				print(" - Saved plot to:", filename)
 
 			print()
 
