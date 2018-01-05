@@ -49,9 +49,7 @@ using boost::lexical_cast;
 #include <kat/matrix_metadata_extractor.hpp>
 #include <kat/jellyfish_helper.hpp>
 
-#include "plot_spectra_hist.hpp"
 #include "plot.hpp"
-using kat::PlotSpectraHist;
 using kat::Plot;
 
 #include "histogram.hpp"
@@ -204,8 +202,37 @@ void kat::Histogram::binSlice(int th_id) {
     threadedData.push_back(hist);
 }
 
+void kat::Histogram::analysePeaks() {
+#ifdef HAVE_PYTHON
+    cout << "Analysing peaks ... ";
+    cout.flush();
+
+    vector<string> args;
+    args.push_back("kat_distanalysis.py");
+    if (verbose) {
+        args.push_back("--verbose");
+    }
+    args.push_back(outputPrefix.string());
+
+    char* char_args[50];
+
+    for(size_t i = 0; i < args.size(); i++) {
+        char_args[i] = strdup(args[i].c_str());
+    }
+
+    PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+
+    for(size_t i = 0; i < args.size(); i++) {
+        free(char_args[i]);
+    }
+
+    cout << endl;
+#endif
+}
+
 void kat::Histogram::plot(const string& output_type) {
 
+#ifdef HAVE_PYTHON
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Creating plot ...";
@@ -213,32 +240,18 @@ void kat::Histogram::plot(const string& output_type) {
 
     path outputFile1 = path(outputPrefix.string() + "." + output_type);
 
-
-#if HAVE_PYTHON
-
     vector<string> args;
     args.push_back("kat_plot_spectra-hist.py");
     args.push_back(string("--output=") + outputFile1.string());
-    args.push_back(outputPrefix.string());
-    Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args, this->verbose);
-
-
-#elif HAVE_GNUPLOT
-    vector<path> pin;
-    pin.push_back(outputPrefix);
-
-    PlotSpectraHist psh(pin, path(outputPrefix.string() + "." + output_type));
-    psh.setOutputType(output_type);
-    bool res = psh.plot();
-
-    if (!res) {
-        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-        return;
+    if (verbose) {
+        args.push_back("--verbose");
     }
+    args.push_back(outputPrefix.string());
+    Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args);
 
-#endif
     cout << " done.";
     cout.flush();
+#endif
 }
 
 int kat::Histogram::main(int argc, char *argv[]) {
@@ -350,7 +363,10 @@ int kat::Histogram::main(int argc, char *argv[]) {
     histo.save();
 
     // Plot
+#ifdef HAVE_PYTHON
     histo.plot(plot_output_type);
+    histo.analysePeaks();
+#endif
 
     return 0;
 }

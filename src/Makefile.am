@@ -17,6 +17,7 @@ kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/deps/boost \
 	-isystem $(top_srcdir)/lib/include \
+	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \
@@ -36,11 +37,6 @@ kat_LDADD = \
 	@AM_LIBS@
 
 noinst_HEADERS = \
-	plot_density.hpp \
-	plot_profile.hpp \
-	plot_spectra_cn.hpp \
-	plot_spectra_mx.hpp \
-	plot_spectra_hist.hpp \
 	plot.hpp \
 	filter_kmer.hpp \
 	filter_sequence.hpp \
@@ -51,11 +47,6 @@ noinst_HEADERS = \
 	sect.hpp
 
 kat_SOURCES = \
-	plot_density.cc \
-	plot_profile.cc \
-	plot_spectra_cn.cc \
-	plot_spectra_mx.cc \
-	plot_spectra_hist.cc \
 	plot.cc \
 	filter_kmer.cc \
 	filter_sequence.cc \

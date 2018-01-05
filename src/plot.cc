@@ -32,10 +32,6 @@ using std::endl;
 using std::string;
 using std::vector;
 
-#if HAVE_PYTHON
-#include <Python.h>
-#endif
-
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -48,18 +44,9 @@ namespace bfs = boost::filesystem;
 using bfs::path;
 
 #include <kat/kat_fs.hpp>
+#include <kat/pyhelper.hpp>
 
-#include "plot_density.hpp"
-#include "plot_profile.hpp"
-#include "plot_spectra_cn.hpp"
-#include "plot_spectra_hist.hpp"
-#include "plot_spectra_mx.hpp"
 #include "plot.hpp"
-using kat::PlotDensity;
-using kat::PlotProfile;
-using kat::PlotSpectraCn;
-using kat::PlotSpectraHist;
-using kat::PlotSpectraMx;
 using kat::Plot;
 
 
@@ -97,26 +84,19 @@ path kat::Plot::getPythonScript(const PlotMode mode) {
         case PROFILE:
             return "kat_plot_profile.py";
         case SPECTRA_CN:
-            return "kat_plot_spectra-cn.py";
+            return "kat_plot_spectra_cn.py";
         case SPECTRA_HIST:
-            return "kat_plot_spectra-hist.py";
+            return "kat_plot_spectra_hist.py";
         case SPECTRA_MX:
-            return "kat_plot_spectra-mx.py";
+            return "kat_plot_spectra_mx.py";
         default:
             BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
                     "Unrecognised KAT PLOT mode")));
     }
 }
 
-wchar_t* kat::Plot::convertCharToWideChar(const char* c) {
-    const size_t cSize = strlen(c)+1;
-    wchar_t* wc = new wchar_t[cSize];
-    mbstowcs (wc, c, cSize);
 
-    return wc;
-}
-
-void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose) {
+void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args) {
 
     char* char_args[50];
 
@@ -124,89 +104,15 @@ void kat::Plot::executePythonPlot(const PlotMode mode, vector<string>& args, boo
         char_args[i] = strdup(args[i].c_str());
     }
 
-    kat::Plot::executePythonPlot(mode, (int)args.size(), char_args, verbose);
+    PyHelper::getInstance().execute(getPythonScript(mode).string(), (int)args.size(), char_args);
 
     for(size_t i = 0; i < args.size(); i++) {
         free(char_args[i]);
     }
 }
 
-void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose) {
-
-    const path script_name = getPythonScript(mode);
-    const path scripts_dir = katFileSystem.GetScriptsDir();
-    const path full_script_path = path(scripts_dir.string() + "/" + script_name.string());
-
-    stringstream ss;
-
-    // Create wide char alternatives
-    wchar_t* wsn = convertCharToWideChar(script_name.c_str());
-    wchar_t* wsp = convertCharToWideChar(full_script_path.c_str());
-    wchar_t* wargv[50]; // Can't use variable length arrays!
-    wargv[0] = wsp;
-    ss << full_script_path.c_str();
-    for(int i = 1; i < argc; i++) {
-        wargv[i] = convertCharToWideChar(argv[i]);
-        ss << " " << argv[i];
-    }
-    for(int i = argc; i < 50; i++) {
-        wargv[i] = convertCharToWideChar("\0");
-    }
-
-    if (verbose) {
-        cout << endl << "Effective command line: " << ss.str() << endl << endl;
-    }
-
-    std::ifstream script_in(full_script_path.c_str());
-    std::string contents((std::istreambuf_iterator<char>(script_in)), std::istreambuf_iterator<char>());
-
-#if HAVE_PYTHON
-
-    // Run python script
-    Py_Initialize();
-    Py_SetProgramName(wsp);
-    PySys_SetArgv(argc, wargv);
-    int res = PyRun_SimpleString(contents.c_str());
-    Py_Finalize();
-
-    if (res != 0) {
-        BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
-                "Unexpected python error")));
-    }
-
-#endif
-
-    script_in.close();
-
-    // Cleanup
-    delete wsn;
-    // No need to free up "wsp" as it is element 0 in the array
-    for(int i = 0; i < argc; i++) {
-        delete wargv[i];
-    }
-}
-
-void kat::Plot::executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]) {
-    switch (mode) {
-    case DENSITY:
-        PlotDensity::main(argc, argv);
-        break;
-    case PROFILE:
-        PlotProfile::main(argc, argv);
-        break;
-    case SPECTRA_CN:
-        PlotSpectraCn::main(argc, argv);
-        break;
-    case SPECTRA_HIST:
-        PlotSpectraHist::main(argc, argv);
-        break;
-    case SPECTRA_MX:
-        PlotSpectraMx::main(argc, argv);
-        break;
-    default:
-        BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
-                "Unrecognised KAT PLOT mode")));
-    }
+void kat::Plot::executePythonPlot(const PlotMode mode, int argc, char *argv[]) {
+    PyHelper::getInstance().execute(getPythonScript(mode).string(), argc, argv);
 }
 
 
@@ -265,10 +171,8 @@ int kat::Plot::main(int argc, char *argv[]) {
     char** modeArgV = argv+1;
 
     // Execute via appropriate method (or error)
-#if HAVE_PYTHON
-    executePythonPlot(mode, modeArgC, modeArgV, verbose);
-#elif HAVE_GNUPLOT
-    executeGnuplotPlot(mode, modeArgC, modeArgV);
+#ifdef HAVE_PYTHON
+    executePythonPlot(mode, modeArgC, modeArgV);
 #else
     BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
                 "No suitable plotting environment detected.  We recommend you install anaconda3 to get a python plotting environment setup.  Otherwise install gnuplot.")));

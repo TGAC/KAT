@@ -12,34 +12,34 @@ Comparing R1 v R2 in an Illumina PE dataset
 -------------------------------------------
 
 Comparing the k-mer spectra of read 1 to read 2 files of a paired-end (PE) sequencing
-run gives you several insights into properties such as shared errors, difference in 
-quality, and provides a decent benchmark to compare two similar runs. Here's how to 
+run gives you several insights into properties such as shared errors, difference in
+quality, and provides a decent benchmark to compare two similar runs. Here's how to
 do it::
 
     kat comp -t 16 -n -o <output_prefix> <R1.fastq> <R2.fastq>
 
-Executing this command counts each fastq file into separate k-mer hashes, then 
+Executing this command counts each fastq file into separate k-mer hashes, then
 creates a matrix of k-mer spectra frequencies in each dataset for each distinct
-k-mer.  Finally, a density plot is made of the matrix.  There are a number of 
+k-mer.  Finally, a density plot is made of the matrix.  There are a number of
 interesting points in the output of the run.  First, the some basic stats are produced
-on the standard output.  Check properties like expected unique size, mean coverages 
+on the standard output.  Check properties like expected unique size, mean coverages
 for shared/unshared, or the distance measures between the spectra.  These values
 are just indicative, but might point to disaster ahead.  The density plot also
 provides a visual representation of how much shared errors are affecting your data.
-The following plot shows what you would expect to see for a completely unbiased 
+The following plot shows what you would expect to see for a completely unbiased
 homozygous PE library of S.coelicolor.
 
 .. image:: images/simulated_r1_v_r2.png
     :scale: 33
 
 However in reality, various biases can interfere with sequencing experiments and we
-will probably end up with data which isn't quite as clean, such as that shown in 
+will probably end up with data which isn't quite as clean, such as that shown in
 the following plot from an Illumina run of S.cerevisiae S288C.
 
 .. image:: images/real_r1_v_r2.png
     :scale: 33
 
-It's also useful to examine the shared and unique partitioned spectra between R1 
+It's also useful to examine the shared and unique partitioned spectra between R1
 and R2.  This can be done by using the same matrix file.  The plot below is from
 the same S.cerevisiae S288C dataset, generated using the following command line::
 
@@ -48,10 +48,10 @@ the same S.cerevisiae S288C dataset, generated using the following command line:
 .. image:: images/real_r1_v_r2_shared.png
     :scale: 33
 
-When generating plots, KAT uses input parameters supplied to the tool to generate a 
-plot title and labels for the x- and y-axis.  If you want to change these you can 
-regenerate the plot from the matrix using the kat plot tool directly.  For example, 
-to regenerate the density plot from the S.coelicolor dataset above you can run the 
+When generating plots, KAT uses input parameters supplied to the tool to generate a
+plot title and labels for the x- and y-axis.  If you want to change these you can
+regenerate the plot from the matrix using the kat plot tool directly.  For example,
+to regenerate the density plot from the S.coelicolor dataset above you can run the
 following command after running the kat comp command::
 
     kat plot density -o <output_prefix> -t <title> -a <x-axis label> -b <y-axis label> <matrix>
@@ -60,7 +60,7 @@ following command after running the kat comp command::
 Detecting GC bias
 -----------------
 
-Using KAT it is possible to correlate biases due to GC content. KAT does this by 
+Using KAT it is possible to correlate biases due to GC content. KAT does this by
 combining k-mer frequency with the GC count for each distinct k-mer and representing
 the data in a matrix which can be plotted in a similar way to that discussed in
 the previous section.  The command to produce a matrix of GC counts to k-mer
@@ -70,9 +70,9 @@ frequency is as follows::
 
 The following figure shows how GC bias varies depending on the protocols used in
 the sequencing experiments: 1) Simulated, 2) PCR-free, 3) PCR after adaptor ligation, 4)
-Standard protocol.  In the simulated data there is a clean circle positioned at the 
-expected GC levels for S.coelicolor, which has a GC rich genome.  GC plots from the 
-other experiments show a less distinct circle with the PCR-free protocol generating the  
+Standard protocol.  In the simulated data there is a clean circle positioned at the
+expected GC levels for S.coelicolor, which has a GC rich genome.  GC plots from the
+other experiments show a less distinct circle with the PCR-free protocol generating the
 truest reflection of the simulated dataset.
 
 .. image:: images/gc_bias_a.png
@@ -82,23 +82,23 @@ truest reflection of the simulated dataset.
 .. image:: images/gc_bias_c.png
     :scale: 25%
 .. image:: images/gc_bias_d.png
-    :scale: 25%    
+    :scale: 25%
 
 
 Checking library consistency
 ----------------------------
 
-In most Whole Genome Shotgun (WGS) projects, you will use more than one library.  The most 
-simple case could be one PE library and one Long Mate Pair (LMP) library, but you 
-could also have a dozen libraries of similar or completely different types, for example 
-using different insert sizes or different library preparation protocols. It is good 
+In most Whole Genome Shotgun (WGS) projects, you will use more than one library.  The most
+simple case could be one PE library and one Long Mate Pair (LMP) library, but you
+could also have a dozen libraries of similar or completely different types, for example
+using different insert sizes or different library preparation protocols. It is good
 practice to check for obvious incongruence among libraries before trying to assemble them.
 
-When you are sequencing the same genome, you are randomly sampling across 
-it.  Therefore you should have different spectrum originating from different 
-experiments, but sampled from the same set. This means that if you decompose your 
-spectra on the components being generated by single-copy elements, duplicated elements, 
-triplicated elements, and so on, every motif belonging to a component distribution 
+When you are sequencing the same genome, you are randomly sampling across
+it.  Therefore you should have different spectrum originating from different
+experiments, but sampled from the same set. This means that if you decompose your
+spectra on the components being generated by single-copy elements, duplicated elements,
+triplicated elements, and so on, every motif belonging to a component distribution
 should belong to that component distribution across samples.
 
 
@@ -110,29 +110,29 @@ and is used as a benchmark to sample the motifs on the genome. Since this data t
 is expected to have the more random distribution and even coverage, it is a
 good place to start studying correlation between libraries.
 
-The cleanest examples come from simulated data, where the correlation is virtually 
-perfect as long as belonging to the same distribution, and shows almost no 
-biases. Real data tends to show more correlation within the same distribution, 
+The cleanest examples come from simulated data, where the correlation is virtually
+perfect as long as belonging to the same distribution, and shows almost no
+biases. Real data tends to show more correlation within the same distribution,
 especially in cases where strong biases are in play.
 
 To compare two PE libraries run the following command::
 
     kat comp -n -t 16 -o pcrfree_vs_standard pcr_free 'pcr_free.R?.fastq' 'standard.R?.fastq'
 
-Note that the quotes around the inputs at the end of the command line allow you 
+Note that the quotes around the inputs at the end of the command line allow you
 to group files together into a single input.  Therefore all files matching
-"pcr_free.R?.fastq" are treated as the first input group, and all files matching 
-"standard.R?.fastq" are treated as the second input group.  K-mers are counted for 
-each group separately.  This saves the user wasting time and disk space concatenating 
+"pcr_free.R?.fastq" are treated as the first input group, and all files matching
+"standard.R?.fastq" are treated as the second input group.  K-mers are counted for
+each group separately.  This saves the user wasting time and disk space concatenating
 PE files together prior to input into KAT.
 
-The previous command produces only the density plot, so to generate the shared vs 
+The previous command produces only the density plot, so to generate the shared vs
 unique content plot also run::
 
     kat plot spectra-mx -i [options] -o pcrfree_vs_standard_shared.png <matrix_file>
 
-The following plots compare two PE sequencing experiments in C.fraxinea, showing 
-a large motif duplication in one of the experiments.  This is obvious from the 
+The following plots compare two PE sequencing experiments in C.fraxinea, showing
+a large motif duplication in one of the experiments.  This is obvious from the
 spectra-mx plot but not so clear in the density plot.
 
 .. image:: images/pe_v_pe_1_shared.png
@@ -140,23 +140,23 @@ spectra-mx plot but not so clear in the density plot.
 .. image:: images/pe_v_pe_1_density.png
     :scale: 25%
 
-An interesting comparison to perform is between a PCR-free and a Standard protocol 
-using a k-mer spectra density plot.  Note that the coverage from the standard protocol 
-is more variable than that generated from the PCR-free protocol. In addition, the blue 
-region at (x=0 y=30) indicates kmers that are sampled by the PCR-free protocol but not 
-the standard protocol. The coverage from the standard protocol is less than from the 
+An interesting comparison to perform is between a PCR-free and a Standard protocol
+using a k-mer spectra density plot.  Note that the coverage from the standard protocol
+is more variable than that generated from the PCR-free protocol. In addition, the blue
+region at (x=0 y=30) indicates kmers that are sampled by the PCR-free protocol but not
+the standard protocol. The coverage from the standard protocol is less than from the
 PCR-free protocol as less sequence was generated from this library.
 
 .. image:: images/pe_v_pe_2_density.png
     :scale: 33%
 
-The following shared content plots generated from the same comparison show the k-mer 
-spectra split on shared and unique content.  Note how content is “lost” on the standard protocol 
-as soon as you ask for at least 5x kmer coverage.  Although much of this is 
-from the “error distribution” side (where the red and blue lines are truncated at 
-K-mer multiplicity <5), you can also see that real content from the main frequency 
-distribution is being lost by using that cutoff (the increased peak of the blue line 
-around K-mer multiplicity = 30).  This should make you think carefully about setting 
+The following shared content plots generated from the same comparison show the k-mer
+spectra split on shared and unique content.  Note how content is “lost” on the standard protocol
+as soon as you ask for at least 5x kmer coverage.  Although much of this is
+from the “error distribution” side (where the red and blue lines are truncated at
+K-mer multiplicity <5), you can also see that real content from the main frequency
+distribution is being lost by using that cutoff (the increased peak of the blue line
+around K-mer multiplicity = 30).  This should make you think carefully about setting
 those low-coverage cutoffs again!
 
 .. image:: images/pe_v_pe_2_shared_1.png
@@ -168,13 +168,13 @@ PE vs LMP
 ~~~~~~~~~
 
 When using LMP data, in many cases the protocol used to prepare the sequencing library
-will impose considerable biases. It is good practice to check LMP reads against the PE 
-reads for coherence.  They have been prepared from the same genomic DNA so should have 
-similar content. Over-representation and absence of motifs are important factors to 
-check. The presence of motifs originating from adaptors (in fact mostly generated from 
+will impose considerable biases. It is good practice to check LMP reads against the PE
+reads for coherence.  They have been prepared from the same genomic DNA so should have
+similar content. Over-representation and absence of motifs are important factors to
+check. The presence of motifs originating from adaptors (in fact mostly generated from
 their junction with genomic DNA) can also be spotted.
 
-In the example shown below, a LMP run is compared to a PE run before processing 
+In the example shown below, a LMP run is compared to a PE run before processing
 according to the guidelines for the Nextera LMP protocol:
 
 .. image:: images/pe_v_mp_before_density.png
@@ -189,20 +189,20 @@ These plots show the same LMP run after processing:
 .. image:: images/pe_v_mp_after_shared.png
     :scale: 25%
 
-While the motif presence and spectra of the LMP library are certainly better 
-after processing (dataset 2 on the spectra-mx plot), there is content lost 
-and the biases are clearly visible. You can spot representation 
-bias on the density plot for both clusters on teh y-axis.  Both clusters are 
+While the motif presence and spectra of the LMP library are certainly better
+after processing (dataset 2 on the spectra-mx plot), there is content lost
+and the biases are clearly visible. You can spot representation
+bias on the density plot for both clusters on teh y-axis.  Both clusters are
 too wide and have large “tails” going up. This is a typical signature for
 PCR-generated duplications in an early step in the protocol.
 
 Especially interesting is the use of the shared and unique motifs to spot how
 well the LMP library covers the whole genome. It is usually accepted that for
 coverages higher than 10 the library should mostly cover the whole genome. If
-we look at the content “exclusive” to the PE library (the red line) as content 
-not covered by the LMP library, it is obvious that processing the LMP 
+we look at the content “exclusive” to the PE library (the red line) as content
+not covered by the LMP library, it is obvious that processing the LMP
 removes a lot of content. While the spectra of the filtered LMP has better
-distribution, it is clear much content is not there. In this case, the library 
+distribution, it is clear much content is not there. In this case, the library
 will not be very useful for scaffolding.
 
 
@@ -211,7 +211,7 @@ Contamination detection and extraction
 
 Breaking WGS data into k-mers provides a nice way of identifying contamination, organelles or
 otherwise unexpected content, in your reads or assemblies.  This section will walk
-you through how you might be able to identify and extract contamination in your 
+you through how you might be able to identify and extract contamination in your
 data.
 
 
@@ -219,20 +219,20 @@ In reads
 ~~~~~~~~
 
 Detecting contamination in your WGS datasets are reliant on the contamination having
-differing levels of coverage and/or GC content from your target species.  KAT can be 
+differing levels of coverage and/or GC content from your target species.  KAT can be
 used to identify this::
 
     kat gcp [options] (<fastq>)+
 
-Running this tool will produce a matrix containing distinct k-mer counts at varying 
-frequency and GC value.  It will also produce a density plot, such as the one below 
-that highlights error k-mers shown at very low coverage with a wide GC spread and 
-genuine content between 10-100X with GC spread from 5-25.  In this case we also have 
+Running this tool will produce a matrix containing distinct k-mer counts at varying
+frequency and GC value.  It will also produce a density plot, such as the one below
+that highlights error k-mers shown at very low coverage with a wide GC spread and
+genuine content between 10-100X with GC spread from 5-25.  In this case we also have
 some unexpected content shown at approx 200X with GC from 15-25:
 
 .. image:: images/contaminant_MP.png
     :scale: 33%
-    
+
 The high coverage hot-spot is already suspicious but it becomes even more so after
 looking at other WGS libraries of the same sample:
 
@@ -277,9 +277,9 @@ all, 0.0 means discard all, 0.5 would imply to keep half of the sequences.
 In assemblies
 ~~~~~~~~~~~~~
 
-Detecting contaminants in assemblies involves a similar process to that described 
-in the previous section.  It involves marking contigs in an assembly with their average 
-k-mer coverage and GC%.  
+Detecting contaminants in assemblies involves a similar process to that described
+in the previous section.  It involves marking contigs in an assembly with their average
+k-mer coverage and GC%.
 
 To obtain the average coverage and GC% scores for each contig use the following
 command::
@@ -291,14 +291,14 @@ to create a scatter plot which can be used in a similar way to that described in
 the previous section.
 
 A second use case assumes you already know the contaminant genome and have
-access to the reference assembly of that contaminant.  In this case you can 
+access to the reference assembly of that contaminant.  In this case you can
 directly inspect your assembly for signs of the contaminant using the following command::
 
     kat sect [options] <assembly> <contaminant_genome>
 
 This counts k-mers in the contaminant genome and applies them to the sequences in your
 assembly.  By reverse sorting the stats file produced by the "%_non_zero_corrected" column
-you can identify contigs belonging to the contaminant.  Normally, assuming the 
+you can identify contigs belonging to the contaminant.  Normally, assuming the
 contaminant is the exact same species as that found in your assembly you expect
 to see very high percentage scores (>90%).  Moderate scores (20-80%) might indicate
 either some shared content or chimeric sequences and should be investigated more
@@ -333,34 +333,34 @@ we can end up with something more interesting.
 .. image:: images/pe_v_asm_wrong.png
     :scale: 33%
 
-Now, in addition to the absent errors, we have a lot of missing content from the 
+Now, in addition to the absent errors, we have a lot of missing content from the
 assembly.
 
 Sometimes when we generate an assembly we want to remove short contings from the final
-assembly as these contigs are often not useful in downstream analysis. It is common to 
-remove contigs shorter than 200bp, 500bp or 1Kbp but it can be a problem deciding which 
-cutoff to use as you don't want to remove useful content from the assembly.  The 
-spectra-cn plot is useful here as you can check assembly files (with no cutoff, 200 bp 
-cutoff, 500bp cutoff etc.) using kat comp to quantify the content you are removing using 
-that cutoff.  Missing content is evident as a black peak below the main red peak and 
-will increase in height as you remove more content.  The choice of cutoff is a trade-off 
-between reducing the number of contigs in the assembly and keeping as much content as 
-possible. 
+assembly as these contigs are often not useful in downstream analysis. It is common to
+remove contigs shorter than 200bp, 500bp or 1Kbp but it can be a problem deciding which
+cutoff to use as you don't want to remove useful content from the assembly.  The
+spectra-cn plot is useful here as you can check assembly files (with no cutoff, 200 bp
+cutoff, 500bp cutoff etc.) using kat comp to quantify the content you are removing using
+that cutoff.  Missing content is evident as a black peak below the main red peak and
+will increase in height as you remove more content.  The choice of cutoff is a trade-off
+between reducing the number of contigs in the assembly and keeping as much content as
+possible.
 
 Heterozygous genomes
 ~~~~~~~~~~~~~~~~~~~~
 
 Heterozygous genomes produce more interesting and complex plots, since the k-mer
 spectra clearly shows different distributions for both the heterozygous and
-homozygous content.  The following plots show the two extremes of how a heterozygous 
-assembly could look.  The hererozygous content is represented by the first 
-peak at x=50 and the homozygous content in the second peak at x=100.  In the first 
-plot we have a single haplotype mosaic, where the bubbles in the graph are collapsed 
-and each heterozygous region is represented once in the assembly. This is what we 
-typically would expect to get out of a perfect assembly.  The lost content (the 
-black peak) represents the half of the heterozygous content that is lost when bubbles 
-are collapsed.  In the second case, haplotypes are separated by duplicating all the 
-homozygous regions and allowing us to fully capture the heterozygous content.  We 
+homozygous content.  The following plots show the two extremes of how a heterozygous
+assembly could look.  The hererozygous content is represented by the first
+peak at x=50 and the homozygous content in the second peak at x=100.  In the first
+plot we have a single haplotype mosaic, where the bubbles in the graph are collapsed
+and each heterozygous region is represented once in the assembly. This is what we
+typically would expect to get out of a perfect assembly.  The lost content (the
+black peak) represents the half of the heterozygous content that is lost when bubbles
+are collapsed.  In the second case, haplotypes are separated by duplicating all the
+homozygous regions and allowing us to fully capture the heterozygous content.  We
 don't typically, aim for the second scenario when assembling genomes.
 
 .. image:: images/heterozygous_perfect_1.png
@@ -378,13 +378,14 @@ duplications, inclusion of extra variation, etc:
 Distribution decomposition analysis
 -----------------------------------
 
-It's useful to be able to fit distributions to each peak in a k-mer histogram or spectra-cn matrix
+It's useful to be able to fit distributions to each peak in a k-mer histogram, spectra-cn matrix
 in order to work out how many distinct k-mers can be associated with those distributions.  By counting
-k-mers in this way we can make predictions around genome size, heterozygous rates (if diploid) and 
+k-mers in this way we can make predictions around genome size, heterozygous rates (if diploid) and
 assembly completeness.  To this end we bundle a script with kat called kat_distanalysis.py.  It takes
 in either a spectra-cn matrix file, or kat histogram file as input, then proceeds to identify peaks
 and fit distributions to each one.  In the case of spectra-cn matrix files it also identifies peaks
-for each copy number for an assembly.
+for each copy number for an assembly.  Alternatively, for matrix files generated by KAT GCP, it will also identify
+peaks associated with GC content.
 
 The user can help to get correct predictions out of the tool by providing an approximate frequency for
 the homozygous part of the distribution.  By default, this is assumed to be the last peak.  For example,
@@ -402,9 +403,6 @@ might produce the following output for this tetraploid genome:
 
 
 
-
-
-
 Finding repetitive regions in assemblies
 ----------------------------------------
 
@@ -413,9 +411,8 @@ can easily be done with the following command::
 
     kat sect -E -F [options] <assembly_file> <assembly_file>
 
-This counts k-mers in the assembly and then marks up the sequences in the assembly 
+This counts k-mers in the assembly and then marks up the sequences in the assembly
 with k-mer counts at each position.  Regions that have a count of 1 are extracted
 into a new FastA file containing non-repetitive content and regions that have a count
 of 2-20 (maximum threshold can be adjusted) are extracted to FastA file containing
 the repetitive content.
-

@@ -284,6 +284,7 @@ namespace kat {
         path getMxOutPath() { return path(string(outputPrefix.string() + "-main.mx")); }
 
         void plot(const string& output_type);
+        void analysePeaks();
 
 
     private:

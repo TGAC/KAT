@@ -33,11 +33,11 @@ class KmerSpectra(object):
 		return self.fitted_histogram
 
 	###----------------- FIND AND CREATE PEAKS --------------------
-	def analyse(self,min_perc=1, min_elem=100000, verbose=False):
+	def analyse(self,min_perc=1, min_elem=100000, verbose=False, gcd=False):
 		if verbose:
 			print("Creating initial peaks...", end="")
 			sys.stdout.flush()
-		self.create_peaks(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
+		self.create_peaks(min_perc=min_perc, min_elem=min_elem, verbose=verbose, gcd=gcd)
 
 		if self.peaks:
 			if verbose:
@@ -58,7 +58,7 @@ class KmerSpectra(object):
 					print("done.", len(self.peaks), "peaks present after optimisation:")
 					self.printPeaks()
 			except:
-				print("\n\nWARNING: problem optimising peaks. Output for this spectra may not be valid.\n", file=sys.stderr)
+				print("WARNING: problem optimising peaks. It is likely that the spectra is either too complex to analyse properly.  Output for this spectra may not be valid.", file=sys.stderr)
 				pass
 		elif verbose:
 			print("done. No peaks created")
@@ -156,17 +156,18 @@ class KmerSpectra(object):
 					self.peaks.sort(key=lambda x: x.mean)
 		return True
 
-	def create_peaks(self, min_perc, min_elem, verbose=False):
+	def create_peaks(self, min_perc, min_elem, verbose=False, gcd=False):
 
 		# walk till first local minimum (d(f)>0)
 		# Double check the following two steps, rather than just the next one.
 		# Sometimes we can get a strange laddering affect in alternate frequencies which prevent
 		# us from correctly detecting the minima
 		fmin = 0
-		for i in range(1, len(self.histogram) - 2):
-			if self.histogram[i] < self.histogram[i+1] and self.histogram[i] < self.histogram[i+2]:
-				fmin = i
-				break
+		if not gcd:
+			for i in range(1, len(self.histogram) - 2):
+				if self.histogram[i] < self.histogram[i+1] and self.histogram[i] < self.histogram[i+2]:
+					fmin = i
+					break
 
 		# Sometimes we might not find a local minima, it depends on what sort of content is in the spectra.
 		# In this case just reset all spectra measures
@@ -177,7 +178,7 @@ class KmerSpectra(object):
 		# Find the global fm|p(fm)=max(p)
 		fmax = self.histogram.index(max(self.histogram[fmin:]))
 
-		if fmax < 10:
+		if not gcd and fmax < 10:
 			#print("Kmer count at max frequency  is < 10.  Not enough data to perform analysis.")
 			return
 
@@ -188,8 +189,9 @@ class KmerSpectra(object):
 
 		# Explore fm/x and fm*x for x in [1,4]
 		for f in [fmax / 4.0, fmax / 3.0, fmax / 2.0, fmax, fmax * 2, fmax * 3, fmax * 4]:
-			if int(f / 5.0) > 0 and f + f / 5.0 < len(self.histogram):
-				lm = self.find_maxima(int(f), int(f / 5.0), min_perc, min_elem)
+			radius = f / 3.0
+			if int(radius) > 0 and int(f - radius) > 0 and int(f + radius) < len(self.histogram):
+				lm = self.find_maxima(int(f), int(radius), min_perc, min_elem)
 				if lm:
 					self.add_peak_and_update_cuts(lm, reset_opt=True)
 
@@ -454,19 +456,20 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
 
 		# Create the peaks
-		print("\nAnalysing spectra")
+		if verbose:
+			print("Analysing spectra")
 		self.spectra.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
 		if self.spectra.peaks:
 			self.limy = int(max(int(self.spectra.maxval * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.spectra.peaks[-1].mean * 2, len(self.spectra.histogram)), self.limx))
 
 		if verbose:
-			print("\nPlot limits: y->%d, x->%d" % (self.limy, self.limx))
+			print("Plot limits: y->%d, x->%d" % (self.limy, self.limx))
 
 	def peak_stats(self):
 		print()
-		print("Spectra statistics")
-		print("------------------")
+		print("K-mer frequency spectra statistics")
+		print("----------------------------------")
 		self.spectra.printGenomeStats(self.hom_peak)
 
 class GCKmerSpectraAnalysis(SpectraAnalysis):
@@ -504,7 +507,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		print("--------------")
 		print()
 		if len(self.cov_spectra.peaks) == 0:
-			print("No peaks in K-mer coverage histogram.  Not plotting.")
+			print("No peaks in K-mer frequency histogram.  Not plotting.")
 		else:
 
 			self.cov_spectra.printPeaks()
@@ -553,28 +556,30 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
 
 		# Create the peaks
-		print("\nAnalysing K-mer coverage spectra")
+		if verbose:
+			print("Analysing K-mer spectra")
 		self.cov_spectra.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
 		if self.cov_spectra.peaks:
 			self.limy = int(max(int(self.cov_spectra.maxval * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.cov_spectra.peaks[-1].mean * 2, len(self.cov_spectra.histogram)), self.limx))
 
 		if verbose:
-			print("\nPlot limits: y->%d, x->%d" % (self.limy, self.limx))
+			print("Plot limits: y->%d, x->%d" % (self.limy, self.limx))
 
 		# Create the peaks
-		print("\nAnalysing GC distribution")
-		self.gc_dist.analyse(min_perc=1, min_elem=len(self.gc_dist.histogram), verbose=verbose)
+		if verbose:
+			print("Analysing GC distribution")
+		self.gc_dist.analyse(min_perc=1, min_elem=len(self.gc_dist.histogram), verbose=verbose, gcd=True)
 
 
 	def peak_stats(self):
 		print()
-		print("K-mer Coverage Spectra statistics")
-		print("---------------------------------")
+		print("K-mer frequency spectra statistics")
+		print("----------------------------------")
 		self.cov_spectra.printGenomeStats(self.hom_peak)
 		print()
 		print("GC distribution statistics")
-		print("---------------------------------")
+		print("--------------------------")
 		# Step 4, genome stats
 		print("K-value used:", str(self.gc_dist.k))
 		print("Peaks in analysis:", str(len(self.gc_dist.peaks)))
@@ -758,12 +763,12 @@ def main():
 		description="""Analyse a comp matrix file with respect to the distributions and copy numbers seen within.""")
 
 	parser.add_argument("input", type=str,
-						help="The input should be either a KAT spectra-cn matrix file or a KAT histogram file.")
+						help="The input should be either a KAT spectra-cn matrix file a KAT GCP matrix file or a KAT histogram file.")
 
 	parser.add_argument("-o", "--output_prefix",
 						help="If present then plots are sent to files starting with this prefix.")
 	parser.add_argument("-c", "--cns", type=int, default=4,
-						help="The number of copy numbers to consider in the analysis.  Only applicable if input is a matrix file.")
+						help="The number of copy numbers to consider in the analysis.  Only applicable if input is a spectra-cn matrix file.")
 	parser.add_argument("-f", "--freq_cutoff", type=int, default=500,
 						help="The maximum frequency cutoff point to consider.  Analysis will be done up to this frequency.")
 	parser.add_argument("-p", "--min_perc", type=float, default=1.0,
@@ -779,20 +784,27 @@ def main():
 
 	args = parser.parse_args()
 
+	if args.verbose:
+		print("\n\nAnalysing distributions for:", args.input)
+
 	k, mx, gcp = get_properties_from_file(args.input)
-	print("Input file generated using K", k)
+	if args.verbose:
+		print("Input file generated using K", k)
 
 	a = None
 	if mx:
 		if gcp:
-			print("GC vs Coverage matrix file detected")
+			if args.verbose:
+				print("GC vs Coverage matrix file detected")
 			a = GCKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 		else:
-			print("Copy number spectra matrix file detected")
-			print("Processing", args.cns, "spectra")
+			if args.verbose:
+				print("Copy number spectra matrix file detected")
+				print("Processing", args.cns, "spectra")
 			a = MXKmerSpectraAnalysis(args.input, cns_cutoff=args.cns, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 	else:
-		print("Kmer coverage histogram file detected")
+		if args.verbose:
+			print("Kmer coverage histogram file detected")
 		a = HistKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 
 	if not a:
@@ -802,7 +814,7 @@ def main():
 		start = time.time()
 		a.analyse(min_perc=args.min_perc, min_elem=args.min_elem, verbose=args.verbose)
 		end = time.time()
-		print("\nTime taken to analyse data: ", end - start, "seconds")
+		print(("" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
 		a.peak_stats()
 		if args.plot or args.output_prefix:
 			a.plot(to_screen=args.plot, to_files=args.output_prefix)

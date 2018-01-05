@@ -64,10 +64,6 @@ using kat::ThreadedSparseMatrix;
 using kat::SparseMatrix;
 
 #include "plot.hpp"
-#include "plot_spectra_cn.hpp"
-#include "plot_density.hpp"
-using kat::PlotSpectraCn;
-using kat::PlotDensity;
 using kat::Plot;
 
 
@@ -487,6 +483,82 @@ void kat::Comp::compareSlice(int th_id) {
     mu.unlock();
 }
 
+void kat::Comp::analysePeaks() {
+#ifdef HAVE_PYTHON
+    if (this->densityPlot && this->outputHists) {
+        cout << "Analysing peaks for dataset 1 ... ";
+        cout.flush();
+
+        vector<string> args;
+        args.push_back("kat_distanalysis.py");
+        if (verbose) {
+            args.push_back("--verbose");
+        }
+        args.push_back(outputPrefix.string() + ".1.hist");
+
+        char* char_args[50];
+
+        for(size_t i = 0; i < args.size(); i++) {
+            char_args[i] = strdup(args[i].c_str());
+        }
+
+        PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+
+        for(size_t i = 0; i < args.size(); i++) {
+            free(char_args[i]);
+        }
+
+        cout << endl << "Analysing peaks for dataset 2 ... ";
+        cout.flush();
+
+        args.clear();
+        args.push_back("kat_distanalysis.py");
+        if (verbose) {
+            args.push_back("--verbose");
+        }
+        args.push_back(outputPrefix.string() + ".2.hist");
+
+        for(size_t i = 0; i < args.size(); i++) {
+            char_args[i] = strdup(args[i].c_str());
+        }
+
+        PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+
+        for(size_t i = 0; i < args.size(); i++) {
+            free(char_args[i]);
+        }
+
+        cout << endl;
+    }
+    else if (!this->densityPlot) {
+        cout << "Analysing peaks for spectra copy number matrix ... ";
+        cout.flush();
+
+        vector<string> args;
+        args.push_back("kat_distanalysis.py");
+        if (verbose) {
+            args.push_back("--verbose");
+        }
+        args.push_back(getMxOutPath().string());
+
+        char* char_args[50];
+
+        for(size_t i = 0; i < args.size(); i++) {
+            char_args[i] = strdup(args[i].c_str());
+        }
+
+        PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+
+        for(size_t i = 0; i < args.size(); i++) {
+            free(char_args[i]);
+        }
+
+    }
+    else {
+        cout << "Current configuration does not support peak analysis." << endl;
+    }
+#endif
+}
 
 void kat::Comp::plot(const string& output_type) {
 
@@ -495,99 +567,54 @@ void kat::Comp::plot(const string& output_type) {
     cout << "Creating plot(s) ...";
     cout.flush();
 
-    bool res = true;
-    string kstr = lexical_cast<string>(this->getMerLen());
-
     // Plot results
     if (densityPlot) {
-
         path outputFile = path(getMxOutPath().string() + ".density." + output_type);
-
-#if HAVE_PYTHON
         vector<string> args;
         args.push_back("kat_plot_density.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(getMxOutPath().string());
-        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
-#elif HAVE_GNUPLOT
-        PlotDensity pd(getMxOutPath(), outputFile);
-        pd.setOutputType(output_type);
-        res = pd.plot();
-
-        if (!res) {
-            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-            return;
+        if (verbose) {
+            args.push_back("--verbose");
         }
-
-#endif
-
+        args.push_back(getMxOutPath().string());
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
     }
     else {
-
         path outputFile = path(getMxOutPath().string() + ".spectra-cn." + output_type);
-
-#if HAVE_PYTHON
-
         vector<string> args;
         args.push_back("kat_plot_spectra-cn.py");
         args.push_back(string("--output=") + outputFile.string());
-        args.push_back(getMxOutPath().string());
-        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args, this->verbose);
-
-#elif HAVE_GNUPLOT
-        PlotSpectraCn pscn(getMxOutPath(), path(getMxOutPath().string() + ".spectra-cn." + output_type));
-        pscn.setOutputType(output_type);
-        res = pscn.plot();
-
-        if (!res) {
-            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-            return;
+        if (verbose) {
+            args.push_back("--verbose");
         }
-#endif
+        args.push_back(getMxOutPath().string());
+        Plot::executePythonPlot(Plot::PlotMode::SPECTRA_CN, args);
     }
-/*
-    if (outputHists) {
+
+    if (this->outputHists) {
 
         path outputFile1 = path(outputPrefix.string() + ".1.hist." + output_type);
         path outputFile2 = path(outputPrefix.string() + ".2.hist." + output_type);
 
-#if HAVE_PYTHON
-
         vector<string> args1;
         args1.push_back("kat_plot_spectra-hist.py");
         args1.push_back(string("--output=") + outputFile1.string());
+        if (verbose) {
+            args1.push_back("--verbose");
+        }
         args1.push_back(outputPrefix.string() + ".1.hist");
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args1);
 
         vector<string> args2;
         args2.push_back("kat_plot_spectra-hist.py");
         args2.push_back(string("--output=") + outputFile2.string());
+        if (verbose) {
+            args2.push_back("--verbose");
+        }
         args2.push_back(outputPrefix.string() + ".2.hist");
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args2);
-
-#elif HAVE_GNUPLOT
-
-        PlotSpectraHist psh(input[0].input, outputFile1);
-        psh.setOutputType(output_type);
-        bool res1 = psh.plot();
-
-        if (!res1) {
-            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-            return;
-        }
-
-        PlotSpectraHist psh(input[1].input, outputFile2);
-        psh.setOutputType(output_type);
-        bool res2 = psh.plot();
-
-        if (!res2) {
-            cout << endl << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-            return;
-        }
-
-#endif
     }
-*/
+
     cout << " done.";
     cout.flush();
 }
@@ -799,10 +826,16 @@ int kat::Comp::main(int argc, char *argv[]) {
     // Save results to disk
     comp.save();
 
-    // Plot results
+    // Use python scripts for plotting and distribution analysis if configuration supports it
+#ifdef HAVE_PYTHON
     comp.plot(plot_output_type);
+    comp.analysePeaks();
+#endif
 
     // Send K-mer statistics to stdout as well
+    cout << endl
+         << "Summary statistics" << endl
+         << "------------------" << endl << endl;
     comp.printCounters(cout);
 
     return 0;

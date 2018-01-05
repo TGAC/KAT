@@ -49,14 +49,13 @@ using boost::lexical_cast;
 #include <kat/jellyfish_helper.hpp>
 #include <kat/sparse_matrix.hpp>
 #include <kat/input_handler.hpp>
+#include <kat/pyhelper.hpp>
 using kat::InputHandler;
 using kat::HashLoader;
 using kat::ThreadedSparseMatrix;
 using kat::SparseMatrix;
 
-#include "plot_density.hpp"
 #include "plot.hpp"
-using kat::PlotDensity;
 using kat::Plot;
 
 #include "gcp.hpp"
@@ -208,27 +207,47 @@ void kat::Gcp::plot(const string& output_type) {
 
     string outputFile = outputPrefix.string() + ".mx." + output_type;
 
-#if HAVE_PYTHON
+#ifdef HAVE_PYTHON
         vector<string> args;
         args.push_back("kat_plot_density.py");
         args.push_back(string("--output=") + outputFile);
+        if (verbose) {
+            args.push_back("--verbose");
+        }
         args.push_back(outputPrefix.string() + ".mx");
-        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args, this->verbose);
-#elif HAVE_GNUPLOT
-
-    PlotDensity pd(path(outputPrefix.string() + ".mx"), path(outputPrefix.string() + ".mx." + output_type));
-    pd.setOutputType(output_type);
-    bool res = pd.plot();
-
-    if (!res) {
-        cout << "WARNING: gnuplot session not valid.  Probably gnuplot is not installed correctly on your system.  No plots produced.";
-        return;
-    }
-
+        Plot::executePythonPlot(Plot::PlotMode::DENSITY, args);
 #endif
 
     cout << " done.";
     cout.flush();
+}
+
+void kat::Gcp::analysePeaks() {
+#ifdef HAVE_PYTHON
+    cout << "Analysing peaks ... ";
+    cout.flush();
+
+    vector<string> args;
+    args.push_back("kat_distanalysis.py");
+    if (verbose) {
+        args.push_back("--verbose");
+    }
+    args.push_back(outputPrefix.string() + ".mx");
+
+    char* char_args[50];
+
+    for(size_t i = 0; i < args.size(); i++) {
+        char_args[i] = strdup(args[i].c_str());
+    }
+
+    PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+
+    for(size_t i = 0; i < args.size(); i++) {
+        free(char_args[i]);
+    }
+
+    cout << endl;
+#endif
 }
 
 int kat::Gcp::main(int argc, char *argv[]) {
@@ -337,8 +356,15 @@ int kat::Gcp::main(int argc, char *argv[]) {
     // Save results
     gcp.save();
 
+#ifdef HAVE_PYTHON
+
     // Plot results
     gcp.plot(plot_output_type);
+
+    // Run the distribution analysis script
+    gcp.analysePeaks();
+
+#endif
 
     return 0;
 }

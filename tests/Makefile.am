@@ -27,7 +27,8 @@ AM_CPPFLAGS =  -isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 			-isystem $(top_srcdir)/deps/boost \
 	    -isystem $(top_srcdir)/lib/include \
 	    -DDATADIR=\"$(srcdir)/data\" \
-	    @AM_CPPFLAGS@
+		-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
+		@AM_CPPFLAGS@
 
 TEST_EXTENSIONS = .sh
 SH_LOG_COMPILER = $(SHELL)

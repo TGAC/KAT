@@ -165,6 +165,7 @@ namespace kat {
         void save();
 
         void plot(const string& output_type);
+        void analysePeaks();
 
     protected:
 

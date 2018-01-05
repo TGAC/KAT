@@ -12,7 +12,7 @@ KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta o
    - **filter**: Filtering tools.  Contains tools for filtering k-mer hashes and FastQ/A files:
      - **kmer**:         Produces a k-mer hash containing only k-mers within specified coverage and GC tolerances.
      - **seq**:          Filters a sequence file based on whether or not the sequences contain k-mers within a provided hash.
-   - **plot**:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare distributions. Requires gnuplot.  The following plot tools are available:
+   - **plot**:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare distributions. The following plot tools are available:
      - **density**:      Creates a density plot from a matrix created with the "comp" tool.  Typically this is used to compare two K-mer hashes produced by different NGS reads.
      - **profile**:      Creates a K-mer coverage plot for a single sequence.  Takes in fasta coverage output coverage from the "sect" tool
      - **spectra-cn**:   Creates a stacked histogram using a matrix created with the "comp" tool.  Typically this is used to compare a jellyfish hash produced from a read set to a jellyfish hash produced from an assembly. The plot shows the amount of distinct K-mers absent, as well as the copy number variation present within the assembly.
@@ -37,12 +37,10 @@ To install KAT first confirm these dependencies are installed and configured on 
   - **libtool** V2.4.2+
   - **pthreads** (probably already installed)
   - **zlib**
-  - **Sphinx-doc** V1.3+ (Optional: only required for building the documentation.  Sphinx comes with anaconda3, however if not using anaconda3 then install according to the instructions on the sphinx website: [http://www.sphinx-doc.org/en/stable/instructions](http://www.sphinx-doc.org/en/stable/instructions)))
+  - **Python** V3.5+ with the *scipy*, *numpy* and *matplotlib* packages and C API installed.  This is optional but highly recommended, without python KAT functionality is limited: no plots, no distribution analysis, and no documentation.
+  - **Sphinx-doc** V1.3+ (Optional: only required for building the documentation.  
 
-In addition, KAT can only produce plots if one of the following plotting engines is installed.  We recommend using python plotting as this will produce nicer results:
-
-  - Option 1 (preferred): **python3, with matplotlib**.  We recommend installing anaconda3 (either directly or through miniconda) as this has all the required packages pre-installed, otherwise we need a python3 installation with development libraries and the *scipy*, *numpy* and *matplotlib* packages installed. If you don't wish to use anaconda and use your own system python installation please ensure the the python library must be available (this isn't normally provided with default installations). On debian systems you can install python development libraries with ```sudo apt-get install python3-dev```.
-  - Option 2: **gnuplot**.  This will produce basic plots but will not be as rich and detailed as with python3.
+NOTE ON INSTALLING PYTHON: Many system python installations do not come with the C API immediately available, which prevents KAT from embedding python code.  We typically would recommend installing anaconda3 as this would include the latest version of python, all required python packages as well as the C API.  If you are running a debian system and the C libraries are not available by default and you wish to use the system python installation the you can install them using: ```sudo apt-get install python-dev```.  
 
 Then proceed with the following steps:
 
@@ -50,7 +48,7 @@ Then proceed with the following steps:
   - Change directory into KAT project: ```cd KAT```
   - Build boost (this may take some time): ```./build_boost.sh```
   - Setup the KAT configuration scripts by typing: ```./autogen.sh```.
-  - Generate makefiles and confirm dependencies: ```./configure```. The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is ```/usr/local```, so the KAT executable would be found at ```/usr/local/bin``` by default.  In addition, it is useful to add ```--with-sse``` in order to enable the SSE instruction set.  Type ```./configure --help``` for full list of options.  Please check the output to ensure the configuration is setup as you'd expect (especially with regards to python / gnuplot).
+  - Generate makefiles and confirm dependencies: ```./configure```. The configure script can take several options as arguments.  One commonly modified option is ```--prefix```, which will install KAT to a custom directory.  By default this is ```/usr/local```, so the KAT executable would be found at ```/usr/local/bin``` by default.  In addition, it is useful to add ```--with-sse``` in order to enable the SSE instruction set.  Python functionality can be disabled using ```--disable-pykat```.  Type ```./configure --help``` for full list of options.  Please check the output to ensure the configuration is setup as you'd expect.
   - Compile software: ```make```.  You can leverage extra cores duing the compilation process using the ```-j <#cores>``` option.  Also you can see all command lines used to build the software by setting ```V=1```.
   - Run tests (optional) ```make check```.  (The ```-j``` and ```V=1``` options described above are also supported here.)
   - Install: ```make install```.  If you've not provided a specific installation directory, you will likely need to prefix this command with ```sudo``` in order to provide the permissions required to install to ```/usr/local```.

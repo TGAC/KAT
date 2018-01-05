@@ -64,9 +64,6 @@ using kat::InputHandler;
 using kat::JellyfishHelper;
 using kat::KatFS;
 
-#include "plot_density.hpp"
-using kat::PlotDensity;
-
 #include "filter_sequence.hpp"
 #include "comp.hpp"
 

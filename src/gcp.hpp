@@ -38,10 +38,12 @@ using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
 
+#include <kat/pyhelper.hpp>
 #include <kat/jellyfish_helper.hpp>
 #include <kat/input_handler.hpp>
 #include <kat/matrix_metadata_extractor.hpp>
 #include <kat/sparse_matrix.hpp>
+using kat::PyHelper;
 using kat::InputHandler;
 using kat::ThreadedSparseMatrix;
 
@@ -164,6 +166,8 @@ namespace kat {
         void save();
 
         void plot(const string& output_type);
+
+        void analysePeaks();
 
     protected:
 

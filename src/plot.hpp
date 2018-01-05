@@ -28,7 +28,9 @@ using std::vector;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include <kat/pyhelper.hpp>
 #include <kat/kat_fs.hpp>
+using kat::PyHelper;
 using kat::KatFS;
 
 namespace kat {
@@ -54,21 +56,13 @@ namespace kat {
 
         static path getPythonScript(const PlotMode mode);
 
-        static void executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose);
+        static void executePythonPlot(const PlotMode mode, vector<string>& args);
 
-        static void executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose);
-
-
-    private:
-        static wchar_t* convertCharToWideChar(const char* c);
+        static void executePythonPlot(const PlotMode mode, int argc, char *argv[]);
 
     protected:
 
         static PlotMode parseMode(const string& mode);
-
-
-        static void executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]);
-
 
         static string helpMessage() {
             return string("Usage: kat plot <mode>\n\n") +

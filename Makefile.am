@@ -18,20 +18,12 @@ EXTRA_DIST = \
 # Scripts NOT to install
 dist_noinst_SCRIPTS = autogen.sh antigen.sh build_boost.sh
 
-# Scripts to install
-dist_bin_SCRIPTS = \
-	scripts/kat_distanalysis.py \
-	scripts/kat_plot_misc.py \
-	scripts/kat_plot_colormaps.py \
-	scripts/kat_plot_density.py \
-	scripts/kat_plot_profile.py \
-	scripts/kat_plot_spectra-cn.py \
-	scripts/kat_plot_spectra-hist.py \
-	scripts/kat_plot_spectra-mx.py
-
-
 # SRC DIRS
 make_dirs=deps/jellyfish-2.2.0 deps/seqan-library-2.0.0 lib src tests
+
+if MAKE_PYKAT
+    make_dirs += scripts
+endif
 
 if MAKE_DOCS
     make_dirs += doc

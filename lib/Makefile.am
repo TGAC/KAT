@@ -35,6 +35,7 @@ libkat_la_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-isystem $(top_srcdir)/deps/boost \
 	-isystem $(top_srcdir)/lib/include \
+	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
 libkat_la_CXXFLAGS = -g -O3 -fwrapv \
