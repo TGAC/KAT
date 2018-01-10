@@ -37,11 +37,8 @@ def main():
                         help="Width of canvas")
     parser.add_argument("-l", "--height", type=int, default=6,
                         help="Height of canvas")
-    parser.add_argument("-i", "--ignore_absent", dest="ignore_absent",
-                        action="store_true",
-                        help="Ignore K-mers in reads but absent from the " \
-                        "assembly")
-    parser.set_defaults(ignore_absent=False)
+    parser.add_argument("-i", "--min_assembly_frequency", type=int, default=0,
+                        help="Display K-mers that appear less than n times in the genome")
     parser.add_argument("-m", "--max_dup", type=int, default=6,
                         help="Maximum duplication level to show in plots")
     parser.add_argument("-c", "--coverage_list", type=str,
@@ -108,7 +105,7 @@ def main():
         mincov = bands[0]
         covbands = bands[-1]
     else:
-        mincov = 1 if args.ignore_absent else 0
+        mincov = int(args.min_assembly_frequency) if args.min_assembly_frequency else 0
         covbands = args.max_dup
         for i in range(mincov, covbands):
             bands.append(i)
@@ -128,7 +125,7 @@ def main():
                "#fcaf3e",
                "#fce94f"]
     if mincov > 0:
-        colours = colours[1:]
+        colours = colours[mincov:]
 
     # leave only coverage levels we are interested in
     nm = np.zeros((len(bands),len(matrix[0])))
