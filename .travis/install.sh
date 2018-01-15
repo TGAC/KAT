@@ -26,9 +26,6 @@ else
         conda update -q conda;
         conda info -a
         conda create -q -n test-environment python=3.5 anaconda;
-    elif [ "$PLOT" == "gnuplot" ]; then
-        sudo apt-get install gnuplot
-        gnuplot --version;
     fi
 
 fi
