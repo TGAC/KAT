@@ -50,7 +50,7 @@ script:
 - if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment && export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/miniconda/envs/test-environment/lib"; fi
 - gcc --version
 - g++ --version
-- if [[ "$PLOT" == "python" ]]; then ./configure else ./configure --disable-pykat fi
+- if [[ "$PLOT" == "python" ]]; then ./configure; else ./configure --disable-pykat; fi
 - make V=1
 - make V=1 check
 #- make V=1 distcheck
