@@ -9,13 +9,13 @@ kat_CXXFLAGS = \
 	-g -O3 -fwrapv -Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
 	-Wno-unused-variable -Wno-unused-command-line-argument \
-	-static-libstdc++ -ansi -std=c++11 \
+	-static-libstdc++ -std=c++11 \
 	@AM_CXXFLAGS@
 
 kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost \
+	-isystem $(top_srcdir)/deps/boost_build/include \
 	-isystem $(top_srcdir)/lib/include \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
@@ -24,16 +24,17 @@ kat_LDFLAGS = \
 	-static \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
+	-L../deps/boost_build/lib \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
 	-lkat \
 	-lkat_jellyfish \
-	../deps/boost/stage/lib/libboost_timer.a \
-	../deps/boost/stage/lib/libboost_chrono.a \
-	../deps/boost/stage/lib/libboost_filesystem.a \
-	../deps/boost/stage/lib/libboost_program_options.a \
-	../deps/boost/stage/lib/libboost_system.a \
+	-l:libboost_timer.a \
+	-l:libboost_chrono.a \
+	-l:libboost_filesystem.a \
+	-l:libboost_program_options.a \
+	-l:libboost_system.a \
 	@AM_LIBS@
 
 noinst_HEADERS = \

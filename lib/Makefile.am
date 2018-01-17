@@ -6,9 +6,9 @@ pkgconfig_DATA = kat.pc
 lib_LTLIBRARIES = libkat.la
 
 libkat_la_LDFLAGS = \
-	-version-info 2:3:0 \
+	-version-info 2:4:0 \
 	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/stage/lib
+	-L../deps/boost_build/lib
 
 libkat_la_SOURCES = \
 	src/gnuplot_i.cc \
@@ -33,13 +33,14 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 
 libkat_la_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost \
+	-isystem $(top_srcdir)/deps/boost_build/include \
 	-isystem $(top_srcdir)/lib/include \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
-libkat_la_CXXFLAGS = -g -O3 -fwrapv \
-										-Wall -Wextra \
-										-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
-										-ansi -pedantic -Werror -std=c++11 \
-										@AM_CXXFLAGS@
+libkat_la_CXXFLAGS = \
+	-g -O3 -fwrapv \
+	-Wall -Wextra \
+	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
+	-Werror -std=c++11 -static-libstdc++ \
+	@AM_CXXFLAGS@
