@@ -257,6 +257,7 @@ EOD`
 			# use the official shared library
 			ac_python_library=`echo "$ac_python_library" | sed "s/^lib//"`
 			PYTHON_LIBS="-L$ac_python_libdir -l$ac_python_library"
+			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
 		else
 			# old way: use libpython from python_configdir
 			ac_python_libdir=`$PYTHON -c \
@@ -264,6 +265,7 @@ EOD`
 			  import os; \
 			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
 			PYTHON_LIBS="-L$ac_python_libdir -lpython$ac_python_version"
+			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
 		fi
 
 		if test -z "PYTHON_LIBS"; then
@@ -275,6 +277,7 @@ EOD`
 	fi
 	AC_MSG_RESULT([$PYTHON_LIBS])
 	AC_SUBST([PYTHON_LIBS])
+	AC_SUBST([PYTHON_RPATH])
 
 	#
 	# Check for site packages
