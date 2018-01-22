@@ -273,7 +273,7 @@ EOD`
 			PYTHON_LIBS="-L$ac_python_libdir -lpython$ac_python_version"
 		fi
 		if test "x$ac_python_os" = "xDarwin"; then
-			PYTHON_RPATH="-rpath @$ac_python_libdir"
+			PYTHON_RPATH="-Xlinker -rpath -Xlinker $ac_python_libdir"
 		else
 			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
 		fi

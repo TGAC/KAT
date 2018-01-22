@@ -135,20 +135,16 @@ AC_SUBST([MAKE_DOCS])
 define([PC_FILE], lib/kat-2.2.pc)
 
 AM_CXXFLAGS="-g -O3"
-if test x"${UNAME_S}" == x"Linux"; then
-	AM_CXXFLAGS="-g -O3 -static-libstdc++"
-fi
-
 AC_SUBST([AM_CXXFLAGS])
 
 if [[ "${make_pykat}" == "yes" ]]; then
     AM_CPPFLAGS="${ZLIB_CPPFLAGS} ${PYTHON_CPPFLAGS}"
     AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
-    AM_LDFLAGS="${ZLIB_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_RPATH}"
+    AM_LDFLAGS="${ZLIB_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_RPATH} -static-libstdc++"
 else
     AM_CPPFLAGS="${ZLIB_CPPFLAGS}"
     AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB}"
-    AM_LDFLAGS="${ZLIB_LDFLAGS}"
+    AM_LDFLAGS="${ZLIB_LDFLAGS} -static-libstdc++"
 fi
 
 AC_SUBST([AM_CPPFLAGS])
