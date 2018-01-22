@@ -227,6 +227,13 @@ EOD`
 		AC_DEFINE_UNQUOTED([HAVE_PYTHON], ["$ac_python_version"],
                                    [If available, contains the Python version number currently in use.])
 
+		# Get OS
+		ac_python_os=`cat<<EOD | $PYTHON -
+
+import platform
+print(platform.system())
+EOD`
+
 		# First, the library directory:
 		ac_python_libdir=`cat<<EOD | $PYTHON -
 
@@ -257,7 +264,6 @@ EOD`
 			# use the official shared library
 			ac_python_library=`echo "$ac_python_library" | sed "s/^lib//"`
 			PYTHON_LIBS="-L$ac_python_libdir -l$ac_python_library"
-			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
 		else
 			# old way: use libpython from python_configdir
 			ac_python_libdir=`$PYTHON -c \
@@ -265,6 +271,10 @@ EOD`
 			  import os; \
 			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
 			PYTHON_LIBS="-L$ac_python_libdir -lpython$ac_python_version"
+		fi
+		if test "x$ac_python_os" = "xDarwin"; then
+			PYTHON_RPATH="-rpath @$ac_python_libdir"
+		else
 			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
 		fi
 
@@ -278,7 +288,7 @@ EOD`
 	AC_MSG_RESULT([$PYTHON_LIBS])
 	AC_SUBST([PYTHON_LIBS])
 	AC_SUBST([PYTHON_RPATH])
-
+	
 	#
 	# Check for site packages
 	#
