@@ -28,13 +28,13 @@ kat_LDFLAGS = \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
+	../deps/boost_build/lib/libboost_timer.a \
+	../deps/boost_build/lib/libboost_chrono.a \
+	../deps/boost_build/lib/libboost_filesystem.a \
+	../deps/boost_build/lib/libboost_program_options.a \
+	../deps/boost_build/lib/libboost_system.a \
 	-lkat \
 	-lkat_jellyfish \
-	-l:libboost_timer.a \
-	-l:libboost_chrono.a \
-	-l:libboost_filesystem.a \
-	-l:libboost_program_options.a \
-	-l:libboost_system.a \
 	@AM_LIBS@
 
 noinst_HEADERS = \
