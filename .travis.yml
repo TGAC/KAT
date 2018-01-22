@@ -21,8 +21,8 @@ matrix:
               sudo: required
               compiler: gcc
               env: COMPILER=GCC5 PLOT=python
-              #- os: osx
-              #compiler: clang
+            - os: osx
+              compiler: clang
 
 # safelist
 branches:

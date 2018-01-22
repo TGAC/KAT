@@ -133,6 +133,10 @@ AC_SUBST([MAKE_DOCS])
 define([PC_FILE], lib/kat-2.2.pc)
 
 AM_CXXFLAGS=""
+if test x"${UNAME_S}" == x"Linux"; then
+	AM_CXXFLAGS="-static-libstdc++"
+fi
+
 AC_SUBST([AM_CXXFLAGS])
 
 if [[ "${make_pykat}" == "yes" ]]; then

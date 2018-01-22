@@ -9,7 +9,7 @@ kat_CXXFLAGS = \
 	-g -O3 -fwrapv -Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
 	-Wno-unused-variable -Wno-unused-command-line-argument \
-	-static-libstdc++ -std=c++11 \
+	-std=c++11 \
 	@AM_CXXFLAGS@
 
 kat_CPPFLAGS = \

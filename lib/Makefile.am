@@ -42,5 +42,5 @@ libkat_la_CXXFLAGS = \
 	-g -O3 -fwrapv \
 	-Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
-	-Werror -std=c++11 -static-libstdc++ \
+	-Werror -std=c++11 \
 	@AM_CXXFLAGS@
