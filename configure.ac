@@ -8,13 +8,15 @@ AC_INIT([kat],[2.4.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github
 AC_CONFIG_SRCDIR([src/kat.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
+: ${CXXFLAGS=""}
+: ${CFLAGS=""}
 AC_LANG_CPLUSPLUS
 AC_PROG_CXXCPP
 AC_PROG_CXX
 AC_PROG_INSTALL
 
 # Ensure there's C++11 support
-AX_CXX_COMPILE_STDCXX_11(,[mandatory])
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
 
 # Automake configuration.
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
@@ -132,9 +134,9 @@ AC_SUBST([MAKE_DOCS])
 
 define([PC_FILE], lib/kat-2.2.pc)
 
-AM_CXXFLAGS=""
+AM_CXXFLAGS="-g -O3"
 if test x"${UNAME_S}" == x"Linux"; then
-	AM_CXXFLAGS="-static-libstdc++"
+	AM_CXXFLAGS="-g -O3 -static-libstdc++"
 fi
 
 AC_SUBST([AM_CXXFLAGS])

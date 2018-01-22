@@ -39,8 +39,8 @@ libkat_la_CPPFLAGS = \
 	@AM_CPPFLAGS@
 
 libkat_la_CXXFLAGS = \
-	-g -O3 -fwrapv \
+	-fwrapv \
 	-Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
-	-Werror -std=c++11 \
+	-Werror \
 	@AM_CXXFLAGS@
