@@ -2,6 +2,7 @@
 
 if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     brew update
+    brew install autoconf automake libtool
 else
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     sudo apt-get update -qq

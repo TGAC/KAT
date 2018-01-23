@@ -9,14 +9,6 @@ matrix:
               sudo: required
               compiler: gcc
               env: PLOT=none
-              #            - os: linux
-              #sudo: required
-              #compiler: gcc
-              #env: PLOT=python
-              #- os: linux
-              #sudo: required
-              #compiler: gcc
-              #env: PLOT=gnuplot
             - os: linux
               sudo: required
               compiler: gcc
@@ -34,7 +26,7 @@ branches:
 before_install:
 - ./.travis/before_install.sh
 
-# Install dependencies: (Boost and python, and setup KAT)
+# Install dependencies: python
 install:
 - ./.travis/install.sh
 
@@ -47,10 +39,9 @@ install:
 # Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
 - if [[ "$COMPILER" == "GCC5" ]]; then export CXX="g++-5" && export CC="gcc-5"; elif [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX="g++-4.9" && export CC="gcc-4.9"; fi
-- if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment && export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/miniconda/envs/test-environment/lib"; fi
+- if [[ "$PLOT" == "python" ]] || [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment; fi
 - gcc --version
 - g++ --version
 - if [[ "$PLOT" == "python" ]]; then ./configure; else ./configure --disable-pykat; fi
 - make V=1
 - make V=1 check
-#- make V=1 distcheck
