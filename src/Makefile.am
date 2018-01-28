@@ -23,15 +23,15 @@ kat_LDFLAGS = \
 	-static \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost_build/lib \
+	-L../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
-	../deps/boost_build/lib/libboost_timer.a \
-	../deps/boost_build/lib/libboost_chrono.a \
-	../deps/boost_build/lib/libboost_filesystem.a \
-	../deps/boost_build/lib/libboost_program_options.a \
-	../deps/boost_build/lib/libboost_system.a \
+	../deps/boost/build/lib/libboost_timer.a \
+	../deps/boost/build/lib/libboost_chrono.a \
+	../deps/boost/build/lib/libboost_filesystem.a \
+	../deps/boost/build/lib/libboost_program_options.a \
+	../deps/boost/build/lib/libboost_system.a \
 	-lkat \
 	-lkat_jellyfish \
 	@AM_LIBS@

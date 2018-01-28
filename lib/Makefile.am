@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libkat.la
 libkat_la_LDFLAGS = \
 	-version-info 2:4:0 \
 	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost_build/lib
+	-L../deps/boost/build/lib
 
 libkat_la_SOURCES = \
 	src/gnuplot_i.cc \
@@ -33,7 +33,7 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 
 libkat_la_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost_build/include \
+	-isystem $(top_srcdir)/deps/boost/build/include \
 	-isystem $(top_srcdir)/lib/include \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@

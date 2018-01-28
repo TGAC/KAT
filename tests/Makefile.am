@@ -26,7 +26,7 @@ AM_CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unuse
 AM_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost_build/include \
+	-isystem $(top_srcdir)/deps/boost/build/include \
 	-isystem $(top_srcdir)/lib/include \
 	-DDATADIR=\"$(srcdir)/data\" \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
@@ -58,7 +58,7 @@ check_unit_tests_LDFLAGS = \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
 	-L../deps/boost_build/lib \
-	-Wl,-rpath=../deps/boost_build/lib \
+	-Wl,-rpath=../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 check_unit_tests_LDADD = \

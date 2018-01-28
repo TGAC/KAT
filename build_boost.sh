@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 # Where the boost include and lib files get sent to
-INST_DIR=../boost_build
+INST_DIR=build
 
 # Git method
 # Ensure the boost submodule is present
