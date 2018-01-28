@@ -33,14 +33,16 @@ branches:
 install:
 - ./.travis/install.sh
 
+before_script:
 # Build boost: comes with KAT but has a non-autotools build system so must be created separately
 - ./build_boost.sh
-
 # Generate KAT and Jellyfish configration scripts
 - ./autogen.sh
 
-# Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
+# Sanity check to make sure we have the correct compiler (on linux)
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then gcc --version; fi
+# Make sure python's available at runtime (if necessary) and then build KAT and run tests
 - if [[ "$PYTHON" == "YES" ]]; then 
     export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment && ./configure --with-sse;
   else
@@ -48,3 +50,4 @@ script:
   fi
 - make V=1
 - make V=1 check
+- cat tests/test-suite.log

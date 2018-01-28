@@ -57,7 +57,7 @@ check_unit_tests_LDFLAGS = \
 	-L. \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost_build/lib \
+	-L../deps/boost/build/lib \
 	-Wl,-rpath=../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
