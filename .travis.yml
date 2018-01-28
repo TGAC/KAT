@@ -52,5 +52,5 @@ script:
 - make V=1
 # Only run tests on linux.  The tests will likely fail on Mac.  For now at least.
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
-    make V=1 check; cat tests/test-suite.log
+    make V=1 check; cat tests/test-suite.log;
   fi
