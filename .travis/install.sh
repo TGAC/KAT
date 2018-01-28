@@ -5,7 +5,9 @@ if [[ $TRAVIS_OS_NAME == 'osx' ]]; then
     brew install autoconf automake libtool
 
     # install anaconda
-    wget https://repo.continuum.io/miniconda/Miniconda3-4.3.31-MacOSX-x86_64.sh -O miniconda.sh;
+    if [[ "$PYTHON" == "YES" ]]; then
+        wget https://repo.continuum.io/miniconda/Miniconda3-4.3.31-MacOSX-x86_64.sh -O miniconda.sh;
+    fi
 
 else
     sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -35,7 +37,7 @@ else
 
 
     # Plotting installation
-    if [[ "$PLOT" == "python" ]]; then
+    if [[ "$PYTHON" == "YES" ]]; then
         wget https://repo.continuum.io/miniconda/Miniconda3-4.3.31-Linux-x86_64.sh -O miniconda.sh;
     fi
 

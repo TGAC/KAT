@@ -33,7 +33,7 @@ install:
 
 # Make sure python's available at runtime (if necessary) and then build KAT and run tests
 script:
-- if [[ "$PLOT" == "python" ]]; then 
+- if [[ "$PYTHON" == "YES" ]]; then 
     export PATH="$HOME/miniconda/bin:$PATH" && source activate test-environment && ./configure --with-sse;
   else
     ./configure --with-sse --disable-pykat;
