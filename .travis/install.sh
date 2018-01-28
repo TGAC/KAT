@@ -20,17 +20,23 @@ else
     sudo apt-get install -qq zlib1g zlib1g-dev
     
     if [ "$COMPILER" == "GCC5" ]; then
-        sudo apt-get install -qq gcc-5.4 g++-5.4
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5.4 100
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.4 100
-        export CXX="g++-5.4"
-        export CC="gcc-5.4"
+        sudo apt-get install -qq gcc-5 g++-5
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 100
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 100
+        export CXX="g++-5"
+        export CC="gcc-5"
     elif [ "$COMPILER" == "GCC6" ]; then
-        sudo apt-get install -qq gcc-6.4 g++-6.4
-        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6.4 100
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6.4 100
-        export CXX="g++-6.4"
-        export CC="gcc-6.4"
+        sudo apt-get install -qq gcc-6 g++-6
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 100
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 100
+        export CXX="g++-6"
+        export CC="gcc-6"
+    elif [ "$COMPILER" == "GCC7" ]; then
+        sudo apt-get install -qq gcc-7 g++-7
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 100
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 100
+        export CXX="g++-7"
+        export CC="gcc-7"
     else
         sudo apt-get install -qq gcc-4.9 g++-4.9
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 100

@@ -14,7 +14,7 @@ kat_CXXFLAGS = \
 kat_CPPFLAGS = \
 	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
 	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost_build/include \
+	-isystem $(top_srcdir)/deps/boost/build/include \
 	-isystem $(top_srcdir)/lib/include \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
