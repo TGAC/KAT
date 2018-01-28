@@ -25,6 +25,12 @@ else
         sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5.4 100
         export CXX="g++-5.4"
         export CC="gcc-5.4"
+    elif [ "$COMPILER" == "GCC6" ]; then
+        sudo apt-get install -qq gcc-6.4 g++-6.4
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6.4 100
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6.4 100
+        export CXX="g++-6.4"
+        export CC="gcc-6.4"
     else
         sudo apt-get install -qq gcc-4.9 g++-4.9
         sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 100
@@ -50,7 +56,6 @@ if [[ "$PYTHON" == "YES" ]]; then
     export PATH="$HOME/miniconda/bin:$PATH";
     hash -r;
     conda config --set always_yes yes --set changeps1 no;
-    conda update -q conda;
     conda info -a
-    conda create -q -n test-environment python=3.6 anaconda;
+    conda create -q -n test-environment python=3.6 numpy scipy matplotlib sphinx;
 fi
