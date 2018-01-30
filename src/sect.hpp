@@ -77,6 +77,7 @@ namespace kat {
         bool            outputGCStats;
         bool            extractNR;
         bool            extractR;
+        uint32_t        minRepeat;
         uint32_t        maxRepeat;
         bool            verbose;
 
@@ -195,6 +196,14 @@ namespace kat {
         void setMaxRepeat(uint32_t maxRepeat) {
             this->maxRepeat = maxRepeat;
         }
+        
+        uint32_t getMinRepeat() const {
+            return minRepeat;
+        }
+
+        void setMinRepeat(uint32_t minRepeat) {
+            this->minRepeat = minRepeat;
+        }
 
         path getSeqFile() const {
             return seqFile;
@@ -297,6 +306,7 @@ namespace kat {
                             "FastQ files.  In addition, a space separated table file containing the mean coverage score and GC " \
                             "of each sequence is produced.  The row order is identical to the original sequence file.\n\n" \
                             "NOTE: K-mers containing any Ns derived from sequences in the sequence file not be included.\n\n" \
+                            "WARNING: The <sequence_file> cannot be gzipped compressed.\n\n" \
                             "Options";
 
         }

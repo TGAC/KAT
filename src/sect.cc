@@ -75,7 +75,8 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     outputGCStats = false;
     extractNR = false;
     extractR = false;
-    maxRepeat = 20;
+    minRepeat = 2;
+    maxRepeat = 0;
     verbose = false;
     contamination_mx = nullptr;
 }
@@ -222,10 +223,10 @@ void kat::Sect::processSeqFile() {
             printGCCounts(*gc_count_path_stream);
 
         if (extractNR)
-            printRegions(*nr_path_stream, 1, 1);
+            printRegions(*nr_path_stream, 1, minRepeat);
 
         if (extractR)
-            printRegions(*r_path_stream, 2, maxRepeat);
+            printRegions(*r_path_stream, minRepeat, maxRepeat);
 
 
         // Output stats
@@ -374,6 +375,8 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
         uint32_t index = 1;
         uint32_t start = 0;
         shared_ptr<vector<uint64_t>> seqCounts = counts->at(i);
+        
+        string maxcntstr = max_count > 0 ? (string("-") + lexical_cast<string>(max_count)) : "+";
 
         if (seqCounts != NULL && !seqCounts->empty()) {
             bool inRegion = false;
@@ -381,7 +384,7 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
             for (size_t j = 0; j < seqCounts->size(); j++) {
                 uint64_t c = seqCounts->at(j);
 
-                if (c >= min_count && c <= max_count) {
+                if (c >= min_count && (c <= max_count || max_count == 0)) {
                     if (!inRegion) {
                         start = j;
                         inRegion = true;
@@ -390,7 +393,7 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
                 }
                 else if (inRegion) {
                     uint32_t end = j+this->getMerLen() - 1;
-                    out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << "-" << max_count << endl;
+                    out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << maxcntstr << endl;
                     out << ss.str();
                     for(size_t k = j+1; k < end; k++) {
                         out << seqs[i][k];
@@ -405,7 +408,7 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
             if (inRegion) {
                 uint32_t end = seqCounts->size() + this->getMerLen() - 1;
 
-                out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << "-" << max_count << endl;
+                out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << maxcntstr << endl;
                 out << ss.str();
                 for(size_t k = seqCounts->size(); k < end; k++) {
                     out << seqs[i][k];
@@ -615,6 +618,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     bool            output_gc_stats;
     bool            extract_nr;
     bool            extract_r;
+    uint32_t        min_repeat;
     uint32_t        max_repeat;
     bool            dump_hash;
     bool            verbose;
@@ -655,8 +659,10 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "Tells SECT extract non-repetitive regions into a separate FastA file.")
             ("extract_r,F", po::bool_switch(&extract_r)->default_value(false),
                 "Tells SECT extract repetitive regions into a separate FastA file.")
-            ("max_repeat,G", po::value<uint32_t>(&max_repeat)->default_value(20),
-                "If user requests repeat region extraction (--max_repeat), this value allows the user to override the default maximum limit on the amount of repetition allowed.  This allows users to avoid regions that are likely to be due to low complexity sequences.")
+            ("min_repeat,M", po::value<uint32_t>(&min_repeat)->default_value(2),
+                "If user requests repeat region extraction (--extract_r), this value allows the user to override the default minimum limit on the amount of repetition required.")
+            ("max_repeat,G", po::value<uint32_t>(&max_repeat)->default_value(0),
+                "If user requests repeat region extraction (--extract_r), this value allows the user to override the default maximum limit on the amount of repetition allowed.  This allows users to avoid regions that are likely to be due to low complexity sequences.  A value of 0 means no limit on max repeats.")
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false),
                         "Dumps any jellyfish hashes to disk that were produced during this run.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),
@@ -719,6 +725,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setOutputGCStats(output_gc_stats);
     sect.setExtractNR(extract_nr);
     sect.setExtractR(extract_r);
+    sect.setMinRepeat(min_repeat);
     sect.setMaxRepeat(max_repeat);
     sect.setDumpHash(dump_hash);
     sect.setVerbose(verbose);
