@@ -7,7 +7,7 @@ man1_MANS = doc/kat_jellyfish.man
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = kat_jellyfish.pc
 
-AM_LDFLAGS = $(ZLIB_LDFLAGS) $(ZLIB_LIB) -lpthread  # $(VALGRIND_LIBS)
+AM_LDFLAGS = $(ZLIB_LDFLAGS) $(ZLIB_LIB) -lpthread -static-libstdc++ # $(VALGRIND_LIBS)
 AM_CPPFLAGS = $(ZLIB_CPPFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include $(VALGRIND_CFLAGS)
 AM_CXXFLAGS = $(ALL_CXXFLAGS) -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -g -O3
 
