@@ -338,7 +338,7 @@ void kat::filter::FilterSeq::getProfile(seqan::CharString& sequence, vector<bool
     string s = ssSeq.str();
 
     uint64_t seqLength = s.length();
-    uint64_t nbCounts = seqLength - input.merLen + 1;
+    int64_t nbCounts = seqLength - input.merLen + 1;
     uint64_t nbInvalid = 0;
 
 
@@ -350,7 +350,7 @@ void kat::filter::FilterSeq::getProfile(seqan::CharString& sequence, vector<bool
 
     } else {
 
-        for (uint64_t i = 0; i < nbCounts; i++) {
+        for (int64_t i = 0; i < nbCounts; i++) {
 
             string merstr = s.substr(i, input.merLen);
 
