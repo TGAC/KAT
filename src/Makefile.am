@@ -6,8 +6,7 @@ bin_PROGRAMS = kat
 
 # Executable inputs
 kat_CXXFLAGS = \
-	-g -O3 \
-	-fwrapv -Wall -Wextra \
+	-fwrapv -Wall \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
 	-Wno-unused-variable -Wno-unused-command-line-argument \
 	@AM_CXXFLAGS@

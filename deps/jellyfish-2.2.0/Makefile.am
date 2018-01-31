@@ -8,8 +8,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = kat_jellyfish.pc
 
 AM_LDFLAGS = $(ZLIB_LDFLAGS) $(ZLIB_LIB) -lpthread -static-libstdc++ # $(VALGRIND_LIBS)
-AM_CPPFLAGS = $(ZLIB_CPPFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include $(VALGRIND_CFLAGS)
-AM_CXXFLAGS = $(ALL_CXXFLAGS) -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -Wno-implicit-fallthrough
+AM_CPPFLAGS = $(ZLIB_CPPFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include # $(VALGRIND_CFLAGS)
+AM_CXXFLAGS = $(ALL_CXXFLAGS) -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations
 
 noinst_HEADERS = $(YAGGO_SOURCES)
 bin_PROGRAMS =
@@ -206,7 +206,7 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 bin_test_all_SOURCES += jellyfish/backtrace.cc
 
 bin_test_all_CPPFLAGS = -DJSON_IS_AMALGAMATION=1 -I$(top_srcdir)/unit_tests/gtest/include -I$(top_srcdir)/unit_tests -I$(top_srcdir)/include
-bin_test_all_CXXFLAGS = $(ALL_CXXFLAGS) -g -O3
+bin_test_all_CXXFLAGS = $(ALL_CXXFLAGS)
 bin_test_all_LDADD = libgtest.la $(LDADD)
 YAGGO_SOURCES += unit_tests/test_main_cmdline.hpp
 noinst_HEADERS += unit_tests/test_main.hpp

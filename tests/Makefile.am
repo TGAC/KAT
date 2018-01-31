@@ -21,7 +21,11 @@ clean-local-check:
 	-rm -rf temp
 
 # additional include paths necessary to compile the C++ library
-AM_CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare
+AM_CXXFLAGS = \
+	-fwrapv -Wall -Wno-deprecated-declarations -Wno-unused-function \
+	-Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers \
+	-Wno-sign-compare \
+	@AM_CXXFLAGS@
 
 AM_CPPFLAGS = \
 	-I$(top_srcdir)/lib/include \

@@ -1,6 +1,8 @@
 AC_INIT([kat_jellyfish], [2.4.0], [gmarcais@umd.edu])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
+: ${CXXFLAGS=""}
+: ${CFLAGS=""}
 AM_INIT_AUTOMAKE([subdir-objects foreign parallel-tests color-tests])
 AM_SILENT_RULES([yes])
 AC_CONFIG_SRCDIR([jellyfish])
@@ -8,7 +10,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_PROG_LIBTOOL
 
 # Change default compilation flags
-AC_SUBST([ALL_CXXFLAGS], [-std=c++0x])
+AC_SUBST([ALL_CXXFLAGS], ["-g -O2 -std=c++0x"])
 AC_LANG(C++)
 AC_PROG_CXX
 
@@ -38,12 +40,17 @@ AC_CONFIG_FILES([
 )
 
 
-AC_ARG_WITH([sse],
-            [AS_HELP_STRING([--with-sse], [enable SSE])],
-            [], [with_sse=yes])
-AS_IF([test "x$with_sse" != xno],
-      [AC_DEFINE([HAVE_SSE], [1], [Define if you have SSE])],
-      [])
+
+#AC_ARG_WITH([sse],
+#            [AS_HELP_STRING([--with-sse], [enable SSE])],
+#            [], [with_sse=yes])
+#AS_IF([test "x$with_sse" != xno],
+#      [AC_DEFINE([HAVE_SSE], [1], [Define if you have SSE])],
+#      [])
+
+# Let's assume anyone running KAT / jellyfish has SSE.
+# If they don't then they probably won't mind a bit of extra runtime.
+AC_DEFINE([HAVE_SSE], [1], [Define if you have SSE])
 
 # Use valgrind to check memory allocation with mmap
 #AC_ARG_ENABLE([valgrind],

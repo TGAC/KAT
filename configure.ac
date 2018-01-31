@@ -76,7 +76,10 @@ AX_CHECK_ZLIB(, [AC_MSG_ERROR([zlib not found.  Please ensure that zlib is prope
 if test x"${UNAME_S}" != x"Darwin"; then
     AC_SEARCH_LIBS([clock_gettime], [rt],
         [RT_LIB="-lrt"],
-        [AC_MSG_ERROR([rt lib not found.  Please ensure that rt is properly built and configured.])])
+        [AC_MSG_ERROR([
+		rt lib not found.
+		Please ensure that rt is properly built and configured.
+		Note that this is normally available on most systems.])])
 else
     RT_LIB=""
 fi
@@ -89,11 +92,19 @@ if [[ "${make_pykat}" == "yes" ]]; then
     AX_PYTHON_DEVEL([>= '3.5'])
 
     if [[ -z "${PYTHON_VERSION}" ]]; then
-        AC_MSG_ERROR([Python3 not detected. If running on a debian system try "sudo apt-get install python3-dev".])
+        AC_MSG_ERROR([
+		Python3 not detected. 
+		We suggest installing python3 via conda with the required packages (numpy, scipy, matplotlib, sphinx).
+		Please see .travis/install.sh for details of how we do this.
+		Alternatively, try installing python anaconda.])
     fi
 
     if [[ -z "${PYTHON_EXTRA_LIBS}" ]]; then
-        AC_MSG_ERROR([Python3 detected but Python3 development library was not found. If running on a debian system try "sudo apt-get install python3-dev".])
+        AC_MSG_ERROR([
+		Python3 executable detected but Python3 development library was not found. 
+		We suggest installing python3 via conda with the required packages (numpy, scipy, matplotlib, sphinx).
+		Please see .travis/install.sh for details of how we do this.
+		Alternatively, try installing python anaconda.])
     fi
 
     pybin=python${PYTHON_VERSION}
@@ -134,7 +145,7 @@ AC_SUBST([MAKE_DOCS])
 
 define([PC_FILE], lib/kat-2.2.pc)
 
-AM_CXXFLAGS=""
+AM_CXXFLAGS="-g -O2"
 AC_SUBST([AM_CXXFLAGS])
 
 if [[ "${make_pykat}" == "yes" ]]; then
@@ -158,14 +169,17 @@ AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefil
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 
+pystr="detected ${PYTHON_VERSION}.  Plotting and downstream analysis enabled."
 if [[ "${make_pykat}" == "no" ]]; then
-    AC_MSG_NOTICE([Python functionality disabled.  No plotting or distribution analysis will be performed with this KAT build.])
-else
-    AC_MSG_NOTICE([Python configuration is compatible with KAT.  Plotting and distribution analyses will be performed by this build.])
+	pystr="no.  No plotting or downstream analysis will be performed."
+fi
+sphinxstr="detected. Docs will be built."
+if [[ "${sphinx}" == "no" ]]; then
+	sphinxstr="no.  Will not build docs. You can still find the documentation online at: https://kat.readthedocs.org/en/latest/"
 fi
 
-if [[ "${sphinx}" == "no" ]]; then
-    AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
-else
-    AC_MSG_NOTICE([Sphinx detected.  Documentation will be built.])
-fi
+AC_MSG_NOTICE([
+
+	Configuration status:
+	- Python V3.5+ - ${pystr}
+	- Sphinx V1.3+ - ${sphinxstr}])
