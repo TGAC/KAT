@@ -32,13 +32,14 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/comp_counters.hpp
 
 libkat_la_CPPFLAGS = \
-	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost/build/include \
-	-isystem $(top_srcdir)/lib/include \
+	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-I$(top_srcdir)/deps/boost/build/include \
+	-I$(top_srcdir)/lib/include \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
 libkat_la_CXXFLAGS = \
+	-g -O3 \
 	-fwrapv \
 	-Wall -Wextra \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \

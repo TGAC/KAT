@@ -21,13 +21,13 @@ clean-local-check:
 	-rm -rf temp
 
 # additional include paths necessary to compile the C++ library
-AM_CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare -std=c++11 @AM_CXXFLAGS@
+AM_CXXFLAGS=-g -O0 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-sign-compare
 
 AM_CPPFLAGS = \
-	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
-	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/deps/boost/build/include \
-	-isystem $(top_srcdir)/lib/include \
+	-I$(top_srcdir)/lib/include \
+	-I$(top_srcdir)/deps/seqan-library-2.0.0/include \
+	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-I$(top_srcdir)/deps/boost/build/include \
 	-DDATADIR=\"$(srcdir)/data\" \
 	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
@@ -58,7 +58,6 @@ check_unit_tests_LDFLAGS = \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
 	-L../deps/boost/build/lib \
-	-Wl,-rpath=../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 check_unit_tests_LDADD = \
@@ -66,11 +65,11 @@ check_unit_tests_LDADD = \
 	-lgtest \
 	-lkat \
 	-lkat_jellyfish \
-	-lboost_timer \
-	-lboost_chrono \
-	-lboost_filesystem \
-	-lboost_program_options \
-	-lboost_system \
+	../deps/boost/build/lib/libboost_timer.a \
+    ../deps/boost/build/lib/libboost_chrono.a \
+    ../deps/boost/build/lib/libboost_filesystem.a \
+    ../deps/boost/build/lib/libboost_program_options.a \
+    ../deps/boost/build/lib/libboost_system.a \
 	@AM_LIBS@
 
 include gtest.mk
