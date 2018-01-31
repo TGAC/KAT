@@ -44,3 +44,8 @@ Makefile.in
 /.idea/
 /cmake-build-debug/
 /CMakeLists.txt
+/KAT.config
+/KAT.creator
+/KAT.files
+/KAT.includes
+*.creator.user
