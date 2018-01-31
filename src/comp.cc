@@ -637,9 +637,6 @@ int kat::Comp::main(int argc, char *argv[]) {
     string d2_3ptrim;
     uint16_t threads;
     uint16_t mer_len;
-    bool canonical_1;       // Deprecated... for removal in KAT 3.0
-    bool canonical_2;       // Deprecated... for removal in KAT 3.0
-    bool canonical_3;       // Deprecated... for removal in KAT 3.0
     bool non_canonical_1;
     bool non_canonical_2;
     bool non_canonical_3;
@@ -681,18 +678,12 @@ int kat::Comp::main(int argc, char *argv[]) {
             //    "Ignore the last X bases from reads in dataset 1.  If more that one file is provided for dataset 1 you can specify different values for each file by seperating with commas.")
             //("d1_3ptrim", po::value<string>(&d2_3ptrim)->default_value("0"),
             //    "Ignore the last X bases from reads in dataset 2.  If more that one file is provided for dataset 2 you can specify different values for each file by seperating with commas.")
-            ("canonical1,C", po::bool_switch(&canonical_1)->default_value(false),
-                "(DEPRECATED) If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
-            ("canonical2,D", po::bool_switch(&canonical_2)->default_value(false),
-                "(DEPRECATED) If counting fast(a/q) for input 2, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
-            ("canonical3,E", po::bool_switch(&canonical_3)->default_value(false),
-                "(DEPRECATED) If counting fast(a/q) for input 3, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
-            ("non_canonical_1,N", po::bool_switch(&non_canonical_1)->default_value(false),
-                "If counting fast(a/q) for input 1, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("non_canonical,N", po::bool_switch(&non_canonical_1)->default_value(false),
+                "If counting fast(a/q) for input 1, store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
             ("non_canonical_2,O", po::bool_switch(&non_canonical_2)->default_value(false),
-                "If counting fast(a/q) for input 2, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "If counting fast(a/q) for input 2, store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
             ("non_canonical_3,P", po::bool_switch(&non_canonical_3)->default_value(false),
-                "If counting fast(a/q) for input 3, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "If counting fast(a/q) for input 3, store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size_1,H", po::value<uint64_t>(&hash_size_1)->default_value(DEFAULT_HASH_SIZE),
@@ -808,9 +799,9 @@ int kat::Comp::main(int argc, char *argv[]) {
     comp.setD2Bins(d2_bins);
     comp.setThreads(threads);
     comp.setMerLen(mer_len);
-    comp.setCanonical(0, non_canonical_1 ? non_canonical_1 : canonical_1 ? canonical_1 : true);
-    comp.setCanonical(1, non_canonical_2 ? non_canonical_2 : canonical_2 ? canonical_2 : true);
-    comp.setCanonical(2, non_canonical_3 ? non_canonical_3 : canonical_3 ? canonical_3 : true);
+    comp.setCanonical(0, !non_canonical_1);
+    comp.setCanonical(1, !non_canonical_2);
+    comp.setCanonical(2, !non_canonical_3);
     comp.setHashSize(0, hash_size_1);
     comp.setHashSize(1, hash_size_2);
     comp.setHashSize(2, hash_size_3);

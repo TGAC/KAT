@@ -263,7 +263,6 @@ int kat::Histogram::main(int argc, char *argv[]) {
     uint64_t        high;
     uint64_t        inc;
     string          trim5p;
-    bool            canonical;      // Deprecated... for removal in KAT 3.0
     bool            non_canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
@@ -291,10 +290,8 @@ int kat::Histogram::main(int argc, char *argv[]) {
                 "Increment for each bin")
             ("5ptrim", po::value<string>(&trim5p)->default_value("0"),
                 "Ignore the first X bases from reads.  If more that one file is provided you can specify different values for each file by seperating with commas.")
-            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
-                "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
-                "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "If counting fast(a/q), store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
@@ -350,7 +347,7 @@ int kat::Histogram::main(int argc, char *argv[]) {
     histo.setOutputPrefix(output_prefix);
     histo.setThreads(threads);
     histo.setTrim(d1_5ptrim_vals);
-    histo.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
+    histo.setCanonical(!non_canonical);
     histo.setMerLen(mer_len);
     histo.setHashSize(hash_size);
     histo.setDumpHash(dump_hash);
