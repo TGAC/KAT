@@ -499,7 +499,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
     string seq = ssSeq.str();
 
     uint64_t seqLength = seq.length();
-    uint64_t nbCounts = seqLength - input.merLen + 1;
+    int64_t nbCounts = seqLength - input.merLen + 1;
     double average_cvg = 0.0;
     uint64_t nbNonZero = 0;
     uint64_t nbInvalid = 0;
@@ -511,6 +511,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
         //       << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
 
         (*counts)[index] = make_shared<vector<uint64_t>>();
+        (*gc_counts)[index] = make_shared<vector<int16_t>>();
         (*medians)[index] = 0;
         (*means)[index] = 0.0;
 
@@ -521,7 +522,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
         uint64_t sum = 0;
 
-        for (uint64_t i = 0; i < nbCounts; i++) {
+        for (int64_t i = 0; i < nbCounts; i++) {
 
             string merstr = seq.substr(i, input.merLen);
 
