@@ -17,6 +17,8 @@ AC_PROG_INSTALL
 
 # Ensure there's C++11 support
 AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
+CXXFLAGS=""
+CFLAGS=""
 
 # Automake configuration.
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
@@ -145,7 +147,7 @@ AC_SUBST([MAKE_DOCS])
 
 define([PC_FILE], lib/kat-2.2.pc)
 
-AM_CXXFLAGS="-g -O2"
+AM_CXXFLAGS="-g -O2 -std=c++11"
 AC_SUBST([AM_CXXFLAGS])
 
 if [[ "${make_pykat}" == "yes" ]]; then
