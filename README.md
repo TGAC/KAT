@@ -5,10 +5,11 @@ KAT - The K-mer Analysis Toolkit
 
 KAT is a suite of tools that analyse jellyfish hashes or sequence files (fasta or fastq) using kmer counts.  The following tools are currently available in KAT:
 
-   - **sect**:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using K-mers from another sequence file.
-   - **comp**:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files or hashes.
-   - **gcp:**    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.
    - **hist**:   Create an histogram of k-mer occurrences from a sequence file.  Adds metadata in output for easy plotting.
+   - **gcp:**    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC count and a K-mer count.
+   - **comp**:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three) sequence files or hashes.
+   - **sect**:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in a file using K-mers from another sequence file.
+   - **blob**:   Given, reads and an assembly, calculates both the read and assembly K-mer coverage along with GC% for each sequence in the assembly.SEquence Coverage estimator Tool.
    - **filter**: Filtering tools.  Contains tools for filtering k-mer hashes and FastQ/A files:
      - **kmer**:         Produces a k-mer hash containing only k-mers within specified coverage and GC tolerances.
      - **seq**:          Filters a sequence file based on whether or not the sequences contain k-mers within a provided hash.
