@@ -33,6 +33,7 @@ setup(
                                       "kat_plot_profile = kat.kat_plot_profile:main",
                                       "kat_plot_spectra_cn = kat.kat_plot_spectra_cn:main",
                                       "kat_plot_spectra_hist = kat.kat_plot_spectra_hist:main",
-                                      "kat_plot_spectra_mx = kat.kat_plot_spectra_mx:main"]},
+                                      "kat_plot_spectra_mx = kat.kat_plot_spectra_mx:main",
+                                      "kat_plot_cold = kat.kat_plot_cold:main"]},
     install_requires=['numpy','scipy','matplotlib']
 )

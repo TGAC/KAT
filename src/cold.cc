@@ -477,7 +477,7 @@ int kat::Cold::main(int argc, char *argv[]) {
                 "Dumps any jellyfish hashes to disk that were produced during this run.")
             ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false),
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")
-            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_Cold_PLOT_OUTPUT_TYPE),
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COLD_PLOT_OUTPUT_TYPE),
                 "The plot file type to create: png, ps, pdf.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")

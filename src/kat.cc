@@ -56,7 +56,7 @@ using kat::Gcp;
 using kat::Histogram;
 using kat::Plot;
 using kat::Sect;
-using kat::Blob;
+using kat::Cold;
 
 
 typedef boost::error_info<struct KatError,string> KatErrorInfo;
@@ -74,7 +74,7 @@ enum Mode {
     HIST,
     PLOT,
     SECT,
-    BLOB
+    COLD
 };
 
 Mode parseMode(string mode) {
@@ -99,8 +99,8 @@ Mode parseMode(string mode) {
     else if (upperMode == string("SECT")) {
         return SECT;
     }
-    else if (upperMode == string("BLOB")) {
-        return BLOB;
+    else if (upperMode == string("COLD")) {
+        return COLD;
     }
     else {
         BOOST_THROW_EXCEPTION(KatException() << KatErrorInfo(string(
@@ -120,7 +120,7 @@ const string helpMessage() {
                    "             sequence files.\n" \
                    "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
                    "             a file using K-mers from another sequence file.\n" \
-                   "   * blob:   Given, reads and an assembly, calculates both the read and assembly K-mer\n" \
+                   "   * cold:   Given, reads and an assembly, calculates both the read and assembly K-mer\n" \
                    "             coverage along with GC% for each sequence in the assembly.\n" \
                    "             a file using K-mers from another sequence file.\n" \
                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
@@ -251,8 +251,8 @@ int main(int argc, char *argv[])
             case SECT:
                 Sect::main(modeArgC, modeArgV);
                 break;
-            case BLOB:
-                Blob::main(modeArgC, modeArgV);
+            case COLD:
+                Cold::main(modeArgC, modeArgV);
                 break;
             default:
                 BOOST_THROW_EXCEPTION(KatException() << KatErrorInfo(string(
