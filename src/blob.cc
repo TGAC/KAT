@@ -60,6 +60,9 @@ using boost::lexical_cast;
 #include <kat/kat_fs.hpp>
 using kat::KatFS;
 
+#include "plot.hpp"
+using kat::Plot;
+
 #include "blob.hpp"
 
 kat::Blob::Blob(const vector<path> _reads_files, const path _asm_file) {
@@ -403,6 +406,35 @@ void kat::Blob::processSeq(const size_t index, const uint16_t th_id) {
     (*gcs)[index] = gc_perc;
 }
 
+
+void kat::Blob::plot(const string& output_type) {
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
+
+    cout << "Creating plot ...";
+    cout.flush();
+
+    string kstr = lexical_cast<string>(this->getMerLen());
+
+    string outputFile = outputPrefix.string() + "." + output_type;
+
+#ifdef HAVE_PYTHON
+        vector<string> args;
+        args.push_back("kat_plot_blob.py");
+        args.push_back(string("--output=") + outputFile);
+        if (verbose) {
+            args.push_back("--verbose");
+        }
+        args.push_back(outputPrefix.string() + "-stats.tsv");
+        Plot::executePythonPlot(Plot::PlotMode::BLOB, args);
+#endif
+
+    cout << " done.";
+    cout.flush();
+}
+
+
+
 int kat::Blob::main(int argc, char *argv[]) {
 
     vector<path>    reads_files;
@@ -505,6 +537,10 @@ int kat::Blob::main(int argc, char *argv[]) {
 
     // Do the work (outputs data to files as it goes)
     blob.execute();
+
+#ifdef HAVE_PYTHON
+	blob.plot(plot_output_type);
+#endif
 
     return 0;
 }

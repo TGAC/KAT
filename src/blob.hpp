@@ -190,6 +190,8 @@ namespace kat {
 
         void execute();
 
+		void plot(const string& output_type);
+
 
     private:
 

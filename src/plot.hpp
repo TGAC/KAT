@@ -47,7 +47,8 @@ namespace kat {
             PROFILE,
             SPECTRA_CN,
             SPECTRA_HIST,
-            SPECTRA_MX
+            SPECTRA_MX,
+            BLOB
         };
 
         static bool validatePlotOutputType();
@@ -81,7 +82,10 @@ namespace kat {
                     "  * spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either\n" \
                     "                     by jellyfish-histo or kat-histo.\n" \
                     "  * spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived\n" \
-                    "                     from selected rows or columns in a matrix produced by the \"comp\".\n\n" \
+                    "                     from selected rows or columns in a matrix produced by the \"comp\".\n" \
+                    "  * blob:            Takes in a stats file produced by \"blob\" and produces a scatter plot of\n" \
+                    "                     median read K-mer coverage vs GC% for each contig in the assembly, with\n" \
+                    "                     point's size being adjusted by sequence length\n\n"
                     "Options";
         }
 
