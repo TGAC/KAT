@@ -63,14 +63,14 @@ using kat::KatFS;
 #include "plot.hpp"
 using kat::Plot;
 
-#include "blob.hpp"
+#include "cold.hpp"
 
-kat::Blob::Blob(const vector<path> _reads_files, const path _asm_file) {
+kat::Cold::Cold(const vector<path> _reads_files, const path _asm_file) {
     reads.setMultipleInputs(_reads_files);
     reads.index=1;
     assembly.setSingleInput(_asm_file);
     assembly.index=1;
-    outputPrefix = "kat-blob";
+    outputPrefix = "kat-cold";
     gcBins = 1001;
     cvgBins = 1001;
     threads = 1;
@@ -78,7 +78,7 @@ kat::Blob::Blob(const vector<path> _reads_files, const path _asm_file) {
 }
 
 
-void kat::Blob::execute() {
+void kat::Cold::execute() {
 
     bucket_size = BATCH_SIZE / threads;
     remaining = BATCH_SIZE % (bucket_size < 1 ? 1 : threads);
@@ -123,7 +123,7 @@ void kat::Blob::execute() {
 }
 
 
-void kat::Blob::processSeqFile() {
+void kat::Cold::processSeqFile() {
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
@@ -196,12 +196,12 @@ void kat::Blob::processSeqFile() {
     cout.flush();
 }
 
-void kat::Blob::analyseBatch() {
+void kat::Cold::analyseBatch() {
 
     vector<thread> t(threads);
 
     for(uint16_t i = 0; i < threads; i++) {
-        t[i] = thread(&Blob::analyseBatchSlice, this, i);
+        t[i] = thread(&Cold::analyseBatchSlice, this, i);
     }
 
     for(uint16_t i = 0; i < threads; i++){
@@ -209,7 +209,7 @@ void kat::Blob::analyseBatch() {
     }
 }
 
-void kat::Blob::analyseBatchSlice(int th_id) {
+void kat::Cold::analyseBatchSlice(int th_id) {
     // Check to see if we have useful work to do for this thread, return if not
     if (bucket_size < 1 && th_id >= recordsInBatch) {
         return;
@@ -219,7 +219,7 @@ void kat::Blob::analyseBatchSlice(int th_id) {
     processInterlaced(th_id);
 }
 
-void kat::Blob::destroyBatchVars() {
+void kat::Cold::destroyBatchVars() {
     medians->clear();
     means->clear();
     asmCns->clear();
@@ -233,7 +233,7 @@ void kat::Blob::destroyBatchVars() {
 
 }
 
-void kat::Blob::createBatchVars(uint16_t batchSize) {
+void kat::Cold::createBatchVars(uint16_t batchSize) {
     medians = make_shared<vector<uint32_t>>(batchSize);
     means = make_shared<vector<double>>(batchSize);
     asmCns = make_shared<vector<uint32_t>>(batchSize);
@@ -246,11 +246,11 @@ void kat::Blob::createBatchVars(uint16_t batchSize) {
     percentNonZeroCorrected = make_shared<vector<double>>(batchSize);
 }
 
-double kat::Blob::gcCountToPercentage(int16_t count) {
+double kat::Cold::gcCountToPercentage(int16_t count) {
     return count == -1 ? -0.1 : (((double)count / (double)this->getMerLen()) * 100.0);
 }
 
-void kat::Blob::printStatTable(std::ostream &out) {
+void kat::Cold::printStatTable(std::ostream &out) {
 
     out << std::fixed << std::setprecision(5);
 
@@ -274,7 +274,7 @@ void kat::Blob::printStatTable(std::ostream &out) {
 // This method won't be optimal in most cases... Fasta files are normally sorted by length (largest first)
 // So first thread will be asked to do more work than the rest
 
-void kat::Blob::processInBlocks(uint16_t th_id) {
+void kat::Cold::processInBlocks(uint16_t th_id) {
     size_t start = bucket_size < 1 ? th_id : th_id * bucket_size;
     size_t end = bucket_size < 1 ? th_id : start + bucket_size - 1;
     for (size_t i = start; i <= end; i++) {
@@ -290,7 +290,7 @@ void kat::Blob::processInBlocks(uint16_t th_id) {
 
 // This method is probably makes more efficient use of multiple cores on a length sorted fasta file
 
-void kat::Blob::processInterlaced(uint16_t th_id) {
+void kat::Cold::processInterlaced(uint16_t th_id) {
     size_t start = th_id;
     size_t end = recordsInBatch;
     for (size_t i = start; i < end; i += threads) {
@@ -300,7 +300,7 @@ void kat::Blob::processInterlaced(uint16_t th_id) {
 
 
 
-void kat::Blob::processSeq(const size_t index, const uint16_t th_id) {
+void kat::Cold::processSeq(const size_t index, const uint16_t th_id) {
 
     // There's no substring functionality in SeqAn in this version (2.0.0).  So we'll just
     // use regular c++ string's for this bit.  This conversion of strings:
@@ -407,7 +407,7 @@ void kat::Blob::processSeq(const size_t index, const uint16_t th_id) {
 }
 
 
-void kat::Blob::plot(const string& output_type) {
+void kat::Cold::plot(const string& output_type) {
 
     auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
@@ -420,13 +420,13 @@ void kat::Blob::plot(const string& output_type) {
 
 #ifdef HAVE_PYTHON
         vector<string> args;
-        args.push_back("kat_plot_blob.py");
+        args.push_back("kat_plot_cold.py");
         args.push_back(string("--output=") + outputFile);
         if (verbose) {
             args.push_back("--verbose");
         }
         args.push_back(outputPrefix.string() + "-stats.tsv");
-        Plot::executePythonPlot(Plot::PlotMode::BLOB, args);
+        Plot::executePythonPlot(Plot::PlotMode::COLD, args);
 #endif
 
     cout << " done.";
@@ -435,7 +435,7 @@ void kat::Blob::plot(const string& output_type) {
 
 
 
-int kat::Blob::main(int argc, char *argv[]) {
+int kat::Cold::main(int argc, char *argv[]) {
 
     vector<path>    reads_files;
     path            asm_file;
@@ -457,9 +457,9 @@ int kat::Blob::main(int argc, char *argv[]) {
 
 
     // Declare the supported options.
-    po::options_description generic_options(Blob::helpMessage(), w.ws_col);
+    po::options_description generic_options(Cold::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-blob"),
+            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-cold"),
                 "Path prefix for files generated by this program.")
             ("gc_bins,x", po::value<uint16_t>(&gc_bins)->default_value(1001),
                 "Number of bins for the gc data when creating the contamination matrix.")
@@ -477,7 +477,7 @@ int kat::Blob::main(int argc, char *argv[]) {
                 "Dumps any jellyfish hashes to disk that were produced during this run.")
             ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false),
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")
-            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_BLOB_PLOT_OUTPUT_TYPE),
+            ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_Cold_PLOT_OUTPUT_TYPE),
                 "The plot file type to create: png, ps, pdf.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
@@ -518,28 +518,28 @@ int kat::Blob::main(int argc, char *argv[]) {
     boost::split(d1_5ptrim_strs,trim5p,boost::is_any_of(","));
     for (auto& v : d1_5ptrim_strs) d1_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
 
-    auto_cpu_timer timer(1, "KAT Blob completed.\nTotal runtime: %ws\n\n");
+    auto_cpu_timer timer(1, "KAT CoLD completed.\nTotal runtime: %ws\n\n");
 
-    cout << "Running KAT in Blob mode" << endl
+    cout << "Running KAT in Cold mode" << endl
          << "------------------------" << endl << endl;
 
     // Create the sequence coverage object
-    Blob blob(reads_files, asm_file);
-    blob.setOutputPrefix(output_prefix);
-    blob.setGcBins(gc_bins);
-    blob.setCvgBins(cvg_bins);
-    blob.setThreads(threads);
-    blob.setReadsTrim(d1_5ptrim_vals);
-    blob.setMerLen(mer_len);
-    blob.setHashSize(hash_size);
-    blob.setDumpHashes(dump_hash);
-    blob.setVerbose(verbose);
+    Cold cold(reads_files, asm_file);
+    cold.setOutputPrefix(output_prefix);
+    cold.setGcBins(gc_bins);
+    cold.setCvgBins(cvg_bins);
+    cold.setThreads(threads);
+    cold.setReadsTrim(d1_5ptrim_vals);
+    cold.setMerLen(mer_len);
+    cold.setHashSize(hash_size);
+    cold.setDumpHashes(dump_hash);
+    cold.setVerbose(verbose);
 
     // Do the work (outputs data to files as it goes)
-    blob.execute();
+    cold.execute();
 
 #ifdef HAVE_PYTHON
-	blob.plot(plot_output_type);
+    cold.plot(plot_output_type);
 #endif
 
     return 0;

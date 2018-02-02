@@ -12,12 +12,12 @@ def main():
 
     # ----- command line parsing -----
     parser = argparse.ArgumentParser(
-        description="Creates a blobtools like plot that shows blobs for each assembly contig, " \
-            "that are sized by sequence length, coloured by assembly duplication level, placed " \
+        description="Creates a scatter plot that shows points for each assembly contig, " \
+            "that are sized by sequence length, coloured by assembly duplication level.  Each point is located " \
             "on a scatter plot with logscale read k-mer coverage on the Y-axis and contig GC% on the X.")
 
     parser.add_argument("stats_file", type=str,
-                        help="The stats file produced by 'kat blob'")
+                        help="The stats file produced by 'kat cold'")
 
     parser.add_argument("-o", "--output", type=str, default=None,
                         help="The path to the output file.")
@@ -43,13 +43,13 @@ def main():
     # ----- end command line parsing -----
 
     if args.verbose:
-        print("\nBlob plotting:", args.stats_file)
+        print("\nCoLD plotting:", args.stats_file)
 
 
     if args.title is not None:
         title = args.title
     else:
-        title = "KAT blob plot"
+        title = "KAT Contig Length and Duplication plot"
 
     x_label = "GC%"
     y_label = "Median K-mer Coverage"

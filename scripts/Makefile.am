@@ -15,7 +15,8 @@ EXTRA_DIST = \
 	kat/kat_plot_profile.py \
 	kat/kat_plot_spectra_cn.py \
 	kat/kat_plot_spectra_hist.py \
-	kat/kat_plot_spectra_mx.py
+	kat/kat_plot_spectra_mx.py \
+	kat/kat_plot_cold.py
 
 clean-local: clean-local-check
 .PHONY: clean-local-check

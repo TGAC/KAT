@@ -69,8 +69,8 @@ Plot::PlotMode kat::Plot::parseMode(const string& mode) {
     else if (upperMode == string("SPECTRA-MX")) {
         return SPECTRA_MX;
     }
-    else if (upperMode == string("BLOB")) {
-        return BLOB;
+    else if (upperMode == string("COLD")) {
+        return COLD;
     }
     else {
         BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
@@ -92,8 +92,8 @@ path kat::Plot::getPythonScript(const PlotMode mode) {
             return "kat_plot_spectra_hist.py";
         case SPECTRA_MX:
             return "kat_plot_spectra_mx.py";
-        case BLOB:
-            return "kat_plot_blob.py";
+        case COLD:
+            return "kat_plot_cold.py";
         default:
             BOOST_THROW_EXCEPTION(KatPlotException() << KatPlotErrorInfo(string(
                     "Unrecognised KAT PLOT mode")));

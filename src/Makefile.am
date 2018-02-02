@@ -45,7 +45,7 @@ noinst_HEADERS = \
 	gcp.hpp \
 	histogram.hpp \
 	sect.hpp \
-	blob.hpp
+        cold.hpp
 
 kat_SOURCES = \
 	plot.cc \
@@ -56,5 +56,5 @@ kat_SOURCES = \
 	gcp.cc \
 	histogram.cc \
 	sect.cc \
-	blob.cc \
+        cold.cc \
 	kat.cc

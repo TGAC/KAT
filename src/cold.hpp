@@ -57,13 +57,13 @@ using kat::ThreadedSparseMatrix;
 
 namespace kat {
 
-    typedef boost::error_info<struct BlobError,string> BlobErrorInfo;
-    struct BlobException: virtual boost::exception, virtual std::exception { };
+    typedef boost::error_info<struct ColdError,string> ColdErrorInfo;
+    struct ColdException: virtual boost::exception, virtual std::exception { };
 
-    const string     DEFAULT_BLOB_PLOT_OUTPUT_TYPE     = "png";
+    const string     DEFAULT_COLD_PLOT_OUTPUT_TYPE     = "png";
 
 
-    class Blob {
+    class Cold {
     private:
 
         static const uint16_t BATCH_SIZE = 1024;
@@ -103,9 +103,9 @@ namespace kat {
 
     public:
 
-        Blob(const vector<path> _reads_files, const path _asm_file);
+        Cold(const vector<path> _reads_files, const path _asm_file);
 
-        virtual ~Blob() {
+        virtual ~Cold() {
         }
 
         path getOutputPrefix() const {
@@ -221,10 +221,12 @@ namespace kat {
 
         static string helpMessage() {
 
-            return string(  "Usage: kat blob [options] <assembly> <reads>\n\n") +
-                            "Calculated median read k-mer coverage, assembly k-mer coverage and GC% across each sequence in the provided assembly. " \
-                            "The, assuming plotting is enabled, the results are converted into something something similar to a blobplot as " \
-                            "would be produced by blobtools.  Each blob is colored according to a similar scheme used in spectra-cn plots.\n\n " \
+            return string(  "Usage: kat cold [options] <assembly> <reads>\n\n") +
+                            "COntig Length and Duplication analysis tool\n\n" \
+                            "Calculates median read k-mer coverage, assembly k-mer coverage and GC% across each sequence in the provided assembly. " \
+                            "Then, assuming plotting is enabled, the results are converted into a scatter plot, where each point is colored " \
+                            "according to a similar scheme used in spectra-cn plots, and sized according to its length.  The y-axis represents" \
+                            "median read K-mer coverage, and x-axis represents GC%.\n\n " \
                             "The <assembly> should be a fasta file that is NOT gzipped compressed.  The <reads> can be any number of <fasta/q> " \
                             "files, which CAN be gzipped compressed, or a pre-counted hash.\n\n" \
                             "Options";

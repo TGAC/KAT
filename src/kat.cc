@@ -49,7 +49,7 @@ using kat::KatFS;
 #include "histogram.hpp"
 #include "plot.hpp"
 #include "sect.hpp"
-#include "blob.hpp"
+#include "cold.hpp"
 using kat::Comp;
 using kat::Filter;
 using kat::Gcp;
