@@ -57,28 +57,24 @@ using kat::ThreadedSparseMatrix;
 
 namespace kat {
 
-    typedef boost::error_info<struct SectError,string> SectErrorInfo;
-    struct SectException: virtual boost::exception, virtual std::exception { };
+    typedef boost::error_info<struct BlobError,string> BlobErrorInfo;
+    struct BlobException: virtual boost::exception, virtual std::exception { };
 
-    class Sect {
+    const string     DEFAULT_BLOB_PLOT_OUTPUT_TYPE     = "png";
+
+
+    class Blob {
     private:
 
         static const uint16_t BATCH_SIZE = 1024;
 
         // Input args
-        InputHandler    input;
-        path            seqFile;
+        InputHandler    reads;
+        InputHandler    assembly;
         path            outputPrefix;
         uint16_t        gcBins;
         uint16_t        cvgBins;
-        bool            cvgLogscale;
         uint16_t        threads;
-        bool            noCountStats;
-        bool            outputGCStats;
-        bool            extractNR;
-        bool            extractR;
-        uint32_t        minRepeat;
-        uint32_t        maxRepeat;
         bool            verbose;
 
         // Chunking vars
@@ -93,10 +89,9 @@ namespace kat {
         // Variables that are refreshed for each batch
         seqan::StringSet<seqan::CharString> names;
         seqan::StringSet<seqan::CharString> seqs;
-        shared_ptr<vector<shared_ptr<vector<uint64_t>>>> counts; // K-mer counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
-        shared_ptr<vector<shared_ptr<vector<int16_t>>>> gc_counts; // GC counts for each K-mer window in sequence (in same order as seqs and names; built by this class)
         shared_ptr<vector<uint32_t>> medians; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> means; // Overall coverage calculated for each sequence from the K-mer windows.
+        shared_ptr<vector<uint32_t>> asmCns; // Overall coverage calculated for each sequence from the K-mer windows.
         shared_ptr<vector<double>> gcs; // GC% for each sequence
         shared_ptr<vector<uint32_t>> lengths; // Length in nucleotides for each sequence
         shared_ptr<vector<uint32_t>> nonZero;
@@ -108,9 +103,9 @@ namespace kat {
 
     public:
 
-        Sect(const vector<path> _counts_files, const path _seq_file);
+        Blob(const vector<path> _reads_files, const path _asm_file);
 
-        virtual ~Sect() {
+        virtual ~Blob() {
         }
 
         path getOutputPrefix() const {
@@ -121,16 +116,8 @@ namespace kat {
             this->outputPrefix = outputPrefix;
         }
 
-        void setTrim(const vector<uint16_t>& _5ptrim) {
-            this->input.set5pTrim(_5ptrim);
-        }
-
-        bool isCanonical() const {
-            return input.canonical;
-        }
-
-        void setCanonical(bool canonical) {
-            this->input.canonical = canonical;
+        void setReadsTrim(const vector<uint16_t>& _5ptrim) {
+            this->reads.set5pTrim(_5ptrim);
         }
 
         uint16_t getCvgBins() const {
@@ -141,76 +128,12 @@ namespace kat {
             this->cvgBins = cvg_bins;
         }
 
-        bool isCvgLogscale() const {
-            return cvgLogscale;
-        }
-
-        void setCvgLogscale(bool cvg_logscale) {
-            this->cvgLogscale = cvg_logscale;
-        }
-
         uint16_t getGcBins() const {
             return gcBins;
         }
 
         void setGcBins(uint16_t gc_bins) {
             this->gcBins = gc_bins;
-        }
-
-        bool isNoCountStats() const {
-            return noCountStats;
-        }
-
-        void setNoCountStats(bool no_count_stats) {
-            this->noCountStats = no_count_stats;
-        }
-
-        bool isOutputGCStats() const {
-            return outputGCStats;
-        }
-
-        void setOutputGCStats(bool outputGCStats) {
-            this->outputGCStats = outputGCStats;
-        }
-
-        bool isExtractNR() const {
-            return extractNR;
-        }
-
-        void setExtractNR(bool extractNR) {
-            this->extractNR = extractNR;
-        }
-
-        bool isExtractR() const {
-            return extractR;
-        }
-
-        void setExtractR(bool extractR) {
-            this->extractR = extractR;
-        }
-
-        uint32_t getMaxRepeat() const {
-            return maxRepeat;
-        }
-
-        void setMaxRepeat(uint32_t maxRepeat) {
-            this->maxRepeat = maxRepeat;
-        }
-        
-        uint32_t getMinRepeat() const {
-            return minRepeat;
-        }
-
-        void setMinRepeat(uint32_t minRepeat) {
-            this->minRepeat = minRepeat;
-        }
-
-        path getSeqFile() const {
-            return seqFile;
-        }
-
-        void setSeqFile(path seq_file) {
-            this->seqFile = seq_file;
         }
 
         uint16_t getThreads() const {
@@ -222,27 +145,38 @@ namespace kat {
         }
 
         uint64_t getHashSize() const {
-            return input.hashSize;
+            return reads.hashSize;
         }
 
         void setHashSize(uint64_t hashSize) {
-            this->input.hashSize = hashSize;
+            this->reads.hashSize = hashSize;
+            this->assembly.hashSize = hashSize / 2;
         }
 
         uint16_t getMerLen() const {
-            return input.merLen;
+            return reads.merLen;
         }
 
-        void setMerLen(uint16_t merLen) {
-            this->input.merLen = merLen;
+        void setMerLen(uint8_t merLen) {
+            reads.merLen = merLen;
+            assembly.merLen = merLen;
         }
 
-        bool isDumpHash() const {
-            return input.dumpHash;
+        bool dumpHashes() const {
+            return reads.dumpHash;
         }
 
-        void setDumpHash(bool dumpHash) {
-            this->input.dumpHash = dumpHash;
+        void setDumpHashes(bool dumpHashes) {
+            this->reads.dumpHash = dumpHashes;
+            this->assembly.dumpHash = dumpHashes;
+        }
+
+        bool hashGrowDisabled() const {
+            return reads.disableHashGrow;
+        }
+
+        void setDisableHashGrow(bool disableHashGrow) {
+            this->reads.disableHashGrow = disableHashGrow;
         }
 
         bool isVerbose() const {
@@ -256,8 +190,6 @@ namespace kat {
 
         void execute();
 
-        void save();
-
 
     private:
 
@@ -267,23 +199,12 @@ namespace kat {
 
         void analyseBatchSlice(int th_id);
 
-        void merge();
-
         void destroyBatchVars();
 
         void createBatchVars(uint16_t batchSize);
 
-        void printCounts(std::ostream &out);
-
-        void printGCCounts(std::ostream &out);
-
-        void printRegions(std::ostream &out, const uint32_t min_count, const uint32_t max_count);
-
         void printStatTable(std::ostream &out);
 
-        // Print K-mer comparison matrix
-
-        void printContaminationMatrix(std::ostream &out, const path seqFile);
 
         // This method won't be optimal in most cases... Fasta files are normally sorted by length (largest first)
         // So first thread will be asked to do more work than the rest
@@ -298,15 +219,12 @@ namespace kat {
 
         static string helpMessage() {
 
-            return string(  "Usage: kat sect [options] <sequence_file> (<input>)+\n\n") +
-                            "Estimates coverage levels across sequences in the provided input sequence file.\n\n" \
-                            "This tool will produce a fasta style representation of the input sequence file containing " \
-                            "K-mer coverage counts mapped across each sequence.  K-mer coverage is determined from the " \
-                            "provided counts input file, which can be either one jellyfish hash, or one or more FastA / " \
-                            "FastQ files.  In addition, a space separated table file containing the mean coverage score and GC " \
-                            "of each sequence is produced.  The row order is identical to the original sequence file.\n\n" \
-                            "NOTE: K-mers containing any Ns derived from sequences in the sequence file not be included.\n\n" \
-                            "WARNING: The <sequence_file> cannot be gzipped compressed.\n\n" \
+            return string(  "Usage: kat blob [options] <assembly> <reads>\n\n") +
+                            "Calculated median read k-mer coverage, assembly k-mer coverage and GC% across each sequence in the provided assembly. " \
+                            "The, assuming plotting is enabled, the results are converted into something something similar to a blobplot as " \
+                            "would be produced by blobtools.  Each blob is colored according to a similar scheme used in spectra-cn plots.\n\n " \
+                            "The <assembly> should be a fasta file that is NOT gzipped compressed.  The <reads> can be any number of <fasta/q> " \
+                            "files, which CAN be gzipped compressed, or a pre-counted hash.\n\n" \
                             "Options";
 
         }

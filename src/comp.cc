@@ -678,7 +678,7 @@ int kat::Comp::main(int argc, char *argv[]) {
             //    "Ignore the last X bases from reads in dataset 1.  If more that one file is provided for dataset 1 you can specify different values for each file by seperating with commas.")
             //("d1_3ptrim", po::value<string>(&d2_3ptrim)->default_value("0"),
             //    "Ignore the last X bases from reads in dataset 2.  If more that one file is provided for dataset 2 you can specify different values for each file by seperating with commas.")
-            ("non_canonical,N", po::bool_switch(&non_canonical_1)->default_value(false),
+            ("non_canonical_1,N", po::bool_switch(&non_canonical_1)->default_value(false),
                 "If counting fast(a/q) for input 1, store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
             ("non_canonical_2,O", po::bool_switch(&non_canonical_2)->default_value(false),
                 "If counting fast(a/q) for input 2, store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
@@ -699,7 +699,7 @@ int kat::Comp::main(int argc, char *argv[]) {
             ("density_plot,n", po::bool_switch(&density_plot)->default_value(false),
                 "Makes a density plot.  By default we create a spectra_cn plot.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COMP_PLOT_OUTPUT_TYPE),
-                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
+                "The plot file type to create: png, ps, pdf.")
             ("output_hists,h", po::bool_switch(&output_hists)->default_value(false),
                 "Whether or not to output histogram data and plots for input 1 and input 2")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),

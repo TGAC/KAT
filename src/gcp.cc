@@ -292,7 +292,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false),
                         "Dumps any jellyfish hashes to disk that were produced during this run.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_GCP_PLOT_OUTPUT_TYPE),
-                "The plot file type to create: png, ps, pdf.  Warning... if pdf is selected please ensure your gnuplot installation can export pdf files.")
+                "The plot file type to create: png, ps, pdf.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")

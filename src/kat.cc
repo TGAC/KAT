@@ -49,12 +49,14 @@ using kat::KatFS;
 #include "histogram.hpp"
 #include "plot.hpp"
 #include "sect.hpp"
+#include "blob.hpp"
 using kat::Comp;
 using kat::Filter;
 using kat::Gcp;
 using kat::Histogram;
 using kat::Plot;
 using kat::Sect;
+using kat::Blob;
 
 
 typedef boost::error_info<struct KatError,string> KatErrorInfo;
@@ -71,7 +73,8 @@ enum Mode {
     GCP,
     HIST,
     PLOT,
-    SECT
+    SECT,
+    BLOB
 };
 
 Mode parseMode(string mode) {
@@ -96,6 +99,9 @@ Mode parseMode(string mode) {
     else if (upperMode == string("SECT")) {
         return SECT;
     }
+    else if (upperMode == string("BLOB")) {
+        return BLOB;
+    }
     else {
         BOOST_THROW_EXCEPTION(KatException() << KatErrorInfo(string(
                     "Could not recognise mode string: ") + mode));
@@ -105,15 +111,18 @@ Mode parseMode(string mode) {
 const string helpMessage() {
     return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
                    "The First argument should be the tool/mode you wish to use:\n\n" \
-                   "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
-                   "             a file using K-mers from another sequence file.\n" \
-                   "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
-                   "             sequence files.\n" \
-                   "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
-                   "             count and a K-mer count.\n" \
                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
                    "             jellyfish histogram sub command but adds metadata in output for easy plotting,\n" \
                    "             also actually runs multi-threaded.\n" \
+                   "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
+                   "             count and a K-mer count.\n" \
+                   "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
+                   "             sequence files.\n" \
+                   "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
+                   "             a file using K-mers from another sequence file.\n" \
+                   "   * blob:   Given, reads and an assembly, calculates both the read and assembly K-mer\n" \
+                   "             coverage along with GC% for each sequence in the assembly.\n" \
+                   "             a file using K-mers from another sequence file.\n" \
                    "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
                    "             user-defined GC and coverage limits.\n" \
                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare\n" \
@@ -241,6 +250,9 @@ int main(int argc, char *argv[])
                 break;
             case SECT:
                 Sect::main(modeArgC, modeArgV);
+                break;
+            case BLOB:
+                Blob::main(modeArgC, modeArgV);
                 break;
             default:
                 BOOST_THROW_EXCEPTION(KatException() << KatErrorInfo(string(

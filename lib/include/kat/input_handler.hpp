@@ -55,7 +55,7 @@ namespace kat {
         LargeHashArrayPtr hash = nullptr;
         shared_ptr<file_header> header;         // Only applicable if loaded
 
-        void setSingleInput(const path& p) { input.clear(); input.push_back(p); }
+        void setSingleInput(const path& p) { input.clear(); input.push_back(p); trim5p.clear(); trim5p.push_back(0); }
         void setMultipleInputs(const vector<path>& inputs);
         path getSingleInput() { return input[0]; }
         string pathString();

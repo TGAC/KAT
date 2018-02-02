@@ -41,8 +41,10 @@ using kat::JellyfishHelper;
 
 void kat::InputHandler::setMultipleInputs(const vector<path>& inputs) {
     input.clear();
+    trim5p.clear();
     for(auto& p : inputs) {
         input.push_back(p);
+        trim5p.push_back(0);
     }
 }
 
