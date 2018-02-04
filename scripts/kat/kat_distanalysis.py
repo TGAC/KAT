@@ -58,7 +58,7 @@ class KmerSpectra(object):
 					print("done.", len(self.peaks), "peaks present after optimisation:")
 					self.printPeaks()
 			except:
-				print("WARNING: problem optimising peaks. It is likely that the spectra is either too complex to analyse properly.  Output for this spectra may not be valid.", file=sys.stderr)
+				print("WARNING: problem optimising peaks. It is likely that the spectra is too complex to analyse properly.  Output for this spectra may not be valid.", file=sys.stderr)
 				pass
 		elif verbose:
 			print("done. No peaks created")
@@ -107,7 +107,7 @@ class KmerSpectra(object):
 			return 0
 
 		# TODO: discard maxima if not 1% of the already contained elements on peaks are there
-		if sum(hs) < min((float(min_perc) / 100) * sum([x.elements for x in self.peaks]), min_elem):
+		if sum(hs) < min((float(min_perc) / 100.0) * sum([x.elements for x in self.peaks]), min_elem):
 			print("Distribution at %d too small to be considered (%d elements)" % (start + fmax, sum(hs)))
 			return 0
 		# TODO: do further validation
