@@ -435,7 +435,7 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		print("--------------")
 		print()
 
-		if len(self.cov_spectra.peaks) == 0:
+		if len(self.spectra.peaks) == 0:
 			print("No peaks in K-mer frequency histogram.  Not plotting.")
 		else:
 			print("Plotting K-mer frequency distributions...")
