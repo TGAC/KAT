@@ -27,25 +27,36 @@ class KmerSpectra(object):
 	def __init__(self, histogram, k=27):
 		"""Init with the objective histogram"""
 		self.histogram = histogram
-		self.peaks = []
-		self.k = k
-		self.fitted_histogram = [0] * len(self.histogram)
-		self.fmax = 0
-		self.fmin = 0
-		self.maxval = 0
+		self.peaks = []	# Will contain all distributions found in histogram
+		self.k = k		# K-mer value used.  Comes in handy for genome size estimations and heterzygous rates
+		self.fitted_histogram = [0] * len(self.histogram)	# The cumulative histogram produced from the artifical peaks
+		self.fmax = 0	# Position of global maxima in actual histogram
+		self.fmin = 0	# Position of global minima in actual histogram
+		self.maxval = 0	# Value at global maxima (shortcut for self.histogram[self.fmax])
 
 	def update_fitted_histogram(self, start=1, end=-1):
-		if end == -1:
-			end = len(self.histogram) - 1
+		"""
+		This function updates the fitted histogram based on the current parameters in each of the peaks in this spectra
+		:param start: 	First position to look at
+		:param end: 	Last position to look at (-1 means last element of histogram)
+		:return: The newly fitted histogram (self.fitted_histogram)
+		"""
+		if end == -1: end = len(self.histogram) - 1
 		self.fitted_histogram = list(map(sum, list(zip(*[x.points(start, end) for x in self.peaks]))))
 		return self.fitted_histogram
 
-	###----------------- FIND AND CREATE PEAKS --------------------
-	def analyse(self,min_perc=1, min_elem=100000, verbose=False, gcd=False):
-		if verbose:
-			print("Creating initial peaks...", end="")
-			sys.stdout.flush()
-		self.create_peaks(min_perc=min_perc, min_elem=min_elem, verbose=verbose, gcd=gcd)
+
+	def analyse(self,min_perc=1, min_elem=100000, verbose=False):
+		"""
+		Analyse the histogram for peaks
+		:param min_perc:
+		:param min_elem:
+		:param verbose:
+		:return:
+		"""
+
+		if verbose:	print("Creating initial peaks...", end="", flush=True)
+		self.create_peaks()
 
 		if self.peaks:
 			if verbose:
@@ -54,12 +65,11 @@ class KmerSpectra(object):
 				print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
 				print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
 				print("Optimising peaks...", end="")
-			self.optimize_peaks(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
+			self.optimize_peaks(min_perc=min_perc, min_elem=min_elem)
 			if verbose:
 				print("done. There are now", len(self.peaks), "peaks:")
 				self.printPeaks()
-				print("Optimising all peaks in spectra...", end="")
-				sys.stdout.flush()
+				print("Optimising all peaks in spectra...", end="", flush=True)
 			try:
 				self.optimise()
 				if verbose:
@@ -175,61 +185,23 @@ class KmerSpectra(object):
 		return 0
 
 
+	def create_peaks(self):
+		"""
+		Creates a set of peaks based on the global maxima (ignoring the likely first peak at low k-mer frequency).
+		Because we expect this to be a poisson distribution we assume peaks can be found at multiples of the global
+		maxima.
+		:return:
+		"""
 
-	def add_peak_and_update_cuts(self, lm, reset_opt=False):
-		# Receives a local maxima, adds a peak there if there was none, updates the cuts.
-		# If reset_opt is set, it will reset all the peak counts/sd and only keep the means
-
-		# Check if peak is below fmin.  If so skip it.
-		if lm < self.fmin:
-			return False
-
-		# Validation.  Extract means for all peaks and ensure they are not too close to one another
-		fdists = [x.mean for x in self.peaks]
-		for f in fdists:
-			if lm >= f - f / 4 and lm <= f + f / 4:
-				#print("WARNING!!! Dist at %d is not to be added, because existing dist at %d is too close to it." % (lm, f))
-				return False
-
-		# Add the new peak and sort
-		fdists.append(lm)
-		fdists.sort()
-
-		# Use what is hopefully the cutoff frequency as the start of the first peak
-		# Then try to segment the spectra into different sections based on the peak frequencies
-		self.cuts = [self.fmin]
-		for i in range(len(fdists) - 1):
-			self.cuts.append(int(fdists[i] * (1 + float(fdists[i]) / (fdists[i] + fdists[i + 1]))))
-		self.cuts.append(int(min(len(self.histogram) - 1, fdists[-1] * 1.5)))
-		self.cuts.sort()
-		#print("Cuts: %s" % str(self.cuts))
-		if reset_opt:
-			self.peaks = []
-
-		for i in range(len(fdists)):
-			if reset_opt or i == fdists.index(lm):
-					self.peaks.append(KmerPeak(
-											fdists[i], 			# Mean
-											fdists[i] / 6,		# Shape
-											sum([self.histogram[j] for j in range(self.cuts[i], self.cuts[i+1])]),	# Elements
-											self.histogram[fdists[i]], #Peak
-											self.cuts[i], 		# Left
-											self.cuts[i+1]))	# Right
-					self.peaks.sort(key=lambda x: x.mean)
-		return True
-
-	def create_peaks(self, min_perc, min_elem, verbose=False, gcd=False):
-
-		# walk till first local minimum (d(f)>0)
-		# Double check the following two steps, rather than just the next one.
+		# Walk till first local minimum (d(f)>0)
+		# Also double check the following two steps, rather than just the next one.
 		# Sometimes we can get a strange laddering affect in alternate frequencies which prevent
 		# us from correctly detecting the minima
 		fmin = 0
-		if not gcd:
-			for i in range(1, len(self.histogram) - 2):
-				if self.histogram[i] < self.histogram[i+1] and self.histogram[i] < self.histogram[i+2]:
-					fmin = i
-					break
+		for i in range(1, len(self.histogram) - 2):
+			if self.histogram[i] < self.histogram[i+1] and self.histogram[i] < self.histogram[i+2]:
+				fmin = i
+				break
 
 		# Sometimes we might not find a local minima, it depends on what sort of content is in the spectra.
 		# In this case just reset all spectra measures
@@ -240,40 +212,62 @@ class KmerSpectra(object):
 		# Find the global fm|p(fm)=max(p)
 		fmax = self.histogram.index(max(self.histogram[fmin:]))
 
-		if not gcd and fmax < 10:
-			#print("Kmer count at max frequency  is < 10.  Not enough data to perform analysis.")
+		if fmax < 10:
+			# Nothing to do in this case.  Not enough data to create peaks.
 			return
 
-		# Set measures to class variables
+		# Set global histogram properties to class variables for later use
 		self.fmax = fmax
 		self.fmin = fmin
 		self.maxval = self.histogram[fmax]
 
-		# Explore fm/x and fm*x for x in [1,4]
-		for f in [fmax / 4.0, fmax / 3.0, fmax / 2.0, fmax, fmax * 2, fmax * 3, fmax * 4]:
-			radius = f / 3.0
-			if int(radius) > 0 and int(f - radius) > 0 and int(f + radius) < len(self.histogram):
-				lm = self.find_maxima(int(f), int(radius), min_perc, min_elem)
-				if lm:
-					self.add_peak_and_update_cuts(lm, reset_opt=True)
+		# Unless otherwise specified we assume fmax represents the homozygous peak (primary content)
+		# Explore expected peak sites, also look for heterozygous content.
+		for mu in [fmax / 3.0, fmax / 2.0, fmax, fmax * 2, fmax * 3, fmax * 4, fmax * 5]:
+
+			# This seems like a reasonable guess for the initial stddev of the peak, given the
+			# behaviour of the poisson distribution
+			sigma = mu / 6.0
+
+			# We are interested in a region up to 2 stddevs from the mean (95% coverage)
+			radius = sigma * 2.0
+
+			# Conditions:
+			# - we need at least a radius of 2
+			# - f must be greater than fmin
+			# - The extent of the distribution including the radius should extend over the histogram limits
+			if int(radius) >= 2 and int(mu) > fmin and int(mu - radius) > 0 and int(mu + radius) < len(self.histogram):
+
+				# This code assumes a maxima exists here
+				self.peaks.append(KmerPeak(
+					int(mu),  			# Mean
+					sigma,  			# Sigma
+					sum([self.histogram[j] for j in range(int(mu - radius), int(mu + radius))]),  # Actual elements from histogram (not distribution)
+					self.histogram[int(mu)], # Peak
+					int(mu - radius),  	# Left
+					int(mu + radius))) 	# Right
+
+
+				# This code will only return a peak if it can find a maxima
+				#lm = self.find_maxima(int(f), int(radius), min_perc, min_elem)
+				#if lm:
+				#	self.add_peak_and_update_cuts(lm, reset_opt=True)
 
 
 	# ----------------- OPTIMIZATION --------------------
 
-	def optimize_peaks(self, min_perc, min_elem, verbose=False):
-		sortedpeaks = [x for x in self.peaks]
-		sortedpeaks.sort(key=lambda x: -x.elements)
+	def optimize_peaks(self, min_perc, min_elem):
 
-		# create a base as the histogram and start from there
-		base = [x for x in self.histogram]
-		for p_i, p in enumerate(sortedpeaks):
+		# Make a copy of the histogram and modify...
+		base = np.array([x for x in self.histogram])
+		for p_i, p in enumerate(self.peaks):
 
 			# locally optimize the peak
-			p.optimise(base[p.left:p.right])
+			p.optimise(base[:p.right])
 
 			# substract the peak effect from the baseline
 			for i in range(len(self.histogram)):
-				base[i] = base[i] - p.gaussian(i)
+				base[i] -= p.gaussian(i)
 
 		updated = False
 		for f in [self.fmax / 4, self.fmax / 3, self.fmax / 2, self.fmax, self.fmax * 2, self.fmax * 3, self.fmax * 4]:
@@ -300,18 +294,14 @@ class KmerSpectra(object):
 		:return: Scalar values representing the
 		"""
 		for i in range(len(self.peaks)):
-			self.peaks[i].mean = p[i * 6]
-			self.peaks[i].shape = p[i * 6 + 1]
-			self.peaks[i].elements = p[i * 6 + 2]
-			self.peaks[i].left = p[i * 6 + 3]
-			self.peaks[i].right = p[i * 6 + 4]
-			self.peaks[i].peak = p[i * 6 + 5]
+			self.peaks[i].shape = p[i * 2]
+			self.peaks[i].peak = p[i * 2 + 1]
 
 		# Recalculate the fitted histogram based on information in the new parameters "p"
 		self.update_fitted_histogram()
 
 		# Create a list of differences between actual and fitted histogram in the area of interest
-		r = [max(self.histogram[i] - self.fitted_histogram[i], 0) for i in range(self.cuts[0], self.cuts[-1])]
+		r = [abs(self.histogram[i] - self.fitted_histogram[i]) for i in range(self.cuts[0], self.cuts[-1])]
 
 		# Sum up all the deltas at each bin in the histogram, to create our score for this set of parameters
 		delta = sum(r)
@@ -321,21 +311,11 @@ class KmerSpectra(object):
 	def optimise(self):
 		p = []
 		bounds = []
-		total_elements = sum(self.histogram)
 		for pk in self.peaks:
-			p.append(float(pk.mean))
 			p.append(float(pk.shape))
-			p.append(float(pk.elements))
-			p.append(float(pk.left))
-			p.append(float(pk.right))
 			p.append(float(pk.peak))
-			bounds.append((float(pk.left),float(pk.right)))
 			bounds.append((0.0, 10000000.0))
-			bounds.append((0.0, float(total_elements)))
-			bounds.append((0.0, float(pk.mean)))
-			bounds.append((float(pk.mean), float(len(self.histogram))))
-			bounds.append((0.0, float(min(pk.peak, self.histogram[pk.mean]))))
-
+			bounds.append((0.0, self.histogram[pk.mean]))
 
 		# Optimise
 		res = optimize.fmin_slsqp(self.objective_func, p, bounds=bounds, full_output=True)
@@ -422,6 +402,8 @@ class KmerSpectra(object):
 			hr = self.calcHetRate(gs)
 			print("Estimated heterozygous rate:", "{0:.2f}".format(hr) + "%")
 
+def gaussian(x, mu, sig):
+    return np.exp(-np.power(x - mu, 2.) / (2 * np.power(sig, 2.)))
 
 class KmerPeak(object):
 	"""A distribution representing kmers covered a certain number of times.
@@ -446,14 +428,6 @@ class KmerPeak(object):
 	def getTabHeader():
 		return "Left\tMean\tRight\tMax\tVolume"
 
-	def gaussian(self, x):
-		"""
-		Create a normalised gaussian from the given histogram
-		:param x: histogram
-		:return: a normalised gaussian
-		"""
-		return np.exp(-np.power(x - self.mean) / (2. * np.power(self.sigma, 2)))
-
 	def fast_point(self, x, multiplier):
 		"""
 		Creates a normalised gaussian from the given histogram
@@ -476,7 +450,17 @@ class KmerPeak(object):
 		"""
 		self.sigma = p[0]
 
-		# Update element count for these new parameters
+
+		dist = norm(self.mean, self.sigma)
+		hist = np.linspace(dist.pdf(0.001), dist(0.999), len(self.histogram))
+
+
+
+		# Update other peak properties, based on the new sigma
+		# (mean and peak should be unchanged)
+		self.left = 0
+		self.right = 0
+		self.elements = 0
 
 
 		# Pre calculate the multiplier for the
@@ -496,16 +480,26 @@ class KmerPeak(object):
 		:param histogram:
 		:return:
 		"""
+
+		# Sanity check... this should never happen though.
 		if len(histogram) == 0:
 			raise RuntimeError("Encountered peak with no range")
 
 		# Save histogram for easy access
 		self.histogram = histogram
 
-		p = []
-		bounds=[]
-		p.append(float(self.sigma))
-		bounds.append((0.0, 10000000.0))
+
+		self.Tx = np.linspace(1, len(histogram) - 1, len(histogram) - 1)
+		self.Ty = np.zeros_like(self.Tx)
+		scale = float(self.elements) / R2PI / self.sigma	# Scaling factor to apply to gaussian
+		for i, x in enumerate(self.Tx):
+			self.Ty[i] = gaussian(x, self.mean, self.sigma) * scale
+
+		# Set up variables to optimise (just sigma)
+		p = [float(self.sigma)]
+
+		# Establish bounds (can't be negative but otherwise anything goes)
+		bounds=[(0.0, 10000000.0)]
 
 		# Set the optimal sigma and peak values for this
 		res = optimize.fmin_slsqp(self.objective_func, p, bounds=bounds)
