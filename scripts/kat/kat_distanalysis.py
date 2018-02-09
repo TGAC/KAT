@@ -5,14 +5,17 @@ import abc
 import sys
 import traceback
 import time
+import os
 
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
 import math
 
-import kat
-
+version = "X.X.X"
+if os.path.join(os.path.dirname(os.path.realpath(__file__)), "__init__.py"):
+	import kat
+	version = kat.__version__
 
 
 class KmerSpectra(object):
@@ -906,7 +909,7 @@ def main():
 
 	if not args.from_kat:
 		print("KAT K-mer Distribution Analysis Script")
-		print("Version:", kat.__version__)
+		print("Version:", version)
 		print()
 		if args.verbose:
 			print("Analysing distributions for:", args.input)
