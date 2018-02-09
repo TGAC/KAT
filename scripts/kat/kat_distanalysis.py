@@ -9,6 +9,7 @@ import time
 import numpy as np
 from scipy import optimize
 import matplotlib.pyplot as plt
+import math
 
 import kat
 
@@ -400,10 +401,12 @@ class KmerPeak(object):
 		return int(sum(self.Ty)) if self.Ty is not None else 0
 
 	def poisson(self, x):
-		return np.exp(-np.power(x - self._mean, 2.) / (2 * np.power(self._stddev, 2.)))
+		#return np.exp(-np.power(x - self._mean, 2.) / (2 * np.power(self._stddev, 2.)))
+		return np.exp(-self._mean) * (np.power(self._mean, x) / math.factorial(x))
 
 	def calcScalingFactor(self):
-		return float(self._peak) / self.poisson(self._mean)
+		p = self.poisson(self._mean)
+		return (float(self._peak) / p) if p > 0 else 0
 
 
 	def __str__(self):
