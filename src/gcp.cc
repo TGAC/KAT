@@ -227,8 +227,9 @@ void kat::Gcp::analysePeaks() {
     cout << "Analysing peaks ... ";
     cout.flush();
 
+    path dascript = path("kat") / "distanalysis.py";
     vector<string> args;
-    args.push_back("kat_distanalysis.py");
+    args.push_back(dascript.string());
     if (verbose) {
         args.push_back("--verbose");
     }
@@ -240,7 +241,7 @@ void kat::Gcp::analysePeaks() {
         char_args[i] = strdup(args[i].c_str());
     }
 
-    PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+    PyHelper::getInstance().execute(dascript.string(), (int)args.size(), char_args);
 
     for(size_t i = 0; i < args.size(); i++) {
         free(char_args[i]);

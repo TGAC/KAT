@@ -238,7 +238,7 @@ void kat::Histogram::plot(const string& output_type) {
 	path outputFile1 = path(outputPrefix.string() + "." + output_type);
 
 	vector<string> args;
-	args.push_back("plot/spectra-hist.py");
+	args.push_back("kat/plot/spectra-hist.py");
 	args.push_back(string("--output=") + outputFile1.string());
 	if (verbose) {
 		args.push_back("--verbose");

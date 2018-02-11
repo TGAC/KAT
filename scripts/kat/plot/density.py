@@ -3,6 +3,7 @@
 import argparse
 import scipy.ndimage as ndimage
 
+import colormaps
 from misc import *
 
 def main():
@@ -159,7 +160,7 @@ def main():
 
     plt.figure(num = None, figsize=(args.width, args.height))
 
-    pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=cmaps.viridis,
+    pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=colormaps.viridis,
                           rasterized=args.rasterised)
     plt.axis([0,xmax,0,ymax])
     cbar = plt.colorbar()

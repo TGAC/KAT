@@ -407,7 +407,8 @@ class GCSpectra(Spectra):
 		"""
 
 		#TODO May need to compensate for reduction in elements from moving average
-		smooth_histo = smooth(self.histogram)
+		wlen=3
+		smooth_histo = smooth(self.histogram, window_len=wlen)
 
 		# for local maxima
 		peak_means = argrelextrema(smooth_histo, np.greater)
@@ -423,7 +424,10 @@ class GCSpectra(Spectra):
 
 			# Unless otherwise specified we assume fmax represents the homozygous peak (primary content)
 			# Explore expected peak sites, also look for heterozygous content.
-			for mean in peak_means[0]:
+			for mu in peak_means[0]:
+
+				# Correct for smoothing
+				mean = mu - wlen + 2
 
 				# Take a first guess at the std dev, just use something relatively narrow for now
 				# the local optimisation should pad this out later

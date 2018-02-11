@@ -98,7 +98,7 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 
 		print()
 
-	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
+	def analyse(self, verbose=False):
 
 		# Create the peaks
 		if verbose:
@@ -161,10 +161,10 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 			fig = plt.figure()
 			plot_hist(self.cov_spectra.histogram, xmax, ymax, label="Actual", color="black")
-			plot_hist(self.cov_spectra.update_fitted_histogram(1, xmax + 1), xmax, ymax, label="Fitted model")
+			plot_hist(self.cov_spectra.Ty, xmax, ymax, label="Fitted model")
 
 			for p_i, p in enumerate(self.cov_spectra.peaks, start=1):
-				plot_hist(p.points(1, xmax + 1), xmax, ymax, label=p.description)
+				plot_hist(p.Ty, xmax, ymax, label=p.description)
 
 			if to_screen:
 				plt.show()
@@ -185,10 +185,10 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 			fig = plt.figure()
 			plot_hist(self.gc_dist.histogram, xmax, ymax, label="Actual", xlab="GC count", color="black")
-			plot_hist(self.gc_dist.update_fitted_histogram(1, xmax + 1), xmax, ymax, label="Fitted model", xlab="GC count")
+			plot_hist(self.gc_dist.Ty, xmax, ymax, label="Fitted model", xlab="GC count")
 
 			for p_i, p in enumerate(self.gc_dist.peaks, start=1):
-				plot_hist(p.points(1, xmax + 1), xmax, ymax, label="Dist %d" % p_i, xlab="GC count")
+				plot_hist(p.Ty, xmax, ymax, label="Dist %d" % p_i, xlab="GC count")
 
 			if to_screen:
 				plt.show()
@@ -201,15 +201,15 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		print()
 
 
-	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
+	def analyse(self, verbose=False):
 
 		# Create the peaks
 		if verbose:
 			print("Analysing K-mer spectra")
-		self.cov_spectra.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
+		self.cov_spectra.analyse(verbose=verbose)
 		if self.cov_spectra.peaks:
-			self.limy = int(max(int(self.cov_spectra.maxval * 1.1 / 1000) * 1000, self.limy))
-			self.limx = int(max(min(self.cov_spectra.peaks[-1].mean * 2, len(self.cov_spectra.histogram)), self.limx))
+			self.limy = int(max(int(self.cov_spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
+			self.limx = int(max(min(self.cov_spectra.peaks[-1].mean() * 2, len(self.cov_spectra.histogram)), self.limx))
 
 		if verbose:
 			print("Plot limits: y->%d, x->%d" % (self.limy, self.limx))
@@ -217,7 +217,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		# Create the peaks
 		if verbose:
 			print("Analysing GC distribution")
-		self.gc_dist.analyse(min_perc=1, min_elem=len(self.gc_dist.histogram), verbose=verbose, gcd=True)
+		self.gc_dist.analyse(verbose=verbose)
 
 
 	def peak_stats(self):
@@ -292,17 +292,17 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 			print()
 
 
-	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
+	def analyse(self, verbose=False):
 
 		for s_i, s in enumerate(self.spectras):
 			if s_i == 0:
 				print("\nAnalysing full spectra")
 			else:
 				print("\nAnalysing spectra with copy number", s_i-1)
-			s.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
+			s.analyse(verbose=verbose)
 			if s.peaks:
-				self.limy = int(max(int(s.maxval * 1.1 / 1000) * 1000, self.limy))
-				self.limx = int(max(min(s.peaks[-1].mean * 2, len(s.histogram)), self.limx))
+				self.limy = int(max(int(s.maxValue() * 1.1 / 1000) * 1000, self.limy))
+				self.limx = int(max(min(s.peaks[-1].mean() * 2, len(s.histogram)), self.limx))
 			elif s_i == 0:
 				raise RuntimeError("No peaks detected for full spectra.  Can't continue.")
 
@@ -419,10 +419,6 @@ def main():
 						help="The number of copy numbers to consider in the analysis.  Only applicable if input is a spectra-cn matrix file.")
 	parser.add_argument("-f", "--freq_cutoff", type=int, default=500,
 						help="The maximum frequency cutoff point to consider.  Analysis will be done up to this frequency.")
-	parser.add_argument("-p", "--min_perc", type=float, default=1.0,
-						help="Any new distribution that adds less to min perc kmers on the iterative analysis will not be added.")
-	parser.add_argument("-e", "--min_elem", type=int, default=100000,
-						help="Any new distribution that adds less to min elem kmers on the iterative analysis will not be added.")
 	parser.add_argument("--plot", action='store_true',
 						help="Plot best cumulative fit for all peaks.")
 	parser.add_argument("--plot_initial", action='store_true',
@@ -470,7 +466,7 @@ def main():
 
 	try:
 		start = time.time()
-		a.analyse(min_perc=args.min_perc, min_elem=args.min_elem, verbose=args.verbose)
+		a.analyse(verbose=args.verbose)
 		end = time.time()
 		print(("" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
 		a.peak_stats()

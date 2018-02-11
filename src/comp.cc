@@ -485,12 +485,13 @@ void kat::Comp::compareSlice(int th_id) {
 
 void kat::Comp::analysePeaks() {
 #ifdef HAVE_PYTHON
+    path dascript = path("kat") / "distanalysis.py";
     if (this->densityPlot && this->outputHists) {
         cout << "Analysing peaks for dataset 1 ... ";
         cout.flush();
-
+	
         vector<string> args;
-        args.push_back("kat_distanalysis.py");
+        args.push_back(dascript.string());
         if (verbose) {
             args.push_back("--verbose");
         }
@@ -502,7 +503,7 @@ void kat::Comp::analysePeaks() {
             char_args[i] = strdup(args[i].c_str());
         }
 
-        PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+        PyHelper::getInstance().execute(dascript.string(), (int)args.size(), char_args);
 
         for(size_t i = 0; i < args.size(); i++) {
             free(char_args[i]);
@@ -512,7 +513,7 @@ void kat::Comp::analysePeaks() {
         cout.flush();
 
         args.clear();
-        args.push_back("kat_distanalysis.py");
+        args.push_back(dascript.string());
         if (verbose) {
             args.push_back("--verbose");
         }
@@ -522,7 +523,7 @@ void kat::Comp::analysePeaks() {
             char_args[i] = strdup(args[i].c_str());
         }
 
-        PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+        PyHelper::getInstance().execute(dascript.string(), (int)args.size(), char_args);
 
         for(size_t i = 0; i < args.size(); i++) {
             free(char_args[i]);
@@ -535,7 +536,7 @@ void kat::Comp::analysePeaks() {
         cout.flush();
 
         vector<string> args;
-        args.push_back("kat_distanalysis.py");
+        args.push_back(dascript.string());
         if (verbose) {
             args.push_back("--verbose");
         }
@@ -547,7 +548,7 @@ void kat::Comp::analysePeaks() {
             char_args[i] = strdup(args[i].c_str());
         }
 
-        PyHelper::getInstance().execute("kat_distanalysis.py", (int)args.size(), char_args);
+        PyHelper::getInstance().execute(dascript.string(), (int)args.size(), char_args);
 
         for(size_t i = 0; i < args.size(); i++) {
             free(char_args[i]);
@@ -571,7 +572,7 @@ void kat::Comp::plot(const string& output_type) {
     if (densityPlot) {
         path outputFile = path(getMxOutPath().string() + ".density." + output_type);
         vector<string> args;
-        args.push_back("plot/density.py");
+        args.push_back("kat/plot/density.py");
         args.push_back(string("--output=") + outputFile.string());
         if (verbose) {
             args.push_back("--verbose");
@@ -582,7 +583,7 @@ void kat::Comp::plot(const string& output_type) {
     else {
         path outputFile = path(getMxOutPath().string() + ".spectra-cn." + output_type);
         vector<string> args;
-        args.push_back("plot/spectra-cn.py");
+        args.push_back("kat/plot/spectra-cn.py");
         args.push_back(string("--output=") + outputFile.string());
         if (verbose) {
             args.push_back("--verbose");
@@ -597,7 +598,7 @@ void kat::Comp::plot(const string& output_type) {
         path outputFile2 = path(outputPrefix.string() + ".2.hist." + output_type);
 
         vector<string> args1;
-        args1.push_back("plot/spectra-hist.py");
+        args1.push_back("kat/plot/spectra-hist.py");
         args1.push_back(string("--output=") + outputFile1.string());
         if (verbose) {
             args1.push_back("--verbose");
@@ -606,7 +607,7 @@ void kat::Comp::plot(const string& output_type) {
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args1);
 
         vector<string> args2;
-        args2.push_back("plot/spectra-hist.py");
+        args2.push_back("kat/plot/spectra-hist.py");
         args2.push_back(string("--output=") + outputFile2.string());
         if (verbose) {
             args2.push_back("--verbose");

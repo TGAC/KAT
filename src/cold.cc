@@ -420,7 +420,7 @@ void kat::Cold::plot(const string& output_type) {
 
 #ifdef HAVE_PYTHON
         vector<string> args;
-        args.push_back("plot/cold.py");
+        args.push_back("kat/plot/cold.py");
         args.push_back(string("--output=") + outputFile);
         if (verbose) {
             args.push_back("--verbose");
