@@ -108,14 +108,13 @@ namespace kat {
 
             // Check to see if scripts are adjacent to exe first
             path kda(canonicalExe.parent_path());
-            kda /= "kat_distanalysis";
+            kda /= "setup.py";
             if (exists(kda)) {
 #ifdef HAVE_PYTHON
                 // Looks like we are running from an installed location.  Don't try to use then
                 // scripts from here.  We will try the KAT_SITE_PACKAGES PATH instead.
                 this->scriptsDir = KAT_SITE_PKGS;
                 this->scriptsDir /= string("kat-") + PACKAGE_VERSION + "-py" + HAVE_PYTHON + ".egg";
-                this->scriptsDir /= "kat";
                 if (!exists(this->scriptsDir)) {
                     BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
                         "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
@@ -147,9 +146,8 @@ namespace kat {
 
                     }
                 }
-                this->scriptsDir /= "kat";
                 kda = this->scriptsDir;
-                kda /= "kat_distanalysis.py";
+                kda /= "setup.py";
                 if (!exists(kda)) {
                     BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
                          "Could not find suitable directory containing KAT scripts derived from relative path of executable")));

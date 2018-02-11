@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import numpy as np
 import scipy.ndimage as ndimage
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from kat_plot_misc import *
-import kat_plot_colormaps as cmaps
+
+from misc import *
 
 def main():
 

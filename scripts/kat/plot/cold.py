@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from matplotlib.ticker import ScalarFormatter
 import math
 from scipy import stats
+
+from misc import *
 
 def main():
 

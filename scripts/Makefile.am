@@ -9,16 +9,16 @@ uninstall-hook:
 	cat install_files.txt | xargs rm -rf
 
 EXTRA_DIST = \
-	kat/kat_distanalysis.py \
-	kat/kat_plot_colormaps.py \
-	kat/kat_plot_misc.py \
-	kat/kat_plot_profile.py \
-	kat/kat_plot_spectra_cn.py \
-	kat/kat_plot_spectra_hist.py \
-	kat/kat_plot_spectra_mx.py \
-	kat/kat_plot_cold.py \
-	kat/kmer_peak.py \
-	kat/kmer_spectra.py \
+	kat/distanalysis.py \
+	kat/plot/__init__.py \
+	kat/plot/colormaps.py \
+	kat/plot/profile.py \
+	kat/plot/spectra_cn.py \
+	kat/plot/spectra_hist.py \
+	kat/plot/spectra_mx.py \
+	kat/plot/cold.py \
+	kat/peak.py \
+	kat/spectra.py \
 	kat/__init__.py
 
 clean-local: clean-local-check

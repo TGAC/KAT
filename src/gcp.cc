@@ -209,7 +209,7 @@ void kat::Gcp::plot(const string& output_type) {
 
 #ifdef HAVE_PYTHON
         vector<string> args;
-        args.push_back("kat_plot_density.py");
+        args.push_back("plot/density.py");
         args.push_back(string("--output=") + outputFile);
         if (verbose) {
             args.push_back("--verbose");

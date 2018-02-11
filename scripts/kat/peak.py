@@ -1,9 +1,8 @@
 import numpy as np
-import math
 from scipy import optimize
 
 
-class KmerPeak(object):
+class Peak(object):
 	"""
 	A distribution representing kmers covered a certain number of times.
 	Contains methods for fitting to an interval
@@ -17,6 +16,7 @@ class KmerPeak(object):
 		self._scaling_factor = self.calcScalingFactor()
 		self.Tx = None
 		self.Ty = None
+		self.description = ""
 
 	def left(self):
 		return int(self._mean - self.radius())
@@ -64,23 +64,24 @@ class KmerPeak(object):
 		return (float(self._peak) / p) if p > 0 else 0
 
 	def __str__(self):
-		return "Peak of " + str(self._peak) + " at frequency " + str(self._mean) + ", with volume of " + \
+		return "Peak of " + str(self._peak) + " at frequency " + str(self._mean) + "(stdev: " + str(int(self._stddev)) + "), with volume of " + \
 			   str(self.elements()) + " elements between frequencies of " + str(self.left()) + " and " + str(
 			self.right()) + "; Primary: " + str(self.primary)
 
 	def toTabString(self):
 		return "\t".join(
-			[str(self.left()), str(int(self._mean)), str(self.right()), str(int(self._peak)), str(int(self.elements())),
-			 str(self.primary)])
+			[str(self.left()), str(int(self._mean)), str(self.right()), str(int(self._stddev)),
+			 str(int(self._peak)), str(int(self.elements())), str(self.description)])
 
 	@staticmethod
 	def getTabHeader():
-		return "Left\tMean\tRight\tMax\tVolume\tPrimary"
+		return "Left\tMean\tRight\tStdDev\tMax\tVolume\tDescription"
 
-	def updateModel(self, new_peak, new_stddev):
+	def updateModel(self, new_mean, new_peak, new_stddev):
 		"""
 		Updates the histogram representing the gaussian modelled by this peak
 		"""
+		self._mean = new_mean
 		self._peak = new_peak
 		self._stddev = new_stddev
 		self._scaling_factor = self.calcScalingFactor()
@@ -91,7 +92,7 @@ class KmerPeak(object):
 
 		return self.Ty
 
-	def _objectiveFunc(self, p):
+	def _residuals(self, p):
 		"""
 		Fit this gaussian distribution as closely as possible to the histogram using the given parameters
 		:param p: The parameters to use
@@ -100,20 +101,24 @@ class KmerPeak(object):
 
 		# This set the peak and adjusts the scaling factor accordingly
 		# and then updates the histogram represented by this specific peak
-		self.updateModel(p[0], p[1])
+		if self.__vary_mean:
+			self.updateModel(p[0], p[1], p[2])
+		else:
+			self.updateModel(self._mean, p[0], p[1])
 
 		# Return the distance between the fitted peak and the actual histogram at each site
-		delta = np.abs(self.Ty - self.histogram)
+		residuals = self.histogram - self.Ty
 
-		# We want to heavily penalise all points which exceed the histogram
-		#for i in range(len(delta)):
-		#	d = delta[i]
-		#	delta[i] = np.power(d + 1000, 2) if d > 0 else -d
+		# We want to more heavily penalise all points which exceed the histogram
+		for i in range(len(residuals)):
+			d = residuals[i]
+			if d < 0:
+				residuals[i] = d ** 2
 
 		# Sum the distances to provide overall level of difference
-		return sum(delta)
+		return residuals
 
-	def optimise(self, histogram):
+	def optimise(self, histogram, vary_mean=False):
 		"""
 		Tries to fit this single guassian distribution to this point in the histogram as closely as possible
 		:param histogram:
@@ -131,18 +136,22 @@ class KmerPeak(object):
 		self.Tx = np.linspace(0, len(histogram) - 1, len(histogram))
 		self.Ty = np.zeros_like(self.Tx)
 
-		# Update the fitted histograms based on this peak's scaled gaussian
-		self.updateModel(self._peak, self._stddev)
+		# Make sure the current settings are up to date and the fitted histogram is based on these
+		self.updateModel(self._mean, self._peak, self._stddev)
+
+		# Set this internal variable to specify whether we should vary the mean or not.
+		self.__vary_mean = vary_mean
 
 		# Set up variables to optimise (just the peak)
-		p = [float(self._peak), self._stddev]
-		bounds = [(0.1, self.histogram[self._mean]), (np.sqrt(np.sqrt(self._mean)), self._mean)]
+		p = [self._mean, self._peak, self._stddev] if vary_mean else [self._peak, self._stddev]
 
 		# Set the optimal peak value that maximises the space under the histogram, without going over the borders.
-		res = optimize.minimize(self._objectiveFunc, p, bounds=bounds)
-		if not res.success:
-			print(
-				"It is likely that the spectra is too complex to analyse properly.  Stopping analysis.\nOptimisation results:\n" + str(
+		res = optimize.leastsq(self._residuals, p, full_output=True)
+		if res[-1] < 1 or res[-1] > 4:
+			raise RuntimeError(
+				"It is likely that the peak is too complex to analyse properly.  Stopping analysis.\n" \
+				"Problem optimising peak: " + self.__str__() + "\n" + \
+				"Optimisation results:\n" + str(
 					res[-2]))
 
 		return

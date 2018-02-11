@@ -121,7 +121,7 @@ public:
         }
 
         const path scripts_dir = katFileSystem.GetScriptsDir();
-        const path full_script_path = path(scripts_dir.string() + "/" + script_name);
+	const path full_script_path = scripts_dir / script_name;
 
         stringstream ss;
 

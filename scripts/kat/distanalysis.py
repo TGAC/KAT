@@ -5,12 +5,16 @@ import abc
 import sys
 import traceback
 import time
-import os
-
 import matplotlib.pyplot as plt
 
-from kat.kmer_spectra import KmerSpectra
-import kat
+from spectra import KmerSpectra, GCSpectra
+
+version = "2.X.X"
+try:
+	import kat
+	version = kat.__version__
+except:
+	pass
 
 
 
@@ -77,11 +81,12 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 			#self.spectra.printPeaks()
 
 			fig = plt.figure()
-			plot_hist(self.spectra.histogram, xmax, ymax, label="Histogram", color="black")
-			plot_hist(self.spectra.Ty, xmax, ymax, label="Fitted distribution")
+			plot_hist(self.spectra.histogram, xmax, ymax, label="Actual", color="black")
 
 			for p_i, p in enumerate(self.spectra.peaks, start=1):
-				plot_hist(p.Ty, xmax, ymax, label="fit dist %d" % p_i)
+				plot_hist(p.Ty, xmax, ymax, label=p.description)
+
+			plot_hist(self.spectra.Ty, xmax, ymax, label="Fitted model")
 
 			if to_screen:
 				plt.show()
@@ -98,9 +103,9 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		# Create the peaks
 		if verbose:
 			print("Analysing spectra")
-		self.spectra.analyse(min_perc=min_perc, min_elem=min_elem, verbose=verbose)
+		self.spectra.analyse(verbose=verbose)
 		if self.spectra.peaks:
-			self.limy = int(max(int(self.spectra.maxval * 1.1 / 1000) * 1000, self.limy))
+			self.limy = int(max(int(self.spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.spectra.peaks[-1].mean() * 2, len(self.spectra.histogram)), self.limx))
 
 		if verbose:
@@ -118,7 +123,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		cov_histo, gc_histo = self.read_file(filename, freq_cutoff)
 		self.mean_gc = sum([i * x for i, x in enumerate(gc_histo)]) / sum(gc_histo)
 		self.cov_spectra = KmerSpectra(cov_histo, k=k)
-		self.gc_dist = KmerSpectra(gc_histo, k=k)		# Not really a Kmer spectra but let's shoehorn it in anyway
+		self.gc_dist = GCSpectra(gc_histo, k=k)		# Not really a Kmer spectra but let's shoehorn it in anyway
 
 
 	def read_file(self, name, freq_cutoff=10000, k=27):
@@ -155,11 +160,11 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			#self.cov_spectra.printPeaks()
 
 			fig = plt.figure()
-			plot_hist(self.cov_spectra.histogram, xmax, ymax, label="Histogram", color="black")
-			plot_hist(self.cov_spectra.update_fitted_histogram(1, xmax + 1), xmax, ymax, label="Fitted distribution")
+			plot_hist(self.cov_spectra.histogram, xmax, ymax, label="Actual", color="black")
+			plot_hist(self.cov_spectra.update_fitted_histogram(1, xmax + 1), xmax, ymax, label="Fitted model")
 
 			for p_i, p in enumerate(self.cov_spectra.peaks, start=1):
-				plot_hist(p.points(1, xmax + 1), xmax, ymax, label="fit dist %d" % p_i)
+				plot_hist(p.points(1, xmax + 1), xmax, ymax, label=p.description)
 
 			if to_screen:
 				plt.show()
@@ -179,11 +184,11 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			ymax = max(self.gc_dist.histogram) * 1.1
 
 			fig = plt.figure()
-			plot_hist(self.gc_dist.histogram, xmax, ymax, label="Histogram", xlab="GC count", color="black")
-			plot_hist(self.gc_dist.update_fitted_histogram(1, xmax + 1), xmax, ymax, label="Fitted distribution", xlab="GC count")
+			plot_hist(self.gc_dist.histogram, xmax, ymax, label="Actual", xlab="GC count", color="black")
+			plot_hist(self.gc_dist.update_fitted_histogram(1, xmax + 1), xmax, ymax, label="Fitted model", xlab="GC count")
 
 			for p_i, p in enumerate(self.gc_dist.peaks, start=1):
-				plot_hist(p.points(1, xmax + 1), xmax, ymax, label="fit dist %d" % p_i, xlab="GC count")
+				plot_hist(p.points(1, xmax + 1), xmax, ymax, label="Dist %d" % p_i, xlab="GC count")
 
 			if to_screen:
 				plt.show()
@@ -271,7 +276,7 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 			plot_hist(s.histogram, xmax, ymax, label=slabel, color="black")
 			plot_hist(s.update_fitted_histogram(1, xmax + 1), xmax, ymax, label=slabel + " fit")
 			for p_i, p in enumerate(s.peaks, start=1):
-				plot_hist(p.points(1, xmax + 1), xmax, ymax, label="fit dist %d" % p_i)
+				plot_hist(p.points(1, xmax + 1), xmax, ymax, label=p.description)
 
 			if to_screen:
 				plt.show()
@@ -419,7 +424,9 @@ def main():
 	parser.add_argument("-e", "--min_elem", type=int, default=100000,
 						help="Any new distribution that adds less to min elem kmers on the iterative analysis will not be added.")
 	parser.add_argument("--plot", action='store_true',
-						help="Plot fitted distributions to each peak to the screen.")
+						help="Plot best cumulative fit for all peaks.")
+	parser.add_argument("--plot_initial", action='store_true',
+						help="Plot each peak's best fit to the screen.")
 	parser.add_argument("-z", "--homozygous_peak", type=int, default=0,
 						help="The approximate kmer frequency for the homozygous peak.  Allows us to calculate a more accurate genome size estimate.")
 	parser.add_argument("-v", "--verbose", action='store_true',
@@ -431,7 +438,7 @@ def main():
 
 	if not args.from_kat:
 		print("KAT K-mer Distribution Analysis Script")
-		print("Version:", kat.__version__)
+		print("Version:", version)
 		print()
 		if args.verbose:
 			print("Analysing distributions for:", args.input)

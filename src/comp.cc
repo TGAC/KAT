@@ -571,7 +571,7 @@ void kat::Comp::plot(const string& output_type) {
     if (densityPlot) {
         path outputFile = path(getMxOutPath().string() + ".density." + output_type);
         vector<string> args;
-        args.push_back("kat_plot_density.py");
+        args.push_back("plot/density.py");
         args.push_back(string("--output=") + outputFile.string());
         if (verbose) {
             args.push_back("--verbose");
@@ -582,7 +582,7 @@ void kat::Comp::plot(const string& output_type) {
     else {
         path outputFile = path(getMxOutPath().string() + ".spectra-cn." + output_type);
         vector<string> args;
-        args.push_back("kat_plot_spectra-cn.py");
+        args.push_back("plot/spectra-cn.py");
         args.push_back(string("--output=") + outputFile.string());
         if (verbose) {
             args.push_back("--verbose");
@@ -597,7 +597,7 @@ void kat::Comp::plot(const string& output_type) {
         path outputFile2 = path(outputPrefix.string() + ".2.hist." + output_type);
 
         vector<string> args1;
-        args1.push_back("kat_plot_spectra-hist.py");
+        args1.push_back("plot/spectra-hist.py");
         args1.push_back(string("--output=") + outputFile1.string());
         if (verbose) {
             args1.push_back("--verbose");
@@ -606,7 +606,7 @@ void kat::Comp::plot(const string& output_type) {
         Plot::executePythonPlot(Plot::PlotMode::SPECTRA_HIST, args1);
 
         vector<string> args2;
-        args2.push_back("kat_plot_spectra-hist.py");
+        args2.push_back("plot/spectra-hist.py");
         args2.push_back(string("--output=") + outputFile2.string());
         if (verbose) {
             args2.push_back("--verbose");
