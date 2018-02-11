@@ -161,10 +161,11 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 			fig = plt.figure()
 			plot_hist(self.cov_spectra.histogram, xmax, ymax, label="Actual", color="black")
-			plot_hist(self.cov_spectra.Ty, xmax, ymax, label="Fitted model")
 
 			for p_i, p in enumerate(self.cov_spectra.peaks, start=1):
 				plot_hist(p.Ty, xmax, ymax, label=p.description)
+
+			plot_hist(self.cov_spectra.Ty, xmax, ymax, label="Fitted model")
 
 			if to_screen:
 				plt.show()
@@ -185,10 +186,11 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 			fig = plt.figure()
 			plot_hist(self.gc_dist.histogram, xmax, ymax, label="Actual", xlab="GC count", color="black")
-			plot_hist(self.gc_dist.Ty, xmax, ymax, label="Fitted model", xlab="GC count")
 
 			for p_i, p in enumerate(self.gc_dist.peaks, start=1):
 				plot_hist(p.Ty, xmax, ymax, label="Dist %d" % p_i, xlab="GC count")
+
+			plot_hist(self.gc_dist.Ty, xmax, ymax, label="Fitted model", xlab="GC count")
 
 			if to_screen:
 				plt.show()

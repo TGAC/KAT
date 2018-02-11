@@ -39,7 +39,7 @@ class Spectra(object):
 		self.Ty = np.zeros_like(self.Tx)
 
 	@abc.abstractmethod
-	def _createInitialPeaks(self, min_perc=1, min_elem=100000, verbose=False):
+	def _createInitialPeaks(self):
 		pass
 
 	def _updateModel(self, params):
