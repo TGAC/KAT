@@ -6,7 +6,7 @@ from scipy import optimize
 from scipy.signal import argrelextrema
 import tabulate
 
-from peak import Peak
+from peak import Peak, gaussian, createModel
 
 
 def smooth(x, window_len=3):
@@ -48,18 +48,15 @@ class Spectra(object):
 		This function updates the fitted histogram based on the current parameters in each of the peaks in this spectra
 		:return: The newly fitted histogram (self.fitted_histogram)
 		"""
-		# TODO there's probably a super fast numpy vectorised way of doing this.
+
+		if len(params) != len(self.peaks):
+			raise ValueError("Unexpected number of parameters")
+
 		self.Ty = np.zeros_like(self.Tx)
 		for i in range(len(self.peaks)):
-			if len(params == 2):
-				new_mean = self.peaks[i].mean()
-				new_peak = params[i * 2]
-				new_stddev = params[i * 2 + 1]
-			elif len(params == 3):
-				new_mean = params[i * 3]
-				new_peak = params[i * 3 + 1]
-				new_stddev = params[i * 3 + 2]
-
+			new_mean = self.peaks[i].mean()
+			new_peak = params[i]
+			new_stddev = self.peaks[i].stddev()
 			self.Ty += self.peaks[i].updateModel(new_mean, new_peak, new_stddev)
 
 		return
@@ -73,27 +70,28 @@ class Spectra(object):
 		:return: A numpy array of scalar values representing the difference between the model and reality at each X value
 		"""
 
-		# Quick sanity check (probably can drop this to save time)
-		if len(params) != len(self.peaks) * 2:
-			raise ValueError("Parameters and peaks have got out of sync")
+		if len(params) != len(self.peaks):
+			raise ValueError("Unexpected number of parameters")
 
 		# Recalculate the fitted histogram based on information in the new parameters
-		self._updateModel(params)
+		model = np.zeros_like(self.Tx)
+		for i, peak in enumerate(self.peaks):
+			new_peak = params[i]
+			#new_stddev = params[i * 2 + 1]
+			model += createModel(self.Tx, peak.mean(), peak.stddev(), new_peak)
 
 		# Create a list of differences between actual and fitted histogram in the area of interest
-		residuals = self.realTy - self.Ty
+		residuals = self.realTy - model
 
 		# We want to heavily penalise all points which exceed the histogram more harshly than those underneath
-		# But not more harshly than the peak in order to provide a bit more flexiblity in the overall fit.
-		# The current multiple was arrived at from trial and error.  Possibly there is a better value to use...
 		for i in range(len(residuals)):
 			d = residuals[i]
 			if d < 0:
-				residuals[i] = d * 10
+				residuals[i] = d * 10 * len(self.peaks)
 
 		return residuals
 
-	def optimise(self, vary_mean=False):
+	def optimise(self):
 		"""
 		Given the full set of peaks, adjust all their heights in order to best fit the acutal histogram
 		We also put some bounds around the limits these values can take to stop them going crazy
@@ -102,29 +100,30 @@ class Spectra(object):
 			raise ValueError("Can't optimise peaks because none are defined.")
 
 		params = []
+		lower_bounds = []
+		upper_bounds = []
 		for p in self.peaks:
-			if vary_mean:
-				params.append(p.mean())
 			params.append(p.peak())
-			params.append(p.stddev())
+			lower_bounds.append(0.0)
+			upper_bounds.append(np.max(self.histogram))
+			#params.append(p.stddev())
+			#lower_bounds.append(1.0)
+			#upper_bounds.append(len(self.histogram))
 
 		# Reset Tx and Ty in case the histogram has been modified
 		self.Tx = np.linspace(0, len(self.histogram) - 1, len(self.histogram))
-		self.Ty = np.zeros_like(self.Tx)
 		self.realTy = np.array(self.histogram)
 
 		# Optimise
-		res = optimize.leastsq(self._residuals, np.array(params), full_output=True)
-		if res[-1] < 1 or res[-1] > 4:
-			raise RuntimeError(
-				"It is likely that the spectra is too complex to analyse properly.  Stopping analysis.\nOptimisation results:\n" + str(
-					res[-2]))
+		res = optimize.least_squares(self._residuals, np.array(params), bounds=(lower_bounds, upper_bounds), loss="soft_l1")
+		if res.success:
+			self._updateModel(res.x)
 
 		# once the better fit is found, check if by taking the unfitted elements new distributions arise.
 		return
 
 
-	def analyse(self, verbose=False, plot_initial=False):
+	def analyse(self, min_elements=1, verbose=False):
 		"""
 		Analyse the histogram for peaks
 		:param verbose: Prints additional information about progress to stdout
@@ -144,13 +143,16 @@ class Spectra(object):
 				p.optimise(self.histogram)
 
 			# For debugging
-			if plot_initial:
+			if False:
 				plt.plot(self.histogram, color='black')
 				for p_i, p in enumerate(self.peaks):
 					plt.plot(p.Ty)
 				plt.xlim(0, 70)
-				plt.ylim(0, 120000000)
+				plt.ylim(0, 200000)
 				plt.show()
+
+			# Remove any peaks that contain little to no content
+			self.peaks = list(filter(lambda p: p.elements() >= min_elements, self.peaks))
 
 			if verbose:
 				print("done.")

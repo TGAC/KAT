@@ -43,7 +43,7 @@ class SpectraAnalysis(object):
 		self.limy = 0
 
 	@abc.abstractmethod
-	def analyse(self, min_perc=1, min_elem=100000, verbose=False):
+	def analyse(self, min_elements=1, verbose=False):
 		pass
 
 	@abc.abstractmethod
@@ -98,12 +98,12 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 
 		print()
 
-	def analyse(self, verbose=False):
+	def analyse(self, min_elements=1, verbose=False):
 
 		# Create the peaks
 		if verbose:
 			print("Analysing spectra")
-		self.spectra.analyse(verbose=verbose)
+		self.spectra.analyse(min_elements=min_elements, verbose=verbose)
 		if self.spectra.peaks:
 			self.limy = int(max(int(self.spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.spectra.peaks[-1].mean() * 2, len(self.spectra.histogram)), self.limx))
@@ -157,8 +157,6 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 			print("Plotting K-mer frequency distributions...")
 
-			#self.cov_spectra.printPeaks()
-
 			fig = plt.figure()
 			plot_hist(self.cov_spectra.histogram, xmax, ymax, label="Actual", color="black")
 
@@ -203,15 +201,15 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		print()
 
 
-	def analyse(self, verbose=False):
+	def analyse(self, min_elements=1, verbose=False):
 
 		# Create the peaks
 		if verbose:
 			print("Analysing K-mer spectra")
-		self.cov_spectra.analyse(verbose=verbose)
+		self.cov_spectra.analyse(min_elements=min_elements, verbose=verbose)
 		if self.cov_spectra.peaks:
 			self.limy = int(max(int(self.cov_spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
-			self.limx = int(max(min(self.cov_spectra.peaks[-1].mean() * 2, len(self.cov_spectra.histogram)), self.limx))
+			self.limx = int(max(min(self.cov_spectra.peaks[-1].right() * 1.1, len(self.cov_spectra.histogram)), self.limx))
 
 		if verbose:
 			print()
@@ -221,7 +219,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		# Create the peaks
 		if verbose:
 			print("Analysing GC distribution")
-		self.gc_dist.analyse(verbose=verbose)
+		self.gc_dist.analyse(min_elements=min_elements, verbose=verbose)
 
 
 	def peak_stats(self):
@@ -297,19 +295,24 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 			print()
 
 
-	def analyse(self, verbose=False):
+	def analyse(self, min_elements=1, verbose=False):
 
+		maxValue = 0
+		right = 0
 		for s_i, s in enumerate(self.spectras):
 			if s_i == 0:
 				print("\nAnalysing full spectra")
 			else:
 				print("\nAnalysing spectra with copy number", s_i-1)
-			s.analyse(verbose=verbose)
+			s.analyse(min_elements=min_elements, verbose=verbose)
 			if s.peaks:
-				self.limy = int(max(int(s.maxValue() * 1.1 / 1000) * 1000, self.limy))
-				self.limx = int(max(min(s.peaks[-1].mean() * 2, len(s.histogram)), self.limx))
+				maxValue = max(maxValue, s.maxValue())
+				right = max(right, s.peaks[-1].right())
 			elif s_i == 0:
 				raise RuntimeError("No peaks detected for full spectra.  Can't continue.")
+
+		self.limy = int(max(int(maxValue * 1.1 / 1000) * 1000, self.limy))
+		self.limx = int(max(min(right * 1.1, len(s.histogram)), self.limx))
 
 		print("\nAnalysed spectra for all requested copy numbers.")
 
@@ -424,10 +427,10 @@ def main():
 						help="The number of copy numbers to consider in the analysis.  Only applicable if input is a spectra-cn matrix file.")
 	parser.add_argument("-f", "--freq_cutoff", type=int, default=500,
 						help="The maximum frequency cutoff point to consider.  Analysis will be done up to this frequency.")
+	parser.add_argument("-e", "--min_elem", type=int, default=10000,
+						help="Any new distribution that adds less to this number of kmers will not be added.")
 	parser.add_argument("--plot", action='store_true',
 						help="Plot best cumulative fit for all peaks.")
-	parser.add_argument("--plot_initial", action='store_true',
-						help="Plot each peak's best fit to the screen.")
 	parser.add_argument("-z", "--homozygous_peak", type=int, default=0,
 						help="The approximate kmer frequency for the homozygous peak.  Allows us to calculate a more accurate genome size estimate.")
 	parser.add_argument("-v", "--verbose", action='store_true',
@@ -471,12 +474,12 @@ def main():
 
 	try:
 		start = time.time()
-		a.analyse(verbose=args.verbose)
+		a.analyse(min_elements=args.min_elem, verbose=args.verbose)
 		end = time.time()
 		print(("" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
 		a.peak_stats()
 		if args.plot or args.output_prefix:
-			a.plot(to_screen=args.plot, to_files=args.output_prefix)
+			a.plot(xmax=args.freq_cutoff, to_screen=args.plot, to_files=args.output_prefix)
 	except Exception:
 		print("\nERROR\n-----", file=sys.stderr)
 		traceback.print_exc(file=sys.stderr)
