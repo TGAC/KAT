@@ -7,7 +7,10 @@ import traceback
 import time
 import matplotlib.pyplot as plt
 
-from spectra import KmerSpectra, GCSpectra
+try:
+	from spectra import KmerSpectra, GCSpectra
+except:
+	from kat.spectra import KmerSpectra, GCSpectra
 
 version = "2.X.X"
 try:
@@ -438,8 +441,7 @@ def main():
 						help="If selected then we do not try to detect a heterozygous peak")
 	parser.add_argument("-v", "--verbose", action='store_true',
 						help="Print additional information.")
-	parser.add_argument("--from_kat", action='store_true',
-						help="Only to be used if running directly from within KAT.  You can safely ignore this!")
+	parser.add_argument("--from_kat", action='store_true', help=argparse.SUPPRESS)
 
 	args = parser.parse_args()
 

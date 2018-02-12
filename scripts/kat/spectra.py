@@ -6,7 +6,10 @@ from scipy import optimize
 from scipy.signal import argrelextrema
 import tabulate
 
-from peak import Peak, gaussian, createModel
+try:
+	from peak import Peak, gaussian, createModel
+except:
+	from kat.peak import Peak, gaussian, createModel
 
 
 def smooth(x, window_len=3):

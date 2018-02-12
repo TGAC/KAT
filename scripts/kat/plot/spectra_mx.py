@@ -3,7 +3,10 @@
 import sys
 import argparse
 
-from misc import *
+try:
+	from misc import *
+except:
+	from kat.plot.misc import *
 
 def main():
     # ----- command line parsing -----

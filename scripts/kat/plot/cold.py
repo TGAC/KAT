@@ -7,7 +7,10 @@ from matplotlib.ticker import ScalarFormatter
 import math
 from scipy import stats
 
-from misc import *
+try:
+    from misc import *
+except:
+    from kat.plot.misc import *
 
 def main():
 

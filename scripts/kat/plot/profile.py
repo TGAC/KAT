@@ -4,7 +4,10 @@ import sys
 import argparse
 import matplotlib.ticker as ticker
 
-from misc import *
+try:
+	from misc import *
+except:
+	from kat.plot.misc import *
 
 def main():
 

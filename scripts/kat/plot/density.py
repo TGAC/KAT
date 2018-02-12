@@ -3,8 +3,12 @@
 import argparse
 import scipy.ndimage as ndimage
 
-import colormaps
-from misc import *
+try:
+    import colormaps
+    from misc import *
+except:
+    import kat.plot.colormaps
+    from kat.plot.misc import *
 
 def main():
 
