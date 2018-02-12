@@ -28,10 +28,10 @@ class Peak(object):
 		self.description = ""
 
 	def left(self):
-		return int(self._mean - self.radius())
+		return self._mean - self.radius()
 
 	def right(self):
-		return int(self._mean + self.radius())
+		return self._mean + self.radius()
 
 	def radius(self):
 		"""
@@ -66,12 +66,12 @@ class Peak(object):
 		return np.exp(-np.power(x - self._mean, 2.) / (2 * np.power(self._stddev, 2.)))
 
 	def __str__(self):
-		return "Peak of " + str(self._peak) + " at frequency " + str(self._mean) + "(stddev: " + "{:.2f}".format(self._stddev) + "), with volume of " + \
-			   str(self.elements()) + " elements between frequencies of " + str(self.left()) + " and " + str(
+		return "Peak of " + str(int(self._peak)) + " at frequency " + "{:.2f}".format(self._mean) + "(stddev: " + "{:.2f}".format(self._stddev) + "), with volume of " + \
+			   str(self.elements()) + " elements between frequencies of " + "{:.2f}".format(self.left()) + " and " + "{:.2f}".format(
 			self.right()) + "; Primary: " + str(self.primary)
 
 	def toRow(self):
-		return [str(self.left()), str(int(self._mean)), str(self.right()), "{:.2f}".format(self._stddev),
+		return ["{:.2f}".format(self.left()), "{:.2f}".format(self._mean), "{:.2f}".format(self.right()), "{:.2f}".format(self._stddev),
 			 str(int(self._peak)), str(int(self.elements())), str(self.description)]
 
 	@staticmethod
@@ -102,12 +102,12 @@ class Peak(object):
 		# and then updates the histogram represented by this specific peak
 		model = np.zeros_like(self.Tx)
 		for i, x in enumerate(self.Tx):
-			model[i] = gaussian(x, self._mean, p[1]) * p[0]
+			model[i] = gaussian(x, p[0], p[2]) * p[1]
 
 		# Return the distance between the fitted peak and the actual histogram at each site
 		residuals = self.histogram - model
 
-		if p[0] < 0.0 or p[1] < 0.0 or self._mean - 2.0 * p[1] < 1.0:
+		if p[0] - 2.0 * p[2] < 1.0:
 			# If the std dev has extended too far then penalise this set of params heavily
 			residuals *= 1000.0
 		else:
@@ -143,17 +143,25 @@ class Peak(object):
 
 		# Set up variables to optimise (just the peak)
 		p = []
+		lower_bounds = []
+		upper_bounds = []
+		p.append(self._mean)
+		lower_bounds.append(self._mean - 1.0)
+		upper_bounds.append(self._mean + 1.0)
 		p.append(self._peak.astype(np.float64))
+		lower_bounds.append(0.0)
+		upper_bounds.append(self._peak.astype(np.float64))
 		p.append(self._stddev)
+		lower_bounds.append(1.0)
+		upper_bounds.append(float(len(self.histogram)))
 
 		# Set the optimal peak value that maximises the space under the histogram, without going over the borders.
-		res = optimize.leastsq(self.residuals, np.array(p), full_output=True)
-		if res[-1] < 1 or res[-1] > 4:
-			raise RuntimeError(
-				"It is likely that the peak is too complex to analyse properly.  Stopping analysis.\n" \
-				"Problem optimising peak: " + self.__str__() + "\n" + \
-				"Optimisation results:\n" + str(res[-2]))
+		res = optimize.least_squares(self.residuals, np.array(p).astype(np.float64), bounds=(lower_bounds, upper_bounds), loss="soft_l1")
 
-		self.updateModel(self._mean, res[0][0], res[0][1])
+		# If all went well update the model with the optimised variables
+		if res.success:
+			self.updateModel(res.x[0], res.x[1], res.x[2])
+		else:
+			raise ValueError("Problem optimising peak.")
 
 		return

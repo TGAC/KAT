@@ -35,8 +35,9 @@ def plot_hist_df(self, h, xmax, ymax, xlab='Kmer Frequency', ylab='# Distinct Km
 class SpectraAnalysis(object):
 	__metaclass__ = abc.ABCMeta
 
-	def __init__(self, freq_cutoff=10000, hom_peak_freq=0, k=27):
+	def __init__(self, haploid=False, freq_cutoff=10000, hom_peak_freq=0, k=27):
 		self.k = k
+		self.haploid = haploid
 		self.freq_cutoff = freq_cutoff
 		self.hom_peak = hom_peak_freq
 		self.limx = 0
@@ -55,9 +56,9 @@ class SpectraAnalysis(object):
 		pass
 
 class HistKmerSpectraAnalysis(SpectraAnalysis):
-	def __init__(self, filename, freq_cutoff=10000, hom_peak_freq=0, k=27):
-		SpectraAnalysis.__init__(self, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
-		self.spectra = KmerSpectra(self.read_hist(filename, freq_cutoff), k=k)
+	def __init__(self, filename, haploid=False, freq_cutoff=10000, hom_peak_freq=0, k=27):
+		SpectraAnalysis.__init__(self, haploid=haploid, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
+		self.spectra = KmerSpectra(self.read_hist(filename, freq_cutoff), haploid=haploid, k=k)
 
 
 	def read_hist(self, name, freq_cutoff=10000):
@@ -118,11 +119,11 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		self.spectra.printGenomeStats(self.hom_peak)
 
 class GCKmerSpectraAnalysis(SpectraAnalysis):
-	def __init__(self, filename, freq_cutoff=10000, hom_peak_freq=0, k=27):
-		SpectraAnalysis.__init__(self, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
+	def __init__(self, filename, haploid=False, freq_cutoff=10000, hom_peak_freq=0, k=27):
+		SpectraAnalysis.__init__(self, haploid=haploid, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
 		cov_histo, gc_histo = self.read_file(filename, freq_cutoff)
 		self.mean_gc = sum([i * x for i, x in enumerate(gc_histo)]) / sum(gc_histo)
-		self.cov_spectra = KmerSpectra(cov_histo, k=k)
+		self.cov_spectra = KmerSpectra(cov_histo, haploid=haploid, k=k)
 		self.gc_dist = GCSpectra(gc_histo, k=k)		# Not really a Kmer spectra but let's shoehorn it in anyway
 
 
@@ -241,11 +242,11 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 
 class MXKmerSpectraAnalysis(SpectraAnalysis):
-	def __init__(self, filename, cns_cutoff=3, freq_cutoff=10000, hom_peak_freq=0, k=27):
-		SpectraAnalysis.__init__(self, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
-		self.spectras = [KmerSpectra(self.read_mx(filename, freq_cutoff=freq_cutoff, column=0, cumulative=True), k=k)]
+	def __init__(self, filename, cns_cutoff=3, haploid=False, freq_cutoff=10000, hom_peak_freq=0, k=27):
+		SpectraAnalysis.__init__(self, haploid=haploid, freq_cutoff=freq_cutoff, hom_peak_freq=hom_peak_freq, k=k)
+		self.spectras = [KmerSpectra(self.read_mx(filename, freq_cutoff=freq_cutoff, column=0, cumulative=True), haploid=haploid, k=k)]
 		for i in range(cns_cutoff):
-			self.spectras.append(KmerSpectra(self.read_mx(filename, freq_cutoff=freq_cutoff, column=i, cumulative=False), k=k))
+			self.spectras.append(KmerSpectra(self.read_mx(filename, freq_cutoff=freq_cutoff, column=i, cumulative=False), haploid=haploid, k=k))
 
 	def read_mx(self, name, freq_cutoff=10000, column=1, cumulative=False):
 		f = open(name)
@@ -429,10 +430,12 @@ def main():
 						help="The maximum frequency cutoff point to consider.  Analysis will be done up to this frequency.")
 	parser.add_argument("-e", "--min_elem", type=int, default=10000,
 						help="Any new distribution that adds less to this number of kmers will not be added.")
-	parser.add_argument("--plot", action='store_true',
+	parser.add_argument("-p", "--plot", action='store_true',
 						help="Plot best cumulative fit for all peaks.")
 	parser.add_argument("-z", "--homozygous_peak", type=int, default=0,
 						help="The approximate kmer frequency for the homozygous peak.  Allows us to calculate a more accurate genome size estimate.")
+	parser.add_argument("--haploid", action='store_true',
+						help="If selected then we do not try to detect a heterozygous peak")
 	parser.add_argument("-v", "--verbose", action='store_true',
 						help="Print additional information.")
 	parser.add_argument("--from_kat", action='store_true',
@@ -458,16 +461,16 @@ def main():
 		if gcp:
 			if args.verbose:
 				print("GC vs Coverage matrix file detected")
-			a = GCKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
+			a = GCKmerSpectraAnalysis(args.input, haploid=args.haploid, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 		else:
 			if args.verbose:
 				print("Copy number spectra matrix file detected")
 				print("Processing", args.cns, "spectra")
-			a = MXKmerSpectraAnalysis(args.input, cns_cutoff=args.cns, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
+			a = MXKmerSpectraAnalysis(args.input, haploid=args.haploid, cns_cutoff=args.cns, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 	else:
 		if args.verbose:
 			print("Kmer coverage histogram file detected")
-		a = HistKmerSpectraAnalysis(args.input, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
+		a = HistKmerSpectraAnalysis(args.input, haploid=args.haploid, freq_cutoff=args.freq_cutoff, hom_peak_freq=args.homozygous_peak, k=k)
 
 	if not a:
 		raise RuntimeError("Couldn't generate a valid spectra analysis")

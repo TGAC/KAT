@@ -52,14 +52,17 @@ class Spectra(object):
 		if len(params) != len(self.peaks):
 			raise ValueError("Unexpected number of parameters")
 
-		self.Ty = np.zeros_like(self.Tx)
 		for i in range(len(self.peaks)):
 			new_mean = self.peaks[i].mean()
 			new_peak = params[i]
-			new_stddev = self.peaks[i].stddev()
-			self.Ty += self.peaks[i].updateModel(new_mean, new_peak, new_stddev)
+			new_stddev = self.peaks[i].stddev() #params[i * 2 + 1]
+			self.peaks[i].updateModel(new_mean, new_peak, new_stddev)
 
-		return
+		self.Ty = np.zeros_like(self.Tx)
+		for p in self.peaks:
+			self.Ty += p.Ty
+
+		return self.Ty
 
 	def _residuals(self, params):
 		"""
@@ -75,10 +78,14 @@ class Spectra(object):
 
 		# Recalculate the fitted histogram based on information in the new parameters
 		model = np.zeros_like(self.Tx)
+		badparams = False
 		for i, peak in enumerate(self.peaks):
+			new_stddev = peak.stddev() #params[i * 2 + 1]
 			new_peak = params[i]
-			#new_stddev = params[i * 2 + 1]
-			model += createModel(self.Tx, peak.mean(), peak.stddev(), new_peak)
+			pdist = createModel(self.Tx, peak.mean(), new_stddev, new_peak)
+			if peak.mean() - 2.0 * new_stddev < 1.0:
+				pdist *= 1000.0
+			model += pdist
 
 		# Create a list of differences between actual and fitted histogram in the area of interest
 		residuals = self.realTy - model
@@ -87,7 +94,9 @@ class Spectra(object):
 		for i in range(len(residuals)):
 			d = residuals[i]
 			if d < 0:
-				residuals[i] = d * 10 * len(self.peaks)
+				residuals[i] = d * len(self.peaks)
+			if i < 5:
+				residuals[i] = 0
 
 		return residuals
 
@@ -103,12 +112,12 @@ class Spectra(object):
 		lower_bounds = []
 		upper_bounds = []
 		for p in self.peaks:
-			params.append(p.peak())
+			params.append(p.peak().astype(np.float64))
 			lower_bounds.append(0.0)
-			upper_bounds.append(np.max(self.histogram))
-			#params.append(p.stddev())
-			#lower_bounds.append(1.0)
-			#upper_bounds.append(len(self.histogram))
+			upper_bounds.append(p.peak())
+			#params.append(p.stddev().astype(np.float64))
+			#lower_bounds.append(p.stddev() - np.sqrt(p.stddev()))
+			#upper_bounds.append(p.stddev() + np.sqrt(p.stddev()))
 
 		# Reset Tx and Ty in case the histogram has been modified
 		self.Tx = np.linspace(0, len(self.histogram) - 1, len(self.histogram))
@@ -118,6 +127,7 @@ class Spectra(object):
 		res = optimize.least_squares(self._residuals, np.array(params), bounds=(lower_bounds, upper_bounds), loss="soft_l1")
 		if res.success:
 			self._updateModel(res.x)
+			print(res.nfev)
 
 		# once the better fit is found, check if by taking the unfitted elements new distributions arise.
 		return
@@ -138,6 +148,8 @@ class Spectra(object):
 			if verbose:
 				print("done.", len(self.peaks), "peaks initially created")
 				print()
+				self.printPeaks()
+				print()
 				print("Locally optimising each peak ... ", end="")
 			for p_i, p in enumerate(self.peaks):
 				p.optimise(self.histogram)
@@ -148,7 +160,7 @@ class Spectra(object):
 				for p_i, p in enumerate(self.peaks):
 					plt.plot(p.Ty)
 				plt.xlim(0, 70)
-				plt.ylim(0, 200000)
+				plt.ylim(0, 200000000)
 				plt.show()
 
 			# Remove any peaks that contain little to no content
@@ -192,7 +204,7 @@ class KmerSpectra(Spectra):
 	A kmer spectra, comprised of different peaks. Contains the general fitting method.
 	"""
 
-	def __init__(self, histogram, k=27):
+	def __init__(self, histogram, haploid=False, k=27):
 		"""
 		Inititalise the spectra with the actual histogram to model
 		:param histogram: Histogram derived from one of the KAT tools
@@ -203,6 +215,7 @@ class KmerSpectra(Spectra):
 		Spectra.__init__(self, histogram, k)
 
 		# Extra properties for K-mer spectra
+		self.haploid = haploid	# If haploid then we don't look for the heterozygous (1/2) peak
 		self.fmax = 0  		# Position of global maxima in actual histogram
 		self.fmin = 0  		# Position of global minima in actual histogram
 
@@ -251,7 +264,13 @@ class KmerSpectra(Spectra):
 
 			# Unless otherwise specified we assume fmax represents the homozygous peak (primary content)
 			# Explore expected peak sites, also look for heterozygous content.
-			for mu in [fmax / 2.0, fmax, fmax * 2, fmax * 3, fmax * 4, fmax * 5]:
+			frequencies = []
+			if not self.haploid:
+				frequencies.append(fmax / 2.0)
+			for i in range(1, 5):
+				frequencies.append(fmax * i)
+
+			for mu in frequencies:
 
 				# In a poisson distribution the mean is the variance, so the stddev is simply the square root of the mean
 				sigma = np.sqrt(mu)
@@ -299,7 +318,7 @@ class KmerSpectra(Spectra):
 		else:
 			# No frequency given.  Use the primary peak (i.e. the one that represents the global maxima)
 			for i, p in enumerate(self.peaks, start=1):
-				if p.mean() == self.fmax:
+				if abs(p.mean() - self.fmax) < 1.0:
 					return i
 
 		return 0
