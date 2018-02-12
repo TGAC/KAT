@@ -432,7 +432,7 @@ def main():
 	parser.add_argument("-f", "--freq_cutoff", type=int, default=500,
 						help="The maximum frequency cutoff point to consider.  Analysis will be done up to this frequency.")
 	parser.add_argument("-e", "--min_elem", type=int, default=10000,
-						help="Any new distribution that adds less to this number of kmers will not be added.")
+						help="Any new distribution that adds less to this number of distinct K-mers will not be added.")
 	parser.add_argument("-p", "--plot", action='store_true',
 						help="Plot best cumulative fit for all peaks.")
 	parser.add_argument("-z", "--homozygous_peak", type=int, default=0,
