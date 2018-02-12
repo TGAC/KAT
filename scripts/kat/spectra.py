@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import optimize
 from scipy.signal import argrelextrema
+import tabulate
 
 from peak import Peak
 
@@ -131,14 +132,14 @@ class Spectra(object):
 
 		if verbose:
 			print()
-			print("Creating initial peaks ...", end="", flush=True)
+			print("Creating initial peaks ... ", end="", flush=True)
 		self._createInitialPeaks()
 
 		if self.peaks:
 			if verbose:
 				print("done.", len(self.peaks), "peaks initially created")
 				print()
-				print("Locally optimising each peak ...", end="")
+				print("Locally optimising each peak ... ", end="")
 			for p_i, p in enumerate(self.peaks):
 				p.optimise(self.histogram)
 
@@ -156,7 +157,7 @@ class Spectra(object):
 				print()
 				self.printPeaks()
 				print()
-				print("Fitting cumulative distribution to histogram by adjusting peaks ...", end="", flush=True)
+				print("Fitting cumulative distribution to histogram by adjusting peaks ... ", end="", flush=True)
 			try:
 				self.optimise()
 				if verbose:
@@ -174,9 +175,9 @@ class Spectra(object):
 
 	def printPeaks(self):
 		if len(self.peaks) > 0:
-			print("Index\t" + Peak.getTabHeader())
-			for p_i, p in enumerate(self.peaks, start=1):
-				print(str(p_i) + "\t" + p.toTabString())
+			header = ["Index"] + Peak.header()
+			rows = [[str(p_i)] + p.toRow() for p_i, p in enumerate(self.peaks, start=1)]
+			print(tabulate.tabulate(rows, header))
 		else:
 			print("No peaks detected")
 
@@ -369,20 +370,19 @@ class KmerSpectra(Spectra):
 		# This also updates the peaks with information that can be used in labels
 		gs = self.calcGenomeSize(hom_peak=hp)
 
+		print()
+		self.printPeaks()
+		print()
 		print("K-value used:", self.k)
 		print("Peaks in analysis:", len(self.peaks))
-		self.printPeaks()
-
-		print("Mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
-		print("Homozygous peak index:", hp, ("" if hom_peak_freq > 0 else "(assumed)"))
+		print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
+		print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
+		print("Overall mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
+		print("Homozygous peak index:", hp, ("(user specified)" if hom_peak_freq > 0 else "(assumed)"))
 		print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
 		if (hp > 1):
 			hr = self.calcHetRate(gs)
 			print("Estimated heterozygous rate:", "{0:.2f}".format(hr) + "%")
-
-	def printKmerSpectraProperties(self):
-		print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
-		print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
 
 
 class GCSpectra(Spectra):

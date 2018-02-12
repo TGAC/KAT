@@ -86,7 +86,7 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 			for p_i, p in enumerate(self.spectra.peaks, start=1):
 				plot_hist(p.Ty, xmax, ymax, label=p.description)
 
-			plot_hist(self.spectra.Ty, xmax, ymax, label="Fitted model")
+			plot_hist(self.spectra.Ty, xmax, ymax, label="Fitted model", color="green")
 
 			if to_screen:
 				plt.show()
@@ -165,7 +165,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			for p_i, p in enumerate(self.cov_spectra.peaks, start=1):
 				plot_hist(p.Ty, xmax, ymax, label=p.description)
 
-			plot_hist(self.cov_spectra.Ty, xmax, ymax, label="Fitted model")
+			plot_hist(self.cov_spectra.Ty, xmax, ymax, label="Fitted model", color="green")
 
 			if to_screen:
 				plt.show()
@@ -190,7 +190,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			for p_i, p in enumerate(self.gc_dist.peaks, start=1):
 				plot_hist(p.Ty, xmax, ymax, label="Dist %d" % p_i, xlab="GC count")
 
-			plot_hist(self.gc_dist.Ty, xmax, ymax, label="Fitted model", xlab="GC count")
+			plot_hist(self.gc_dist.Ty, xmax, ymax, label="Fitted model", xlab="GC count", color="green")
 
 			if to_screen:
 				plt.show()
@@ -214,7 +214,9 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			self.limx = int(max(min(self.cov_spectra.peaks[-1].mean() * 2, len(self.cov_spectra.histogram)), self.limx))
 
 		if verbose:
+			print()
 			print("Plot limits: y->%d, x->%d" % (self.limy, self.limx))
+			print()
 
 		# Create the peaks
 		if verbose:
@@ -233,6 +235,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		# Step 4, genome stats
 		print("K-value used:", str(self.gc_dist.k))
 		print("Peaks in analysis:", str(len(self.gc_dist.peaks)))
+		print()
 		self.gc_dist.printPeaks()
 		print("Mean GC:", "{0:.2f}".format(self.mean_gc * (100.0 / self.gc_dist.k)) + "%")
 
@@ -276,9 +279,9 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 			s.printPeaks()
 
 			plot_hist(s.histogram, xmax, ymax, label=slabel, color="black")
-			plot_hist(s.update_fitted_histogram(1, xmax + 1), xmax, ymax, label=slabel + " fit")
+			plot_hist(s.Ty, xmax, ymax, label=slabel + " fit")
 			for p_i, p in enumerate(s.peaks, start=1):
-				plot_hist(p.points(1, xmax + 1), xmax, ymax, label=p.description)
+				plot_hist(p.Ty, xmax, ymax, label=p.description)
 
 			if to_screen:
 				plt.show()
@@ -339,16 +342,16 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 		print("--------------------------------------------------")
 
 		general_dists = self.spectras[0].peaks
-		goal = 0.99 * sum([x.elements for x in general_dists])
+		goal = 0.99 * sum([x.elements() for x in general_dists])
 		maxpeaks = 10
-		general_dists.sort(key=lambda x: -x.elements)
+		general_dists.sort(key=lambda x: -x.elements())
 		af = []
 		peaks = 0
 		covered = 0
 		for x in general_dists:
-			af.append(x.mean)
+			af.append(x.mean())
 			peaks += 1
-			covered += x.elements
+			covered += x.elements()
 			if peaks == maxpeaks or covered > goal:
 				break
 
@@ -357,8 +360,8 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 		for f in af:
 			total = 0
 			pd = {}
-			for i in range(len(self.spectras) - 1):
-				m = [(x.mean, x.elements) for x in self.spectras[1 + i].peaks if x.mean > 0.8 * f and x.mean < 1.2 * f]
+			for i, s in enumerate(self.spectras, start=1):
+				m = [(x.mean(), x.elements()) for x in s.peaks if x.mean() > 0.8 * f and x.mean() < 1.2 * f]
 				if len(m) == 1:
 					pd[i] = m[0]
 					total += m[0][1]
@@ -377,7 +380,7 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 
 		if self.spectras[0].peaks:
 			hpi = self.spectras[0].getHomozygousPeakIndex(self.hom_peak)
-			opt_freq = int(self.spectras[0].peaks[hpi-1].mean)
+			opt_freq = int(self.spectras[0].peaks[hpi-1].mean())
 			absent_count = self.spectras[1].histogram[opt_freq]
 			present_count = self.spectras[2].histogram[opt_freq]
 			return (present_count / (absent_count + present_count)) * 100.0

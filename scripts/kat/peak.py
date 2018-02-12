@@ -64,18 +64,17 @@ class Peak(object):
 		return (float(self._peak) / p) if p > 0 else 0
 
 	def __str__(self):
-		return "Peak of " + str(self._peak) + " at frequency " + str(self._mean) + "(stdev: " + str(int(self._stddev)) + "), with volume of " + \
+		return "Peak of " + str(self._peak) + " at frequency " + str(self._mean) + "(stddev: " + "{:.2f}".format(self._stddev) + "), with volume of " + \
 			   str(self.elements()) + " elements between frequencies of " + str(self.left()) + " and " + str(
 			self.right()) + "; Primary: " + str(self.primary)
 
-	def toTabString(self):
-		return "\t".join(
-			[str(self.left()), str(int(self._mean)), str(self.right()), str(int(self._stddev)),
-			 str(int(self._peak)), str(int(self.elements())), str(self.description)])
+	def toRow(self):
+		return [str(self.left()), str(int(self._mean)), str(self.right()), "{:.2f}".format(self._stddev),
+			 str(int(self._peak)), str(int(self.elements())), str(self.description)]
 
 	@staticmethod
-	def getTabHeader():
-		return "Left\tMean\tRight\tStdDev\tMax\tVolume\tDescription"
+	def header():
+		return ["Left","Mean","Right","StdDev","Max","Volume","Description"]
 
 	def updateModel(self, new_mean, new_peak, new_stddev):
 		"""
