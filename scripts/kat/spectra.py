@@ -52,13 +52,13 @@ class Spectra(object):
 		:return: The newly fitted histogram (self.fitted_histogram)
 		"""
 
-		if len(params) != len(self.peaks):
+		if len(params) != len(self.peaks) * 3:
 			raise ValueError("Unexpected number of parameters")
 
 		for i in range(len(self.peaks)):
-			new_mean = self.peaks[i].mean()
-			new_peak = params[i]
-			new_stddev = self.peaks[i].stddev() #params[i * 2 + 1]
+			new_mean = params[i * 3]
+			new_peak = params[i * 3 + 1]
+			new_stddev = params[i * 3 + 2]
 			self.peaks[i].updateModel(new_mean, new_peak, new_stddev)
 
 		self.Ty = np.zeros_like(self.Tx)
@@ -67,72 +67,68 @@ class Spectra(object):
 
 		return self.Ty
 
-	def _residuals(self, params):
+	def _createModel(self, x, *params):
 		"""
-		Our objective is to create a set of distributions that fits the real histogram as closely as possible
-		We do this by trying to minimise the difference between our fitted histogram (cumulative sum of
-		all distributions) and the real histogram.  The smaller the difference the better.
+		This creates a model based on the parameters provided.  We expect these to be a multiple of the number of peaks.
+		The parameters control how the shape of the scaled guassians representing each peak.
+		:params x: The x values, each of these will be applied to this function to create y which is of the same length
 		:param params: New set of parameters adjusted by the optimiser
 		:return: A numpy array of scalar values representing the difference between the model and reality at each X value
 		"""
 
-		if len(params) != len(self.peaks):
+		if len(params) != len(self.peaks) * 3:
 			raise ValueError("Unexpected number of parameters")
 
-		# Recalculate the fitted histogram based on information in the new parameters
-		model = np.zeros_like(self.Tx)
-		badparams = False
+		# Recalculate the model based on information in the new parameters
+		y = np.zeros_like(x)
 		for i, peak in enumerate(self.peaks):
-			new_stddev = peak.stddev() #params[i * 2 + 1]
-			new_peak = params[i]
-			pdist = createModel(self.Tx, peak.mean(), new_stddev, new_peak)
-			if peak.mean() - 2.0 * new_stddev < 1.0:
-				pdist *= 1000.0
-			model += pdist
+			new_mean = params[i * 3]
+			new_peak = params[i * 3 + 1]
+			new_stddev = params[i * 3 + 2]
+			pdist = createModel(x, new_mean, new_stddev, new_peak)
+			y += pdist
 
-		# Create a list of differences between actual and fitted histogram in the area of interest
-		residuals = self.realTy - model
+		return y
 
-		# We want to heavily penalise all points which exceed the histogram more harshly than those underneath
-		for i in range(len(residuals)):
-			d = residuals[i]
-			if d < 0:
-				residuals[i] = d * len(self.peaks)
-			if i < 5:
-				residuals[i] = 0
-
-		return residuals
-
-	def optimise(self):
+	def optimise(self, fmin=0):
 		"""
 		Given the full set of peaks, adjust all their heights in order to best fit the acutal histogram
 		We also put some bounds around the limits these values can take to stop them going crazy
 		"""
 		if not self.peaks:
-			raise ValueError("Can't optimise peaks because none are defined.")
+			print("Can't optimise peaks because none are defined.", end="", flush=True)
+			return
 
 		params = []
 		lower_bounds = []
 		upper_bounds = []
 		for p in self.peaks:
-			params.append(p.peak().astype(np.float64))
+			params.append(p.mean())
+			lower_bounds.append(p.mean() - 2.0)
+			upper_bounds.append(p.mean() + 2.0)
+			params.append(p.peak())
 			lower_bounds.append(0.0)
 			upper_bounds.append(p.peak())
-			#params.append(p.stddev().astype(np.float64))
-			#lower_bounds.append(p.stddev() - np.sqrt(p.stddev()))
-			#upper_bounds.append(p.stddev() + np.sqrt(p.stddev()))
+			params.append(p.stddev())
+			stddev_lower = p.stddev() - np.sqrt(p.stddev())
+			stddev_upper = max(min((p.mean() - 2.0) / 2.0, p.stddev() + np.sqrt(p.stddev())), p.stddev()+0.01)
+			lower_bounds.append(stddev_lower)	# Make sure we can't get massively smaller
+			upper_bounds.append(stddev_upper)	# Make sure we can't get too much bigger or make peak extend past 0 freq
 
 		# Reset Tx and Ty in case the histogram has been modified
 		self.Tx = np.linspace(0, len(self.histogram) - 1, len(self.histogram))
-		self.realTy = np.array(self.histogram)
 
-		# Optimise
-		res = optimize.least_squares(self._residuals, np.array(params), bounds=(lower_bounds, upper_bounds), loss="soft_l1")
-		if res.success:
-			self._updateModel(res.x)
-			print(res.nfev)
+		# Suppress error k-mers
+		fitcurve = np.array(self.histogram)
+		for i in range(len(fitcurve)):
+			if i <= fmin:
+				fitcurve[i] /= np.power(fmin - i + 1, 6)
 
-		# once the better fit is found, check if by taking the unfitted elements new distributions arise.
+		# Fit model to real histogram
+		res = optimize.curve_fit(self._createModel, self.Tx, fitcurve, p0=params, bounds=(np.array(lower_bounds), np.array(upper_bounds)))
+
+		# Update the model with the optimised variables
+		self._updateModel(res[0])
 		return
 
 
@@ -176,7 +172,7 @@ class Spectra(object):
 				print()
 				print("Fitting cumulative distribution to histogram by adjusting peaks ... ", end="", flush=True)
 			try:
-				self.optimise()
+				self.optimise(fmin=self.fmin if type(self) == KmerSpectra else 0)
 				if verbose:
 					print("done.")
 					print()
@@ -197,6 +193,38 @@ class Spectra(object):
 			print(tabulate.tabulate(rows, header))
 		else:
 			print("No peaks detected")
+
+	def plot(self, xmax, ymax, title=None, to_screen=True, output_file=None):
+
+		fig = plt.figure()
+
+		labels = []
+		labels.append(plt.plot(self.histogram[:xmax], label="Actual", color="black"))
+		for p in self.peaks:
+			colour=None
+			if p.description.startswith("1X"):
+				colour="red"
+			elif p.description.startswith("1/2X"):
+				colour="blue"
+			elif p.description.startswith("2X"):
+				colour="green"
+			labels.append(plt.plot(p.Ty[:xmax], label=p.description, color=colour))
+		labels.append(plt.plot(self.Ty[:xmax], label="Fitted model", color="gray"))
+
+		plt.xlabel('Kmer Frequency' if type(self) == KmerSpectra else 'GC count')
+		plt.ylabel('# Distinct Kmers')
+		if title:
+			plt.title(title)
+		plt.xlim((0, xmax))
+		plt.ylim((0, ymax))
+		plt.legend()
+
+		if to_screen:
+			plt.show()
+
+		if output_file:
+			fig.savefig(output_file)
+
 
 
 
@@ -284,9 +312,10 @@ class KmerSpectra(Spectra):
 
 				# Conditions:
 				# - we need at least a radius of 2
-				# - f must be greater than fmin
+				# - the peak frequency must be greater than fmin
 				# - The extent of the distribution including the radius should extend over the histogram limits
-				if radius >= 2 and mean > fmin and mu - radius > 0 and mu + radius < len(self.histogram):
+				# - the peak size must be at least 1
+				if radius >= 2 and mean > fmin and mu - radius > 0 and mu + radius < len(self.histogram) and self.histogram[mean] >= 1:
 					# This code assumes a maxima exists here
 					peaks.append(Peak(
 						mean,		# Mean

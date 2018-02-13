@@ -2,6 +2,7 @@
 
 import argparse
 import abc
+import copy
 import sys
 import traceback
 import time
@@ -19,22 +20,6 @@ try:
 except:
 	pass
 
-
-
-def plot_hist(h, xmax, ymax, label="", xlab='Kmer Frequency', ylab='# Distinct Kmers', color=None):
-	plt.plot([min(ymax, x) for x in h[:xmax]], label=label, color=color)
-	plt.xlabel(xlab)
-	plt.ylabel(ylab)
-	plt.legend()
-
-
-
-def plot_hist_df(self, h, xmax, ymax, xlab='Kmer Frequency', ylab='# Distinct Kmers'):
-	plt.plot([max(-ymax, min(ymax, x)) for x in [h[i + 1] - h[i] for i in range(xmax)]])
-	plt.xlabel(xlab)
-	plt.ylabel(ylab)
-	plt.legend()
-
 class SpectraAnalysis(object):
 	__metaclass__ = abc.ABCMeta
 
@@ -51,7 +36,7 @@ class SpectraAnalysis(object):
 		pass
 
 	@abc.abstractmethod
-	def plot(self, points=0, cap=0, to_screen=False, to_files=None):
+	def plot(self, points=0, cap=0, to_screen=False, file_prefix=None, format=None):
 		pass
 
 	@abc.abstractmethod
@@ -70,7 +55,7 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		f.close()
 		return histogram
 
-	def plot(self, xmax=0, ymax=0, to_screen=False, to_files=None):
+	def plot(self, xmax=0, ymax=0, to_screen=False, file_prefix=None, format=None):
 		if 0 == xmax: xmax = self.limx
 		if 0 == ymax: ymax = self.limy
 		print()
@@ -81,24 +66,10 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		if len(self.spectra.peaks) == 0:
 			print("No peaks in K-mer frequency histogram.  Not plotting.")
 		else:
-			print("Plotting K-mer frequency distributions...")
-			#self.spectra.printPeaks()
-
-			fig = plt.figure()
-			plot_hist(self.spectra.histogram, xmax, ymax, label="Actual", color="black")
-
-			for p_i, p in enumerate(self.spectra.peaks, start=1):
-				plot_hist(p.Ty, xmax, ymax, label=p.description)
-
-			plot_hist(self.spectra.Ty, xmax, ymax, label="Fitted model", color="green")
-
-			if to_screen:
-				plt.show()
-
-			if to_files:
-				filename = to_files + ".dists.png"
-				fig.savefig(filename)
-				print("- Saved plot to:", filename)
+			print("Plotting K-mer frequency distributions ... ", end="", flush=True)
+			ofile = file_prefix + ".kmerfreq_distributions." + format if file_prefix and format else None
+			self.spectra.plot(xmax, ymax, title="K-mer frequency distributions", to_screen=to_screen, output_file=ofile)
+			print("done.  Saved to:", ofile)
 
 		print()
 
@@ -111,9 +82,6 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 		if self.spectra.peaks:
 			self.limy = int(max(int(self.spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.spectra.peaks[-1].mean() * 2, len(self.spectra.histogram)), self.limx))
-
-		if verbose:
-			print("Plot limits: y->%d, x->%d" % (self.limy, self.limx))
 
 	def peak_stats(self):
 		print()
@@ -130,7 +98,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		self.gc_dist = GCSpectra(gc_histo, k=k)		# Not really a Kmer spectra but let's shoehorn it in anyway
 
 
-	def read_file(self, name, freq_cutoff=10000, k=27):
+	def read_file(self, name, freq_cutoff=10000):
 		f = open(name)
 		cov_histogram = None
 		gc_histogram = []
@@ -144,10 +112,10 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 				for i, y in enumerate(parts):
 					cov_histogram[i] += int(y)
 		f.close()
-		return cov_histogram, gc_histogram
+		return cov_histogram[:freq_cutoff], gc_histogram
 
 
-	def plot(self, xmax=0, ymax=0, to_screen=False, to_files=None):
+	def plot(self, xmax=0, ymax=0, to_screen=False, file_prefix=None, format=None):
 		if 0 == xmax: xmax = self.limx
 		if 0 == ymax: ymax = self.limy
 
@@ -159,49 +127,21 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 			print("No peaks in K-mer frequency histogram.  Not plotting.")
 		else:
 
-			print("Plotting K-mer frequency distributions...")
-
-			fig = plt.figure()
-			plot_hist(self.cov_spectra.histogram, xmax, ymax, label="Actual", color="black")
-
-			for p_i, p in enumerate(self.cov_spectra.peaks, start=1):
-				plot_hist(p.Ty, xmax, ymax, label=p.description)
-
-			plot_hist(self.cov_spectra.Ty, xmax, ymax, label="Fitted model", color="green")
-
-			if to_screen:
-				plt.show()
-
-			if to_files:
-				filename = to_files + ".dists.png"
-				fig.savefig(filename)
-				print(" - Saved plot to:", filename)
+			print("Plotting K-mer frequency distributions ... ", end="", flush=True)
+			ofile=file_prefix + ".kmerfreq_distributions." + format if file_prefix and format else None
+			self.spectra.plot(xmax, ymax, title="K-mer frequency distributions", to_screen=to_screen,
+							  output_file=ofile)
+			print("done.  Saved to:", ofile)
 
 		if len(self.gc_dist.peaks) == 0:
 			print("No peaks in GC distribution.  Not plotting.")
 		else:
-			print("Plotting GC distributions...")
-			#self.gc_dist.printPeaks()
-
+			print("Plotting GC distributions ... ", end="", flush=True)
 			xmax = self.gc_dist.k
 			ymax = max(self.gc_dist.histogram) * 1.1
-
-			fig = plt.figure()
-			plot_hist(self.gc_dist.histogram, xmax, ymax, label="Actual", xlab="GC count", color="black")
-
-			for p_i, p in enumerate(self.gc_dist.peaks, start=1):
-				plot_hist(p.Ty, xmax, ymax, label="Dist %d" % p_i, xlab="GC count")
-
-			plot_hist(self.gc_dist.Ty, xmax, ymax, label="Fitted model", xlab="GC count", color="green")
-
-			if to_screen:
-				plt.show()
-
-			if to_files:
-				filename = to_files + ".gc.png"
-				fig.savefig(filename)
-				print(" - Saved plot to:", filename)
-
+			ofile = file_prefix + ".gc_distributions." + format if file_prefix and format else None
+			self.gc_dist.plot(xmax=xmax, ymax=ymax, title="GC distributions", to_screen=to_screen, output_file=ofile)
+			print("done. Saved to:", ofile)
 		print()
 
 
@@ -214,11 +154,6 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		if self.cov_spectra.peaks:
 			self.limy = int(max(int(self.cov_spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.cov_spectra.peaks[-1].right() * 1.1, len(self.cov_spectra.histogram)), self.limx))
-
-		if verbose:
-			print()
-			print("Plot limits: y->%d, x->%d" % (self.limy, self.limx))
-			print()
 
 		# Create the peaks
 		if verbose:
@@ -263,7 +198,7 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 		f.close()
 		return histogram
 
-	def plot(self, xmax=0, ymax=0, to_screen=False, to_files=None):
+	def plot(self, xmax=0, ymax=0, to_screen=False, file_prefix=None, format=None):
 		if 0 == xmax: xmax = self.limx
 		if 0 == ymax: ymax = self.limy
 		print()
@@ -272,31 +207,18 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 		print()
 		for s_i, s in enumerate(self.spectras):
 			if self.spectras[0] == s:
+				ofile = file_prefix + ".kmerfreq_general." + format if file_prefix and format else None
 				slabel = "General Spectra"
+				ym = ymax
 			else:
-				slabel = "%dx present" % (s_i - 1)
-			fig = plt.figure()
+				ofile = file_prefix + ".kmerfreq_" + (s_i - 1) + "x." + format if file_prefix and format else None
+				slabel = "%dx" % (s_i - 1)
+				ym = min(ymax, s.maxValue() * 1.1) if s_i > 1 else ymax
 
-			print("Plotting:",slabel)
-			s.printPeaks()
-
-			plot_hist(s.histogram, xmax, ymax, label=slabel, color="black")
-			plot_hist(s.Ty, xmax, ymax, label=slabel + " fit")
-			for p_i, p in enumerate(s.peaks, start=1):
-				plot_hist(p.Ty, xmax, ymax, label=p.description)
-
-			if to_screen:
-				plt.show()
-
-			if to_files:
-				suffix = ".spectra-cn" + str(s_i-1) + ".png"
-				if self.spectras[0] == s:
-					suffix = ".general.png"
-				filename = to_files + suffix
-				fig.savefig(filename)
-				print(" - Saved plot to:", filename)
-
-			print()
+			print("Plotting K-mer frequency distributions for", slabel, "... ", end="", flush=True)
+			s.plot(xmax=xmax, ymax=ym, title=slabel, to_screen=to_screen, output_file=ofile)
+			print("done." + (" Saved to: " +  ofile if file_prefix and format else ""))
+		print()
 
 
 	def analyse(self, min_elements=1, verbose=False):
@@ -313,15 +235,13 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 				maxValue = max(maxValue, s.maxValue())
 				right = max(right, s.peaks[-1].right())
 			elif s_i == 0:
-				raise RuntimeError("No peaks detected for full spectra.  Can't continue.")
+				print("No peaks detected for full spectra.  Can't continue.")
+				return
 
 		self.limy = int(max(int(maxValue * 1.1 / 1000) * 1000, self.limy))
 		self.limx = int(max(min(right * 1.1, len(s.histogram)), self.limx))
 
 		print("\nAnalysed spectra for all requested copy numbers.")
-
-		if verbose:
-			print("\nPlot limits: y->%d, x->%d" % (self.limy, self.limx))
 
 	def peak_stats(self):
 		"""TODO: Runs analyse (TODO:include general spectra)
@@ -346,39 +266,29 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 
 		# step 3, selects frequencies for peaks from bigger to smaller till X% of the elements are covered or no more peaks
 		print("\nBreakdown of copy number composition for each peak")
-		print("--------------------------------------------------")
+		print("----------------------------------------------------")
 
-		general_dists = self.spectras[0].peaks
-		goal = 0.99 * sum([x.elements() for x in general_dists])
-		maxpeaks = 10
-		general_dists.sort(key=lambda x: -x.elements())
-		af = []
-		peaks = 0
-		covered = 0
-		for x in general_dists:
-			af.append(x.mean())
-			peaks += 1
-			covered += x.elements()
-			if peaks == maxpeaks or covered > goal:
-				break
-
-		# step 3, report for each peak
-		# get the candidate peak on each spectra
-		for f in af:
+		for peak in self.spectras[0].peaks:
+			f = peak.mean()
 			total = 0
-			pd = {}
-			for i, s in enumerate(self.spectras, start=1):
+			pd_means = {}
+			pd_elements = {}
+			# Run through all individual cn spectra
+			for i, s in enumerate(self.spectras[1:]):
 				m = [(x.mean(), x.elements()) for x in s.peaks if x.mean() > 0.8 * f and x.mean() < 1.2 * f]
 				if len(m) == 1:
-					pd[i] = m[0]
+					pd_means[i] = m[0][0]
+					pd_elements[i] = m[0][1]
 					total += m[0][1]
 				if len(m) > 1:
 					print("WARNING, MORE THAT 1 PEAK FOR f=%.3f FOUND ON THE %dx SPECTRA!!!" % (f, i))
 			print("\n---- Report for f=%.3f (total elements %d)----" % (f, total))
-			for i in range(len(self.spectras) - 1):
-				if i in list(pd.keys()):
+			for i, s in enumerate(self.spectras[1:]):
+				if i in pd_means.keys():
+					mean = pd_means[i]
+					elements = pd_elements[i]
 					print(
-						" %dx: %.2f%% (%d elements at f=%.2f)" % (i, float(pd[i][1]) * 100 / total, pd[i][1], pd[i][0]))
+						" %dx: %.2f%% (%d elements at f=%.2f)" % (i, float(elements) * 100 / total, elements, mean))
 				else:
 					print(" %dx: No significant content" % i)
 
@@ -427,6 +337,8 @@ def main():
 
 	parser.add_argument("-o", "--output_prefix",
 						help="If present then plots are sent to files starting with this prefix.")
+	parser.add_argument("--format", default="png",
+						help="If present then plots are generated with this extension e.g. {png,svg}.")
 	parser.add_argument("-c", "--cns", type=int, default=4,
 						help="The number of copy numbers to consider in the analysis.  Only applicable if input is a spectra-cn matrix file.")
 	parser.add_argument("-f", "--freq_cutoff", type=int, default=500,
@@ -484,7 +396,7 @@ def main():
 		print(("" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
 		a.peak_stats()
 		if args.plot or args.output_prefix:
-			a.plot(xmax=args.freq_cutoff, to_screen=args.plot, to_files=args.output_prefix)
+			a.plot(xmax=args.freq_cutoff, to_screen=args.plot, file_prefix=args.output_prefix)
 	except Exception:
 		print("\nERROR\n-----", file=sys.stderr)
 		traceback.print_exc(file=sys.stderr)

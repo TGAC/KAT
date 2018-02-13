@@ -91,7 +91,7 @@ class Peak(object):
 
 		return self.Ty
 
-	def residuals(self, p):
+	def residuals(self, p, fmin=0):
 		"""
 		Fit this gaussian distribution as closely as possible to the histogram using the given parameters
 		:param p: The parameters to use
@@ -107,20 +107,20 @@ class Peak(object):
 		# Return the distance between the fitted peak and the actual histogram at each site
 		residuals = self.histogram - model
 
-		if p[0] - 2.0 * p[2] < 1.0:
-			# If the std dev has extended too far then penalise this set of params heavily
-			residuals *= 1000.0
-		else:
-			# We want to more heavily penalise all points which exceed the histogram
-			for i in range(len(residuals)):
-				d = residuals[i]
-				if d < 0:
-					residuals[i] = d * 100
+		# We want to more heavily penalise all points which exceed the histogram
+		for i in range(len(residuals)):
+			d = residuals[i]
+			#if d < 0:
+			#	residuals[i] = d * 100
+
+			# Suppress residuals that come before fmin (we aren't interested in fitting to the error K=mers)
+			if i <= fmin:
+				residuals[i] /= np.power(fmin - i + 1, 10)
 
 		# The residual differences between the actual histogram and the model peak at each value of X
 		return residuals
 
-	def optimise(self, histogram):
+	def optimise(self, histogram, fmin=0):
 		"""
 		Tries to fit this single guassian distribution to this point in the histogram as closely as possible
 		:param histogram:
@@ -153,10 +153,10 @@ class Peak(object):
 		upper_bounds.append(self._peak.astype(np.float64))
 		p.append(self._stddev)
 		lower_bounds.append(1.0)
-		upper_bounds.append(float(len(self.histogram)))
+		upper_bounds.append((self._mean - 2.0) / 2.0)
 
 		# Set the optimal peak value that maximises the space under the histogram, without going over the borders.
-		res = optimize.least_squares(self.residuals, np.array(p).astype(np.float64), bounds=(lower_bounds, upper_bounds), loss="soft_l1")
+		res = optimize.least_squares(self.residuals, np.array(p).astype(np.float64), args=[fmin], bounds=(lower_bounds, upper_bounds), loss="soft_l1")
 
 		# If all went well update the model with the optimised variables
 		if res.success:
