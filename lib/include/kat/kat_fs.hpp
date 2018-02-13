@@ -108,7 +108,7 @@ namespace kat {
 
             // Check to see if scripts are adjacent to exe first
             path kda(canonicalExe.parent_path());
-            kda /= "setup.py";
+            kda /= "kat_distanalysis";
             if (exists(kda)) {
 #ifdef HAVE_PYTHON
                 // Looks like we are running from an installed location.  Don't try to use then
