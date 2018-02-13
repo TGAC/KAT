@@ -115,6 +115,7 @@ if [[ "${make_pykat}" == "yes" ]]; then
     AX_PYTHON_MODULE(numpy, [AC_MSG_ERROR([numpy not found])], ${pybin})
     AX_PYTHON_MODULE(matplotlib, [AC_MSG_ERROR([matplotlib not found])], ${pybin})
     AX_PYTHON_MODULE(scipy, [AC_MSG_ERROR([scipy not found])], ${pybin})
+    AX_PYTHON_MODULE(tabulate, [AC_MSG_ERROR([scipy not found])], ${pybin})
 
     #AC_DEFINE([HAVE_PYTHON], [1], [Python present])
     #AC_DEFINE_UNQUOTED([KAT_SITE_PKGS], ["${libdir}/$pybin/site-packages"], [KAT module site-packages at installed location])
