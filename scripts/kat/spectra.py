@@ -208,6 +208,8 @@ class Spectra(object):
 				colour="blue"
 			elif p.description.startswith("2X"):
 				colour="green"
+			elif p.description.startswith("3X"):
+				colour = "orange"
 			labels.append(plt.plot(p.Ty[:xmax], label=p.description, color=colour))
 		labels.append(plt.plot(self.Ty[:xmax], label="Fitted model", color="gray"))
 

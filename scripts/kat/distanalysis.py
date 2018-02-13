@@ -205,16 +205,16 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 		print("Creating plots")
 		print("--------------")
 		print()
-		for s_i, s in enumerate(self.spectras):
-			if self.spectras[0] == s:
-				ofile = file_prefix + ".kmerfreq_general." + format if file_prefix and format else None
-				slabel = "General Spectra"
-				ym = ymax
-			else:
-				ofile = file_prefix + ".kmerfreq_" + (s_i - 1) + "x." + format if file_prefix and format else None
-				slabel = "%dx" % (s_i - 1)
-				ym = min(ymax, s.maxValue() * 1.1) if s_i > 1 else ymax
+		ofile = file_prefix + ".kmerfreq_general." + format if file_prefix and format else None
+		ym = ymax
+		print("Plotting K-mer frequency distributions for general spectra ... ", end="", flush=True)
+		self.spectras[0].plot(xmax=xmax, ymax=ym, title="General Spectra", to_screen=to_screen, output_file=ofile)
+		print("done." + (" Saved to: " + ofile if file_prefix and format else ""))
 
+		for s_i, s in enumerate(self.spectras[1:], start=1):
+			ofile = file_prefix + ".kmerfreq_" + (s_i - 1) + "x." + format if file_prefix and format else None
+			slabel = "%dx" % (s_i - 1)
+			ym = min(ymax, s.maxValue() * 1.1) if s_i > 1 else ymax
 			print("Plotting K-mer frequency distributions for", slabel, "... ", end="", flush=True)
 			s.plot(xmax=xmax, ymax=ym, title=slabel, to_screen=to_screen, output_file=ofile)
 			print("done." + (" Saved to: " +  ofile if file_prefix and format else ""))
@@ -232,6 +232,17 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 				print("\nAnalysing spectra with copy number", s_i-1)
 			s.analyse(min_elements=min_elements, verbose=verbose)
 			if s.peaks:
+				# Fix descriptions
+				if s_i == 0:
+					s.calcGenomeSize(self.hom_peak)
+				else:
+					# Transfer over peak descriptions from general spectra
+					for gp in self.spectras[0].peaks:
+						f = gp.mean()
+						for p in s.peaks:
+							if p.mean() > 0.8 * f and p.mean() < 1.2 * f:
+								p.description = gp.description
+
 				maxValue = max(maxValue, s.maxValue())
 				right = max(right, s.peaks[-1].right())
 			elif s_i == 0:
