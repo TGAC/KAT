@@ -373,7 +373,7 @@ class KmerSpectra(Spectra):
 
 		sum = 0
 		for p_i, p in enumerate(self.peaks, start=1):
-			if p_i > hom_peak_index:
+			if p_i >= hom_peak_index:
 				delta = p_i - hom_peak_index + 1
 				sum += delta * p.elements()
 				p.description = str(delta) + "X"
@@ -381,11 +381,6 @@ class KmerSpectra(Spectra):
 				delta = hom_peak_index - p_i + 1
 				sum += p.elements() / delta
 				p.description = "1/" + str(delta) + "X"
-				if p.description == "1/2X":
-					p.description = "1/2X (Heterozygous)"
-			else:
-				sum += p.elements()
-				p.description = "1X (Homozygous)"
 
 		return sum
 
@@ -433,7 +428,15 @@ class KmerSpectra(Spectra):
 		print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
 		print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
 		print("Overall mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
-		print("Homozygous peak index:", hp, ("(user specified)" if hom_peak_freq > 0 else "(assumed)"))
+		print()
+		print("Calculating genome statistics")
+		print("-----------------------------")
+		if hom_peak_freq > 0:
+			print("User-specified that homozygous peak should have a frequency of", hom_peak_freq)
+		else:
+			print("Assuming that homozygous peak is the largest in the spectra with frequency of:", int(self.peaks[hp].mean()))
+		print("Homozygous peak index:", hp)
+		print("CAUTION: the following estimates are based on having a clean spectra and having identified the correct homozygous peak!")
 		print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
 		if (hp > 1):
 			hr = self.calcHetRate(gs)
