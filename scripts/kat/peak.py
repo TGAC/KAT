@@ -153,7 +153,7 @@ class Peak(object):
 		upper_bounds.append(self._peak.astype(np.float64))
 		p.append(self._stddev)
 		lower_bounds.append(1.0)
-		upper_bounds.append((self._mean - 2.0) / 2.0)
+		upper_bounds.append(max((self._mean - 2.0) / 2.0, self._stddev))
 
 		# Set the optimal peak value that maximises the space under the histogram, without going over the borders.
 		res = optimize.least_squares(self.residuals, np.array(p).astype(np.float64), args=[fmin], bounds=(lower_bounds, upper_bounds), loss="soft_l1")

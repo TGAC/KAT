@@ -224,8 +224,8 @@ void kat::Gcp::plot(const string& output_type) {
 
 void kat::Gcp::analysePeaks() {
 #ifdef HAVE_PYTHON
-    cout << "Analysing peaks ... ";
-    cout.flush();
+    cout << "Analysing peaks" << endl
+		 << "---------------" << endl;
 
     path dascript = path("kat") / "distanalysis.py";
     vector<string> args;
@@ -233,6 +233,7 @@ void kat::Gcp::analysePeaks() {
     if (verbose) {
         args.push_back("--verbose");
     }
+	args.push_back("--from_kat");
     args.push_back(outputPrefix.string() + ".mx");
 
     char* char_args[50];

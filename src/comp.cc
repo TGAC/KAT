@@ -487,14 +487,15 @@ void kat::Comp::analysePeaks() {
 #ifdef HAVE_PYTHON
     path dascript = path("kat") / "distanalysis.py";
     if (this->densityPlot && this->outputHists) {
-        cout << "Analysing peaks for dataset 1 ... ";
-        cout.flush();
+        cout << "Analysing peaks for dataset 1" << endl
+			 << "-----------------------------" << endl;
 	
         vector<string> args;
         args.push_back(dascript.string());
         if (verbose) {
             args.push_back("--verbose");
         }
+		args.push_back("--from_kat");
         args.push_back(outputPrefix.string() + ".1.hist");
 
         char* char_args[50];
@@ -509,14 +510,16 @@ void kat::Comp::analysePeaks() {
             free(char_args[i]);
         }
 
-        cout << endl << "Analysing peaks for dataset 2 ... ";
-        cout.flush();
+        cout << endl 
+			 << "Analysing peaks for dataset 2" << endl
+			 << "-----------------------------" << endl;
 
         args.clear();
         args.push_back(dascript.string());
         if (verbose) {
             args.push_back("--verbose");
         }
+		args.push_back("--from_kat");
         args.push_back(outputPrefix.string() + ".2.hist");
 
         for(size_t i = 0; i < args.size(); i++) {
@@ -532,14 +535,15 @@ void kat::Comp::analysePeaks() {
         cout << endl;
     }
     else if (!this->densityPlot) {
-        cout << "Analysing peaks for spectra copy number matrix ... ";
-        cout.flush();
+        cout << "Analysing peaks for spectra copy number matrix" << endl
+			 << "----------------------------------------------" << endl;
 
         vector<string> args;
         args.push_back(dascript.string());
         if (verbose) {
             args.push_back("--verbose");
         }
+		args.push_back("--from_kat");
         args.push_back(getMxOutPath().string());
 
         char* char_args[50];
@@ -553,7 +557,8 @@ void kat::Comp::analysePeaks() {
         for(size_t i = 0; i < args.size(); i++) {
             free(char_args[i]);
         }
-
+		
+		cout << endl;
     }
     else {
         cout << "Current configuration does not support peak analysis." << endl;
@@ -818,17 +823,18 @@ int kat::Comp::main(int argc, char *argv[]) {
     // Save results to disk
     comp.save();
 
+    // Send K-mer statistics to stdout as well
+    cout << endl
+         << "Summary statistics" << endl
+         << "------------------" << endl << endl;
+    comp.printCounters(cout);
+
     // Use python scripts for plotting and distribution analysis if configuration supports it
 #ifdef HAVE_PYTHON
     comp.plot(plot_output_type);
     comp.analysePeaks();
 #endif
 
-    // Send K-mer statistics to stdout as well
-    cout << endl
-         << "Summary statistics" << endl
-         << "------------------" << endl << endl;
-    comp.printCounters(cout);
 
     return 0;
 }
