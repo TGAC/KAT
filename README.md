@@ -38,7 +38,7 @@ To install KAT first confirm these dependencies are installed and configured on 
   - **libtool** V2.4.2+
   - **pthreads** (probably already installed)
   - **zlib**
-  - **Python** V3.5+ with the *tabulate*, *scipy*, *numpy* and *matplotlib* packages and C API installed.  This is optional but highly recommended, without python KAT functionality is limited: no plots, no distribution analysis, and no documentation.
+  - **Python** V3.5+ with the *tabulate*, *scipy*, *numpy* and *matplotlib* packages and C API installed.  Python is optional but highly recommended, without python, KAT functionality is limited: no plots, no distribution analysis, and no documentation.
   - **Sphinx-doc** V1.3+ (Optional: only required for building the documentation.  
 
 NOTE ON INSTALLING PYTHON: Many system python installations do not come with the C API immediately available, which prevents KAT from embedding python code.  We typically would recommend installing anaconda3 as this would include the latest version of python, all required python packages as well as the C API.  If you are running a debian system and the C libraries are not available by default and you wish to use the system python installation the you can install them using: ```sudo apt-get install python-dev```.  
@@ -58,6 +58,12 @@ If sphinx is installed and detected on your system then html documentation and m
 pages are automatically built during the build process.  If it is not detected then this step is skipped.  Should you wish to create a PDF version of the manual you can do so by entering the ```doc``` directory and typing ```make pdf```, this is not executed by default.  
 
 NOTE: if KAT is failing at the ```./autogen.sh``` step you will likely need to install autotools.  The following command should do this on MacOS: ```brew install autoconf automake libtool```.  On a debian system this can be done with: ```sudo apt-get install autoconf automake libtool```.
+
+
+Python scripts
+~~~~~~~~~~~~~~
+
+KAT will install some python scripts to your ```<prefix>/bin``` directory.  If you selected a custom location for prefix and wish to access these scripts directly, then it may be necessary to modify your $PYTHONPATH environment variable.  Ensure that ```<prefix>/lib/python<version>/site-packages```, is on your PYTHONPATH, where <version> represents the python version to used when installing KAT e.g. ```/home/me/kat/lib/python3.6/site-packages```.  Alternatively, you could install the kat python package into a python environment by changing into the ```scripts``` directory and typing ```python setup.py install```. 
 
 
 Operating Instructions

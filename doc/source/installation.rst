@@ -32,3 +32,9 @@ If sphinx is installed and detected on your system then html documentation and m
 pages are automatically built during the build process.  If it is not detected then this step is skipped.  Should you wish to create a PDF version of the manual you can do so by entering the ```doc``` directory and typing ```make pdf```, this is not executed by default.
 
 NOTE: if KAT is failing at the ```./autogen.sh``` step you will likely need to install autotools.  The following command should do this on MacOS: ```brew install autoconf automake libtool```.  On a debian system this can be done with: ```sudo apt-get install autoconf automake libtool```.
+
+Python scripts
+~~~~~~~~~~~~~~
+ 
+KAT will install some python scripts to your ```<prefix>/bin``` directory.  If you selected a custom location for prefi    x and wish to access these scripts directly, then it may be necessary to modify your $PYTHONPATH environment variable.      Ensure that ```<prefix>/lib/python<version>/site-packages```, is on your PYTHONPATH, where <version> represents the py    thon version to used when installing KAT e.g. ```/home/me/kat/lib/python3.6/site-packages```.  Alternatively, you could     install the kat python package into a python environment by changing into the ```scripts``` directory and typing ```py    thon setup.py install```. 
+
