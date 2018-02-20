@@ -60,8 +60,7 @@ pages are automatically built during the build process.  If it is not detected t
 NOTE: if KAT is failing at the ```./autogen.sh``` step you will likely need to install autotools.  The following command should do this on MacOS: ```brew install autoconf automake libtool```.  On a debian system this can be done with: ```sudo apt-get install autoconf automake libtool```.
 
 
-Python scripts
-~~~~~~~~~~~~~~
+*Python scripts*
 
 KAT will install some python scripts to your ```<prefix>/bin``` directory.  If you selected a custom location for prefix and wish to access these scripts directly, then it may be necessary to modify your $PYTHONPATH environment variable.  Ensure that ```<prefix>/lib/python<version>/site-packages```, is on your PYTHONPATH, where <version> represents the python version to used when installing KAT e.g. ```/home/me/kat/lib/python3.6/site-packages```.  Alternatively, you could install the kat python package into a python environment by changing into the ```scripts``` directory and typing ```python setup.py install```. 
 
