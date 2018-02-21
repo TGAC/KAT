@@ -7,6 +7,7 @@ import sys
 import traceback
 import time
 import matplotlib.pyplot as plt
+matplotlib.use('Agg')
 
 try:
 	from spectra import KmerSpectra, GCSpectra
