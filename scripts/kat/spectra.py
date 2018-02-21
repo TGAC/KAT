@@ -352,7 +352,7 @@ class KmerSpectra(Spectra):
 		else:
 			# No frequency given.  Use the primary peak (i.e. the one that represents the global maxima)
 			for i, p in enumerate(self.peaks, start=1):
-				if abs(p.mean() - self.fmax) < 1.0:
+				if abs(p.mean() - self.fmax) < 4.0:
 					return i
 
 		return 0
@@ -420,15 +420,15 @@ class KmerSpectra(Spectra):
 		# This also updates the peaks with information that can be used in labels
 		gs = self.calcGenomeSize(hom_peak=hp)
 
-		print()
-		self.printPeaks()
-		print()
 		print("K-value used:", self.k)
 		print("Peaks in analysis:", len(self.peaks))
 		print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
 		print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
 		print("Overall mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
 		print()
+		self.printPeaks()
+		print()
+
 		print("Calculating genome statistics")
 		print("-----------------------------")
 		if hom_peak_freq > 0:
