@@ -29,7 +29,18 @@ extensive documentation please visit: https://kat.readthedocs.org/en/latest/
 Installation
 ------------
 
-To install KAT first confirm these dependencies are installed and configured on your system:
+*From brew*
+
+If you have brew installed on your system you should be able to install a recent version of KAT by simply typing:
+
+```brew install brewsci/bio/kat```
+
+Many thanks to @sjackman for this one!
+
+
+*From Source*
+
+If you wish to install KAT from source, because you don't have brew installed, or wish to ensure you have the latest version, first ensure these dependencies are installed and configured on your system:
 
   - **GCC** V4.8+
   - **make**
