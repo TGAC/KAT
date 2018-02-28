@@ -18,14 +18,14 @@ class Peak(object):
 	Contains methods for fitting to an interval
 	"""
 
-	def __init__(self, mean, stddev, peak, primary):
+	def __init__(self, mean, stddev, peak, primary, description=""):
 		self._mean = mean
 		self._stddev = stddev
 		self._peak = peak
 		self.primary = primary
 		self.Tx = None
 		self.Ty = None
-		self.description = ""
+		self.description = description
 
 	def left(self):
 		return self._mean - self.radius()

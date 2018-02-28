@@ -1,13 +1,14 @@
 import abc
 import sys
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 from scipy import optimize
 from scipy.signal import argrelextrema
 import tabulate
 
 try:
-	from peak import Peak, gaussian, createModel
+	from .peak import Peak, gaussian, createModel
 except:
 	from kat.peak import Peak, gaussian, createModel
 
@@ -104,8 +105,8 @@ class Spectra(object):
 		upper_bounds = []
 		for p in self.peaks:
 			params.append(p.mean())
-			lower_bounds.append(p.mean() - 2.0)
-			upper_bounds.append(p.mean() + 2.0)
+			lower_bounds.append(p.mean() - 1.0)
+			upper_bounds.append(p.mean() + 1.0)
 			params.append(p.peak())
 			lower_bounds.append(0.0)
 			upper_bounds.append(p.peak())
@@ -173,6 +174,10 @@ class Spectra(object):
 				print("Fitting cumulative distribution to histogram by adjusting peaks ... ", end="", flush=True)
 			try:
 				self.optimise(fmin=self.fmin if type(self) == KmerSpectra else 0)
+
+				# Remove any peaks that contain little to no content
+				self.peaks = list(filter(lambda p: p.elements() >= min_elements, self.peaks))
+
 				if verbose:
 					print("done.")
 					print()
@@ -294,16 +299,19 @@ class KmerSpectra(Spectra):
 		else:
 
 			peaks = []
+			desc = []
 
 			# Unless otherwise specified we assume fmax represents the homozygous peak (primary content)
 			# Explore expected peak sites, also look for heterozygous content.
 			frequencies = []
 			if not self.haploid:
 				frequencies.append(fmax / 2.0)
-			for i in range(1, 5):
+				desc.append("1/2X")
+			for i in range(1, 6):
 				frequencies.append(fmax * i)
+				desc.append(str(i) + "X")
 
-			for mu in frequencies:
+			for i, mu in enumerate(frequencies):
 
 				# In a poisson distribution the mean is the variance, so the stddev is simply the square root of the mean
 				sigma = np.sqrt(mu)
@@ -323,7 +331,8 @@ class KmerSpectra(Spectra):
 						mean,		# Mean
 						sigma,  	# Std dev
 						self.histogram[mean], # Use the histogram value at this position as an initial value for this peak
-						mean == fmax  # Whether or not this is the primary peak
+						mean == fmax,  # Whether or not this is the primary peak
+						description = desc[i]
 					))
 
 			self.peaks = peaks
@@ -376,11 +385,9 @@ class KmerSpectra(Spectra):
 			if p_i >= hom_peak_index:
 				delta = p_i - hom_peak_index + 1
 				sum += delta * p.elements()
-				p.description = str(delta) + "X"
 			elif p_i < hom_peak_index:
 				delta = hom_peak_index - p_i + 1
 				sum += p.elements() / delta
-				p.description = "1/" + str(delta) + "X"
 
 		return sum
 
@@ -434,7 +441,7 @@ class KmerSpectra(Spectra):
 		if hom_peak_freq > 0:
 			print("User-specified that homozygous peak should have a frequency of", hom_peak_freq)
 		else:
-			print("Assuming that homozygous peak is the largest in the spectra with frequency of:", int(self.peaks[hp].mean()))
+			print("Assuming that homozygous peak is the largest in the spectra with frequency of:", int(self.peaks[hp-1].mean()))
 		print("Homozygous peak index:", hp)
 		print("CAUTION: the following estimates are based on having a clean spectra and having identified the correct homozygous peak!")
 		print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")

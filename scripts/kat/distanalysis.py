@@ -2,16 +2,14 @@
 
 import argparse
 import abc
-import copy
 import sys
 import traceback
 import time
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
 
 try:
-	from spectra import KmerSpectra, GCSpectra
+	from .spectra import KmerSpectra, GCSpectra
 except:
 	from kat.spectra import KmerSpectra, GCSpectra
 
@@ -131,7 +129,7 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 
 			print("Plotting K-mer frequency distributions ... ", end="", flush=True)
 			ofile=file_prefix + ".kmerfreq_distributions." + format if file_prefix and format else None
-			self.spectra.plot(xmax, ymax, title="K-mer frequency distributions", to_screen=to_screen,
+			self.cov_spectra.plot(xmax, ymax, title="K-mer frequency distributions", to_screen=to_screen,
 							  output_file=ofile)
 			print("done.  Saved to:", ofile)
 
