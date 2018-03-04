@@ -192,7 +192,7 @@ class Spectra(object):
 			print("done. No peaks created")
 
 	def printPeaks(self):
-		if len(self.peaks) > 0:
+		if self.peaks and len(self.peaks) > 0:
 			header = ["Index"] + Peak.header()
 			rows = [[str(p_i)] + p.toRow() for p_i, p in enumerate(self.peaks, start=1)]
 			print(tabulate.tabulate(rows, header))
@@ -417,9 +417,12 @@ class KmerSpectra(Spectra):
 		return (sum / genomesize) * 100.0
 
 	def calcKmerCoverage(self):
-		tot_vol = sum([x.elements() for x in self.peaks])
-		weighted = sum([x.mean() * x.elements() for x in self.peaks])
-		return int(weighted / tot_vol) if tot_vol > 0 else 0
+		if self.peaks:
+			tot_vol = sum([x.elements() for x in self.peaks])
+			weighted = sum([x.mean() * x.elements() for x in self.peaks])
+			return int(weighted / tot_vol) if tot_vol > 0 else 0
+		else:
+			return 0
 
 
 	def printGenomeStats(self, hom_peak_freq):
@@ -429,7 +432,7 @@ class KmerSpectra(Spectra):
 		gs = self.calcGenomeSize(hom_peak=hp)
 
 		print("K-value used:", self.k)
-		print("Peaks in analysis:", len(self.peaks))
+		print("Peaks in analysis:", len(self.peaks) if self.peaks else 0)
 		print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
 		print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
 		print("Overall mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
@@ -439,16 +442,20 @@ class KmerSpectra(Spectra):
 
 		print("Calculating genome statistics")
 		print("-----------------------------")
-		if hom_peak_freq > 0:
-			print("User-specified that homozygous peak should have a frequency of", hom_peak_freq)
+		if self.peaks and len(self.peaks) > 0:
+			if hom_peak_freq > 0:
+				print("User-specified that homozygous peak should have a frequency of", hom_peak_freq)
+				print("Homozygous peak index:", hp)
+			else:
+				print("Assuming that homozygous peak is the largest in the spectra with frequency of:", int(self.peaks[hp-1].mean()))
+			print("Homozygous peak index:", hp)
+			print("CAUTION: the following estimates are based on having a clean spectra and having identified the correct homozygous peak!")
+			print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
+			if (hp > 1):
+				hr = self.calcHetRate(gs)
+				print("Estimated heterozygous rate:", "{0:.2f}".format(hr) + "%")
 		else:
-			print("Assuming that homozygous peak is the largest in the spectra with frequency of:", int(self.peaks[hp-1].mean()))
-		print("Homozygous peak index:", hp)
-		print("CAUTION: the following estimates are based on having a clean spectra and having identified the correct homozygous peak!")
-		print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
-		if (hp > 1):
-			hr = self.calcHetRate(gs)
-			print("Estimated heterozygous rate:", "{0:.2f}".format(hr) + "%")
+			print("No peaks detected, so no genome stats to report")
 
 
 class GCSpectra(Spectra):
