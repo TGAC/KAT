@@ -360,9 +360,10 @@ class KmerSpectra(Spectra):
 			return min_peak_index
 		else:
 			# No frequency given.  Use the primary peak (i.e. the one that represents the global maxima)
-			for i, p in enumerate(self.peaks, start=1):
-				if abs(p.mean() - self.fmax) < 4.0:
-					return i
+			if self.peaks:
+				for i, p in enumerate(self.peaks, start=1):
+					if abs(p.mean() - self.fmax) < 4.0:
+						return i
 
 		return 0
 
