@@ -22,7 +22,7 @@ clean-local-check:
 
 # additional include paths necessary to compile the C++ library
 AM_CXXFLAGS = \
-	-fwrapv -Wall -Wno-deprecated-declarations -Wno-unused-function \
+	-fwrapv -m64 -Wall -Wno-deprecated-declarations -Wno-unused-function \
 	-Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers \
 	-Wno-sign-compare \
 	@AM_CXXFLAGS@
