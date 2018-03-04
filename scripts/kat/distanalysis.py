@@ -372,10 +372,14 @@ def main():
 		print("KAT K-mer Distribution Analysis Script")
 		print("Version:", version)
 		print()
-		if args.verbose:
-			print("Analysing distributions for:", args.input)
-		else:
-			print("Analysing distributions for:", args.input, "... ", end="", flush=True)
+	else:
+		print()
+
+	if args.verbose:
+		print("Analysing distributions for:", args.input)
+	else:
+		print("Analysing distributions for:", args.input, "... ", end="", flush=True)
+
 
 	k, mx, gcp = get_properties_from_file(args.input)
 	if args.verbose:
@@ -404,7 +408,7 @@ def main():
 		start = time.time()
 		a.analyse(min_elements=args.min_elem, verbose=args.verbose)
 		end = time.time()
-		print(("" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
+		print(("\n" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
 		a.peak_stats()
 		if args.plot or args.output_prefix:
 			a.plot(xmax=args.freq_cutoff, to_screen=args.plot, file_prefix=args.output_prefix)
