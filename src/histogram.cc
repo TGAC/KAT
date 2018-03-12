@@ -211,6 +211,7 @@ void kat::Histogram::analysePeaks() {
 		args.push_back("--verbose");
 	}
 	args.push_back("--from_kat");
+	args.push_back("--output_prefix=" + outputPrefix.string());
 	args.push_back(outputPrefix.string());
 
 	char* char_args[50];

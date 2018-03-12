@@ -496,6 +496,7 @@ void kat::Comp::analysePeaks() {
             args.push_back("--verbose");
         }
 		args.push_back("--from_kat");
+        args.push_back("--output_prefix=" + outputPrefix.string() + ".1");
         args.push_back(outputPrefix.string() + ".1.hist");
 
         char* char_args[50];
@@ -520,6 +521,7 @@ void kat::Comp::analysePeaks() {
             args.push_back("--verbose");
         }
 		args.push_back("--from_kat");
+        args.push_back("--output_prefix=" + outputPrefix.string() + ".2");
         args.push_back(outputPrefix.string() + ".2.hist");
 
         for(size_t i = 0; i < args.size(); i++) {
@@ -544,6 +546,7 @@ void kat::Comp::analysePeaks() {
             args.push_back("--verbose");
         }
 		args.push_back("--from_kat");
+        args.push_back("--output_prefix=" + outputPrefix.string());
         args.push_back(getMxOutPath().string());
 
         char* char_args[50];
