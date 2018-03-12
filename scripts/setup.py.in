@@ -35,5 +35,9 @@ setup(
                                       "kat_plot_spectra_hist = kat.plot.spectra_hist:main",
                                       "kat_plot_spectra_mx = kat.plot.spectra_mx:main",
                                       "kat_plot_cold = kat.plot.cold:main"]},
-    install_requires=['numpy','scipy','matplotlib','tabulate']
+    test_suite="nose.collector",
+	tests_require = [
+		'nose',
+    ],
+	install_requires=['numpy','scipy','matplotlib','tabulate']
 )

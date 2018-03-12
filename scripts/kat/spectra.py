@@ -47,6 +47,10 @@ class Spectra(object):
 	def _createInitialPeaks(self):
 		pass
 
+	@abc.abstractmethod
+	def calcStats(self):
+		pass
+
 	def _updateModel(self, params):
 		"""
 		This function updates the fitted histogram based on the current parameters in each of the peaks in this spectra
@@ -390,7 +394,7 @@ class KmerSpectra(Spectra):
 				delta = hom_peak_index - p_i + 1
 				sum += p.elements() / delta
 
-		return sum
+		return int(sum)
 
 	def calcHetRate(self, genome_size=0, hom_peak=0):
 		"""
@@ -425,17 +429,16 @@ class KmerSpectra(Spectra):
 			return 0
 
 
-	def printGenomeStats(self, hom_peak_freq):
-		hp = self.getHomozygousPeakIndex(hom_peak_freq)
+	def printStats(self, stats=None, hom_peak_freq=0):
 
-		# This also updates the peaks with information that can be used in labels
-		gs = self.calcGenomeSize(hom_peak=hp)
+		if not stats:
+			stats = self.calcStats(hom_peak_freq=hom_peak_freq)
 
-		print("K-value used:", self.k)
-		print("Peaks in analysis:", len(self.peaks) if self.peaks else 0)
-		print("Global minima @ Frequency=" + str(self.fmin) + " (" + str(self.histogram[self.fmin]) + ")")
-		print("Global maxima @ Frequency=" + str(self.fmax) + " (" + str(self.histogram[self.fmax]) + ")")
-		print("Overall mean k-mer frequency:", str(self.calcKmerCoverage()) + "x")
+		print("K-value used:", stats["k"])
+		print("Peaks in analysis:", stats["nb_peaks"])
+		print("Global minima @ Frequency=" + str(int(stats["global_minima"]["freq"])) + "x (" + str(stats["global_minima"]["count"]) + ")")
+		print("Global maxima @ Frequency=" + str(int(stats["global_maxima"]["freq"])) + "x (" + str(stats["global_maxima"]["count"]) + ")")
+		print("Overall mean k-mer frequency:", str(stats["mean_freq"]) + "x")
 		print()
 		self.printPeaks()
 		print()
@@ -445,17 +448,54 @@ class KmerSpectra(Spectra):
 		if self.peaks and len(self.peaks) > 0:
 			if hom_peak_freq > 0:
 				print("User-specified that homozygous peak should have a frequency of", hom_peak_freq)
-				print("Homozygous peak index:", hp)
 			else:
-				print("Assuming that homozygous peak is the largest in the spectra with frequency of:", int(self.peaks[hp-1].mean()))
-			print("Homozygous peak index:", hp)
+				print("Assuming that homozygous peak is the largest in the spectra with frequency of:", str(int(stats["hom_peak"]["freq"])) + "x")
+			print("Homozygous peak index:", stats["hom_peak"]["index"])
 			print("CAUTION: the following estimates are based on having a clean spectra and having identified the correct homozygous peak!")
-			print("Estimated genome size:", '{0:.2f}'.format(float(gs) / 1000000.0), "Mbp")
-			if (hp > 1):
-				hr = self.calcHetRate(gs)
-				print("Estimated heterozygous rate:", "{0:.2f}".format(hr) + "%")
+			print("Estimated genome size:", '{0:.2f}'.format(float(stats["est_genome_size"]) / 1000000.0), "Mbp")
+			if (stats["hom_peak"]["index"] > 1):
+				print("Estimated heterozygous rate:", "{0:.2f}".format(stats["est_het_rate"]) + "%")
 		else:
 			print("No peaks detected, so no genome stats to report")
+
+	def calcStats(self, hom_peak_freq=0):
+		hp = self.getHomozygousPeakIndex(hom_peak_freq)
+
+		# This also updates the peaks with information that can be used in labels
+		gs = self.calcGenomeSize(hom_peak=hp)
+
+		stats = {}
+
+		stats["k"] = self.k
+		stats["nb_peaks"] = len(self.peaks) if self.peaks else 0
+		stats["global_minima"] = {'freq': int(self.fmin), 'count': int(self.histogram[self.fmin])}
+		stats["global_maxima"] = {'freq': int(self.fmax), 'count': int(self.histogram[self.fmax])}
+		stats["mean_freq"] = self.calcKmerCoverage()
+
+		if self.peaks and len(self.peaks) > 0:
+			all_peak_stats = []
+			for i, p in enumerate(self.peaks, start=1):
+				peak_stats = {}
+				peak_stats["mean_freq"] = float(p.mean())
+				peak_stats["stddev"] = float(p.stddev())
+				peak_stats["count"] = int(p.peak())
+				peak_stats["volume"] = int(p.elements())
+				all_peak_stats.append(peak_stats)
+			stats["peaks"] = all_peak_stats
+			hp_freq = hom_peak_freq if hom_peak_freq > 0 else int(self.peaks[hp - 1].mean())
+			het_rate = self.calcHetRate(gs)
+			stats["hom_peak"] = {"freq": hp_freq, "index": hp}
+			stats["est_genome_size"] = gs
+			stats["est_het_rate"] = het_rate
+
+		else:
+			stats["peaks"] = []
+			stats["hom_peak"] = {"freq": 0, "index": 0}
+			stats["est_genome_size"] = 0
+			stats["est_het_rate"] = 0
+
+		return stats
+
 
 
 class GCSpectra(Spectra):
@@ -522,3 +562,33 @@ class GCSpectra(Spectra):
 			self.peaks = peaks
 
 		return
+
+	def calcStats(self):
+
+		stats = {}
+
+		stats["k"] = self.k
+		stats["nb_peaks"] = len(self.peaks)
+		stats["mean_gc%"] = sum([i * x for i, x in enumerate(self.histogram)]) / sum(self.histogram) * (100.0 / self.k)
+		if self.peaks and len(self.peaks) > 0:
+			all_peak_stats = []
+			for i, p in enumerate(self.peaks, start=1):
+				peak_stats = {}
+				peak_stats["mean_freq"] = p.mean()
+				peak_stats["stddev"] = p.stddev()
+				peak_stats["count"] = p.peak()
+				peak_stats["volume"] = p.elements()
+				all_peak_stats.append(peak_stats)
+			stats["peaks"] = all_peak_stats
+		return stats
+
+	def printStats(self, stats=None):
+
+		if not stats:
+			stats = self.calcStats()
+
+		print("K-value used:", stats["k"])
+		print("Peaks in analysis:", stats["nb_peaks"])
+		print("Mean GC:", "{0:.2f}".format(stats["mean_gc%"]) + "%")
+		print()
+		self.printPeaks()

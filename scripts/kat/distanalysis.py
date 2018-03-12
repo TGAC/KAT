@@ -6,6 +6,7 @@ import sys
 import traceback
 import time
 import matplotlib
+import json
 matplotlib.use('Agg')
 
 try:
@@ -83,11 +84,16 @@ class HistKmerSpectraAnalysis(SpectraAnalysis):
 			self.limy = int(max(int(self.spectra.maxValue() * 1.1 / 1000) * 1000, self.limy))
 			self.limx = int(max(min(self.spectra.peaks[-1].mean() * 2, len(self.spectra.histogram)), self.limx))
 
-	def peak_stats(self):
+	def peak_stats(self, prefix=None):
 		print()
 		print("K-mer frequency spectra statistics")
 		print("----------------------------------")
-		self.spectra.printGenomeStats(self.hom_peak)
+		stats = self.spectra.calcStats(self.hom_peak)
+		self.spectra.printStats(stats)
+
+		if prefix and prefix != "":
+			with open(prefix + ".dist_analysis.json", 'w') as outfile:
+				json.dump(stats, outfile, indent=4)
 
 class GCKmerSpectraAnalysis(SpectraAnalysis):
 	def __init__(self, filename, haploid=False, freq_cutoff=10000, hom_peak_freq=0, k=27):
@@ -161,22 +167,26 @@ class GCKmerSpectraAnalysis(SpectraAnalysis):
 		self.gc_dist.analyse(min_elements=min_elements, verbose=verbose)
 
 
-	def peak_stats(self):
+	def peak_stats(self, prefix=None):
 		print()
 		print("K-mer frequency spectra statistics")
 		print("----------------------------------")
-		self.cov_spectra.printGenomeStats(self.hom_peak)
+		print()
+		kmer_stats = self.cov_spectra.calcStats(self.hom_peak)
+		self.cov_spectra.printStats(kmer_stats)
 		print()
 		print("GC distribution statistics")
 		print("--------------------------")
-		# Step 4, genome stats
-		print("K-value used:", str(self.gc_dist.k))
-		print("Peaks in analysis:", str(len(self.gc_dist.peaks)))
 		print()
-		self.gc_dist.printPeaks()
-		print("Mean GC:", "{0:.2f}".format(self.mean_gc * (100.0 / self.gc_dist.k)) + "%")
+		gc_stats = self.gc_dist.calcStats()
+		self.gc_dist.printStats(gc_stats)
 
-
+		if prefix and prefix != "":
+			stats = {}
+			stats["coverage"] = kmer_stats
+			stats["gc"] = gc_stats
+			with open(prefix + ".dist_analysis.json", 'w') as outfile:
+				json.dump(stats, outfile, indent=4)
 
 
 class MXKmerSpectraAnalysis(SpectraAnalysis):
@@ -205,19 +215,23 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 		print("Creating plots")
 		print("--------------")
 		print()
-		ofile = file_prefix + ".kmerfreq_general." + format if file_prefix and format else None
-		ym = ymax
-		print("Plotting K-mer frequency distributions for general spectra ... ", end="", flush=True)
-		self.spectras[0].plot(xmax=xmax, ymax=ym, title="General Spectra", to_screen=to_screen, output_file=ofile)
-		print("done." + (" Saved to: " + ofile if file_prefix and format else ""))
+		if not self.spectras[0].peaks or len(self.spectras[0].peaks) == 0:
+			print("No peaks in K-mer frequency histogram.  Not plotting.")
+		else:
+			ofile = file_prefix + ".kmerfreq_general." + format if file_prefix and format else None
+			ym = ymax
+			print("Plotting K-mer frequency distributions for general spectra ... ", end="", flush=True)
+			self.spectras[0].plot(xmax=xmax, ymax=ym, title="General Spectra", to_screen=to_screen, output_file=ofile)
+			print("done." + (" Saved to: " + ofile if file_prefix and format else ""))
 
-		for s_i, s in enumerate(self.spectras[1:], start=1):
-			ofile = file_prefix + ".kmerfreq_" + (s_i - 1) + "x." + format if file_prefix and format else None
-			slabel = "%dx" % (s_i - 1)
-			ym = min(ymax, s.maxValue() * 1.1) if s_i > 1 else ymax
-			print("Plotting K-mer frequency distributions for", slabel, "... ", end="", flush=True)
-			s.plot(xmax=xmax, ymax=ym, title=slabel, to_screen=to_screen, output_file=ofile)
-			print("done." + (" Saved to: " +  ofile if file_prefix and format else ""))
+			for s_i, s in enumerate(self.spectras[1:], start=1):
+				if s.peaks and len(s.peaks) > 0:
+					ofile = file_prefix + ".kmerfreq_" + (s_i - 1) + "x." + format if file_prefix and format else None
+					slabel = "%dx" % (s_i - 1)
+					ym = min(ymax, s.maxValue() * 1.1) if s_i > 1 else ymax
+					print("Plotting K-mer frequency distributions for", slabel, "... ", end="", flush=True)
+					s.plot(xmax=xmax, ymax=ym, title=slabel, to_screen=to_screen, output_file=ofile)
+					print("done." + (" Saved to: " +  ofile if file_prefix and format else ""))
 		print()
 
 
@@ -254,54 +268,63 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 
 		print("\nAnalysed spectra for all requested copy numbers.")
 
-	def peak_stats(self):
+	def peak_stats(self, prefix=None):
 		"""TODO: Runs analyse (TODO:include general spectra)
 				 Takes enough peaks as to cover a given % of the elements:
 					 - Find the peak across all distributions
 					 - Reports peak stats
 				 If multiple peaks have been analyzed, tries to find the "main unique" and explains the results based on that freq.
 		"""
-		# First check to see if we have anything to work with
-		if len(self.spectras[0].peaks) == 0:
-			raise ValueError("Main spectra distribution does not contain any peaks.")
-
 		# step 1, try to find a reasonable mean for kmer frequency.
 		# weighted means by number of elements?
-		print("\nMain spectra statistics")
+		print()
+		print("Main spectra statistics")
 		print("-----------------------")
-		self.spectras[0].printGenomeStats(self.hom_peak)
+		stats = {}
+		main_dist_stats = self.spectras[0].calcStats(self.hom_peak)
+		self.spectras[0].printStats(stats=main_dist_stats)
+		stats["main_dist"] = main_dist_stats
 
 		# step 2, try to estimate the assembly completeness
 		completeness = self.calcAssemblyCompleteness()
 		print("Estimated assembly completeness:", ("{0:.2f}".format(completeness) + "%") if completeness > 0.0 else "Unknown")
+		stats["completeness"] = completeness
 
-		# step 3, selects frequencies for peaks from bigger to smaller till X% of the elements are covered or no more peaks
-		print("\nBreakdown of copy number composition for each peak")
-		print("----------------------------------------------------")
+		if self.spectras[0].peaks and len(self.spectras[0].peaks) > 0:
+			# step 3, selects frequencies for peaks from bigger to smaller till X% of the elements are covered or no more peaks
+			print("\nBreakdown of copy number composition for each peak")
+			print("----------------------------------------------------")
 
-		for peak in self.spectras[0].peaks:
-			f = peak.mean()
-			total = 0
-			pd_means = {}
-			pd_elements = {}
-			# Run through all individual cn spectra
-			for i, s in enumerate(self.spectras[1:]):
-				m = [(x.mean(), x.elements()) for x in s.peaks if x.mean() > 0.8 * f and x.mean() < 1.2 * f]
-				if len(m) == 1:
-					pd_means[i] = m[0][0]
-					pd_elements[i] = m[0][1]
-					total += m[0][1]
-				if len(m) > 1:
-					print("WARNING, MORE THAT 1 PEAK FOR f=%.3f FOUND ON THE %dx SPECTRA!!!" % (f, i))
-			print("\n---- Report for f=%.3f (total elements %d)----" % (f, total))
-			for i, s in enumerate(self.spectras[1:]):
-				if i in pd_means.keys():
-					mean = pd_means[i]
-					elements = pd_elements[i]
-					print(
-						" %dx: %.2f%% (%d elements at f=%.2f)" % (i, float(elements) * 100 / total, elements, mean))
-				else:
-					print(" %dx: No significant content" % i)
+			for peak in self.spectras[0].peaks:
+				f = peak.mean()
+				total = 0
+				pd_means = {}
+				pd_elements = {}
+				# Run through all individual cn spectra
+				for i, s in enumerate(self.spectras[1:]):
+					if s.peaks and len(s.peaks) > 0:
+						spectra_stats = s.calcStats()
+						stats["spectra_" + str(i) + "x"] = spectra_stats
+						m = [(x.mean(), x.elements()) for x in s.peaks if x.mean() > 0.8 * f and x.mean() < 1.2 * f]
+						if len(m) == 1:
+							pd_means[i] = m[0][0]
+							pd_elements[i] = m[0][1]
+							total += m[0][1]
+						if len(m) > 1:
+							print("WARNING, MORE THAT 1 PEAK FOR f=%.3f FOUND ON THE %dx SPECTRA!!!" % (f, i))
+				print("\n---- Report for f=%.3f (total elements %d)----" % (f, total))
+				for i, s in enumerate(self.spectras[1:]):
+					if i in pd_means.keys():
+						mean = pd_means[i]
+						elements = pd_elements[i]
+						print(
+							" %dx: %.2f%% (%d elements at f=%.2f)" % (i, float(elements) * 100 / total, elements, mean))
+					else:
+						print(" %dx: No significant content" % i)
+
+		if prefix and prefix != "":
+			with open(prefix + ".dist_analysis.json", 'w') as outfile:
+				json.dump(stats, outfile, indent=4)
 
 
 	def calcAssemblyCompleteness(self):
@@ -409,7 +432,7 @@ def main():
 		a.analyse(min_elements=args.min_elem, verbose=args.verbose)
 		end = time.time()
 		print(("\n" if args.verbose else "done.  ") + "Time taken: ", '{0:.1f}'.format(end - start) + 's')
-		a.peak_stats()
+		a.peak_stats(args.output_prefix)
 		if args.plot or args.output_prefix:
 			a.plot(xmax=args.freq_cutoff, to_screen=args.plot, file_prefix=args.output_prefix)
 	except Exception:
