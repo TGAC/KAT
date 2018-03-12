@@ -305,6 +305,9 @@ class MXKmerSpectraAnalysis(SpectraAnalysis):
 					if s.peaks and len(s.peaks) > 0:
 						spectra_stats = s.calcStats()
 						stats["spectra_" + str(i) + "x"] = spectra_stats
+						del stats["spectra_" + str(i) + "x"]["est_genome_size"]
+						del stats["spectra_" + str(i) + "x"]["est_het_rate"]
+						del stats["spectra_" + str(i) + "x"]["hom_peak"]
 						m = [(x.mean(), x.elements()) for x in s.peaks if x.mean() > 0.8 * f and x.mean() < 1.2 * f]
 						if len(m) == 1:
 							pd_means[i] = m[0][0]
