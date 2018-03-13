@@ -156,7 +156,12 @@ class Spectra(object):
 				print()
 				print("Locally optimising each peak ... ", end="")
 			for p_i, p in enumerate(self.peaks):
-				p.optimise(self.histogram)
+				try:
+					p.optimise(self.histogram)
+				except Exception as inst:
+					print("Problem locally optimising peak", p_i+1, file=sys.stderr)
+					print(inst, file=sys.stderr)
+					# Just carry on from here... maybe the problem will fix itself...?
 
 			# For debugging
 			if False:
