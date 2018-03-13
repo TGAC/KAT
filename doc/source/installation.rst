@@ -12,6 +12,13 @@ If you have brew installed on your system you should be able to install a recent
 
 Many thanks to @sjackman for this one!
 
+From bioconda
+~~~~~~~~~~~~~
+
+If you use bioconda you can install KAT using :
+
+``bioconda install kat``
+
 
 From source
 ~~~~~~~~~~~

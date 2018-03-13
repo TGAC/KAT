@@ -38,6 +38,13 @@ If you have brew installed on your system you should be able to install a recent
 Many thanks to @sjackman for this one!
 
 
+*From bioconda*
+
+If you use bioconda you can install KAT using :
+
+```bioconda install kat```
+
+
 *From Source*
 
 If you wish to install KAT from source, because you don't have brew installed, or wish to ensure you have the latest version, first ensure these dependencies are installed and configured on your system:
