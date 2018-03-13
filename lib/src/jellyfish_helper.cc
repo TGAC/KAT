@@ -27,7 +27,6 @@ using std::vector;
 using std::fstream;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/timer/timer.hpp>
@@ -93,7 +92,7 @@ void kat::JellyfishHelper::printHeader(const file_header& header, ostream& out) 
  * Loads an existing jellyfish hash into memory
  * @param jfHashPath
  * @param verbose
- * @return 
+ * @return
  */
 LargeHashArrayPtr kat::HashLoader::loadHash(const path& jfHashPath, bool verbose) {
 
@@ -217,7 +216,7 @@ void kat::JellyfishHelper::countSlice(HashCounter& ary, SequenceParser& parser, 
  * @param seqFile Sequence file to count
  * @return The hash array
  */
-LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads) {
+LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFiles, HashCounter& hashCounter, bool canonical, uint16_t threads, const vector<uint16_t>& trim5p, const vector<uint16_t>& trim3p) {
 
     // Convert paths to a format jellyfish is happy with
     vector<const char*> paths;
@@ -231,7 +230,7 @@ LargeHashArrayPtr kat::JellyfishHelper::countSeqFile(const vector<path>& seqFile
 
     StreamManager streams(paths.begin(), paths.end(), (const int) std::min(paths.size(), (size_t) threads));
 
-    SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams);
+    SequenceParser parser(merLen, streams.nb_streams(), 3 * threads, 4096, streams, trim5p);
 
     vector<thread> t(threads);
 
@@ -272,15 +271,16 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
 
     // If we have a pipe as input then assume we are working with a sequence file
     if (JellyfishHelper::isPipe(filename)) return true;
-    
+
+    string fn_str = filename.string();
     string ext = filename.extension().string();
 
-    // Actually we can't handle gz files directly, so turning this off for now
-    /*if (boost::iequals(ext, ".gz")) {
-        string name = filename.filename().string();
-        string shortName = name.substr(0, name.length() - 3);
-        ext = path(shortName).extension().string();
-    }*/
+    // Check for gz extension first, if found remove it
+    if (boost::iequals(ext, ".gz")) {
+        size_t lastindex = fn_str.find_last_of(".");
+        path wogz_filename = path(fn_str.substr(0, lastindex));
+        ext = wogz_filename.extension().string();
+    }
 
     // Check extension first
     bool seqext = boost::iequals(ext, ".fastq") ||
@@ -299,10 +299,9 @@ bool kat::JellyfishHelper::isSequenceFile(const path& filename) {
     fstream fin(filename.string(), fstream::in);
     fin >> ch;
     fin.close();
-    
+
     if (ch == '>' || ch == '@') return true;
-    
+
     // If we've got this far then it's not obviously a fasta or fastq file.
     return false;
 }
-

@@ -42,10 +42,12 @@ using std::ofstream;
 #include <seqan/seq_io.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -73,12 +75,13 @@ kat::Sect::Sect(const vector<path> _counts_files, const path _seq_file) {
     outputGCStats = false;
     extractNR = false;
     extractR = false;
-    maxRepeat = 20;
+    minRepeat = 2;
+    maxRepeat = 0;
     verbose = false;
     contamination_mx = nullptr;
 }
 
-        
+
 void kat::Sect::execute() {
 
     if (!bfs::exists(seqFile) && !bfs::symbolic_link_exists(seqFile)) {
@@ -91,11 +94,11 @@ void kat::Sect::execute() {
 
     // Validate input
     input.validateInput();
-    
+
     // Create output directory
     path parentDir = bfs::absolute(outputPrefix).parent_path();
     KatFS::ensureDirectoryExists(parentDir);
-    
+
     // Either count or load input
     if (input.mode == InputHandler::InputHandler::InputMode::COUNT) {
         input.count(threads);
@@ -114,50 +117,50 @@ void kat::Sect::execute() {
     // NOTE: MUST BE DONE AFTER COMPARISON AS THIS CLEARS ENTRIES FROM HASH ARRAY!
     if (input.dumpHash) {
         path outputPath(outputPrefix.string() + "-hash.jf" + lexical_cast<string>(input.merLen));
-        input.dump(outputPath, threads);     
+        input.dump(outputPath, threads);
     }
-    
+
     // Merge results from contamination matrix
     merge();
 }
 
 void kat::Sect::save() {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");        
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
 
     cout << "Saving results to disk ...";
     cout.flush();
-    
+
     // Send contamination matrix to file
     ofstream contamination_mx_stream(string(outputPrefix.string() + "-contamination.mx").c_str());
     printContaminationMatrix(contamination_mx_stream, seqFile);
-    contamination_mx_stream.close();  
-    
+    contamination_mx_stream.close();
+
     cout << " done.";
     cout.flush();
 }
 
 void kat::Sect::processSeqFile() {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");     
-    
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
+
     cout << "Calculating kmer coverage across sequences ...";
     cout.flush();
-    
+
     // Setup space for storing output
     offset = 0;
     recordsInBatch = 0;
 
     names = seqan::StringSet<seqan::CharString>();
     seqs = seqan::StringSet<seqan::CharString>();
-    
+
     // Open file, create RecordReader and check all is well
     seqan::SeqFileIn reader(seqFile.c_str());
 
     // Setup output stream for jellyfish initialisation
     std::ostream* out_stream = verbose ? &cerr : (std::ostream*)0;
 
-    
+
     // Setup output streams for files
     if (verbose)
         *out_stream << endl;
@@ -167,18 +170,18 @@ void kat::Sect::processSeqFile() {
     if (!noCountStats) {
         count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-counts.cvg").c_str());
     }
-    
+
     // Sequence GC counts output stream
     shared_ptr<ofstream> gc_count_path_stream = nullptr;
     if (outputGCStats) {
         gc_count_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-counts.gc").c_str());
     }
-    
+
     shared_ptr<ofstream> nr_path_stream = nullptr;
     if (extractNR) {
         nr_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-non_repetitive.fa").c_str());
     }
-    
+
     shared_ptr<ofstream> r_path_stream = nullptr;
     if (extractR) {
         r_path_stream = make_shared<ofstream>(string(outputPrefix.string() + "-repetitive.fa").c_str());
@@ -187,7 +190,7 @@ void kat::Sect::processSeqFile() {
     // Average sequence coverage and GC% scores output stream
     ofstream cvg_gc_stream(string(outputPrefix.string() + "-stats.tsv").c_str());
     cvg_gc_stream << "seq_name\tmedian\tmean\tgc%\tseq_length\tkmers_in_seq\tinvalid_kmers\t%_invalid\tnon_zero_kmers\t%_non_zero\t%_non_zero_corrected" << endl;
-    
+
     // Processes sequences in batches of records to reduce memory requirements
     while (!seqan::atEnd(reader)) {
         if (verbose)
@@ -214,16 +217,16 @@ void kat::Sect::processSeqFile() {
         // Output counts for this batch if (not not) requested
         if (!noCountStats)
             printCounts(*count_path_stream);
-        
+
         // Output counts for this batch if (not not) requested
         if (outputGCStats)
             printGCCounts(*gc_count_path_stream);
-        
+
         if (extractNR)
-            printRegions(*nr_path_stream, 1, 1);
-        
+            printRegions(*nr_path_stream, 1, minRepeat);
+
         if (extractR)
-            printRegions(*r_path_stream, 2, maxRepeat);
+            printRegions(*r_path_stream, minRepeat, maxRepeat);
 
 
         // Output stats
@@ -240,26 +243,26 @@ void kat::Sect::processSeqFile() {
     }
 
     // Close output streams
-    if (!noCountStats)  count_path_stream->close();    
-    if (outputGCStats)  gc_count_path_stream->close(); 
+    if (!noCountStats)  count_path_stream->close();
+    if (outputGCStats)  gc_count_path_stream->close();
     if (extractNR)      nr_path_stream->close();
     if (extractR)       r_path_stream->close();
 
     seqan::close(reader);
 
     cvg_gc_stream.close();
-    
+
     cout << " done.";
     cout.flush();
 }
 
 void kat::Sect::merge() {
-    
-    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");     
-    
+
+    auto_cpu_timer timer(1, "  Time taken: %ws\n\n");
+
     cout << "Merging matrices ...";
     cout.flush();
-    
+
     contamination_mx->mergeThreadedMatricies();
     cout << " done.";
     cout.flush();
@@ -275,7 +278,7 @@ void kat::Sect::analyseBatch() {
 
     for(uint16_t i = 0; i < threads; i++){
         t[i].join();
-    }            
+    }
 }
 
 void kat::Sect::analyseBatchSlice(int th_id) {
@@ -293,7 +296,7 @@ void kat::Sect::destroyBatchVars() {
         counts->at(i)->clear();
         gc_counts->at(i)->clear();
     }
-    
+
     counts->clear();
     gc_counts->clear();
     medians->clear();
@@ -305,7 +308,7 @@ void kat::Sect::destroyBatchVars() {
     nonZero->clear();
     percentNonZero->clear();
     percentNonZeroCorrected->clear();
-    
+
 }
 
 void kat::Sect::createBatchVars(uint16_t batchSize) {
@@ -319,7 +322,7 @@ void kat::Sect::createBatchVars(uint16_t batchSize) {
     percentInvalid = make_shared<vector<double>>(batchSize);
     nonZero = make_shared<vector<uint32_t>>(batchSize);
     percentNonZero = make_shared<vector<double>>(batchSize);
-    percentNonZeroCorrected = make_shared<vector<double>>(batchSize);    
+    percentNonZeroCorrected = make_shared<vector<double>>(batchSize);
 }
 
 void kat::Sect::printCounts(std::ostream &out) {
@@ -342,7 +345,7 @@ void kat::Sect::printCounts(std::ostream &out) {
     }
 }
 
-double kat::Sect::gcCountToPercentage(int16_t count) {    
+double kat::Sect::gcCountToPercentage(int16_t count) {
     return count == -1 ? -0.1 : (((double)count / (double)this->getMerLen()) * 100.0);
 }
 
@@ -368,27 +371,29 @@ void kat::Sect::printGCCounts(std::ostream &out) {
 
 void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const uint32_t max_count) {
     for (uint32_t i = 0; i < recordsInBatch; i++) {
-        
+
         uint32_t index = 1;
         uint32_t start = 0;
         shared_ptr<vector<uint64_t>> seqCounts = counts->at(i);
+        
+        string maxcntstr = max_count > 0 ? (string("-") + lexical_cast<string>(max_count)) : "+";
 
         if (seqCounts != NULL && !seqCounts->empty()) {
             bool inRegion = false;
             stringstream ss;
             for (size_t j = 0; j < seqCounts->size(); j++) {
                 uint64_t c = seqCounts->at(j);
-                
-                if (c >= min_count && c <= max_count) {
+
+                if (c >= min_count && (c <= max_count || max_count == 0)) {
                     if (!inRegion) {
                         start = j;
                         inRegion = true;
                     }
-                    ss << seqs[i][j];                    
+                    ss << seqs[i][j];
                 }
                 else if (inRegion) {
                     uint32_t end = j+this->getMerLen() - 1;
-                    out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << "-" << max_count << endl;
+                    out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << maxcntstr << endl;
                     out << ss.str();
                     for(size_t k = j+1; k < end; k++) {
                         out << seqs[i][k];
@@ -396,14 +401,14 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
                     out << endl;
                     inRegion = false;
                     ss.str(std::string());
-                }                
-                
+                }
+
             }
-            
+
             if (inRegion) {
                 uint32_t end = seqCounts->size() + this->getMerLen() - 1;
-                        
-                out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << "-" << max_count << endl;
+
+                out << ">" << seqan::toCString(names[i]) << "___region:" << index++ << "_length:" << end - start - 1 << "_pos:" << start+1 << ":" << end << "_cov:" << min_count << maxcntstr << endl;
                 out << ss.str();
                 for(size_t k = seqCounts->size(); k < end; k++) {
                     out << seqs[i][k];
@@ -417,14 +422,14 @@ void kat::Sect::printRegions(std::ostream &out, const uint32_t min_count, const 
 
 
 void kat::Sect::printStatTable(std::ostream &out) {
-    
+
     out << std::fixed << std::setprecision(5);
-    
+
     for (uint32_t i = 0; i < recordsInBatch; i++) {
         out << names[i] << "\t"
-            << (*medians)[i] << "\t" 
-            << (*means)[i] << "\t" 
-            << (*gcs)[i] << "\t" 
+            << (*medians)[i] << "\t"
+            << (*means)[i] << "\t"
+            << (*gcs)[i] << "\t"
             << (*lengths)[i] << "\t"
             << (*lengths)[i] - this->input.merLen + 1 << "\t"
             << (*invalid)[i] << "\t"
@@ -486,29 +491,30 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
     // There's no substring functionality in SeqAn in this version (2.0.0).  So we'll just
     // use regular c++ string's for this bit.  This conversion of strings:
-    // {CharString -> c++ string -> substring -> jellyfish mer_dna} is 
-    // inefficient. Reducing the number of conversions necessary will 
+    // {CharString -> c++ string -> substring -> jellyfish mer_dna} is
+    // inefficient. Reducing the number of conversions necessary will
     // make a big performance improvement here
     stringstream ssSeq;
     ssSeq << seqs[index];
     string seq = ssSeq.str();
 
     uint64_t seqLength = seq.length();
-    uint64_t nbCounts = seqLength - input.merLen + 1;
+    int64_t nbCounts = seqLength - input.merLen + 1;
     double average_cvg = 0.0;
     uint64_t nbNonZero = 0;
     uint64_t nbInvalid = 0;
-    
+
     if (nbCounts <= 0) {
 
         // Can't analyse this sequence because it's too short
         //cerr << names[index] << ": " << seq << " is too short to compute coverage.  Sequence length is "
         //       << seqLength << " and K-mer length is " << merLen << ". Setting sequence coverage to 0." << endl;
-        
+
         (*counts)[index] = make_shared<vector<uint64_t>>();
+        (*gc_counts)[index] = make_shared<vector<int16_t>>();
         (*medians)[index] = 0;
         (*means)[index] = 0.0;
-        
+
     } else {
 
         shared_ptr<vector<uint64_t>> seqCounts = make_shared<vector<uint64_t>>(nbCounts, 0);
@@ -516,7 +522,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
         uint64_t sum = 0;
 
-        for (uint64_t i = 0; i < nbCounts; i++) {
+        for (int64_t i = 0; i < nbCounts; i++) {
 
             string merstr = seq.substr(i, input.merLen);
 
@@ -525,7 +531,7 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
                 (*seqCounts)[i] = 0;
                 (*gcCounts)[i] = -1;
                 nbInvalid++;
-            } else {                
+            } else {
                 mer_dna mer(merstr);
                 uint64_t count = JellyfishHelper::getCount(input.hash, mer, input.canonical);
                 sum += count;
@@ -537,33 +543,33 @@ void kat::Sect::processSeq(const size_t index, const uint16_t th_id) {
 
         (*counts)[index] = seqCounts;
         (*gc_counts)[index] = gcCounts;
-        
+
         // Create a copy of the counts, and sort it first, then take median value
-        vector<uint64_t> sortedSeqCounts = *seqCounts;                    
+        vector<uint64_t> sortedSeqCounts = *seqCounts;
         std::sort(sortedSeqCounts.begin(), sortedSeqCounts.end());
-        (*medians)[index] = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);                    
+        (*medians)[index] = (double)(sortedSeqCounts[sortedSeqCounts.size() / 2]);
 
         // Calculate the mean
-        (*means)[index] = (double)sum / (double)nbCounts;                    
+        (*means)[index] = (double)sum / (double)nbCounts;
     }
 
     // Add length
     (*lengths)[index] = seqLength;
     (*nonZero)[index] = nbNonZero;
-    (*percentNonZero)[index] = nbNonZero == 0 || nbCounts <= 0 ? 
-        0.0 : 
+    (*percentNonZero)[index] = nbNonZero == 0 || nbCounts <= 0 ?
+        0.0 :
         ((double)nbNonZero / (double)nbCounts) * 100.0;
     (*invalid)[index] = nbInvalid;
     (*percentInvalid)[index] = nbInvalid == 0 || nbCounts <= 0 ?
         0.0 :
         ((double)nbInvalid / (double)nbCounts) * 100.0;
-    
+
     uint64_t notInvalid = nbCounts - nbInvalid;
     (*percentNonZeroCorrected)[index] = nbNonZero == 0 || notInvalid <= 0 ?
         0.0 :
         ((double)nbNonZero / (double)notInvalid) * 100.0;
-    
-    
+
+
     // Calc GC%
     uint64_t gs = 0;
     uint64_t cs = 0;
@@ -604,7 +610,7 @@ int kat::Sect::main(int argc, char *argv[]) {
     uint16_t        cvg_bins;
     bool            cvg_logscale;
     uint16_t        threads;
-    bool            canonical;  // Deprecated... for removal in KAT 3.0
+    string          trim5p;
     bool            non_canonical;
     uint16_t        mer_len;
     uint64_t        hash_size;
@@ -612,19 +618,20 @@ int kat::Sect::main(int argc, char *argv[]) {
     bool            output_gc_stats;
     bool            extract_nr;
     bool            extract_r;
+    uint32_t        min_repeat;
     uint32_t        max_repeat;
     bool            dump_hash;
     bool            verbose;
     bool            help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(Sect::helpMessage(), w.ws_col);
     generic_options.add_options()
-            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-sect"), 
+            ("output_prefix,o", po::value<path>(&output_prefix)->default_value("kat-sect"),
                 "Path prefix for files generated by this program.")
             ("gc_bins,x", po::value<uint16_t>(&gc_bins)->default_value(1001),
                 "Number of bins for the gc data when creating the contamination matrix.")
@@ -634,10 +641,10 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "Compresses cvg scores into logscale for determining the cvg bins within the contamination matrix. Otherwise compresses cvg scores by a factor of 0.1 into the available bins.")
             ("threads,t", po::value<uint16_t>(&threads)->default_value(1),
                 "The number of threads to use")
-            ("canonical,C", po::bool_switch(&canonical)->default_value(false),
-                "(DEPRECATED) If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+            ("5ptrim", po::value<string>(&trim5p)->default_value("0"),
+                "Ignore the first X bases from reads.  If more that one file is provided you can specify different values for each file by seperating with commas.")
             ("non_canonical,N", po::bool_switch(&non_canonical)->default_value(false),
-                "If counting fast(a/q) input, this option specifies whether the jellyfish hash represents K-mers produced for both strands (canonical), or only the explicit kmer found.")
+                "If counting fast(a/q), store explicit kmer as found.  By default, we store 'canonical' k-mers, which means we count both strands.")
             ("mer_len,m", po::value<uint16_t>(&mer_len)->default_value(DEFAULT_MER_LEN),
                 "The kmer length to use in the kmer hashes.  Larger values will provide more discriminating power between kmers but at the expense of additional memory and lower coverage.")
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
@@ -650,11 +657,13 @@ int kat::Sect::main(int argc, char *argv[]) {
                 "Tells SECT extract non-repetitive regions into a separate FastA file.")
             ("extract_r,F", po::bool_switch(&extract_r)->default_value(false),
                 "Tells SECT extract repetitive regions into a separate FastA file.")
-            ("max_repeat,G", po::value<uint32_t>(&max_repeat)->default_value(20),
-                "If user requests repeat region extraction (--max_repeat), this value allows the user to override the default maximum limit on the amount of repetition allowed.  This allows users to avoid regions that are likely to be due to low complexity sequences.")
-            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false), 
-                        "Dumps any jellyfish hashes to disk that were produced during this run.") 
-            ("verbose,v", po::bool_switch(&verbose)->default_value(false), 
+            ("min_repeat,M", po::value<uint32_t>(&min_repeat)->default_value(2),
+                "If user requests repeat region extraction (--extract_r), this value allows the user to override the default minimum limit on the amount of repetition required.")
+            ("max_repeat,G", po::value<uint32_t>(&max_repeat)->default_value(0),
+                "If user requests repeat region extraction (--extract_r), this value allows the user to override the default maximum limit on the amount of repetition allowed.  This allows users to avoid regions that are likely to be due to low complexity sequences.  A value of 0 means no limit on max repeats.")
+            ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false),
+                        "Dumps any jellyfish hashes to disk that were produced during this run.")
+            ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")
             ;
@@ -688,9 +697,13 @@ int kat::Sect::main(int argc, char *argv[]) {
         return 1;
     }
 
+    vector<string> d1_5ptrim_strs;
+    vector<uint16_t> d1_5ptrim_vals;
+    boost::split(d1_5ptrim_strs,trim5p,boost::is_any_of(","));
+    for (auto& v : d1_5ptrim_strs) d1_5ptrim_vals.push_back(boost::lexical_cast<uint16_t>(v));
 
 
-    auto_cpu_timer timer(1, "KAT SECT completed.\nTotal runtime: %ws\n\n");        
+    auto_cpu_timer timer(1, "KAT SECT completed.\nTotal runtime: %ws\n\n");
 
     cout << "Running KAT in SECT mode" << endl
          << "------------------------" << endl << endl;
@@ -702,13 +715,15 @@ int kat::Sect::main(int argc, char *argv[]) {
     sect.setCvgBins(cvg_bins);
     sect.setCvgLogscale(cvg_logscale);
     sect.setThreads(threads);
-    sect.setCanonical(non_canonical ? non_canonical : canonical ? canonical : true);        // Some crazy logic to default behaviour to canonical if not told otherwise
+    sect.setTrim(d1_5ptrim_vals);
+    sect.setCanonical(!non_canonical);
     sect.setMerLen(mer_len);
     sect.setHashSize(hash_size);
     sect.setNoCountStats(no_count_stats);
     sect.setOutputGCStats(output_gc_stats);
     sect.setExtractNR(extract_nr);
     sect.setExtractR(extract_r);
+    sect.setMinRepeat(min_repeat);
     sect.setMaxRepeat(max_repeat);
     sect.setDumpHash(dump_hash);
     sect.setVerbose(verbose);

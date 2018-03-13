@@ -5,7 +5,11 @@ pkgconfig_DATA = kat.pc
 
 lib_LTLIBRARIES = libkat.la
 
-libkat_la_LDFLAGS = -version-info 2:3:0
+libkat_la_LDFLAGS = \
+	-version-info 2:4:0 \
+	-L../deps/jellyfish-2.2.0 \
+	-L../deps/boost/build/lib
+
 libkat_la_SOURCES = \
 	src/gnuplot_i.cc \
 	src/matrix_metadata_extractor.cc \
@@ -14,6 +18,7 @@ libkat_la_SOURCES = \
 	src/comp_counters.cc
 
 library_includedir=$(includedir)/kat-@PACKAGE_VERSION@/kat
+
 KI = $(top_srcdir)/lib/include/kat
 library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/gnuplot_i.hpp \
@@ -27,8 +32,14 @@ library_include_HEADERS =   $(KI)/distance_metrics.hpp \
 			    $(KI)/comp_counters.hpp
 
 libkat_la_CPPFLAGS = \
-	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/lib/include \
+	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-I$(top_srcdir)/deps/boost/build/include \
+	-I$(top_srcdir)/lib/include \
+	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
-	
-libkat_la_CXXFLAGS = -g -O3 -fwrapv -Wall -Wextra -Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable -ansi -pedantic -Werror -std=c++11  @AM_CXXFLAGS@
+
+libkat_la_CXXFLAGS = \
+	-fwrapv -m64 \
+	-Wall \
+	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
+	@AM_CXXFLAGS@

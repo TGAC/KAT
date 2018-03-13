@@ -79,14 +79,16 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 		will be appended to the Python interpreter
 		canonical name.])
 
-        if test -z "$PYTHON_VERSION"; then
-            PYTHON_VERSION="3"
-        fi        
+        #if test -z "$PYTHON_VERSION"; then
+        #    PYTHON_VERSION="3"
+        #fi
 
 	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
 	if test -z "$PYTHON"; then
 	   AC_MSG_WARN([Cannot find python$PYTHON_VERSION in your system path])
 	   PYTHON_VERSION=""
+	else
+		AC_DEFINE_UNQUOTED([PYTHON_INT_PATH], ["$PYTHON"], [Python Interpreter Path])
 	fi
 
 	#
@@ -101,9 +103,9 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
         python_short_ver=`$PYTHON -c "import sys; \
                 ver=sys.version.split ()[[0]]; \
                 ver_parts=ver.split('.'); \
-                maj_ver=ver_parts[[0]]; \ 
+                maj_ver=ver_parts[[0]]; \
                 min_ver=ver_parts[[1]]; \
-                print(maj_ver + '.' + min_ver)"`        
+                print(maj_ver + '.' + min_ver)"`
         PYTHON_FULL_VERSION="$python_full_ver"
         AC_MSG_NOTICE([Found python version: ${PYTHON_FULL_VERSION}])
         AC_MSG_CHECKING([for a version of Python >= '3.1.0'])
@@ -137,13 +139,13 @@ to something else than an empty string.
 		ac_supports_python_ver=`$PYTHON -c "import sys; \
 			ver = sys.version.split ()[[0]]; \
 			print (ver $1)"`
-                
+
 		if test "$ac_supports_python_ver" = "True"; then
 		   AC_MSG_RESULT([yes])
                    if test -z "$PYTHON_VERSION"; then
                         PYTHON_VERSION=${python_short_ver}
-                   fi      
-                   
+                   fi
+
 		else
 			AC_MSG_RESULT([no])
 			AC_MSG_WARN([this package requires Python $1.
@@ -155,7 +157,7 @@ variable to configure. See ``configure --help'' for reference.
 		fi
 	fi
 
-        AC_MSG_NOTICE([Ensuring environment variable 'PYTHON_VERSION' set to: ${PYTHON_VERSION}])
+        AC_MSG_NOTICE([Environment variable 'PYTHON_VERSION' set to: ${PYTHON_VERSION}])
 
 	#
 	# Check if you have distutils, else fail
@@ -172,7 +174,7 @@ $ac_distutils_result])
 		PYTHON_VERSION=""
 	fi
 
-        
+
 
 	#
 	# Check for Python include path
@@ -225,6 +227,13 @@ EOD`
 		AC_DEFINE_UNQUOTED([HAVE_PYTHON], ["$ac_python_version"],
                                    [If available, contains the Python version number currently in use.])
 
+		# Get OS
+		ac_python_os=`cat<<EOD | $PYTHON -
+
+import platform
+print(platform.system())
+EOD`
+
 		# First, the library directory:
 		ac_python_libdir=`cat<<EOD | $PYTHON -
 
@@ -263,6 +272,11 @@ EOD`
 			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
 			PYTHON_LIBS="-L$ac_python_libdir -lpython$ac_python_version"
 		fi
+		if test "x$ac_python_os" = "xDarwin"; then
+			PYTHON_RPATH="-Xlinker -rpath -Xlinker $ac_python_libdir"
+		else
+			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
+		fi
 
 		if test -z "PYTHON_LIBS"; then
 			AC_MSG_ERROR([
@@ -273,7 +287,8 @@ EOD`
 	fi
 	AC_MSG_RESULT([$PYTHON_LIBS])
 	AC_SUBST([PYTHON_LIBS])
-
+	AC_SUBST([PYTHON_RPATH])
+	
 	#
 	# Check for site packages
 	#
@@ -284,6 +299,7 @@ EOD`
 	fi
 	AC_MSG_RESULT([$PYTHON_SITE_PKG])
 	AC_SUBST([PYTHON_SITE_PKG])
+	AC_DEFINE_UNQUOTED([PYTHON_INTERP_SITE_PKGS], ["$PYTHON_SITE_PKG"], [Python Interpreter Site Packages])
 
 	#
 	# libraries which must be linked in when embedding

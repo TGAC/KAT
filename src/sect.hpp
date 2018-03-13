@@ -38,11 +38,9 @@ using std::thread;
 #include <seqan/seq_io.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::lexical_cast;
@@ -56,17 +54,17 @@ using boost::lexical_cast;
 using kat::InputHandler;
 using kat::ThreadedSparseMatrix;
 
-typedef boost::error_info<struct SectError,string> SectErrorInfo;
-struct SectException: virtual boost::exception, virtual std::exception { };
 
 namespace kat {
-    
-    
+
+    typedef boost::error_info<struct SectError,string> SectErrorInfo;
+    struct SectException: virtual boost::exception, virtual std::exception { };
+
     class Sect {
     private:
 
         static const uint16_t BATCH_SIZE = 1024;
-        
+
         // Input args
         InputHandler    input;
         path            seqFile;
@@ -79,11 +77,12 @@ namespace kat {
         bool            outputGCStats;
         bool            extractNR;
         bool            extractR;
+        uint32_t        minRepeat;
         uint32_t        maxRepeat;
         bool            verbose;
-            
+
         // Chunking vars
-        size_t bucket_size, remaining; 
+        size_t bucket_size, remaining;
 
         // Variables that live for the lifetime of this object
         shared_ptr<ThreadedSparseMatrix> contamination_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
@@ -105,15 +104,15 @@ namespace kat {
         shared_ptr<vector<uint32_t>> invalid;
         shared_ptr<vector<double>> percentInvalid;
         shared_ptr<vector<double>> percentNonZeroCorrected;
-        
+
 
     public:
 
         Sect(const vector<path> _counts_files, const path _seq_file);
-        
+
         virtual ~Sect() {
         }
-        
+
         path getOutputPrefix() const {
             return outputPrefix;
         }
@@ -121,7 +120,11 @@ namespace kat {
         void setOutputPrefix(path outputPrefix) {
             this->outputPrefix = outputPrefix;
         }
-        
+
+        void setTrim(const vector<uint16_t>& _5ptrim) {
+            this->input.set5pTrim(_5ptrim);
+        }
+
         bool isCanonical() const {
             return input.canonical;
         }
@@ -161,7 +164,7 @@ namespace kat {
         void setNoCountStats(bool no_count_stats) {
             this->noCountStats = no_count_stats;
         }
-        
+
         bool isOutputGCStats() const {
             return outputGCStats;
         }
@@ -169,7 +172,7 @@ namespace kat {
         void setOutputGCStats(bool outputGCStats) {
             this->outputGCStats = outputGCStats;
         }
-        
+
         bool isExtractNR() const {
             return extractNR;
         }
@@ -185,13 +188,21 @@ namespace kat {
         void setExtractR(bool extractR) {
             this->extractR = extractR;
         }
-        
+
         uint32_t getMaxRepeat() const {
             return maxRepeat;
         }
 
         void setMaxRepeat(uint32_t maxRepeat) {
             this->maxRepeat = maxRepeat;
+        }
+        
+        uint32_t getMinRepeat() const {
+            return minRepeat;
+        }
+
+        void setMinRepeat(uint32_t minRepeat) {
+            this->minRepeat = minRepeat;
         }
 
         path getSeqFile() const {
@@ -209,7 +220,7 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
-        
+
         uint64_t getHashSize() const {
             return input.hashSize;
         }
@@ -225,7 +236,7 @@ namespace kat {
         void setMerLen(uint16_t merLen) {
             this->input.merLen = merLen;
         }
-        
+
         bool isDumpHash() const {
             return input.dumpHash;
         }
@@ -242,30 +253,30 @@ namespace kat {
             this->verbose = verbose;
         }
 
-        
+
         void execute();
-        
+
         void save();
 
 
     private:
 
         void processSeqFile();
-        
+
         void analyseBatch();
-        
+
         void analyseBatchSlice(int th_id);
-        
+
         void merge();
-        
+
         void destroyBatchVars();
 
         void createBatchVars(uint16_t batchSize);
 
         void printCounts(std::ostream &out);
-        
+
         void printGCCounts(std::ostream &out);
-        
+
         void printRegions(std::ostream &out, const uint32_t min_count, const uint32_t max_count);
 
         void printStatTable(std::ostream &out);
@@ -277,16 +288,16 @@ namespace kat {
         // This method won't be optimal in most cases... Fasta files are normally sorted by length (largest first)
         // So first thread will be asked to do more work than the rest
         void processInBlocks(uint16_t th_id);
-        
+
         // This method is probably makes more efficient use of multiple cores on a length sorted fasta file
         void processInterlaced(uint16_t th_id);
 
         void processSeq(const size_t index, const uint16_t th_id);
-        
+
         double gcCountToPercentage(int16_t count);
-        
-        static string helpMessage() {            
-        
+
+        static string helpMessage() {
+
             return string(  "Usage: kat sect [options] <sequence_file> (<input>)+\n\n") +
                             "Estimates coverage levels across sequences in the provided input sequence file.\n\n" \
                             "This tool will produce a fasta style representation of the input sequence file containing " \
@@ -295,12 +306,13 @@ namespace kat {
                             "FastQ files.  In addition, a space separated table file containing the mean coverage score and GC " \
                             "of each sequence is produced.  The row order is identical to the original sequence file.\n\n" \
                             "NOTE: K-mers containing any Ns derived from sequences in the sequence file not be included.\n\n" \
+                            "WARNING: The <sequence_file> cannot be gzipped compressed.\n\n" \
                             "Options";
 
         }
-        
+
     public:
-        
+
         static int main(int argc, char *argv[]);
     };
 }

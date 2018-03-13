@@ -18,6 +18,8 @@
 #define __JELLYFISH_MER_OVELAP_SEQUENCE_PARSER_H_
 
 #include <stdint.h>
+#include <vector>
+using std::vector;
 
 #include <memory>
 
@@ -43,6 +45,7 @@ class mer_overlap_sequence_parser : public jellyfish::cooperative_pool2<mer_over
     size_t      seq_len;
     bool        have_seam;
     file_type   type;
+    uint16_t    trim5p;
     stream_type stream;
 
     stream_status() : seam(0), seq_len(0), have_seam(false), type(DONE_TYPE) { }
@@ -56,19 +59,20 @@ class mer_overlap_sequence_parser : public jellyfish::cooperative_pool2<mer_over
   char*                    data;
   cpp_array<stream_status> streams_;
   StreamIterator&          streams_iterator_;
+  vector<uint16_t>         trim5p_list_;
   size_t                   files_read_; // nb of files read
   size_t                   reads_read_; // nb of reads read
 
 public:
-  /// Max_producers is the maximum number of concurrent threads than
-  /// can produce data simultaneously. Size is the number of buffer to
-  /// keep around. It should be larger than the number of thread
-  /// expected to read from this class. buf_size is the size of each
-  /// buffer. A StreamIterator is expected to have a next() method,
-  /// which is thread safe, and which returns (move) a
-  /// std::unique<std::istream> object.
-  mer_overlap_sequence_parser(uint16_t mer_len, uint32_t max_producers, uint32_t size, size_t buf_size,
-                              StreamIterator& streams) :
+    /// Max_producers is the maximum number of concurrent threads than
+    /// can produce data simultaneously. Size is the number of buffer to
+    /// keep around. It should be larger than the number of thread
+    /// expected to read from this class. buf_size is the size of each
+    /// buffer. A StreamIterator is expected to have a next() method,
+    /// which is thread safe, and which returns (move) a
+    /// std::unique<std::istream> object.
+    mer_overlap_sequence_parser(uint16_t mer_len, uint32_t max_producers, uint32_t size, size_t buf_size,
+                                StreamIterator& streams) :
     super(max_producers, size),
     mer_len_(mer_len),
     buf_size_(buf_size),
@@ -77,15 +81,46 @@ public:
     streams_(max_producers),
     streams_iterator_(streams),
     files_read_(0), reads_read_(0)
-  {
-    for(sequence_ptr* it = super::element_begin(); it != super::element_end(); ++it)
-      it->start = it->end = buffer + (it - super::element_begin()) * buf_size;
-    for(uint32_t i = 0; i < max_producers; ++i) {
-      streams_.init(i);
-      streams_[i].seam = seam_buffer + i * (mer_len - 1);
-      open_next_file(streams_[i]);
+    {
+        for(sequence_ptr* it = super::element_begin(); it != super::element_end(); ++it)
+            it->start = it->end = buffer + (it - super::element_begin()) * buf_size;
+        for(uint32_t i = 0; i < max_producers; ++i) {
+            streams_.init(i);
+            streams_[i].seam = seam_buffer + i * (mer_len - 1);
+            open_next_file(streams_[i]);
+        }
     }
-  }
+
+
+    /// Max_producers is the maximum number of concurrent threads than
+    /// can produce data simultaneously. Size is the number of buffer to
+    /// keep around. It should be larger than the number of thread
+    /// expected to read from this class. buf_size is the size of each
+    /// buffer. A StreamIterator is expected to have a next() method,
+    /// which is thread safe, and which returns (move) a
+    /// std::unique<std::istream> object.
+    mer_overlap_sequence_parser(uint16_t mer_len, uint32_t max_producers, uint32_t size, size_t buf_size,
+                                StreamIterator& streams, const vector<uint16_t>& trim5p_list) :
+    super(max_producers, size),
+    mer_len_(mer_len),
+    buf_size_(buf_size),
+    buffer(new char[size * buf_size]),
+    seam_buffer(new char[max_producers * (mer_len - 1)]),
+    streams_(max_producers),
+    streams_iterator_(streams),
+    files_read_(0), reads_read_(0)
+    {
+        for(sequence_ptr* it = super::element_begin(); it != super::element_end(); ++it)
+            it->start = it->end = buffer + (it - super::element_begin()) * buf_size;
+        for (auto& t5p : trim5p_list) {
+            trim5p_list_.push_back(t5p);
+        }
+        for(uint32_t i = 0; i < max_producers; ++i) {
+            streams_.init(i);
+            streams_[i].seam = seam_buffer + i * (mer_len - 1);
+            open_next_file(streams_[i]);
+        }
+    }
 
   ~mer_overlap_sequence_parser() {
     delete [] buffer;
@@ -107,7 +142,6 @@ public:
     case DONE_TYPE:
       return true;
     }
-
     if(st.stream->good())
       return false;
 
@@ -132,7 +166,7 @@ protected:
       st.type = DONE_TYPE;
       return false;
     }
-
+    st.trim5p = trim5p_list_.empty() ? 0 : trim5p_list_[files_read_];
     ++files_read_;
     switch(st.stream->peek()) {
     case EOF: return open_next_file(st);
@@ -161,12 +195,17 @@ protected:
 
     // Here, the current stream is assumed to always point to some
     // sequence (or EOF). Never at header.
+    bool newread = true;
     while(st.stream->good() && read < buf_size_ - mer_len_ - 1) {
-      read += read_sequence(*st.stream, read, buff.start, '>');
+      read += read_sequence(*st.stream, read, buff.start, '>', newread ? st.trim5p : 0);
       if(st.stream->peek() == '>') {
         *(buff.start + read++) = 'N'; // Add N between reads
         ignore_line(*st.stream); // Skip to next sequence (skip headers, quals, ...)
         ++reads_read_;
+        newread = true;
+      }
+      else {
+          newread = false;
       }
     }
     buff.end = buff.start + read;
@@ -186,11 +225,11 @@ protected:
     // Here, the st.stream is assumed to always point to some
     // sequence (or EOF). Never at header.
     while(st.stream->good() && read < buf_size_ - mer_len_ - 1) {
-      size_t nread  = read_sequence(*st.stream, read, buff.start, '+');
+      size_t nread  = read_sequence(*st.stream, read, buff.start, '+', st.seq_len == 0 ? st.trim5p : 0);
       read         += nread;
       st.seq_len   += nread;
       if(st.stream->peek() == '+') {
-        skip_quals(*st.stream, st.seq_len);
+        skip_quals(*st.stream, st.seq_len + st.trim5p);
         if(st.stream->good()) {
           *(buff.start + read++) = 'N'; // Add N between reads
           ignore_line(*st.stream); // Skip sequence header
@@ -206,8 +245,12 @@ protected:
       memcpy(st.seam, buff.end - mer_len_ + 1, mer_len_ - 1);
   }
 
-  size_t read_sequence(std::istream& is, const size_t read, char* const start, const char stop) {
+  size_t read_sequence(std::istream& is, const size_t read, char* const start, const char stop, uint16_t trim5p) {
     size_t nread = read;
+    if (trim5p > 0) {
+        skip_newlines(is);
+        is.ignore(trim5p);
+    }
     while(is && nread < buf_size_ - 1 && is.peek() != stop) {
       // Skip new lines -> get below does like them
       skip_newlines(is);

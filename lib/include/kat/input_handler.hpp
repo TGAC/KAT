@@ -26,22 +26,24 @@ using kat::JellyfishHelper;
 typedef shared_ptr<path> path_ptr;
 
 namespace kat {
-    
+
     typedef boost::error_info<struct InputFileError,string> InputFileErrorInfo;
     struct InputFileException: virtual boost::exception, virtual std::exception { };
-    
+
     class InputHandler {
-        
+
     public:
-        
-        
+
+
         enum InputMode {
             LOAD,
             COUNT
         };
-        
+
         uint16_t index;
         vector<path> input;
+        vector<uint16_t> trim5p;
+        vector<uint16_t> trim3p;
         InputMode mode = InputMode::COUNT;
         bool canonical = false;
         uint64_t hashSize = DEFAULT_HASH_SIZE;
@@ -53,25 +55,27 @@ namespace kat {
         LargeHashArrayPtr hash = nullptr;
         shared_ptr<file_header> header;         // Only applicable if loaded
 
-        void setSingleInput(const path& p) { input.clear(); input.push_back(p); }
+        void setSingleInput(const path& p) { input.clear(); input.push_back(p); trim5p.clear(); trim5p.push_back(0); }
         void setMultipleInputs(const vector<path>& inputs);
         path getSingleInput() { return input[0]; }
         string pathString();
         string fileName();
+        void set5pTrim(const vector<uint16_t>& trim_list);
+        void set3pTrim(const vector<uint16_t>& trim_list);
         void validateInput();   // Throws if input is not present.  Sets input mode.
         void loadHeader();
         void validateMerLen(const uint16_t merLen);   // Throws if incorrect merlen
         void count(const uint16_t threads);   // Uses the jellyfish library to count kmers in the input
         void loadHash();
         void dump(const path& outputPath, const uint16_t threads);
-        
+
         static shared_ptr<vector<path>> globFiles(const string& input);
         static shared_ptr<vector<path>> globFiles(const vector<path>& input);
-        
+
         static string determineSequenceFileType(const path& file);
-       
+
     private:
         static int globerr(const char *path, int eerrno);
     };
-    
+
 }

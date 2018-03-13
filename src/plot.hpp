@@ -22,56 +22,49 @@
 using std::string;
 using std::vector;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 
+#include <kat/pyhelper.hpp>
 #include <kat/kat_fs.hpp>
+using kat::PyHelper;
 using kat::KatFS;
 
 namespace kat {
-    
+
     typedef boost::error_info<struct KatPlotError,string> KatPlotErrorInfo;
     struct KatPlotException: virtual boost::exception, virtual std::exception { };
-    
+
     class Plot {
-    
+
     public:
-        
+
         enum PlotMode {
             DENSITY,
             PROFILE,
             SPECTRA_CN,
             SPECTRA_HIST,
-            SPECTRA_MX
+            SPECTRA_MX,
+            COLD
         };
-        
+
         static bool validatePlotOutputType();
-        
+
         static int main(int argc, char *argv[]);
-        
+
         static path getPythonScript(const PlotMode mode);
-        
-        static void executePythonPlot(const PlotMode mode, vector<string>& args, bool verbose);
-        
-        static void executePythonPlot(const PlotMode mode, int argc, char *argv[], bool verbose);
-                
-        
-    private:
-        static wchar_t* convertCharToWideChar(const char* c);
-        
+
+        static void executePythonPlot(const PlotMode mode, vector<string>& args);
+
+        static void executePythonPlot(const PlotMode mode, int argc, char *argv[]);
+
     protected:
 
         static PlotMode parseMode(const string& mode);
-                
-        
-        static void executeGnuplotPlot(const PlotMode mode, int argc, char *argv[]);        
-        
-        
+
         static string helpMessage() {
             return string("Usage: kat plot <mode>\n\n") +
                     "Create K-mer Plots\n\n" +
@@ -89,12 +82,14 @@ namespace kat {
                     "  * spectra-hist:    Creates a K-mer spectra plot for a set of K-mer histograms produced either\n" \
                     "                     by jellyfish-histo or kat-histo.\n" \
                     "  * spectra-mx:      Creates a K-mer spectra plot for a set of K-mer histograms that are derived\n" \
-                    "                     from selected rows or columns in a matrix produced by the \"comp\".\n\n" \
+                    "                     from selected rows or columns in a matrix produced by the \"comp\".\n" \
+                    "  * cold:            Takes in a stats file produced by \"cold\" and produces a scatter plot of\n" \
+                    "                     median read K-mer coverage vs GC% for each contig in the assembly, with\n" \
+                    "                     point's size being adjusted by sequence length\n\n"
                     "Options";
         }
-        
-    
-    };
-    
-}
 
+
+    };
+
+}

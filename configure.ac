@@ -4,17 +4,21 @@
 
 # Autoconf initialistion.  Sets package name version and contact details
 AC_PREREQ([2.68])
-AC_INIT([kat],[2.3.4],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
+AC_INIT([kat],[2.4.0],[https://github.com/TGAC/KAT/issues],[kat],[https://github.com/TGAC/KAT])
 AC_CONFIG_SRCDIR([src/kat.cc])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
+: ${CXXFLAGS=""}
+: ${CFLAGS=""}
 AC_LANG_CPLUSPLUS
 AC_PROG_CXXCPP
 AC_PROG_CXX
 AC_PROG_INSTALL
 
 # Ensure there's C++11 support
-AX_CXX_COMPILE_STDCXX_11(,[mandatory])
+AX_CXX_COMPILE_STDCXX_11([noext],[mandatory])
+CXXFLAGS=""
+CFLAGS=""
 
 # Automake configuration.
 AM_INIT_AUTOMAKE([1.11 subdir-objects foreign no-define tar-ustar])
@@ -67,60 +71,58 @@ AC_CHECK_HEADERS([glob.h])
 
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
+#Check for zlib
+AX_CHECK_ZLIB(, [AC_MSG_ERROR([zlib not found.  Please ensure that zlib is properly built and configured.])])
 
 # Required for Boost chrono on linux (clock_gettime).  Doesn't exist on Mac
 if test x"${UNAME_S}" != x"Darwin"; then
     AC_SEARCH_LIBS([clock_gettime], [rt],
         [RT_LIB="-lrt"],
-        [AC_MSG_ERROR([rt lib not found.  Please ensure that rt is properly built and configured.])])
+        [AC_MSG_ERROR([
+		rt lib not found.
+		Please ensure that rt is properly built and configured.
+		Note that this is normally available on most systems.])])
 else
     RT_LIB=""
 fi
 
-# Plotting
-pymod_good="no"
-AC_ARG_ENABLE([noplotting], AS_HELP_STRING([--disable-plotting], [This will disable plotting even if python matplotlib or gnuplot are available]), do_plotting="no", do_plotting="yes")
-AC_ARG_ENABLE([gnuplot], AS_HELP_STRING([--enable-gnuplot], [Enable gnuplot plotting even if python matplotlib is available]), use_gnuplot="yes", use_gnuplot="no")
+AC_ARG_ENABLE([pykat],
+    AS_HELP_STRING([--disable-pykat], [Disable build of python package pykat.  If this is disabled, KAT will not create plots or perform extra distribution analysis.]), make_pykat="no", make_pykat="yes")
 
-if [[ "${do_plotting}" == "yes" ]]; then
-    if [[ "${use_gnuplot}" == "no" ]]; then
-        AX_PYTHON_DEVEL([>= '3.1'])
+if [[ "${make_pykat}" == "yes" ]]; then
 
-        pybin=python${PYTHON_VERSION}
-        if [[ -n "${PYTHON_VERSION}" ]]; then
-            if [[ -z "${PYTHON_EXTRA_LIBS}" ]]; then
-                pymod_good="no"
-                AC_MSG_WARN([Python3 detected but Python3 development library was not found.  If you wish to use python plotting please install python3 library.  e.g. "sudo apt-get install python3-dev" on debian systems.])
-            fi
-            pymod_good="yes"
-            AX_PYTHON_MODULE(numpy, ,${pybin})
-            if [[ "${PYMOD}" == "no" ]]; then 
-                    pymod_good="no" 
-            fi
-            AX_PYTHON_MODULE(matplotlib, ,${pybin})
-            if [[ "${PYMOD}" == "no" ]]; then 
-                    pymod_good="no" 
-            fi
-            AX_PYTHON_MODULE(scipy, ,${pybin})
-            if [[ "${PYMOD}" == "no" ]]; then 
-                    pymod_good="no"
-            fi
-        fi
+    AX_PYTHON_DEVEL([>= '3.5'])
+
+    if [[ -z "${PYTHON_VERSION}" ]]; then
+        AC_MSG_ERROR([
+		Python3 not detected. 
+		We suggest installing python3 via conda with the required packages (numpy, scipy, matplotlib, sphinx).
+		Please see .travis/install.sh for details of how we do this.
+		Alternatively, try installing python anaconda.])
     fi
 
-    # Check for gnuplot on path.  Just emit a warning if not present
-    if [[ "${pymod_good}" == "no" ]] || [[ "${use_gnuplot}" == "yes" ]]; then
-        AC_DEFINE([HAVE_PYTHON], [0], [Python not present])
-        AC_CHECK_PROG([gnuplot_found], [gnuplot], [yes], [no])
-        if [[ "${gnuplot_found}" == "no" ]] ; then
-            AC_DEFINE([HAVE_GNUPLOT], [0], [Gnuplot not present])
-        else
-            AC_DEFINE([HAVE_GNUPLOT], [1], [Gnuplot present])
-        fi
-    else
-        AC_DEFINE([HAVE_PYTHON], [1], [Python present])
+    if [[ -z "${PYTHON_EXTRA_LIBS}" ]]; then
+        AC_MSG_ERROR([
+		Python3 executable detected but Python3 development library was not found. 
+		We suggest installing python3 via conda with the required packages (numpy, scipy, matplotlib, sphinx).
+		Please see .travis/install.sh for details of how we do this.
+		Alternatively, try installing python anaconda.])
     fi
+
+    pybin=python${PYTHON_VERSION}
+
+    # Check for required python libraries
+    AX_PYTHON_MODULE(numpy, [AC_MSG_ERROR([numpy not found])], ${pybin})
+    AX_PYTHON_MODULE(matplotlib, [AC_MSG_ERROR([matplotlib not found])], ${pybin})
+    AX_PYTHON_MODULE(scipy, [AC_MSG_ERROR([scipy not found])], ${pybin})
+    AX_PYTHON_MODULE(tabulate, [AC_MSG_ERROR([scipy not found])], ${pybin})
+
+    #AC_DEFINE([HAVE_PYTHON], [1], [Python present])
+    #AC_DEFINE_UNQUOTED([KAT_SITE_PKGS], ["${libdir}/$pybin/site-packages"], [KAT module site-packages at installed location])
 fi
+
+AM_CONDITIONAL([MAKE_PYKAT], [test x$make_pykat = xyes])
+AC_SUBST([MAKE_PYKAT])
 
 # Check for sphinx to build documentation (optional)
 AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
@@ -138,62 +140,26 @@ if [[ "${sphinx}" == "yes" ]]; then
 		sphinx="no"
 	fi
 else
-    AC_MSG_WARN([Sphinx not detected, wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
+    AC_MSG_WARN([Sphinx not detected, wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])
 fi
 AM_CONDITIONAL([MAKE_DOCS], [test x$sphinx = xyes])
 AC_SUBST([MAKE_DOCS])
 
 
-
-## Check for boost
-
-AC_ARG_ENABLE([dynamic-boost], AS_HELP_STRING([--enable-dynamic-boost], [Boost is statically linked by default.  Use this option if you would prefer to dynamically link boost]), dynboost="yes", dynboost="no")
-
-AX_BOOST_BASE([1.52],, [AC_MSG_ERROR([Boost not found.  Please ensure that boost is properly built and the BOOST_ROOT environment variable is set.  Alternatively you can override BOOST_ROOT with the --with-boost option.])])
-AX_BOOST_FILESYSTEM
-AX_BOOST_SYSTEM
-AX_BOOST_PROGRAM_OPTIONS
-AX_BOOST_CHRONO
-AX_BOOST_TIMER
-
-
 define([PC_FILE], lib/kat-2.2.pc)
 
-
-# Combine BOOST variables (apart for BOOST_TEST)
-BOOST_DYN_LIBS="${BOOST_TIMER_LIB} ${BOOST_CHRONO_LIB} ${BOOST_FILESYSTEM_LIB} ${BOOST_PROGRAM_OPTIONS_LIB} ${BOOST_SYSTEM_LIB}"
-AC_SUBST([BOOST_DYN_LIBS])
-
-BOOST_STATIC_LIBS="${BOOST_TIMER_STATIC_LIB} ${BOOST_CHRONO_STATIC_LIB} ${BOOST_FILESYSTEM_STATIC_LIB} ${BOOST_PROGRAM_OPTIONS_STATIC_LIB} ${BOOST_SYSTEM_STATIC_LIB} "
-AC_SUBST([BOOST_STATIC_LIBS])
-
-# Prefer static linking of boost.  If one or more static libs are not present 
-# (this happens with some default boost installations on some environments) then
-# use dynamic libs instead.
-if [[ "${dynboost}" == "yes" ]]; then
-    BOOST_LIBS="${BOOST_DYN_LIBS}"
-else
-    if [[ -z "${BOOST_TIMER_STATIC_LIB}" ]] || [[ -z "${BOOST_CHRONO_STATIC_LIB}" ]] || [[ -z "${BOOST_FILESYSTEM_STATIC_LIB}" ]] || [[ -z "${BOOST_PROGRAM_OPTIONS_STATIC_LIB}" ]] || [[ -z "${BOOST_SYSTEM_STATIC_LIB}" ]]; then
-        AC_MSG_WARN([Not all static boost libraries could be found.  Will use dynamic libraries instead.])
-        BOOST_LIBS="${BOOST_DYN_LIBS}"
-        dynboost="yes"
-    else
-        BOOST_LIBS="${BOOST_STATIC_LIBS}"
-    fi
-fi
-AC_SUBST([BOOST_LIBS])
-
-AM_CXXFLAGS="-DCPLUSPLUS"
+AM_CXXFLAGS="-g -O2 -std=c++11"
 AC_SUBST([AM_CXXFLAGS])
 
-if [[ "${pymod_good}" == "yes" ]]; then 
-    AM_CPPFLAGS="${BOOST_CPPFLAGS} ${PYTHON_CPPFLAGS}"
-    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_LIBS} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
-    AM_LDFLAGS="${BOOST_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS}"
+if [[ "${make_pykat}" == "yes" ]]; then
+    AM_CPPFLAGS="${ZLIB_CPPFLAGS} ${PYTHON_CPPFLAGS}"
+    AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
+    #AM_LDFLAGS="${ZLIB_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_RPATH} -static-libstdc++"
+    AM_LDFLAGS="${ZLIB_LDFLAGS} -static-libstdc++ ${PYTHON_RPATH}"
 else
-    AM_CPPFLAGS="${BOOST_CPPFLAGS}"
-    AM_LIBS="${PTHREAD_CFLAGS} ${BOOST_LIBS} ${RT_LIB}"
-    AM_LDFLAGS="${BOOST_LDFLAGS}"
+    AM_CPPFLAGS="${ZLIB_CPPFLAGS}"
+    AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB}"
+    AM_LDFLAGS="${ZLIB_LDFLAGS} -static-libstdc++"
 fi
 
 AC_SUBST([AM_CPPFLAGS])
@@ -202,38 +168,21 @@ AC_SUBST([AM_LIBS])
 
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile scripts/setup.py scripts/kat/__init__.py scripts/Makefile])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 
-if [[ "${do_plotting}" == "no" ]]; then
-    AC_MSG_NOTICE([Plotting disabled])
-else
-    if [[ "${pymod_good}" == "yes" ]] && [[ "$use_gnuplot" == "no" ]] ; then
-        AC_MSG_NOTICE([Using python plotting])
-    else
-        if [[ "${gnuplot_found}" == "yes" ]]; then
-            if [[ "${use_gnuplot}" == "no" ]]; then
-                AC_MSG_WARN([Python3, or some required python modules where not found.  Python via matplotlib is the preferred plotting method in KAT.  If you want to use python plotting (the preferred option) then we suggest you install anaconda3 (or python3 with numpy, scipy and matplotlib separately).  However, gnuplot was detected so KAT plots will be generated via gnuplot instead.])
-            else
-                AC_MSG_NOTICE([Using gnuplot plotting])
-            fi
-        else
-            AC_MSG_WARN([Neither python (with plotting modules present) or Gnuplot not detected.  KAT will still work (minus plots). Should you require plotting functionality, you must install either anaconda3 (or python3 with numpy, scipy and matplotlib) or gnuplot, and then reconfigure and compile to enable plotting in KAT.])
-        fi
-    fi
+pystr="detected ${PYTHON_VERSION}.  Plotting and downstream analysis enabled."
+if [[ "${make_pykat}" == "no" ]]; then
+	pystr="no.  No plotting or downstream analysis will be performed."
 fi
-
+sphinxstr="detected. Docs will be built."
 if [[ "${sphinx}" == "no" ]]; then
-    AC_MSG_WARN([Sphinx not detected, or version is too old.  Wont create documentation.  You can still find the documentation online at: https://kat.readthedocs.org/en/latest/])    
-else
-    AC_MSG_NOTICE([Building documentation with sphinx])
+	sphinxstr="no.  Will not build docs. You can still find the documentation online at: https://kat.readthedocs.org/en/latest/"
 fi
 
-if [[ "${dynboost}" == "yes" ]]; then
-    AC_MSG_NOTICE([Boost will be dynamically linked to your executable])
-else
-    AC_MSG_NOTICE([Boost will be statically linked to your executable])
-fi
+AC_MSG_NOTICE([
 
-
+	Configuration status:
+	- Python V3.5+ - ${pystr}
+	- Sphinx V1.3+ - ${sphinxstr}])

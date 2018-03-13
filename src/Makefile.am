@@ -6,36 +6,37 @@ bin_PROGRAMS = kat
 
 # Executable inputs
 kat_CXXFLAGS = \
-	-g -O3 -fwrapv -Wall -Wextra \
+	-fwrapv -Wall -m64 \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter \
 	-Wno-unused-variable -Wno-unused-command-line-argument \
-	-ansi -pedantic -std=c++11 \
 	@AM_CXXFLAGS@
 
 kat_CPPFLAGS = \
-	-isystem $(top_srcdir)/deps/seqan-library-2.0.0/include \
-	-isystem $(top_srcdir)/deps/jellyfish-2.2.0/include \
-	-isystem $(top_srcdir)/lib/include \
+	-I$(top_srcdir)/deps/seqan-library-2.0.0/include \
+	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
+	-I$(top_srcdir)/deps/boost/build/include \
+	-I$(top_srcdir)/lib/include \
+	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \
 	-static \
 	-L../lib \
 	-L../deps/jellyfish-2.2.0 \
+	-L../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
-	@AM_LIBS@ \
 	-lkat \
-	-lkat_jellyfish
+	-lkat_jellyfish \
+	../deps/boost/build/lib/libboost_timer.a \
+	../deps/boost/build/lib/libboost_chrono.a \
+	../deps/boost/build/lib/libboost_filesystem.a \
+	../deps/boost/build/lib/libboost_program_options.a \
+	../deps/boost/build/lib/libboost_system.a \
+	@AM_LIBS@
 
-	
 noinst_HEADERS = \
-	plot_density.hpp \
-	plot_profile.hpp \
-	plot_spectra_cn.hpp \
-	plot_spectra_mx.hpp \
-	plot_spectra_hist.hpp \
 	plot.hpp \
 	filter_kmer.hpp \
 	filter_sequence.hpp \
@@ -43,14 +44,10 @@ noinst_HEADERS = \
 	comp.hpp \
 	gcp.hpp \
 	histogram.hpp \
-	sect.hpp
-	
+	sect.hpp \
+        cold.hpp
+
 kat_SOURCES = \
-	plot_density.cc \
-	plot_profile.cc \
-	plot_spectra_cn.cc \
-	plot_spectra_mx.cc \
-	plot_spectra_hist.cc \
 	plot.cc \
 	filter_kmer.cc \
 	filter_sequence.cc \
@@ -59,4 +56,5 @@ kat_SOURCES = \
 	gcp.cc \
 	histogram.cc \
 	sect.cc \
+        cold.cc \
 	kat.cc

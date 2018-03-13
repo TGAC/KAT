@@ -27,8 +27,8 @@ using std::string;
 using std::shared_ptr;
 using std::mutex;
 
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -51,11 +51,11 @@ namespace kat {
     struct CompException: virtual boost::exception, virtual std::exception { };
 
     const string     DEFAULT_COMP_PLOT_OUTPUT_TYPE     = "png";
-    
+
     class Comp {
     private:
-        
-                
+
+
         // Args passed in
         vector<InputHandler> input;
         path outputPrefix;
@@ -77,34 +77,39 @@ namespace kat {
 
         // Final data (created by merging thread results)
         ThreadedCompCounters comp_counters;
-        
+
         std::mutex mu;
-        
+
         void init(const vector<path>& _input1, const vector<path>& _input2);
 
 
     public:
 
         Comp(const vector<path>& _input1, const vector<path>& _input2);
-        
+
         virtual ~Comp() {}
-        
+
         void setThirdInput(const vector<path>& _input3);
-        
+
         size_t inputSize() {
             return doThirdHash() ? 3 : 2;
         }
-        
+
         bool doThirdHash() {
             return threeInputs;
         }
-        
+
         bool isCanonical(uint16_t index) const {
             return input[index].canonical;
         }
 
         void setCanonical(uint16_t index, bool canonical) {
             this->input[index].canonical = canonical;
+        }
+
+        void setTrim(uint16_t index, const vector<uint16_t>& _5ptrim, const vector<uint16_t>& _3ptrim) {
+            this->input[index].set5pTrim(_5ptrim);
+            this->input[index].set3pTrim(_3ptrim);
         }
 
         uint16_t getD1Bins() const {
@@ -172,7 +177,7 @@ namespace kat {
         void setOutputPrefix(path outputPrefix) {
             this->outputPrefix = outputPrefix;
         }
-        
+
         uint16_t getThreads() const {
             return threads;
         }
@@ -180,7 +185,7 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
-        
+
         bool dumpHashes() const {
             return input[0].dumpHash;
         }
@@ -190,7 +195,7 @@ namespace kat {
                 this->input[i].dumpHash = dumpHashes;
             }
         }
-        
+
         bool hashGrowDisabled() const {
             return input[0].disableHashGrow;
         }
@@ -208,7 +213,7 @@ namespace kat {
         void setVerbose(bool verbose) {
             this->verbose = verbose;
         }
-        
+
         bool isDensityPlot() const {
             return densityPlot;
         }
@@ -226,11 +231,11 @@ namespace kat {
         }
 
 
-        
-        void execute();
-        
 
-        
+        void execute();
+
+
+
         // Threaded matrix data
 
         const SM64& getMainMatrix() const {
@@ -249,7 +254,7 @@ namespace kat {
             return mixed_matrix.getFinalMatrix();
         }
 
-        
+
         // Print K-mer comparison matrix
 
         void printMainMatrix(ostream &out);
@@ -269,38 +274,39 @@ namespace kat {
         // Print K-mer statistics
 
         void printCounters(ostream &out);
-        
+
         // Print histograms
-        
+
         void printHist(ostream &out, InputHandler& input, vector<uint64_t>& hist);
-        
+
         void save();
-        
+
         path getMxOutPath() { return path(string(outputPrefix.string() + "-main.mx")); }
-        
+
         void plot(const string& output_type);
+        void analysePeaks();
 
 
     private:
 
         void loadHashes();
-        
+
         void compare();
-        
+
         void compareSlice(int th_id);
 
         void merge();
-        
-        
-        
+
+
+
         // Scale counters to make the matrix look pretty
         uint64_t scaleCounter(uint64_t count, double scale_factor) {
 
             return count == 0 ? 0 : (uint64_t) ceil((double) count * scale_factor);
         }
-        
-        static string helpMessage() {            
-        
+
+        static string helpMessage() {
+
             return string(  "Usage: kat comp [options] <input_1> <input_2> [<input_3>]\n\n") +
                             "Compares jellyfish K-mer count hashes.\n\n" \
                             "The most common use case for this tool is to compare two (or three) K-mer hashes.  The typical use case for " \
@@ -313,10 +319,10 @@ namespace kat {
                             "Options";
 
         }
-        
+
     public:
-        
-        
+
+
         static int main(int argc, char *argv[]);
 
     };

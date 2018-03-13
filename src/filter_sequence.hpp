@@ -24,19 +24,22 @@ using std::unique_ptr;
 using std::stringstream;
 using std::ofstream;
 
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
+
 #include <seqan/basic.h>
 #include <seqan/sequence.h>
 #include <seqan/seq_io.h>
 
 #include <kat/input_handler.hpp>
 using kat::InputHandler;
- 
+
 
 typedef boost::error_info<struct FilterSeqError,string> FilterSeqErrorInfo;
 struct FilterSeqException: virtual boost::exception, virtual std::exception { };
 
 namespace kat { namespace filter {
-    
+
 const string    DEFAULT_FILT_SEQ_OUTPUT_PREFIX  = "kat.filter.seq";
 const double    DEFAULT_FILT_SEQ_THRESHOLD      = 0.1;
 const bool      DEFAULT_FILT_SEQ_INVERT         = false;
@@ -47,17 +50,17 @@ struct SeqStats {
     int64_t index;
     uint64_t matches;
     uint64_t nb_kmers;
-    
+
     SeqStats() : SeqStats(-1, 0, 0) {}
-    SeqStats(const int32_t index, const uint64_t matches, const uint64_t nb_kmers) : 
+    SeqStats(const int32_t index, const uint64_t matches, const uint64_t nb_kmers) :
         index(index), matches(matches), nb_kmers(nb_kmers) {}
-    
+
     string toString() const {
         stringstream ss;
         ss << index << "\t" << nb_kmers << "\t" << matches;
         return ss.str();
     }
-    
+
     double calcRatio() {
         return (double)matches / (double)nb_kmers;
     }
@@ -73,7 +76,7 @@ struct SeqStatsComparator {
 class FilterSeq
 {
 private:
-    
+
     // Args
     InputHandler    input;
     path            seq_file_1;
@@ -87,10 +90,10 @@ private:
     bool        doStats;
     uint16_t    threads;
     bool        verbose;
-    
+
     uint64_t    keepers;
     uint64_t    total;
-    
+
     seqan::CharString name;
     seqan::CharString seq;
     seqan::CharString qual;
@@ -98,17 +101,17 @@ private:
     seqan::CharString seq2;
     seqan::CharString qual2;
     string extension;
-    
+
     unique_ptr<seqan::SeqFileIn> reader = nullptr;
-    unique_ptr<seqan::SeqFileIn> reader2 = nullptr;    
-    
+    unique_ptr<seqan::SeqFileIn> reader2 = nullptr;
+
     unique_ptr<seqan::SeqFileOut> inWriter = nullptr;
     unique_ptr<seqan::SeqFileOut> outWriter = nullptr;
     unique_ptr<seqan::SeqFileOut> inWriter2 = nullptr;
     unique_ptr<seqan::SeqFileOut> outWriter2 = nullptr;
-    
+
     unique_ptr<ofstream> stats_stream = nullptr;
-	
+
     void init(const vector<path>& _input);
 
 public:
@@ -117,7 +120,7 @@ public:
     FilterSeq(const path& _seq_file_1, const path& _seq_file_2, const vector<path>& _input);
 
     ~FilterSeq() {}
-    
+
     uint16_t getThreads() const {
         return threads;
     }
@@ -158,11 +161,11 @@ public:
     void setSeparate(bool separate) {
         this->separate = separate;
     }
-    
+
     bool isPaired() const {
-        return !this->seq_file_2.empty(); 
+        return !this->seq_file_2.empty();
     }
-    
+
     double getThreshold() const {
         return threshold;
     }
@@ -170,7 +173,7 @@ public:
     void setThreshold(double threshold) {
         this->threshold = threshold;
     }
-	
+
 	double getFrequency() const {
 		return frequency;
 	}
@@ -178,7 +181,7 @@ public:
 	void setFrequency(double frequency) {
 		this->frequency = frequency;
 	}
-    
+
     bool isDoStats() const {
         return doStats;
     }
@@ -186,7 +189,7 @@ public:
     void setDoStats(bool doStats) {
         this->doStats = doStats;
     }
-    
+
     bool isCanonical() const {
         return input.canonical;
     }
@@ -194,7 +197,7 @@ public:
     void setCanonical(bool canonical) {
         this->input.canonical = canonical;
     }
-    
+
     path getOutput_prefix() const {
         return output_prefix;
     }
@@ -210,7 +213,7 @@ public:
     void setHashSize(uint64_t hashSize) {
         this->input.hashSize = hashSize;
     }
-            
+
     bool isVerbose() const {
         return verbose;
     }
@@ -221,20 +224,20 @@ public:
 
 
     void execute();
-    
+
 
 protected:
 
     void processSeqFile();
     void processPairedSeqFile();
-        
+
     void processSeq(uint64_t index, double random_val);
-    
+
     void getProfile(seqan::CharString& s, vector<bool>& hits);
-        
-    
-    static string helpMessage() {            
-        
+
+
+    static string helpMessage() {
+
         return string(  "Usage: kat filter seq [options] <seq_file_to_filter> [<seq_file_2>] <input>\n\n") +
                         "Filter sequences based on whether those sequences contain specific k-mers.\n\n" \
                         "The user loads a k-mer hash and then filters sequences (either in or out) depending on whether those\n" \
@@ -253,4 +256,3 @@ public:
 
 };
 }}
-

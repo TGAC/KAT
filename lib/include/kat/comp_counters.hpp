@@ -84,8 +84,6 @@ public:
 
 class ThreadedCompCounters {
 private: 
-    uint16_t threads;
-
     CompCounters final_matrix;
     vector<CompCounters> threaded_counters;
 

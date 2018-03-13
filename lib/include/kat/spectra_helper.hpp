@@ -33,7 +33,8 @@ using std::string;
 using std::vector;
 
 #include <boost/lexical_cast.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -43,114 +44,114 @@ typedef pair<uint32_t, uint64_t> Pos;
 typedef pair<uint32_t, uint32_t> Coord;
 
 namespace kat {
-    
+
     typedef boost::error_info<struct SpectraHelperError,string> SpectraHelperErrorInfo;
     struct SpectraHelperException: virtual boost::exception, virtual std::exception { };
-    
+
     class SpectraHelper {
     public:
-        
+
         static uint32_t findFirstMin(const vector<Pos>& histo) {
-            
+
             return findFirstMin(histo, false);
         }
-        
+
         static uint32_t findFirstMin(const vector<Pos>& histo, bool skipFirst) {
-            
+
             uint64_t previous = std::numeric_limits<uint64_t>::max();
-            
+
             for(uint32_t i = skipFirst ? 1 : 0; i < histo.size(); i++) {
                 if (histo[i].second <= previous) {
-                    previous = histo[i].second;                    
+                    previous = histo[i].second;
                 }
                 else {
                     return i;
                 }
-            }            
-            
+            }
+
             return 0;
         }
-        
+
         static Pos findPeak(const vector<Pos>& histo) {
             return findPeak(histo, true);
         }
-        
+
         static Pos findPeak(const vector<Pos>& histo, bool findMin) {
-            
+
             uint64_t previous = std::numeric_limits<uint64_t>::max();
-            
+
             Pos bestMax(0,0);
             Pos lastMax(0,0);
-            
+
             for(uint32_t i = findMin ? findFirstMin(histo) : 1; i < histo.size(); i++) {
                 if (histo[i].second > previous) {
                     lastMax = histo[i];
                     bestMax = lastMax.second > bestMax.second ? lastMax : bestMax;
                 }
-                
-                previous = histo[i].second;                    
+
+                previous = histo[i].second;
             }
-            
+
             return bestMax;
         }
-        
+
         static Pos lim97(const vector<Pos>& histo) {
-            
+
             uint32_t xStart = findFirstMin(histo, true);
 
-            //cout << "minima: " << xStart << endl;            
-            
+            //cout << "minima: " << xStart << endl;
+
             // No initial minima, so no way of easily working out what the xlim should be
             if (xStart == 0) {
                 return Pos();
             }
-            
+
             uint64_t total = 0;
-            
+
             for (uint32_t i = xStart; i < histo.size(); i++) {
                 total += histo[i].second;
             }
-            
+
             //cout << "total: " << total << endl;
 
-            
+
             uint64_t cumulative = 0;
             for (uint32_t i = xStart; i < histo.size(); i++) {
                 cumulative += histo[i].second;
-                double proportion = (double)cumulative / (double)total;   
-                
+                double proportion = (double)cumulative / (double)total;
+
                 //cout << "proportion: " << proportion << endl;
                 if (proportion > 0.97) {
                     return Pos(histo[i].first, cumulative);
                 }
             }
-                        
+
             return Pos();
         }
-        
+
         /*static Coord findPeak(const SparseMatrix<uint64_t>& mx) {
-            
+
             uint64_t previous = std::numeric_limits<uint64_t>::max();
-            
+
             Coord bestMax;
             Coord lastMax;
-            
+
             for(uint32_t i = findFirstMin(mx); i < mx.size(); i++) {
                 if (mx[i].second > previous) {
                     lastMax = mx[i];
                     bestMax = lastMax.second > bestMax.second ? lastMax : bestMax;
                 }
                 else {
-                    previous = mx[i].second;                    
+                    previous = mx[i].second;
                 }
             }
-            
+
             return bestMax;
         }*/
-        
-        
+
+
         static void loadHist(const path& histFile, vector<Pos>& histo) {
-            
+
             ifstream in(histFile.c_str());
             string line;
             uint64_t linenb = 0;
@@ -159,18 +160,17 @@ namespace kat {
                 uint32_t bin;
                 uint64_t val;
                 linenb++;
-                
+
                 if (line[0] != '#') {
-                    if (!(iss >> bin >> val)) { 
+                    if (!(iss >> bin >> val)) {
                         BOOST_THROW_EXCEPTION(SpectraHelperException() << SpectraHelperErrorInfo(string(
                             "Encountered unexpected syntax on line ") + lexical_cast<string>(linenb)));
                     }
-                    
+
                     histo.push_back(Pos(bin,val));
                 }
             }
         }
-        
+
     };
 }
-

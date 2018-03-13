@@ -25,7 +25,6 @@
 #include <string>
 
 #include <boost/lexical_cast.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -42,7 +41,7 @@ using std::vector;
 using std::map;
 
 namespace kat{
-    
+
 template <class T>
 class SparseMatrix {
 public:
@@ -50,12 +49,12 @@ public:
     typedef typename mat_t::iterator row_iter;
     typedef map<uint32_t, T> col_t;
     typedef typename col_t::iterator col_iter;
-    
+
     typedef boost::error_info<struct SparseMatrixError,string> SparseMatrixErrorInfo;
     struct SparseMatrixException: virtual boost::exception, virtual std::exception { };
 
     SparseMatrix() : SparseMatrix(0) {}
-    
+
     SparseMatrix(uint32_t i) {
         m = i;
         n = i;
@@ -65,7 +64,7 @@ public:
         m = i;
         n = j;
     }
-    
+
     /**
      * @brief SparseMatrix Loads a sparse matrix from file.  NOTE, matrix must contain uint64_t!!
      * @param file_path path to the file containing the sparse matrix
@@ -133,15 +132,15 @@ public:
                     lexical_cast<string>(i) + "," + lexical_cast<string>(j) + ".  Limits: " +
                     lexical_cast<string>(m) + "," + lexical_cast<string>(n)));
         }
-        
+
         map<uint32_t, map<uint32_t, uint64_t>>::const_iterator res1 = mat.find(i);
-        
+
         if (res1 == mat.end()) {
             return 0;
         }
         else {
-            map<uint32_t, uint64_t>::const_iterator res2 = res1->second.find(j); 
-           
+            map<uint32_t, uint64_t>::const_iterator res2 = res1->second.find(j);
+
             if (res2 == res1->second.end()) {
                 return 0;
             }
@@ -149,7 +148,7 @@ public:
                 return res2->second;
             }
         }
-            
+
     }
 
     uint32_t width() const {
@@ -209,17 +208,17 @@ public:
         }
         cout << endl;
     }
-    
+
     void getRow(uint32_t row_idx, vector<T>& row) {
         for (uint32_t i = 0; i < this->height(); i++) {
             row.push_back(mat[i][row_idx]);
-        }        
+        }
     }
-    
+
     void getColumn(uint32_t col_idx, vector<T>& col) {
         for (uint32_t i = 0; i < this->width(); i++) {
             col.push_back(mat[col_idx][i]);
-        }        
+        }
     }
 
 
@@ -300,7 +299,7 @@ private:
 public:
 
     ThreadedSparseMatrix() : ThreadedSparseMatrix(0, 0, 0) {};
-    
+
     ThreadedSparseMatrix(uint16_t _width, uint16_t _height, uint16_t _threads) :
     width(_width), height(_height), threads(_threads) {
         final_matrix = SM64(width, height);
@@ -334,7 +333,7 @@ public:
 
         return final_matrix;
     }
-    
+
     uint64_t incTM(uint16_t index, size_t i, size_t j, uint64_t val) {
         return threaded_matricies[index].inc(i, j, val);
     }

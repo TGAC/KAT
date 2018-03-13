@@ -28,64 +28,65 @@ using std::cout;
 #include <mach-o/dyld.h>
 #endif
 
-#include <boost/filesystem.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/exception/all.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 namespace fs = boost::filesystem;
 using fs::exists;
 using fs::path;
 
 
 namespace kat {
-    
+
     typedef boost::error_info<struct FileSystemError,string> FileSystemErrorInfo;
     struct FileSystemException: virtual boost::exception, virtual std::exception { };
 
- 
+
     class KatFS {
     private:
-        
+
         path exe;
-        
+
         bool isAbsolute;
         bool isRelative;
         bool isOnPath;
-        
+
         // Executables
         path canonicalExe;
-        
+
         // Directories
         path scriptsDir;
-        
+
     public:
-       
+
         /**
          * Assume on PATH by default
          */
         KatFS() {}
-        
+
         /**
-         * 
+         *
          * @param exe Full path to the exe, probably derived from argv0.
          */
         KatFS(const char* argv) {
-            
+
             isAbsolute = false;
             isRelative = false;
             isOnPath = false;
-            
+
             exe = argv;
-            
+
             if(exe.is_absolute()) {
-                
-                // Absolute path provided...  Easy job... nothing special to do, 
+
+                // Absolute path provided...  Easy job... nothing special to do,
                 // resolve symlink then take two levels up
                 canonicalExe = fs::canonical(exe);
                 isAbsolute = true;
             }
             else if (exe.string().find('/') != string::npos) {
-                
-                // Relative with some parent paths... get absolute path, resolving 
+
+                // Relative with some parent paths... get absolute path, resolving
                 // symlinks then take two levels up
                 canonicalExe = fs::canonical(fs::system_complete(exe));
                 isRelative = true;
@@ -93,7 +94,7 @@ namespace kat {
             else {
 
                 // Only name provided
-                // In this case we just have to assume everything is properly installed 
+                // In this case we just have to assume everything is properly installed
 #ifdef OS_LINUX
                 canonicalExe = do_readlink();
 #elif OS_MAC
@@ -101,49 +102,60 @@ namespace kat {
 #else
                 canonicalExe = do_readlink(); // Assume linux
 #endif
-                isOnPath = true;  
+                isOnPath = true;
             }
-                
+
 
             // Check to see if scripts are adjacent to exe first
             path kda(canonicalExe.parent_path());
-            kda /= "kat_distanalysis.py";
+            kda /= "kat_distanalysis";
             if (exists(kda)) {
-                scriptsDir = canonicalExe.parent_path();
+#ifdef HAVE_PYTHON
+                // Looks like we are running from an installed location.  Don't try to use then
+                // scripts from here.  We will try the KAT_SITE_PACKAGES PATH instead.
+                this->scriptsDir = KAT_SITE_PKGS;
+                this->scriptsDir /= string("kat-") + PACKAGE_VERSION + "-py" + HAVE_PYTHON + ".egg";
+                if (!exists(this->scriptsDir)) {
+                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                        "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
+                }
+#else
+                this->scriptsDir = canonicalExe.parent_path();
+#endif
             }
             else {
-                // If we are here then we are not running from an installed location, 
+                // If we are here then we are not running from an installed location,
                 // we are running from the source tree.
-                // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests) 
+                // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests)
                 // so try 2, 3 and 4 levels.
-                scriptsDir = canonicalExe.parent_path().parent_path();
-                scriptsDir /= "scripts";                 
+                this->scriptsDir = canonicalExe.parent_path().parent_path();
+                this->scriptsDir /= "scripts";
 
-                if (!exists(scriptsDir)) {
-                    scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
-                    scriptsDir /= "scripts";       
+                if (!exists(this->scriptsDir)) {
+                    this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
+                    this->scriptsDir /= "scripts";
 
-                    if (!exists(scriptsDir)) {
-                        scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
-                        scriptsDir /= "scripts";        
+                    if (!exists(this->scriptsDir)) {
+                        this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
+                        this->scriptsDir /= "scripts";
 
-                        if (!exists(scriptsDir)) {
+                        if (!exists(this->scriptsDir)) {
                             BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
                                 "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
                         }
 
                     }
                 }
-            }
-            kda=scriptsDir;
-            kda /= "kat_distanalysis.py";
-            if (!exists(kda)) {
-                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                     "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
+                kda = this->scriptsDir;
+                kda /= "setup.py";
+                if (!exists(kda)) {
+                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                         "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
+                }
             }
 
         }
-        
+
 
         std::string do_readlink() {
             char buff[PATH_MAX];
@@ -154,9 +166,9 @@ namespace kat {
             }
             BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
                      "Could not find locations of executable from /proc/self/exe")));
-                
+
         }
-        
+
 #ifdef OS_MAC
         std::string get_mac_exe() {
             char path[1024];
@@ -165,11 +177,11 @@ namespace kat {
             return path;
         }
 #endif
-        
-        
+
+
         // **** Destructor ****
         virtual ~KatFS() { }
-        
+
         path GetCanonicalExe() const {
             return canonicalExe;
         }
@@ -177,7 +189,7 @@ namespace kat {
         path GetScriptsDir() const {
             return scriptsDir;
         }
-        
+
         bool IsAbsolute() const {
             return isAbsolute;
         }
@@ -190,23 +202,23 @@ namespace kat {
             return isRelative;
         }
 
-        
-        
+
+
         friend std::ostream& operator<<(std::ostream &strm, const KatFS& pfs) {
-            
+
             return strm << "KAT paths: "<< endl
                         << " - argv: " << pfs.exe << endl
                         << "  - type: " << (pfs.isAbsolute ? "absolute" : pfs.isRelative ? "relative" : "on PATH") << endl
                         << " - Canonical path: " << pfs.canonicalExe << endl
-                        << " - Scripts dir: " << (pfs.scriptsDir.empty() ? "assuming scripts on PATH" : pfs.scriptsDir) << endl;                   
+                        << " - Scripts dir: " << (pfs.scriptsDir.empty() ? "assuming scripts on PATH" : pfs.scriptsDir) << endl;
         }
-        
+
         /**
          * Ensures a directory exists
          * @param dir
          */
         static void ensureDirectoryExists(const path& dir) {
-            
+
             path canDir = fs::absolute(dir);
             if (!fs::exists(canDir) || !fs::is_directory(canDir)) {
                 if (!fs::create_directories(canDir)) {
@@ -218,9 +230,8 @@ namespace kat {
             }
         }
     };
-    
-       
+
+
     // Make available everywhere
     extern KatFS katFileSystem;
 }
-

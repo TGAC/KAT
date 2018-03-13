@@ -7,9 +7,9 @@ man1_MANS = doc/kat_jellyfish.man
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = kat_jellyfish.pc
 
-AM_LDFLAGS = -lpthread # $(VALGRIND_LIBS)
-AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include $(VALGRIND_CFLAGS)
-AM_CXXFLAGS = $(ALL_CXXFLAGS) -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations -g -O3
+AM_LDFLAGS = $(ZLIB_LDFLAGS) $(ZLIB_LIB) -lpthread -static-libstdc++ # $(VALGRIND_LIBS)
+AM_CPPFLAGS = $(ZLIB_CPPFLAGS) -I$(top_srcdir) -I$(top_srcdir)/include # $(VALGRIND_CFLAGS)
+AM_CXXFLAGS = $(ALL_CXXFLAGS) -Wall -Wnon-virtual-dtor -Wno-deprecated-declarations
 
 noinst_HEADERS = $(YAGGO_SOURCES)
 bin_PROGRAMS =
@@ -83,6 +83,7 @@ library_include_HEADERS = $(JFI)/allocators_mmap.hpp			\
                           $(JFI)/offsets_key_value.hpp			\
                           $(JFI)/int128.hpp				\
                           $(JFI)/rectangular_binary_matrix.hpp		\
+													$(JFI)/gzstream.hpp	\
                           $(JFI)/mer_dna.hpp $(JFI)/storage.hpp		\
                           $(JFI)/simple_circular_buffer.hpp		\
                           $(JFI)/circular_buffer.hpp			\
@@ -198,14 +199,14 @@ bin_test_all_SOURCES = unit_tests/test_main.cc				\
 	               unit_tests/test_generator_manager.cc		\
 	               unit_tests/test_atomic_bits_array.cc		\
 	               unit_tests/test_stdio_filebuf.cc
-	
+
 #unit_tests/test_mer_dna.cc
 #unit_tests/test_int128.cc
-	               
+
 bin_test_all_SOURCES += jellyfish/backtrace.cc
 
 bin_test_all_CPPFLAGS = -DJSON_IS_AMALGAMATION=1 -I$(top_srcdir)/unit_tests/gtest/include -I$(top_srcdir)/unit_tests -I$(top_srcdir)/include
-bin_test_all_CXXFLAGS = $(ALL_CXXFLAGS) -g -O3
+bin_test_all_CXXFLAGS = $(ALL_CXXFLAGS)
 bin_test_all_LDADD = libgtest.la $(LDADD)
 YAGGO_SOURCES += unit_tests/test_main_cmdline.hpp
 noinst_HEADERS += unit_tests/test_main.hpp

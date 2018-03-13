@@ -3,157 +3,49 @@
 Installation
 ============
 
-To get a quick summary of how to install KAT please consult the README.md file
-in the root directory of the project.  This section of the documentation discusses
-some more details.
+From brew
+~~~~~~~~~
 
-KAT is primarily a C++ application with a few python scripts.  We use the 
-GNU build system "Autotools" (autoconf + automake) to assist with package management and to make the 
-software portable across UNIX type operating systems.  Installation of KAT
-therefore follows a similar incantation to other autotools based projects::
+If you have brew installed on your system you should be able to install a recent version of KAT by simply typing:
 
-  ./configure; make; sudo make install;
+``brew install brewsci/bio/kat``
 
-Should you wish to run tests then you can do this by typing: ``make check``.
-
-If you cloned the software directly from the git repository you must first run 
-``./autogen.sh`` to create the configure and make 
-files for your project.  If you downloaded a source code distribution tarball those
-scripts are already present so you can skip this step.  We also supply a script called
-``antigen.sh`` which cleans the KAT configuration to a similar state as if the
-repository was cloned.  After running ``antigen.sh`` (may require sudo permissions 
-if you installed content or run ``make dist``), ``autogen.sh`` must be
-run in order to create the ``configure`` and ``Makefile`` files in order to 
-build the problem.
-
-The configure script contains all the usual options you might expect in particular
-it has the ``--prefix``, which will install KAT to a custom directory.  By default 
-this is "/usr/local", so the KAT executable would be found at "/usr/local/bin" by 
-default.  In addition, the make file should support all the usual targets and options
-such as ``-j <core>``, to increase the number of cores used to compile the program.
-
-If sphinx is installed and detected on your system then html documentation and man 
-pages are automatically built during the build process.  If it is not detected then this step
-is skipped.  Should you wish to create a PDF version of the manual you can do so
-by typing ```make pdf```, this is not executed by default.
+Many thanks to @sjackman for this one!
 
 
-External Dependencies
----------------------
+From source
+~~~~~~~~~~~
 
-KAT depends on some external software:
- * Make
- * libtool
- * zlib
- * C++11 compiler (e.g. GCC V4.8+)
- * Boost
- * Optional but recommended - Python3 with matplotlib, scipy, numpy and sphinx (anaconda3)
- * Optional - Gnuplot
- * Repo building - automake / autoconf
+If you wish to install KAT from source, because you don't have brew installed, or wish to ensure you have the latest version, first ensure these dependencies are installed and configured on your system:
 
-Please make sure all the mandatory programs and libraries are correctly configured and installed 
-on your system prior to building KAT.  The rest of this section describes how to 
-install these dependencies in more detail. However, for a quick example of how to install KAT dependencies on a typical clean system
-take a look at our travis CI script in the root directory: ``.travis.yml`` and ``.travis/install.sh``.
+  - **GCC** V4.8+
+  - **make**
+  - **autoconf** V2.53+
+  - **automake** V1.11+
+  - **libtool** V2.4.2+
+  - **pthreads** (probably already installed)
+  - **zlib**
+  - **Python** V3.5+ with the *tabulate*, *scipy*, *numpy* and *matplotlib* packages and C API installed.  This is optional but highly recommended, without python KAT functionality is limited: no plots, no distribution analysis, and no documentation.
+  - **Sphinx-doc** V1.3+ (Optional: only required for building the documentation.
 
+NOTE ON INSTALLING PYTHON: Many system python installations do not come with the C API immediately available, which prevents KAT from embedding python code.  We typically would recommend installing anaconda3 as this would include the latest version of python, all required python packages as well as the C API.  If you are running a debian system and the C libraries are not available by default and you wish to use the system python installation the you can install them using: ``sudo apt-get install python-dev``.
 
-Boost
-~~~~~
+Then proceed with the following steps:
 
-If you don't wish to install the full suite of boost libraries KAT only uses the following:
+  - Clone the git repository (For ssh: ``git clone git@github.com:TGAC/KAT.git``; or for https: ``git clone https://github.com/TGAC/KAT.git``), into a directory on your machine.
+  - Change directory into KAT project: ``cd KAT``
+  - Build boost (this may take some time): ``./build_boost.sh``
+  - Setup the KAT configuration scripts by typing: ``./autogen.sh``.
+  - Generate makefiles and confirm dependencies: ``./configure``. The configure script can take several options as arguments.  One commonly modified option is ``--prefix``, which will install KAT to a custom directory.  By default this is ``/usr/local``, so the KAT executable would be found at ``/usr/local/bin`` by default. Python functionality can be disabled using ``--disable-pykat``.  Type ``./configure --help`` for full list of options.  Please check the output to ensure the configuration is setup as you'd expect.
+  - Compile software: ``make``.  You can leverage extra cores duing the compilation process using the ``-j <#cores>`` option.  Also you can see all command lines used to build the software by setting ``V=1``.
+  - Run tests (optional) ``make check``.  (The ``-j`` and ``V=1`` options described above are also supported here.)
+  - Install: ``make install``.  If you've not provided a specific installation directory, you will likely need to prefix this command with ``sudo`` in order to provide the permissions required to install to ``/usr/local``.
 
- - system
- - filesystem
- - program_options
- - chrono
- - timer. 
+If sphinx is installed and detected on your system then html documentation and man
+pages are automatically built during the build process.  If it is not detected then this step is skipped.  Should you wish to create a PDF version of the manual you can do so by entering the ``doc`` directory and typing ``make pdf``, this is not executed by default.
 
-KAT offers the use the ability to use boost from non-standard locations without setting
-environment variables via the following options when running the configure script::
+NOTE: if KAT is failing at the ``./autogen.sh`` step you will likely need to install autotools.  The following command should do this on MacOS: ``brew install autoconf automake libtool``.  On a debian system this can be done with: ``sudo apt-get install autoconf automake libtool``.
 
-  - "--with-boost=<path_to_boost>"  for specifying a custom boost installation directory
-  
-However, if you choose to do this please ensure that the boost libraries are available 
-on the LD_LIBRARY_PATH at runtime. 
+*Python scripts*
 
-Zlib
-~~~~
-
-Most users will already have this installed and configured on their system, however
-if you don't then please install it.  Should you choose to install it in a custom directory
-then you can use this option in the configure script::
-
-  - "--with-zlib=<path_to_zlib>"  for specifying a custom zlib installation directory
-
-Again please be sure to have the LD_LIBRARY_PATH set if you choose to do this.
-
-
-Plotting
-~~~~~~~~
-
-To enable plotting functionality we require either python3, with numpy, scipy and
-matplotlib installed, or gnuplot.  The python installation must come with the python
-shared library, on debian systems you can install this with "sudo apt-get install python3-dev".
-Although, if you don't already have python3 installed
-on your system we recommend installing anaconda3 as this contains everything you
-need.  The type of plotting engine used will be determined when running the configure
-script, which will select the first engine detected in the following order: python,
-gnuplot, none.  The python plotting method is the preferred
-method and will produce nicer results.  There is currently no way to select the plotting directory from
-a custom location, so the plotting system needs to be properly installed and configured
-on your system: i.e. python3 or gnuplot must be available on the PATH.
-
-
-Documentation
-~~~~~~~~~~~~~
-
-Should you wish to build the documentation, you will need python3 with the sphinx
-package installed and the sphinx-build executable on the PATH.  If you have already
-installed anaconda3 then you will have this already.
-
-
-Building from git repo
-~~~~~~~~~~~~~~~~~~~~~~
-
-If you have cloned the repository then you will also need a few additional dependencies installed
-to generate the configuration script.  These are::
- 
- * autoconf V2.53+
- * automake V1.11+
-
-
-
-Internal Dependencies
----------------------
-
-KAT contains jellyfish and SeqAn in the source tree.  The user does
-not need to do anything special to handle these dependencies as they are automatically
-built and managed inside KAT.  
-
-To avoid conflicts with a previously installed version of jellyfish
-on the user's system, we change the name of our jellyfish binary to kat_jellyfish.
-This prefix is applied to the jellyfish libraries and documentation.
-
-
-Compilation and Installation
-----------------------------
-
-First change into the KAT root directory and run ``./configure``, providing
-any options you feel are appropriate.  By default the installation directory is ``/usr/local``, 
-so the KAT executable would be found at ``/usr/local/bin`` by default.  If you
-want to change this use the ``--prefix`` option as previously described.  For a full
-list of configuration options type ``./configure --help``.
-
-Next compile the software.  This can be done by typing ``make``.  The compiles
-all internal dependencies and KAT itself.
-
-To check the code compiled correct and is operating as expected you can optionally
-type  ``make check`` to runs some tests.  This includes unit tests for jellyfish 
-which are embedded in the KAT source tree.  To run only KAT
-unit tests go into the ``tests`` subdirectory and run ``make check`` there.
-
-Should you have sphinx installed and wish to create a PDF copy of the manual, you
-can do so by typing ``make pdf``.
-
-Finally to install the compiled code to the specified (or default) installation
-directory type ``make install``.
+KAT will install some python scripts to your ``<prefix>/bin`` directory.  If you selected a custom location for prefix and wish to access these scripts directly, then it may be necessary to modify your $PYTHONPATH environment variable. Ensure that ``<prefix>/lib/python<version>/site-packages``, is on your PYTHONPATH, where <version> represents the python version to used when installing KAT e.g. ``/home/me/kat/lib/python3.6/site-packages``.  Alternatively, you could install the kat python package into a python environment by changing into the ``scripts`` directory and typing ``python setup.py install``.

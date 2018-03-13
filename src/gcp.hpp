@@ -29,21 +29,21 @@ using std::thread;
 using std::vector;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
+#include <boost/exception/exception.hpp>
+#include <boost/exception/info.hpp>
 #include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
-namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
 using boost::lexical_cast;
 
 #include <jellyfish/mer_dna.hpp>
 
+#include <kat/pyhelper.hpp>
 #include <kat/jellyfish_helper.hpp>
 #include <kat/input_handler.hpp>
 #include <kat/matrix_metadata_extractor.hpp>
 #include <kat/sparse_matrix.hpp>
+using kat::PyHelper;
 using kat::InputHandler;
 using kat::ThreadedSparseMatrix;
 
@@ -57,7 +57,7 @@ struct GcpException: virtual boost::exception, virtual std::exception { };
 namespace kat {
 
     const string     DEFAULT_GCP_PLOT_OUTPUT_TYPE     = "png";
-    
+
     class Gcp {
     private:
 
@@ -68,7 +68,7 @@ namespace kat {
         double          cvgScale;
         uint16_t        cvgBins;
         bool            verbose;
-        
+
         // Stores results
         shared_ptr<ThreadedSparseMatrix> gcp_mx; // Stores cumulative base count for each sequence where GC and CVG are binned
 
@@ -76,7 +76,11 @@ namespace kat {
 
         Gcp(vector<path>& _inputs);
 
-        virtual ~Gcp() {            
+        virtual ~Gcp() {
+        }
+
+        void setTrim(const vector<uint16_t>& _5ptrim) {
+            this->input.set5pTrim(_5ptrim);
         }
 
         bool isCanonical() const {
@@ -134,7 +138,7 @@ namespace kat {
         void setThreads(uint16_t threads) {
             this->threads = threads;
         }
-        
+
         bool isDumpHash() const {
             return input.dumpHash;
         }
@@ -151,26 +155,28 @@ namespace kat {
             this->verbose = verbose;
         }
 
-        
+
         void execute();
-        
+
 
         // Print K-mer comparison matrix
 
         void printMainMatrix(ostream &out);
-        
+
         void save();
-        
+
         void plot(const string& output_type);
-        
+
+        void analysePeaks();
+
     protected:
-        
+
         void analyse();
-        
+
         void analyseSlice(int th_id);
-        
+
         void merge();
-        
+
         static const string helpMessage() {
              return string("Usage: kat gcp (<input>)+\n\n") +
                             "Compares GC content and K-mer coverage from the input.\n\n" +
@@ -181,9 +187,9 @@ namespace kat {
                             "it can be used to distinguish legitimate content from contamination, or unexpected content.\n\n" \
                             "Options";
         }
-        
+
     public:
-          
+
         static int main(int argc, char *argv[]);
     };
 }

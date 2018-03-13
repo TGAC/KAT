@@ -1,7 +1,8 @@
 #!/bin/sh -e
 
+# Make sure we are running from the correct directory
 test -n "$srcdir" || srcdir=`dirname "$0"`
 test -n "$srcdir" || srcdir=.
-autoreconf --force --install --verbose "$srcdir"
-#test -n "$NOCONFIGURE" || "$srcdir/configure" "$@"
 
+# Create configure script
+autoreconf --force --install --verbose "$srcdir"

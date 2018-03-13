@@ -7,30 +7,36 @@ Frequently Asked Questions
 Can KAT handle compressed sequence files?
 -----------------------------------------
 
-Yes, via named pipes.  Anonymous named pipes (process substitution) is also supported.
-For example, say we wanted to run ``kat hist`` using
-gzipped paired end dataset, we can use a named pipe to do this as follows::
+Yes, as of V2.4.0, KAT has native support for gzip decompression, so just treat
+gzipped files as regular uncompressed fastq or fasta files.
 
-    mkfifo pe_dataset.fq && gunzip -c pe_dataset_?.fq.gz > pe_dataset.fq &
+If you wish to decompress other files such as bzip (or if you are using a pre V2.4.0 KAT), then
+this is supported via named pipes.  Anonymous named pipes (process substitution)
+is also supported.
+
+For example, say we wanted to run ``kat hist`` using
+bz2 paired end dataset, we can use a named pipe to do this as follows::
+
+    mkfifo pe_dataset.fq && bzip2 -d -c pe_dataset_?.fq.bz2 > pe_dataset.fq &
     kat hist -o pe_dataset.hist pe_dataset.fq
 
-Where ``pe_dataset_?.fq.gz``, represents ``pe_dataset_1.fq.gz`` and ``pe_dataset_2.fq.gz``.
+Where ``pe_dataset_?.fq.bz2``, represents ``pe_dataset_1.fq.bz2`` and ``pe_dataset_2.fq.bz2``.
 
 For those unfamiliar with named pipes, the first line will create an empty file
-in your working directory called pe_dataset.fq and then specifies that anything 
+in your working directory called pe_dataset.fq and then specifies that anything
 consuming from the named pipe will take data that has been gunzipped first.  To be
 clear this means you do not have to decompress the gzipped files to disk, this happens
 on the fly as consumed by KAT.
 
-Alternatively, using process substitution we could write the previous example more 
+Alternatively, using process substitution we could write the previous example more
 concisely in a single line like this::
 
-    kat hist -o oe_dataset.hist <(gunzip -c pe_dataset_?.fq.gz)
+    kat hist -o oe_dataset.hist <(bzip2 -d -c pe_dataset_?.fq.bz2)
 
 As a more complex example, the KAT comp tool can be driven in spectra-cn mode using
 both compressed paired end reads and a compressed assembly as follows::
 
-    kat comp -o oe_spectra_cn <(gunzip -c pe_dataset_?.fq.gz) <(gunzip -c asm.fa.gz)
+    kat comp -o oe_spectra_cn <(bzip2 -d -c pe_dataset_?.fq.bz2) <(bzip2 -d -c asm.fa.bz2)
 
 Thanks to John Davey and Torsten Seeman for suggesting this.
 
@@ -41,15 +47,16 @@ Why is jellyfish bundled with KAT?
 We require a stable interface to the k-mer hash arrays produced by jellyfish hence,
 we are reliant on a particular version of jellyfish to guarantee that KAT works
 correctly.  Instead of potentially requiring the user to install multiple jellyfish instances
-on their machine, we bundle our own version, with all jellyfish binaries prefixed 
+on their machine, we bundle our own version, with all jellyfish binaries prefixed
 with `kat_` in order to avoid any naming clashes with official jellyfish releases.
+We have also made several modifications to jellyfish which make it more suitable
+to processing via KAT.
 
 
-I downloaded a release from github but it doesn't contain the configure script.  What gives?
---------------------------------------------------------------------------------------------
+Where's the distributable tarball for post-V2.4.0 releases?
+-----------------------------------------------------------
 
-Github offers a feature which allows you to download source code bundles for all 
-releases.  However, these bundles do not contain the distributable form of KAT, i.e.
-they are not produced by calling ``make dist``.  Although they come from the same 
-place you can distinguish between the github bundles and the proper distributable form
-of KAT because it will have the name: ``kat-x.x.x.tar.gz``.
+As of V2.4.0, we no longer support installation via tarball.  We did this in order
+to ensure boost is built alongside KAT, and this just didn't fit well into the
+```make dist``` mechanism.  Please follow the new installation instructions and download
+KAT via ```git clone```.

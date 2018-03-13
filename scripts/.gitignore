@@ -3,3 +3,7 @@ __pycache__
 *.pyc
 *.py.bak
 /.idea/
+/install_files.txt
+/kat.egg-info/
+/build/
+/dist/

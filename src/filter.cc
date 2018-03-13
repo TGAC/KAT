@@ -30,11 +30,12 @@ using std::string;
 using std::vector;
 
 #include <boost/algorithm/string.hpp>
-#include <boost/exception/all.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/filesystem/path.hpp>
-#include <boost/program_options.hpp>
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/positional_options.hpp>
+#include <boost/program_options/variables_map.hpp>
 namespace po = boost::program_options;
 namespace bfs = boost::filesystem;
 using bfs::path;
@@ -52,7 +53,7 @@ Filter::FilterMode kat::Filter::parseMode(const string& mode) {
     string upperMode = boost::to_upper_copy(mode);
 
     if (upperMode == string("KMER")) {
-        return KMER;                
+        return KMER;
     }
     else if (upperMode == string("SEQ")) {
         return SEQ;
@@ -62,17 +63,17 @@ Filter::FilterMode kat::Filter::parseMode(const string& mode) {
                     "Could not recognise mode string: ") + mode));
     }
 }
-       
+
 int kat::Filter::main(int argc, char *argv[]) {
 
     string modeStr;
     vector<string> others;
     bool verbose;
     bool help;
-    
+
     struct winsize w;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    
+
 
     // Declare the supported options.
     po::options_description generic_options(Filter::helpMessage(), w.ws_col);
@@ -128,4 +129,3 @@ int kat::Filter::main(int argc, char *argv[]) {
 
     return 0;
 }
-
