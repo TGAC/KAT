@@ -87,7 +87,9 @@ else
 fi
 
 AC_ARG_ENABLE([pykat],
-    AS_HELP_STRING([--disable-pykat], [Disable build of python package pykat.  If this is disabled, KAT will not create plots or perform extra distribution analysis.]), make_pykat="no", make_pykat="yes")
+    AS_HELP_STRING([--disable-pykat], [Disable build of python package kat.  If this is disabled, KAT will not create plots or perform extra distribution analysis.]), make_pykat="no", make_pykat="yes")
+AC_ARG_ENABLE([pykat-install],
+    AS_HELP_STRING([--disable-pykat-install], [Disable installation of python package kat.  If this is disabled, KAT will not install the python package kat to <prefix>/lib/python<version>/site-packages.  The user can manually install the kat package using setuptools.]), make_pykat_install="no", make_pykat_install="yes")
 
 if [[ "${make_pykat}" == "yes" ]]; then
 
@@ -123,6 +125,8 @@ fi
 
 AM_CONDITIONAL([MAKE_PYKAT], [test x$make_pykat = xyes])
 AC_SUBST([MAKE_PYKAT])
+AM_CONDITIONAL([MAKE_PYKAT_INSTALL], [test x$make_pykat_install = xyes])
+AC_SUBST([MAKE_PYKAT_INSTALL])
 
 # Check for sphinx to build documentation (optional)
 AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
@@ -174,7 +178,7 @@ AC_OUTPUT
 
 pystr="detected ${PYTHON_VERSION}.  Plotting and downstream analysis enabled."
 if [[ "${make_pykat}" == "no" ]]; then
-	pystr="no.  No plotting or downstream analysis will be performed."
+	pystr="no.  No plotting or distribution analysis will be performed."
 fi
 sphinxstr="detected. Docs will be built."
 if [[ "${sphinx}" == "no" ]]; then
@@ -185,4 +189,5 @@ AC_MSG_NOTICE([
 
 	Configuration status:
 	- Python V3.5+ - ${pystr}
-	- Sphinx V1.3+ - ${sphinxstr}])
+	- Sphinx V1.3+ - ${sphinxstr}
+        - Python install - ${make_pykat_install}])
