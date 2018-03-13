@@ -124,33 +124,50 @@ namespace kat {
 #endif
             }
             else {
-                // If we are here then we are not running from an installed location,
-                // we are running from the source tree.
-                // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests)
-                // so try 2, 3 and 4 levels.
-                this->scriptsDir = canonicalExe.parent_path().parent_path();
-                this->scriptsDir /= "scripts";
-
-                if (!exists(this->scriptsDir)) {
-                    this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
+                path kcc(canonicalExe.parent_path());
+                if (exists("kat.cc")) {
+                    // If we are here then we are not running from an installed location,
+                    // we are running from the source tree.
+                    // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests)
+                    // so try 2, 3 and 4 levels.
+                    this->scriptsDir = canonicalExe.parent_path().parent_path();
                     this->scriptsDir /= "scripts";
 
                     if (!exists(this->scriptsDir)) {
-                        this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
+                        this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
                         this->scriptsDir /= "scripts";
 
                         if (!exists(this->scriptsDir)) {
-                            BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                                "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
-                        }
+                            this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
+                            this->scriptsDir /= "scripts";
 
+                            if (!exists(this->scriptsDir)) {
+                                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                                    "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
+                            }
+
+                        }
+                    }
+                    kda = this->scriptsDir;
+                    kda /= "setup.py";
+                    if (!exists(kda)) {
+                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                             "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
                     }
                 }
-                kda = this->scriptsDir;
-                kda /= "setup.py";
-                if (!exists(kda)) {
-                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                         "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
+                else {
+
+#ifdef HAVE_PYTHON
+                    // Assume user install KAT but without installing python modules alongside
+                    this->scriptsDir = path(KAT_SITE_PKGS).parent_path();
+                    this->scriptsDir /= "local";
+                    if (!exists(this->scriptsDir)) {
+                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                            "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
+                    }
+#else
+                    this->scriptsDir = canonicalExe.parent_path();
+#endif
                 }
             }
 
