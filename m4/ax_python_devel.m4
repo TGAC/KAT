@@ -83,7 +83,7 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
         #    PYTHON_VERSION="3"
         #fi
 
-	AC_PATH_PROG([PYTHON],[python[$PYTHON_VERSION]])
+	AC_PATH_PROG([PYTHON],[python3])
 	if test -z "$PYTHON"; then
 	   AC_MSG_WARN([Cannot find python$PYTHON_VERSION in your system path])
 	   PYTHON_VERSION=""
