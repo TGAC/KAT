@@ -125,7 +125,8 @@ namespace kat {
             }
             else {
                 path kcc(canonicalExe.parent_path());
-                if (exists("kat.cc")) {
+		kcc /= "kat.cc";
+                if (exists(kcc)) {
                     // If we are here then we are not running from an installed location,
                     // we are running from the source tree.
                     // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests)
