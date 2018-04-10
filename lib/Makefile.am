@@ -11,7 +11,6 @@ libkat_la_LDFLAGS = \
 	-L../deps/boost/build/lib
 
 libkat_la_SOURCES = \
-	src/gnuplot_i.cc \
 	src/matrix_metadata_extractor.cc \
 	src/input_handler.cc \
 	src/jellyfish_helper.cc \
@@ -21,7 +20,6 @@ library_includedir=$(includedir)/kat-@PACKAGE_VERSION@/kat
 
 KI = $(top_srcdir)/lib/include/kat
 library_include_HEADERS =   $(KI)/distance_metrics.hpp \
-			    $(KI)/gnuplot_i.hpp \
 			    $(KI)/input_handler.hpp \
 			    $(KI)/jellyfish_helper.hpp \
 			    $(KI)/kat_fs.hpp \
