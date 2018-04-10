@@ -14,19 +14,18 @@ def main():
         description="Creates K-mer spectra plot from selected rows and/or " \
         "columns in a \"comp\" matrix.")
 
-    parser.add_argument("matrix_file", type=str,
-                        help="The input matrix file from KAT")
+    parser.add_argument("matrix_file", help="The input matrix file from KAT")
 
-    parser.add_argument("-o", "--output", type=str, default="kat-spectra-mx",
+    parser.add_argument("-o", "--output", default="kat-spectra-mx",
                         help="The path to the output file.")
-    parser.add_argument("-p", "--output_type", type=str,
+    parser.add_argument("-p", "--output_type", 
                         help="The plot file type to create (default is based on " \
                         "given output name).")
-    parser.add_argument("-t", "--title", type=str, default="Spectra MX Plot",
+    parser.add_argument("-t", "--title", default="Spectra MX Plot",
                         help="Title for plot")
-    parser.add_argument("-a", "--x_label", type=str,
+    parser.add_argument("-a", "--x_label",
                         help="Label for x-axis")
-    parser.add_argument("-b", "--y_label", type=str,
+    parser.add_argument("-b", "--y_label",
                         help="Label for y-axis")
     parser.add_argument("-r", "--x_min", type=int, default=0,
                         help="Minimum value for x-axis")
@@ -45,7 +44,7 @@ def main():
                         help="Activate intersection mode, which plots the " \
                         "shared and exclusive content found in the matrix.")
     parser.set_defaults(intersection=False)
-    parser.add_argument("-c", "--list", type=str,
+    parser.add_argument("-c", "--list",
                         help="The list of columns or rows to select from the " \
                         "matrix (overrides -i)")
     parser.add_argument("-e", "--exc_cutoff_d1", type=int, default=1,
