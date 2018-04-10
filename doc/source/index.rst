@@ -44,12 +44,11 @@ selected and the size of your datasets.
 Citing
 ======
 
-The KAT paper is currently in submission.  In the meantime, if you use our software
-and wish to cite us please use our bioRxiv preprint:
+If you use KAT in your work and wish to cite us please use the following citation:
 
-Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright, and Bernardo J. Clavijo. 
+Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright, and Bernardo J. Clavijo.
 **KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies.**
-Bioinformatics, 2016. `doi: 10.1093/bioinformatics/btw663 <http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract>`_
+Bioinformatics, 2016. [doi: 10.1093/bioinformatics/btw663](http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract)
 
 
 
@@ -59,7 +58,7 @@ Issues
 ======
 
 Should you discover any issues with KAT, or wish to request a new feature please raise a `ticket here <https://github.com/TGAC/KAT/issues>`_.
-Alternatively, contact Daniel Mapleson at: daniel.mapleson@earlham.ac.uk; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk.  
+Alternatively, contact Daniel Mapleson at: d.mapleson@gmail.com; or Bernardo Clavijo at: bernardo.clavijo@earlham.ac.uk.  
 However, please consult the `Frequently Asked Questions <faq>`_ page first in case your 
 question is already answered there.
 
