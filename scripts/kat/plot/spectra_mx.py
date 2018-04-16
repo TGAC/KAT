@@ -113,9 +113,9 @@ def main():
             print("List given: {:s}".format(args.list))
         rowscols = []
         try:
-            for str in args.list.split(','):
-                if str[0] in "rc":
-                    rowscols.append((str[0], int(str[1:])))
+            for str_rc in args.list.split(','):
+                if str_rc[0] in "rc":
+                    rowscols.append((str_rc[0], int(str_rc[1:])))
                 else:
                     raise ValueError()
         except ValueError as e:
