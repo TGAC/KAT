@@ -262,7 +262,7 @@ maintainer-clean: clean
 # Install and uninstall overrides
 install: install-data
 
-install-data: install-man install-pdf install-html
+install-data: install-man install-html
 
 # Fail on error
 install-man:
