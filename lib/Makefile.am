@@ -6,9 +6,19 @@ pkgconfig_DATA = kat.pc
 lib_LTLIBRARIES = libkat.la
 
 libkat_la_LDFLAGS = \
-	-version-info 2:4:0 \
-	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/build/lib
+	-L$(top_builddir)/deps/boost/build/lib/ \
+	-version-info 2:4:2
+
+LIBS = \
+	$(top_builddir)/deps/jellyfish-2.2.0/libkat_jellyfish.la \
+	-lboost_timer \
+	-lboost_chrono \
+	-lboost_filesystem \
+	-lboost_program_options \
+	-lboost_system \
+	-lz \
+	@AM_LIBS@
+
 
 libkat_la_SOURCES = \
 	src/matrix_metadata_extractor.cc \

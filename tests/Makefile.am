@@ -58,22 +58,17 @@ check_unit_tests_SOURCES = \
 
 check_unit_tests_LDFLAGS = \
 	-static \
-	-L. \
-	-L../lib \
-	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/build/lib \
+	-Wl,-rpath ../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 check_unit_tests_LDADD = \
 	libgtest.la \
-	-lgtest \
-	-lkat \
-	-lkat_jellyfish \
 	../deps/boost/build/lib/libboost_timer.a \
     ../deps/boost/build/lib/libboost_chrono.a \
     ../deps/boost/build/lib/libboost_filesystem.a \
     ../deps/boost/build/lib/libboost_program_options.a \
     ../deps/boost/build/lib/libboost_system.a \
-	@AM_LIBS@
+    ../deps/jellyfish-2.2.0/libkat_jellyfish.la \
+    ../lib/libkat.la
 
 include gtest.mk
