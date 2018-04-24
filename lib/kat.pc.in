@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: kat
 Description: The K-mer Analysis Toolkit.
 Version: @PACKAGE_VERSION@
-Requires.private: kat_jellyfish >= 2.2.0
-Libs: -L${libdir} -lkat -lpthread
+Requires.private: kat_jellyfish >= 2.2.0 boost_timer >= 1.66 boost_chrono >= 1.66 boost_filesystem >1.66 boost_program_options >= 1.66 boost_system >= 1.66
+Libs: -L${libdir} -lkat
 Cflags: -I${includedir}/kat-@PACKAGE_VERSION@

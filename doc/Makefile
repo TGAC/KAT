@@ -250,7 +250,7 @@ $(EMPTY_AUTOMAKE_TARGETS):
 
 # Hook in conventional make targets for building docs
 all: man
-
+        
 # Redirect pdf to latexpdf
 pdf: latexpdf
 
@@ -262,7 +262,7 @@ maintainer-clean: clean
 # Install and uninstall overrides
 install: install-data
 
-install-data: install-man install-html
+install-data: install-man
 
 # Fail on error
 install-man:

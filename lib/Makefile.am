@@ -47,7 +47,7 @@ libkat_la_CPPFLAGS = \
 	@AM_CPPFLAGS@
 
 libkat_la_CXXFLAGS = \
-	-fwrapv -m64 \
+	-fwrapv -m64 -fPIC \
 	-Wall \
 	-Wno-deprecated-declarations -Wno-unused-function -Wno-unused-parameter -Wno-unused-variable \
 	@AM_CXXFLAGS@
