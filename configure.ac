@@ -91,6 +91,11 @@ AC_ARG_ENABLE([pykat],
 AC_ARG_ENABLE([pykat-install],
     AS_HELP_STRING([--disable-pykat-install], [Disable installation of python package kat.  If this is disabled, KAT will not install the python package kat to <prefix>/lib/python<version>/site-packages.  The user can manually install the kat package using setuptools.]), make_pykat_install="no", make_pykat_install="yes")
 
+# Force pykat install to be no if pykat is no
+if [[ "${make_pykat}" == "no" ]] ; then
+	make_pykat_install="no"
+fi
+
 if [[ "${make_pykat}" == "yes" ]]; then
 
     AX_PYTHON_DEVEL([>= '3.5'])
@@ -190,4 +195,5 @@ AC_MSG_NOTICE([
 	Configuration status:
 	- Python V3.5+ - ${pystr}
 	- Sphinx V1.3+ - ${sphinxstr}
-        - Python install - ${make_pykat_install}])
+	- Python install - ${make_pykat_install}])
+
