@@ -4,8 +4,8 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 
 # Blank man target (used in doc)
 man:
-	cd doc && $(MAKE) $(AM_MAKEFLAGS) html man
-.PHONY: html man
+	cd doc && $(MAKE) $(AM_MAKEFLAGS) man
+.PHONY: man
 
 # ADDITIONAL FILES TO INSTALL
 EXTRA_DIST = \
