@@ -88,6 +88,8 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 	   AC_MSG_WARN([Cannot find python$PYTHON_VERSION in your system path])
 	   PYTHON_VERSION=""
 	else
+		PYTHON_INT_PATH="$PYTHON"
+		AC_SUBST([PYTHON_INT_PATH])
 		AC_DEFINE_UNQUOTED([PYTHON_INT_PATH], ["$PYTHON"], [Python Interpreter Path])
 	fi
 

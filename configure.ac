@@ -91,10 +91,7 @@ AC_ARG_ENABLE([pykat],
 AC_ARG_ENABLE([pykat-install],
     AS_HELP_STRING([--disable-pykat-install], [Disable installation of python package kat.  If this is disabled, KAT will not install the python package kat to <prefix>/lib/python<version>/site-packages.  The user can manually install the kat package using setuptools.]), make_pykat_install="no", make_pykat_install="yes")
 
-# Force pykat install to be no if pykat is no
-if [[ "${make_pykat}" == "no" ]] ; then
-	make_pykat_install="no"
-fi
+make_pykat_install_custom="no"
 
 if [[ "${make_pykat}" == "yes" ]]; then
 
@@ -124,14 +121,35 @@ if [[ "${make_pykat}" == "yes" ]]; then
     AX_PYTHON_MODULE(scipy, 1, ${pybin})
     AX_PYTHON_MODULE(tabulate, 1, ${pybin})
 
-    #AC_DEFINE([HAVE_PYTHON], [1], [Python present])
-    #AC_DEFINE_UNQUOTED([KAT_SITE_PKGS], ["${libdir}/$pybin/site-packages"], [KAT module site-packages at installed location])
+	# This logic is a bit messy and probably OTT but it seems to work.
+	# Basically if the user provides a prefix then we want to install the python libraries there,
+	# if not the install the the python site packages location determined by whatever python3 instance
+	# was found on the PATH.  So not necessarily at the default installation site: /usr/local/...
+	if [[ "${make_pykat_install}" == "yes" ]]; then
+		if [[ -n "${prefix}" ]]; then
+			if [[ "${prefix}" != "NONE" ]]; then
+				if [[ "${prefix}" != "/usr/local" ]]; then
+					if [[ "${prefix}" != "/usr" ]]; then
+						make_pykat_install_custom="yes"
+						make_pykat_install="no"
+					fi
+				fi
+			fi
+		fi
+	fi
+
+else
+	make_pykat_install="no"
+	make_pykat_install_custom="no"
 fi
 
 AM_CONDITIONAL([MAKE_PYKAT], [test x$make_pykat = xyes])
-AC_SUBST([MAKE_PYKAT])
+#AC_SUBST([MAKE_PYKAT])
 AM_CONDITIONAL([MAKE_PYKAT_INSTALL], [test x$make_pykat_install = xyes])
-AC_SUBST([MAKE_PYKAT_INSTALL])
+#AC_SUBST([MAKE_PYKAT_INSTALL])
+AM_CONDITIONAL([MAKE_PYKAT_INSTALL_CUSTOM], [test x$make_pykat_install_custom = xyes])
+AM_CONDITIONAL([MAKE_PYKAT_NOINSTALL], [test x$make_pykat_install_custom = xno && test x$make_pykat_install = xno])
+#AC_SUBST([MAKE_PYKAT_INSTALL_CUSTOM])
 
 # Check for sphinx to build documentation (optional)
 AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
@@ -190,10 +208,18 @@ if [[ "${sphinx}" == "no" ]]; then
 	sphinxstr="no.  Will not build docs. You can still find the documentation online at: https://kat.readthedocs.org/en/latest/"
 fi
 
+pyinststr="no"
+if [[ "${make_pykat_install_custom}" == "yes" ]]; then
+	pyinststr="${prefix}/lib/python${PYTHON_VERSION}/site-packages"
+elif [[ "${make_pykat_install}" == "yes" ]]; then
+	pyinststr="${PYTHON_SITE_PKG}"
+fi
+
 AC_MSG_NOTICE([
 
 	Configuration status:
+	- Installation prefix = ${prefix}
 	- Python V3.5+ - ${pystr}
 	- Sphinx V1.3+ - ${sphinxstr}
-	- Python install - ${make_pykat_install}])
+	- Python install - ${pyinststr}])
 

@@ -1,26 +1,51 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+if MAKE_PYKAT_NOINSTALL
+
+install-exec-hook:
+	mkdir -p $(datarootdir)/scripts/kat/plot
+	cp -r kat/*.py $(datarootdir)/scripts/kat
+	cp -r kat/plot/*.py $(datarootdir)/scripts/kat/plot
+
+uninstall-hook:
+	cat install_files.txt | xargs rm -rf
+	rm -rf $(datarootdir)/scripts
+
+endif
 
 if MAKE_PYKAT_INSTALL
 
 install-exec-hook:
-	export PYTHONPATH=$(prefix)/lib/python$(PYTHON_VERSION)/site-packages && \
-	mkdir -p $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/ && \
-	python3 setup.py install --prefix=$(prefix) --record install_files.txt
+	$(PYTHON_INT_PATH) setup.py install --record install_files.txt
+	mkdir -p $(datarootdir)/scripts/kat/plot
+	cp -r kat/*.py $(datarootdir)/scripts/kat
+	cp -r kat/plot/*.py $(datarootdir)/scripts/kat/plot
 
 uninstall-hook:
 	cat install_files.txt | xargs rm -rf
-
-else
-
-install-exec-hook:
-	mkdir -p $(prefix)/lib/python$(PYTHON_VERSION)/local/ && \
-	cp -r kat $(prefix)/lib/python$(PYTHON_VERSION)/local
-
-uninstall-hook:
-	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/local
+	rm -rf $(datarootdir)/scripts
 
 endif
+
+
+if MAKE_PYKAT_INSTALL_CUSTOM
+
+install-exec-hook:
+	mkdir -p $(prefix)/lib/python$(PYTHON_VERSION)/site-packages 
+	export PYTHONPATH=$PYTHONPATH:$(prefix)/lib/python$(PYTHON_VERSION)/site-packages && \
+	$(PYTHON_INT_PATH) setup.py install --prefix=$(prefix) --record install_files.txt
+	mkdir -p $(datarootdir)/scripts/kat/plot
+	cp -r kat/*.py $(datarootdir)/scripts/kat
+	cp -r kat/plot/*.py $(datarootdir)/scripts/kat/plot
+
+uninstall-hook:
+	cat install_files.txt | xargs rm -rf
+	rm -rf $(datarootdir)/scripts
+
+endif
+
+ 
+
 
 EXTRA_DIST = \
 	kat/distanalysis.py \
