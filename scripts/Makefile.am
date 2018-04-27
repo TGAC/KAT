@@ -31,8 +31,8 @@ endif
 if MAKE_PYKAT_INSTALL_CUSTOM
 
 install-exec-hook:
-	mkdir -p $(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages 
-	export PYTHONPATH=$(DESTDIR)$(prefix)/lib/python$(PYTHON_VERSION)/site-packages && \
+	mkdir -p $(DESTDIR)$(pythondir) 
+	export PYTHONPATH=$(DESTDIR)$(pythondir) && \
 	$(PYTHON_INT_PATH) setup.py install --root=$(DESTDIR) --prefix=$(prefix) --record install_files.txt
 	mkdir -p $(DESTDIR)$(datadir)/scripts/kat/plot
 	cp -r kat/*.py $(DESTDIR)$(datadir)/scripts/kat

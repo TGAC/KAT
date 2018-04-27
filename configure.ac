@@ -144,12 +144,13 @@ else
 fi
 
 AM_CONDITIONAL([MAKE_PYKAT], [test x$make_pykat = xyes])
-#AC_SUBST([MAKE_PYKAT])
 AM_CONDITIONAL([MAKE_PYKAT_INSTALL], [test x$make_pykat_install = xyes])
-#AC_SUBST([MAKE_PYKAT_INSTALL])
 AM_CONDITIONAL([MAKE_PYKAT_INSTALL_CUSTOM], [test x$make_pykat_install_custom = xyes])
 AM_CONDITIONAL([MAKE_PYKAT_NOINSTALL], [test x$make_pykat_install_custom = xno && test x$make_pykat_install = xno])
-#AC_SUBST([MAKE_PYKAT_INSTALL_CUSTOM])
+
+if [[ "${make_pykat}" == "yes" ]]; then
+	AM_PATH_PYTHON([${PYTHON_VERSION}])
+fi
 
 # Check for sphinx to build documentation (optional)
 AC_CHECK_PROG([sphinx], [sphinx-build], [yes], [no])
