@@ -1,4 +1,4 @@
-AC_INIT([kat_jellyfish], [2.4.2], [gmarcais@umd.edu])
+AC_INIT([kat_jellyfish], [@PACKAGE_VERSION@], [gmarcais@umd.edu])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 : ${CXXFLAGS=""}
