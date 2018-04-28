@@ -33,7 +33,6 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-I$(top_srcdir)/deps/boost/build/include \
 	-DDATADIR=\"$(srcdir)/data\" \
-	-DKAT_SITE_PKGS='"$(prefix)/lib/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
 TEST_EXTENSIONS = .sh

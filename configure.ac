@@ -128,12 +128,8 @@ if [[ "${make_pykat}" == "yes" ]]; then
 	if [[ "${make_pykat_install}" == "yes" ]]; then
 		if [[ -n "${prefix}" ]]; then
 			if [[ "${prefix}" != "NONE" ]]; then
-				if [[ "${prefix}" != "/usr/local" ]]; then
-					if [[ "${prefix}" != "/usr" ]]; then
-						make_pykat_install_custom="yes"
-						make_pykat_install="no"
-					fi
-				fi
+				make_pykat_install_custom="yes"
+				make_pykat_install="no"
 			fi
 		fi
 	fi
@@ -196,7 +192,7 @@ AC_SUBST([AM_LIBS])
 
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile scripts/setup.py scripts/kat/__init__.py scripts/Makefile])
+AC_CONFIG_FILES([Makefile doc/Makefile doc/source/conf.py lib/kat.pc lib/Makefile src/Makefile tests/Makefile tests/compat.sh deps/seqan-library-2.0.0/Makefile scripts/setup.py scripts/kat/__init__.py scripts/Makefile deps/jellyfish-2.2.0/configure.ac])
 AC_CONFIG_SUBDIRS([deps/jellyfish-2.2.0])
 AC_OUTPUT
 

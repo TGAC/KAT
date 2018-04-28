@@ -154,20 +154,6 @@ namespace kat {
                              "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
                     }
                 }
-                else {
-
-#ifdef HAVE_PYTHON
-                    // Assume user install KAT but without installing python modules alongside
-                    this->scriptsDir = path(KAT_SITE_PKGS).parent_path();
-                    this->scriptsDir /= "local";
-                    if (!exists(this->scriptsDir)) {
-                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                            "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
-                    }
-#else
-                    this->scriptsDir = canonicalExe.parent_path();
-#endif
-                }
             }
 
         }
