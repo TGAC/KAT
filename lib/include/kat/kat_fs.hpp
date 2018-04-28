@@ -115,12 +115,20 @@ namespace kat {
                 this->scriptsDir = KAT_SCRIPTS;
                 if (!exists(this->scriptsDir)) {
 			// Not all is lost here.  Perhaps the user installed to an alternate root.  Try to derive that from the bin path.
-			path alt_root(kda.parent_path().parent_path());
-			this->scriptsDir = alt_root;
-			this->scriptsDir /= KAT_SCRIPTS;
-			if (!exists(this->scriptsDir)) {
-	                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                        "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
+			path alt_root(kda);
+			bool found = false;
+			for (int i = 0; i < 5; i++) {
+				alt_root = alt_root.parent_path();
+				this->scriptsDir = alt_root;
+				this->scriptsDir /= KAT_SCRIPTS;
+				if (exists(this->scriptsDir)) {
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+	               		BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+		                        "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
 			}
                 }
 #else
