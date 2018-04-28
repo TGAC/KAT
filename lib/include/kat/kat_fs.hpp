@@ -114,8 +114,14 @@ namespace kat {
                 // scripts from here.  We will try the KAT_SCRIPTS path instead.
                 this->scriptsDir = KAT_SCRIPTS;
                 if (!exists(this->scriptsDir)) {
-                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+			// Not all is lost here.  Perhaps the user installed to an alternate root.  Try to derive that from the bin path.
+			path alt_root(kda.parent_path().parent_path());
+			this->scriptsDir = alt_root;
+			this->scriptsDir /= KAT_SCRIPTS;
+			if (!exists(this->scriptsDir)) {
+	                    BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
                         "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
+			}
                 }
 #else
                 this->scriptsDir = canonicalExe.parent_path();
