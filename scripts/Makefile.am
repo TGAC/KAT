@@ -1,14 +1,15 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
-if MAKE_PYKAT_NOINSTALL
-
-install-exec-hook:
+install-data-hook:
 	mkdir -p $(DESTDIR)$(datadir)/scripts/kat/plot
 	cp -r kat/*.py $(DESTDIR)$(datadir)/scripts/kat
 	cp -r kat/plot/*.py $(DESTDIR)$(datadir)/scripts/kat/plot
+	
+
+
+if MAKE_PYKAT_NOINSTALL
 
 uninstall-hook:
-	cat install_files.txt | xargs rm -rf
 	rm -rf $(DESTDIR)$(datadir)/scripts
 
 endif
@@ -17,9 +18,6 @@ if MAKE_PYKAT_INSTALL
 
 install-exec-hook:
 	$(PYTHON_INT_PATH) setup.py install --record install_files.txt
-	mkdir -p $(DESTDIR)$(datadir)/scripts/kat/plot
-	cp -r kat/*.py $(DESTDIR)$(datadir)/scripts/kat
-	cp -r kat/plot/*.py $(DESTDIR)$(datadir)/scripts/kat/plot
 
 uninstall-hook:
 	cat install_files.txt | xargs rm -rf
@@ -31,12 +29,7 @@ endif
 if MAKE_PYKAT_INSTALL_CUSTOM
 
 install-exec-hook:
-	mkdir -p $(DESTDIR)$(pythondir) 
-	export PYTHONPATH=$(DESTDIR)$(pythondir) && \
-	$(PYTHON_INT_PATH) setup.py install --root=$(DESTDIR) --prefix=$(prefix) --record install_files.txt
-	mkdir -p $(DESTDIR)$(datadir)/scripts/kat/plot
-	cp -r kat/*.py $(DESTDIR)$(datadir)/scripts/kat
-	cp -r kat/plot/*.py $(DESTDIR)$(datadir)/scripts/kat/plot
+	$(PYTHON_INT_PATH) setup.py install --root=$(DESTDIR) --prefix=$(exec_prefix) --record install_files.txt
 
 uninstall-hook:
 	cat install_files.txt | xargs rm -rf
