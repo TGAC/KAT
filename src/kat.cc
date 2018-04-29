@@ -93,9 +93,11 @@ Mode parseMode(string mode) {
     else if (upperMode == string("HIST")) {
         return HIST;
     }
+#ifdef HAVE_PYTHON
     else if (upperMode == string("PLOT")) {
         return PLOT;
     }
+#endif
     else if (upperMode == string("SECT")) {
         return SECT;
     }
@@ -109,6 +111,7 @@ Mode parseMode(string mode) {
 }
 
 const string helpMessage() {
+#ifdef HAVE_PYTHON
     return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
                    "The First argument should be the tool/mode you wish to use:\n\n" \
                    "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
@@ -128,6 +131,27 @@ const string helpMessage() {
                    "   * plot:   Plotting tools.  Contains several plotting tools to visualise K-mer and compare\n" \
                    "             distributions.\n\n" \
                    "Options";
+#else
+    return "The K-mer Analysis Toolkit (KAT) contains a number of tools that analyse jellyfish K-mer hashes. \n\n"
+                   "The First argument should be the tool/mode you wish to use:\n\n" \
+                   "   * hist:   Create an histogram of k-mer occurrences from a sequence file.  Similar to\n" \
+                   "             jellyfish histogram sub command but adds metadata in output for easy plotting,\n" \
+                   "             also actually runs multi-threaded.\n" \
+                   "   * gcp:    K-mer GC Processor.  Creates a matrix of the number of K-mers found given a GC\n" \
+                   "             count and a K-mer count.\n" \
+                   "   * comp:   K-mer comparison tool.  Creates a matrix of shared K-mers between two (or three)\n" \
+                   "             sequence files.\n" \
+                   "   * sect:   SEquence Coverage estimator Tool.  Estimates the coverage of each sequence in\n" \
+                   "             a file using K-mers from another sequence file.\n" \
+                   "   * cold:   Given, reads and an assembly, calculates both the read and assembly K-mer\n" \
+                   "             coverage along with GC% for each sequence in the assembly.\n" \
+                   "             a file using K-mers from another sequence file.\n" \
+                   "   * filter: Filtering tools.  Contains tools for filtering k-mers and sequences based on\n" \
+                   "             user-defined GC and coverage limits.\n\n" \
+                   "Options";
+
+
+#endif
 }
 
 
