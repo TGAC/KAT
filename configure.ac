@@ -174,20 +174,18 @@ define([PC_FILE], lib/kat-2.2.pc)
 
 AM_CXXFLAGS="-g -O2 -std=c++11"
 AC_SUBST([AM_CXXFLAGS])
+AM_LDFLAGS="${ZLIB_LDFLAGS} -static-libstdc++"
+AC_SUBST([AM_LDFLAGS])
 
 if [[ "${make_pykat}" == "yes" ]]; then
     AM_CPPFLAGS="${ZLIB_CPPFLAGS} ${PYTHON_CPPFLAGS}"
     AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB} ${PYTHON_EXTRA_LIBS} ${PYTHON_LIBS}"
-    #AM_LDFLAGS="${ZLIB_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_RPATH} -static-libstdc++"
-    AM_LDFLAGS="${ZLIB_LDFLAGS} -static-libstdc++ ${PYTHON_RPATH}"
 else
     AM_CPPFLAGS="${ZLIB_CPPFLAGS}"
     AM_LIBS="${PTHREAD_CFLAGS} ${ZLIB_LIB} ${RT_LIB}"
-    AM_LDFLAGS="${ZLIB_LDFLAGS} -static-libstdc++"
 fi
 
 AC_SUBST([AM_CPPFLAGS])
-AC_SUBST([AM_LDFLAGS])
 AC_SUBST([AM_LIBS])
 
 
