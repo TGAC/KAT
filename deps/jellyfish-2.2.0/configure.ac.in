@@ -28,7 +28,9 @@ AC_ARG_VAR([YAGGO], [Yaggo switch parser generator])
 AS_IF([test "x$YAGGO" = "x"], [AC_PATH_PROG([YAGGO], [yaggo], [false])])
 
 #Check for zlib
-AX_CHECK_ZLIB(, [AC_MSG_ERROR([zlib not found.  Please ensure that zlib is properly built and configured.])])
+AC_CHECK_LIB([z], [inflateEnd], , [AC_MSG_ERROR([libz.so not found.  Please make sure you have the zlib development pack, with header files, installed.])])
+AC_CHECK_HEADER([zlib.h], , [AC_MSG_ERROR([zlib.h not found.  Please ensure you have the zlib development pack, with header files, installed.])])
+
 
 dnl define([concat], $1$2$3)dnl
 define([PC_FILE], kat_jellyfish.pc)

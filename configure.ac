@@ -72,7 +72,11 @@ AC_CHECK_HEADERS([glob.h])
 # Check pthreads exists
 AX_PTHREAD(, [AC_MSG_ERROR([pthreads lib not found.  Please ensure that pthreads is properly built and configured.])])
 #Check for zlib
-AX_CHECK_ZLIB(, [AC_MSG_ERROR([zlib not found.  Please ensure that zlib is properly built and configured.])])
+AC_CHECK_LIB([z], [inflateEnd], , [AC_MSG_ERROR([libz.so not found.  Please make sure you have the zlib development pack, with header files, installed.])])
+AC_CHECK_HEADER([zlib.h], , [AC_MSG_ERROR([zlib.h not found.  Please ensure you have the zlib development pack, with header files, installed.])])
+
+
+
 
 # Required for Boost chrono on linux (clock_gettime).  Doesn't exist on Mac
 if test x"${UNAME_S}" != x"Darwin"; then
