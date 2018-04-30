@@ -60,3 +60,14 @@ As of V2.4.0, we no longer support installation via tarball.  We did this in ord
 to ensure boost is built alongside KAT, and this just didn't fit well into the
 ```make dist``` mechanism.  Please follow the new installation instructions and download
 KAT via ```git clone```.
+
+
+Should I dump jellyfish hashes to disk?
+---------------------------------------
+
+Most KAT tools have an option ```-d``` to write out the jellyfish hash to disk.  While it may seem
+logical to do this if you need to reprocess the data, in normal usage do not recommend it.
+Reading in K-mers straight from fastq or fasta, in most circumstances, will be faster than loading a 
+jellyfish hash directly, particularly when using 4 or more threads (and especially, if the 
+input files are gzipped).  Also storing jellyfish hashes can consume a large amount of storage space.
+
