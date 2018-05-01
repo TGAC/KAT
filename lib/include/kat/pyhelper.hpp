@@ -146,7 +146,7 @@ public:
         FILE* pf = _Py_fopen(full_script_path.c_str(), "r");
         if (pf == NULL) {
             BOOST_THROW_EXCEPTION(KatPythonException() << KatPythonErrorInfo(string(
-                    "Could not open script file as a python file object") + full_script_path.string()));
+                    "Could not open script file as a python file object: ") + full_script_path.string()));
         }
 
         if (this->verbose) {
