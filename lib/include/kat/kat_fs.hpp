@@ -110,26 +110,23 @@ namespace kat {
             path kda(canonicalExe.parent_path());
             if (kda.stem().string() == "bin") {
 #ifdef HAVE_PYTHON
-                // Looks like we are running from an installed location.  Don't try to use the
-                // scripts from here.  We will try the KAT_SCRIPTS path instead.
-                this->scriptsDir = KAT_SCRIPTS;
-                if (!exists(this->scriptsDir)) {
-			// Not all is lost here.  Perhaps the user installed to an alternate root.  Try to derive that from the bin path.
-			path alt_root(kda);
-			bool found = false;
-			for (int i = 0; i < 5; i++) {
-				alt_root = alt_root.parent_path();
-				this->scriptsDir = alt_root;
-				this->scriptsDir /= KAT_SCRIPTS;
-				if (exists(this->scriptsDir)) {
-					found = true;
-					break;
+                // Ok, so we are in a installed location.  Wind back the eprefix to get to root (this may not be '/' if an alternate root is specified.)
+				path kep(KAT_EPREFIX);
+				path root = kep;
+				path altroot = kda.parent_path();
+				while (root.has_parent_path()) {
+					root = root.parent_path();
+					cout << root.string() << endl;
+					altroot = altroot.parent_path();					
+					cout << altroot.string() << endl;
 				}
-			}
-			if (!found) {
-	               		BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+				
+				// Looks like we are running from an installed location.  Don't try to use the
+                // scripts from here.  We will try the KAT_SCRIPTS path instead.
+                this->scriptsDir = altroot / KAT_SCRIPTS;
+                if (!exists(this->scriptsDir)) {
+	    	    	BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
 		                        "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
-			}
                 }
 #else
                 this->scriptsDir = canonicalExe.parent_path();

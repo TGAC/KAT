@@ -16,7 +16,8 @@ kat_CPPFLAGS = \
 	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-I$(top_srcdir)/deps/boost/build/include \
 	-I$(top_srcdir)/lib/include \
-	-DKAT_SCRIPTS='"$(datadir)/scripts"' \
+	-DKAT_SCRIPTS='"$(datadir)/kat/scripts"' \
+	-DKAT_EPREFIX='"$(exec_prefix)"' \
 	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \

@@ -1,16 +1,16 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
 install-data-hook:
-	mkdir -p $(DESTDIR)$(datadir)/scripts/kat/plot
-	cp -r kat/*.py $(DESTDIR)$(datadir)/scripts/kat
-	cp -r kat/plot/*.py $(DESTDIR)$(datadir)/scripts/kat/plot
+	mkdir -p $(DESTDIR)$(datadir)/kat/scripts/kat/plot
+	cp -r kat/*.py $(DESTDIR)$(datadir)/kat/scripts/kat
+	cp -r kat/plot/*.py $(DESTDIR)$(datadir)/kat/scripts/kat/plot
 	
 
 
 if MAKE_PYKAT_NOINSTALL
 
 uninstall-hook:
-	rm -rf $(DESTDIR)$(datadir)/scripts
+	rm -rf $(DESTDIR)$(datadir)/kat/scripts
 
 endif
 
@@ -21,7 +21,7 @@ install-exec-hook:
 
 uninstall-hook:
 	cat install_files.txt | xargs rm -rf
-	rm -rf $(DESTDIR)$(datadir)/scripts
+	rm -rf $(DESTDIR)$(datadir)/kat/scripts
 
 endif
 
@@ -33,7 +33,7 @@ install-exec-hook:
 
 uninstall-hook:
 	cat install_files.txt | xargs rm -rf
-	rm -rf $(DESTDIR)$(datadir)/scripts
+	rm -rf $(DESTDIR)$(datadir)/kat/scripts
 
 endif
 
