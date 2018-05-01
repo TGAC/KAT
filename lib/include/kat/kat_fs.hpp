@@ -116,9 +116,7 @@ namespace kat {
 				path altroot = kda.parent_path();
 				while (root.has_parent_path()) {
 					root = root.parent_path();
-					cout << root.string() << endl;
 					altroot = altroot.parent_path();					
-					cout << altroot.string() << endl;
 				}
 				
 				// Looks like we are running from an installed location.  Don't try to use the
