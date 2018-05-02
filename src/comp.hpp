@@ -309,13 +309,14 @@ namespace kat {
 
             return string(  "Usage: kat comp [options] <input_1> <input_2> [<input_3>]\n\n") +
                             "Compares jellyfish K-mer count hashes.\n\n" \
-                            "The most common use case for this tool is to compare two (or three) K-mer hashes.  The typical use case for " \
-                            "this tool is to compare K-mers from two K-mer hashes both representing K-mer counts for reads.  However, " \
-                            "it is also common to compare K-mers generated from reads to those generated from an assembly.\n" \
-                            "If comparing K-mers from reads to K-mers from an assembly, the larger (most likely the read) K-mer hash " \
-                            "should be provided first, then the assembly K-mer hash second.\n" \
-                            "The third optional jellyfish hash acts as a filter, restricting the analysis to the K-mers present on that " \
-                            "set.  The manual contains more details on specific use cases.\n\n" \
+                            "There are two main use cases for this tool.  The first is to compare K-mers from two K-mer hashes both " \
+							"representing K-mer counts for reads.  The intersected output forms a matrix that can be used to show how " \
+							"related both spectra are via a density plot.  The second use case is to compare K-mers generated from reads " \
+							"to those generated from an assembly, in this case the dataset for the reads must be provided first and the " \
+							"assembly second.  This also produces a matrix containing the intersection of both spectra, but this is " \
+                            "instead visualised via a stacked histogram.\n" \
+                            "There is also a third use case where K-mers from a third dataset as a filter, restricting the analysis to " \
+							"the K-mers present on that set.  The manual contains more details on specific use cases.\n\n" \
                             "Options";
 
         }
