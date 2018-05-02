@@ -4,7 +4,7 @@ import argparse
 import scipy.ndimage as ndimage
 
 try:
-    import colormaps
+    import colormaps as kpclrm
     from misc import *
 except:
     import kat.plot.colormaps as kpclrm
