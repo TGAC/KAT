@@ -293,7 +293,7 @@ int kat::Gcp::main(int argc, char *argv[]) {
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required for the input, then use this value as the hash size.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false),
-                        "Dumps any jellyfish hashes to disk that were produced during this run. Normally, this is not recommended, and will likely consume a significant amount of disk space.")
+                        "Dumps any jellyfish hashes to disk that were produced during this run. Normally, this is not recommended, as hashes are slow to load and will likely consume a significant amount of disk space.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_GCP_PLOT_OUTPUT_TYPE),
                 "The plot file type to create: png, ps, pdf.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),

@@ -66,7 +66,7 @@ Should I dump jellyfish hashes to disk?
 ---------------------------------------
 
 Most KAT tools have an option ```-d``` to write out the jellyfish hash to disk.  While it may seem
-logical to do this if you need to reprocess the data, in normal usage do not recommend it.
+logical to do this if you need to reprocess the data, in normal usage I do not recommend it.
 Reading in K-mers straight from fastq or fasta, in most circumstances, will be faster than loading a 
 jellyfish hash directly, particularly when using 4 or more threads (and especially, if the 
 input files are gzipped).  Also storing jellyfish hashes can consume a large amount of storage space.
