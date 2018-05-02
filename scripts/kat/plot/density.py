@@ -7,7 +7,7 @@ try:
     import colormaps
     from misc import *
 except:
-    import kat.plot.colormaps
+    import kat.plot.colormaps as colormaps
     from kat.plot.misc import *
 
 def main():
