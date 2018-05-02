@@ -105,65 +105,60 @@ namespace kat {
                 isOnPath = true;
             }
 
+#ifdef KAT_SCRIPTS
+			path kat_scripts(KAT_SCRIPTS);
+#else
+			path kat_scripts("");
+#endif
 
-            // Check to see if scripts are adjacent to exe first
-            path kda(canonicalExe.parent_path());
-            if (kda.stem().string() == "bin") {
+
 #ifdef HAVE_PYTHON
-                // Ok, so we are in a installed location.  Wind back the eprefix to get to root (this may not be '/' if an alternate root is specified.)
-				path kep(KAT_EPREFIX);
+			
+			// If python is installed we need to figure out where the scripts are located relative to the
+			// running executable.  This can be in various different places depending on how everything is
+			// setup: installed kat, running compiled binary from source directory, or running unit tests.
+
+            // First get the executable directory
+            path exe_dir(canonicalExe.parent_path());
+			
+			// If the KAT_SCRIPTS variable is defined then we are either in an installed location, or running unit tests
+			if (exe_dir.stem().string() == "bin") {
+		       	// Ok, so we are in a installed location.  Figuring out the scripts directory isn't as straight
+				// forward as it may seem because we might have installed to a alternate root.  So wind back the 
+				// exec_prefix to get to root (or alternate root) directory.
+				path kep(KAT_EXECPREFIX);
 				path root = kep;
-				path altroot = kda.parent_path();
+				path altroot = exe_dir.parent_path();
 				while (root.has_parent_path()) {
 					root = root.parent_path();
 					altroot = altroot.parent_path();					
 				}
-				
-				// Looks like we are running from an installed location.  Don't try to use the
-                // scripts from here.  We will try the KAT_SCRIPTS path instead.
-                this->scriptsDir = altroot / KAT_SCRIPTS;
-                if (!exists(this->scriptsDir)) {
-	    	    	BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-		                        "Could not find KAT scripts at the expected installed location: ") + this->scriptsDir.c_str()));
-                }
-#else
-                this->scriptsDir = canonicalExe.parent_path();
-#endif
+   	            this->scriptsDir = altroot / kat_scripts;
+       	    }
+			else if (exe_dir.stem().string() == "src") {			
+				// Presumably if we are here then we are running the kat executable from the source directory
+    	        if (exists(exe_dir / "kat.cc")) {
+        	        this->scriptsDir = exe_dir.parent_path() / "scripts";
+				}
+			}
+			else {
+				// So if we got here then probably we are running unit tests.
+				this->scriptsDir = kat_scripts;
+			}
+	
+			// Validate the existence of the scripts directory and scripts file.				
+            if (!exists(this->scriptsDir)) {
+            	BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                	"Could not find suitable directory containing KAT scripts at the expected location: ") + this->scriptsDir.string()));
+            }	
+
+			path dascript = this->scriptsDir / "kat" / "distanalysis.py";
+            if (!exists(dascript)) {
+            	BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
+                    "Found a suitable KAT scripts directory but could not find distribution analysis script at: ") + dascript.string()));
             }
-            else {
-                path kcc(canonicalExe.parent_path());
-		kcc /= "kat.cc";
-                if (exists(kcc)) {
-                    // If we are here then we are not running from an installed location,
-                    // we are running from the source tree.
-                    // Not 100% sure how far back we need to go (depends on whether using KAT exe or tests)
-                    // so try 2, 3 and 4 levels.
-                    this->scriptsDir = canonicalExe.parent_path().parent_path();
-                    this->scriptsDir /= "scripts";
 
-                    if (!exists(this->scriptsDir)) {
-                        this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path();
-                        this->scriptsDir /= "scripts";
-
-                        if (!exists(this->scriptsDir)) {
-                            this->scriptsDir = canonicalExe.parent_path().parent_path().parent_path().parent_path();
-                            this->scriptsDir /= "scripts";
-
-                            if (!exists(this->scriptsDir)) {
-                                BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                                    "Could not find suitable directory containing KAT scripts relative to provided exe: ") + canonicalExe.c_str()));
-                            }
-
-                        }
-                    }
-                    kda = this->scriptsDir;
-                    kda /= "setup.py";
-                    if (!exists(kda)) {
-                        BOOST_THROW_EXCEPTION(FileSystemException() << FileSystemErrorInfo(string(
-                             "Could not find suitable directory containing KAT scripts derived from relative path of executable")));
-                    }
-                }
-            }
+#endif	// HAVE_PYTHON
 
         }
 

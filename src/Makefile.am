@@ -17,7 +17,7 @@ kat_CPPFLAGS = \
 	-I$(top_srcdir)/deps/boost/build/include \
 	-I$(top_srcdir)/lib/include \
 	-DKAT_SCRIPTS='"$(datadir)/kat/scripts"' \
-	-DKAT_EPREFIX='"$(exec_prefix)"' \
+	-DKAT_EXECPREFIX='"$(exec_prefix)"' \
 	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \
