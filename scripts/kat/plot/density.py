@@ -7,7 +7,7 @@ try:
     import colormaps
     from misc import *
 except:
-    import kat.plot.colormaps as colormaps
+    import kat.plot.colormaps as kpclrm
     from kat.plot.misc import *
 
 def main():
@@ -164,7 +164,7 @@ def main():
 
     plt.figure(num = None, figsize=(args.width, args.height))
 
-    pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=colormaps.viridis,
+    pcol = plt.pcolormesh(matrix, vmin=0, vmax=zmax, cmap=kpclrm.viridis,
                           rasterized=args.rasterised)
     plt.axis([0,xmax,0,ymax])
     cbar = plt.colorbar()
