@@ -120,7 +120,7 @@ public:
         path exe_dir(canonicalExe.parent_path());
 
         // If the KAT_SCRIPTS variable is defined then we are either in an installed location, or running unit tests
-        if (exe_dir.stem().string() == "bin") {
+        if (exe_dir.leaf().string() == "bin") {
             // Ok, so we are in a installed location.  Figuring out the scripts directory isn't as straight
             // forward as it may seem because we might have installed to a alternate root.  So wind back the
             // exec_prefix to get to root (or alternate root) directory.
@@ -132,12 +132,15 @@ public:
                 altroot = altroot.parent_path();
             }
             this->scriptsDir = altroot / kat_scripts;
-        } else if (exe_dir.stem().string() == "src") {
+        } else if (exe_dir.leaf().string() == "src") {
             // Presumably if we are here then we are running the kat executable from the source directory
-            if (exists(exe_dir / "kat.cc")) {
+            if (exists(exe_dir.parent_path() / "kat.cc")) {
+                this->scriptsDir = exe_dir.parent_path().parent_path() / "scripts";
+            }
+			else if (exists(exe_dir / "kat.cc")) {
                 this->scriptsDir = exe_dir.parent_path() / "scripts";
             }
-        } else if (exe_dir.stem().string() == "tests") {
+        } else if (exe_dir.leaf().string() == "tests") {
             // Presumably if we are here then we are running the kat executable from the source directory
             if (exists(exe_dir / "check_main.cc")) {
                 this->scriptsDir = exe_dir.parent_path() / "scripts";
