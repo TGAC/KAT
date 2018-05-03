@@ -132,21 +132,17 @@ public:
                 altroot = altroot.parent_path();
             }
             this->scriptsDir = altroot / kat_scripts;
-        } else if (exe_dir.leaf().string() == "src") {
-            // Presumably if we are here then we are running the kat executable from the source directory
-            if (exists(exe_dir.parent_path() / "kat.cc")) {
-                this->scriptsDir = exe_dir.parent_path().parent_path() / "scripts";
-            }
-			else if (exists(exe_dir / "kat.cc")) {
-                this->scriptsDir = exe_dir.parent_path() / "scripts";
-            }
-        } else if (exe_dir.leaf().string() == "tests") {
-            // Presumably if we are here then we are running the kat executable from the source directory
-            if (exists(exe_dir / "check_main.cc")) {
-                this->scriptsDir = exe_dir.parent_path() / "scripts";
-            }
+        } else if (exe_dir.leaf().string() == ".libs" && exists(exe_dir.parent_path() / "kat.cc")) {
+            // If we are here then we are running the kat executable from the source directory but linked dynamically
+            this->scriptsDir = exe_dir.parent_path().parent_path() / "scripts";
+		} else if (exe_dir.leaf().string() == "src" && exists(exe_dir / "kat.cc")) {
+			// If we are here then we are running the kat executable from the source directory but linked statically
+			this->scriptsDir = exe_dir.parent_path() / "scripts";
+		} else if (exe_dir.leaf().string() == "tests" && exists(exe_dir / "check_main.cc")) {
+            // Presumably if we are here then we are running unit tests
+            this->scriptsDir = exe_dir.parent_path() / "scripts";
         } else {
-            // So if we got here then probably we are running unit tests.
+            // So if we got here then I'm not sure what config we are in.  So just use whatever scripts directory was provided.
             this->scriptsDir = kat_scripts;
         }
 
