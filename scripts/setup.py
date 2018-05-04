@@ -15,7 +15,7 @@ if sys.version_info.major != 3:
 
 setup(
     name="kat",
-    version="2.4.1",
+    version="2.4.2",
     description="A set of python scripts to support the Kmer Analysis Toolkit",
     long_description='''The Kmer Analysis Toolkit is a suite of tools that analyse
                         jellyfish hashes or sequence files (fasta or fastq) using kmer counts.

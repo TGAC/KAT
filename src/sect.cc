@@ -662,7 +662,7 @@ int kat::Sect::main(int argc, char *argv[]) {
             ("max_repeat,G", po::value<uint32_t>(&max_repeat)->default_value(0),
                 "If user requests repeat region extraction (--extract_r), this value allows the user to override the default maximum limit on the amount of repetition allowed.  This allows users to avoid regions that are likely to be due to low complexity sequences.  A value of 0 means no limit on max repeats.")
             ("dump_hash,d", po::bool_switch(&dump_hash)->default_value(false),
-                        "Dumps any jellyfish hashes to disk that were produced during this run.")
+                        "Dumps any jellyfish hashes to disk that were produced during this run. Normally, this is not recommended, as hashes are slow to load and will likely consume a significant amount of disk space.")
             ("verbose,v", po::bool_switch(&verbose)->default_value(false),
                 "Print extra information.")
             ("help", po::bool_switch(&help)->default_value(false), "Produce help message.")

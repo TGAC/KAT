@@ -16,24 +16,22 @@ kat_CPPFLAGS = \
 	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-I$(top_srcdir)/deps/boost/build/include \
 	-I$(top_srcdir)/lib/include \
-	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
+	-DKAT_SCRIPTS='"$(datadir)/kat/scripts"' \
+	-DKAT_EXECPREFIX='"$(exec_prefix)"' \
 	@AM_CPPFLAGS@
 
 kat_LDFLAGS = \
 	-static \
-	-L../lib \
-	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 kat_LDADD = \
-	-lkat \
-	-lkat_jellyfish \
-	../deps/boost/build/lib/libboost_timer.a \
-	../deps/boost/build/lib/libboost_chrono.a \
-	../deps/boost/build/lib/libboost_filesystem.a \
-	../deps/boost/build/lib/libboost_program_options.a \
-	../deps/boost/build/lib/libboost_system.a \
+	$(top_builddir)/deps/boost/build/lib/libboost_timer.a \
+	$(top_builddir)/deps/boost/build/lib/libboost_chrono.a \
+	$(top_builddir)/deps/boost/build/lib/libboost_filesystem.a \
+	$(top_builddir)/deps/boost/build/lib/libboost_program_options.a \
+	$(top_builddir)/deps/boost/build/lib/libboost_system.a \
+	$(top_builddir)/deps/jellyfish-2.2.0/.libs/libkat_jellyfish.la \
+	$(top_builddir)/lib/libkat.la \
 	@AM_LIBS@
 
 noinst_HEADERS = \

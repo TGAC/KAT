@@ -474,7 +474,7 @@ int kat::Cold::main(int argc, char *argv[]) {
             ("hash_size,H", po::value<uint64_t>(&hash_size)->default_value(DEFAULT_HASH_SIZE),
                 "If kmer counting is required, then use this value as the hash size for the reads.  We assume the assembly should use half this value.  If this hash size is not large enough for your dataset then the default behaviour is to double the size of the hash and recount, which will increase runtime and memory usage.")
             ("dump_hashes,d", po::bool_switch(&dump_hash)->default_value(false),
-                "Dumps any jellyfish hashes to disk that were produced during this run.")
+                "Dumps any jellyfish hashes to disk that were produced during this run. Normally, this is not recommended, as hashes are slow to load and will likely consume a significant amount of disk space.")
             ("disable_hash_grow,g", po::bool_switch(&disable_hash_grow)->default_value(false),
                 "By default jellyfish will double the size of the hash if it gets filled, and then attempt to recount.  Setting this option to true, disables automatic hash growing.  If the hash gets filled an error is thrown.  This option is useful if you are working with large genomes, or have strict memory limits on your system.")
             ("output_type,p", po::value<string>(&plot_output_type)->default_value(DEFAULT_COLD_PLOT_OUTPUT_TYPE),

@@ -82,7 +82,7 @@ private:
         string py_path_interp(wppath2.begin(), wppath2.end());
         ppaths.push_back(py_path_interp);
 
-        string py_path_here(katFileSystem.GetScriptsDir().string() + ":" + PYTHON_INTERP_SITE_PKGS + ":" + KAT_SITE_PKGS);
+        string py_path_here(katFileSystem.GetScriptsDir().string() + ":" + PYTHON_INTERP_SITE_PKGS);
         ppaths.push_back(py_path_here);
 
         this->full_python_path_str = boost::algorithm::join(ppaths, ":");
@@ -146,7 +146,7 @@ public:
         FILE* pf = _Py_fopen(full_script_path.c_str(), "r");
         if (pf == NULL) {
             BOOST_THROW_EXCEPTION(KatPythonException() << KatPythonErrorInfo(string(
-                    "Could not open script file as a python file object") + full_script_path.string()));
+                    "Could not open script file as a python file object: ") + full_script_path.string()));
         }
 
         if (this->verbose) {

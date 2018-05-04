@@ -33,7 +33,6 @@ AM_CPPFLAGS = \
 	-I$(top_srcdir)/deps/jellyfish-2.2.0/include \
 	-I$(top_srcdir)/deps/boost/build/include \
 	-DDATADIR=\"$(srcdir)/data\" \
-	-DKAT_SITE_PKGS='"$(libdir)/python$(PYTHON_VERSION)/site-packages"' \
 	@AM_CPPFLAGS@
 
 TEST_EXTENSIONS = .sh
@@ -58,22 +57,17 @@ check_unit_tests_SOURCES = \
 
 check_unit_tests_LDFLAGS = \
 	-static \
-	-L. \
-	-L../lib \
-	-L../deps/jellyfish-2.2.0 \
-	-L../deps/boost/build/lib \
+	-L$(top_builddir)/deps/boost/build/lib \
+	-Wl,-rpath $(top_builddir)/deps/boost/build/lib \
 	@AM_LDFLAGS@
 
 check_unit_tests_LDADD = \
 	libgtest.la \
-	-lgtest \
-	-lkat \
-	-lkat_jellyfish \
-	../deps/boost/build/lib/libboost_timer.a \
-    ../deps/boost/build/lib/libboost_chrono.a \
-    ../deps/boost/build/lib/libboost_filesystem.a \
-    ../deps/boost/build/lib/libboost_program_options.a \
-    ../deps/boost/build/lib/libboost_system.a \
-	@AM_LIBS@
+    $(top_builddir)/lib/libkat.la \
+	-lboost_timer \
+	-lboost_chrono \
+	-lboost_filesystem \
+	-lboost_program_options \
+	-lboost_system
 
 include gtest.mk

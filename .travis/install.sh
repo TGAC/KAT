@@ -63,5 +63,5 @@ if [[ "$PYTHON" == "YES" ]]; then
     hash -r;
     conda config --set always_yes yes --set changeps1 no;
     conda info -a
-    conda create -q -n test-environment python=3.6 numpy scipy matplotlib sphinx;
+    conda create -q -n test-environment python=3.6 numpy scipy matplotlib sphinx tabulate;
 fi

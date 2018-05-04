@@ -88,6 +88,8 @@ AC_DEFUN([AX_PYTHON_DEVEL],[
 	   AC_MSG_WARN([Cannot find python$PYTHON_VERSION in your system path])
 	   PYTHON_VERSION=""
 	else
+		PYTHON_INT_PATH="$PYTHON"
+		AC_SUBST([PYTHON_INT_PATH])
 		AC_DEFINE_UNQUOTED([PYTHON_INT_PATH], ["$PYTHON"], [Python Interpreter Path])
 	fi
 
@@ -272,11 +274,6 @@ EOD`
 			  print (os.path.join(f(plat_specific=1, standard_lib=1), 'config'));"`
 			PYTHON_LIBS="-L$ac_python_libdir -lpython$ac_python_version"
 		fi
-		if test "x$ac_python_os" = "xDarwin"; then
-			PYTHON_RPATH="-Xlinker -rpath -Xlinker $ac_python_libdir"
-		else
-			PYTHON_RPATH="-Wl,-rpath=$ac_python_libdir"
-		fi
 
 		if test -z "PYTHON_LIBS"; then
 			AC_MSG_ERROR([
@@ -287,7 +284,6 @@ EOD`
 	fi
 	AC_MSG_RESULT([$PYTHON_LIBS])
 	AC_SUBST([PYTHON_LIBS])
-	AC_SUBST([PYTHON_RPATH])
 	
 	#
 	# Check for site packages

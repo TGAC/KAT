@@ -1,26 +1,44 @@
 AUTOMAKE_OPTIONS = subdir-objects
 
+install-data-hook:
+	mkdir -p $(DESTDIR)$(datadir)/kat/scripts/kat/plot
+	cp -r kat/*.py $(DESTDIR)$(datadir)/kat/scripts/kat
+	cp -r kat/plot/*.py $(DESTDIR)$(datadir)/kat/scripts/kat/plot
+	
+
+
+if MAKE_PYKAT_NOINSTALL
+
+uninstall-hook:
+	rm -rf $(DESTDIR)$(datadir)/kat/scripts
+
+endif
 
 if MAKE_PYKAT_INSTALL
 
 install-exec-hook:
-	export PYTHONPATH=$(prefix)/lib/python$(PYTHON_VERSION)/site-packages && \
-	mkdir -p $(prefix)/lib/python$(PYTHON_VERSION)/site-packages/ && \
-	python3 setup.py install --prefix=$(prefix) --record install_files.txt
+	$(PYTHON_INT_PATH) setup.py install --record install_files.txt
 
 uninstall-hook:
 	cat install_files.txt | xargs rm -rf
-
-else
-
-install-exec-hook:
-	mkdir -p $(prefix)/lib/python$(PYTHON_VERSION)/local/ && \
-	cp -r kat $(prefix)/lib/python$(PYTHON_VERSION)/local
-
-uninstall-hook:
-	rm -rf $(prefix)/lib/python$(PYTHON_VERSION)/local
+	rm -rf $(DESTDIR)$(datadir)/kat/scripts
 
 endif
+
+
+if MAKE_PYKAT_INSTALL_CUSTOM
+
+install-exec-hook:
+	$(PYTHON_INT_PATH) setup.py install --root=$(DESTDIR) --prefix=$(exec_prefix) --record install_files.txt
+
+uninstall-hook:
+	cat install_files.txt | xargs rm -rf
+	rm -rf $(DESTDIR)$(datadir)/kat/scripts
+
+endif
+
+ 
+
 
 EXTRA_DIST = \
 	kat/distanalysis.py \
