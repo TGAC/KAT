@@ -139,7 +139,11 @@ an assembly::
 
 ... or if the reads are gzipped::
     
-    kat comp -t 8 -o pe_v_asm_test <(gunzip -c 'PE1.R?.fq') asm.fa
+    kat comp -t 8 -o pe_v_asm_test 'PE1.R?.fq.gz PE2.R?.fq.gz PE3.R?.fq.gz' asm.fa
+
+KAT comp also allows 5' trimming of datasets (e.g. for barcode trimming of 10x data)::
+
+    kat comp -t 8 -o pe_v_asm_test --d1_5ptrim 16,0,16,0 'PE1.R1.fq.gz PE1.R2.fq.gz PE2.R1.fq.gz PE2.R2.fq.gz' asm.fa
 
 Output:
 
