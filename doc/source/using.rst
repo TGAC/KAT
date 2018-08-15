@@ -147,7 +147,7 @@ If you are using multiple datasets for the input reads, instead of concatenating
 
 Also KAT supports process substitution so if you wanted to use bzip2 compressed files you could do this::
     
-    kat comp -t 8 -o pe_v_asm_t%est <(bzip2 -dc 'PE1.R?.fq.bz2') asm.fa
+    kat comp -t 8 -o pe_v_asm_test <(bzip2 -dc 'PE1.R?.fq.bz2') asm.fa
 
 KAT comp also allows 5' trimming of datasets (e.g. for barcode trimming of 10x data)::
 
