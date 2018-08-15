@@ -135,11 +135,23 @@ an assembly::
 
 ... or more compactly::
 
-    kat comp -t 8 -o pe_v_asm_test 'PE1.R?.fq' asm.fa
+    kat comp -t 8 -o pe_v_asm_test PE1.R?.fq asm.fa
 
 ... or if the reads are gzipped::
     
-    kat comp -t 8 -o pe_v_asm_test <(gunzip -c 'PE1.R?.fq') asm.fa
+    kat comp -t 8 -o pe_v_asm_test PE1.R?.fq.gz asm.fa
+
+If you are using multiple datasets for the input reads, instead of concatenating the files you can let KAT count over all the files in the group like this::
+
+    kat comp -t 8 -o pe_v_asm_test 'PE1.R?.fq.gz PE2.R?.fq.gz PE3.R?.fq.gz' asm.fa
+
+Also KAT supports process substitution so if you wanted to use bzip2 compressed files you could do this::
+    
+    kat comp -t 8 -o pe_v_asm_t%est <(bzip2 -dc 'PE1.R?.fq.bz2') asm.fa
+
+KAT comp also allows 5' trimming of datasets (e.g. for barcode trimming of 10x data)::
+
+     kat comp -t 8 -o pe_v_asm_test --d1_5ptrim 16,0,16,0 'PE1.R1.fq.gz PE1.R2.fq.gz PE2.R1.fq.gz PE2.R2.fq.gz' asm.fa
 
 Output:
 
