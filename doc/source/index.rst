@@ -13,8 +13,7 @@ KAT provides a suite of tools that, through the use of k-mer counts, help the us
 
 At it’s core KAT exploits the concept of k-mer spectra (histograms plotting number of distinct k-mers at each frequency).  By studying properties of the k-mer spectra it’s possible to discover important information about the data quality (level of errors, sequencing biases, completeness of sequencing coverage and potential contamination) and genomic complexity (size, karyotype, levels of heterozygosity and repeat content).  Further information can be gleaned through pairwise comparison of spectra, making KAT useful for WGS library comparisons and assembly validation.
 
-The K-mer counting itself, a critical element for all KAT tools, is accomplished through an integrated and modified version of Jellyfish2's counting method http://www.genome.umd.edu/jellyfish.html.  We selected Jellyfish for this task because it supports large K values and is one of the fastest k-mer counting programs currently available.
-
+The K-mer counting itself, a critical element for all KAT tools, is accomplished through an integrated and modified version of Jellyfish2's `counting method <http://www.genome.umd.edu/jellyfish.html>`_.  We selected Jellyfish for this task because it supports large K values and is one of the fastest k-mer counting programs currently available.
 
 
 .. toctree::
@@ -48,8 +47,7 @@ If you use KAT in your work and wish to cite us please use the following citatio
 
 Daniel Mapleson, Gonzalo Garcia Accinelli, George Kettleborough, Jonathan Wright, and Bernardo J. Clavijo.
 **KAT: A K-mer Analysis Toolkit to quality control NGS datasets and genome assemblies.**
-Bioinformatics, 2016. [doi: 10.1093/bioinformatics/btw663](http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract)
-
+Bioinformatics, 2016. `doi: 10.1093/bioinformatics/btw663 <http://bioinformatics.oxfordjournals.org/content/early/2016/10/20/bioinformatics.btw663.abstract>`_
 
 
 .. _issues:
