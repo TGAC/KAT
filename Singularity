@@ -25,10 +25,7 @@ From: ubuntu:latest
 	./configure --with-sse
 	make -j4 V=1
 	make install
+
+	# Test
 	kat --version
 
-	
-%environment
-
-	export PATH="$HOME/miniconda/bin:$PATH"
-	export LD_LIBRARY_PATH="$HOME/miniconda/lib:$PATH";
