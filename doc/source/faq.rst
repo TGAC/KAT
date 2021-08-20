@@ -8,7 +8,9 @@ Can KAT handle compressed sequence files?
 -----------------------------------------
 
 Yes, as of V2.4.0, KAT has native support for gzip decompression, so just treat
-gzipped files as regular uncompressed fastq or fasta files.
+gzipped files as regular uncompressed fastq or fasta files. The exceptions are
+``kat sect`` and ``kat filter`` which use a different fastq parser. For these
+modules, use process substitution as described below.
 
 If you wish to decompress other files such as bzip (or if you are using a pre V2.4.0 KAT), then
 this is supported via named pipes.  Anonymous named pipes (process substitution)
