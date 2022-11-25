@@ -75,6 +75,8 @@ private:
             cout << " - Interpreter path: " << fpp << endl;
         }
 
+        Py_Initialize();
+
         vector<string> ppaths;
 
         wchar_t* wtppath2 = Py_GetPath();
@@ -97,7 +99,7 @@ private:
             cout << " - PYTHONPATH set"  << endl;
         }
 
-        Py_Initialize();
+
         if (this->verbose) {
             cout << "Python interpretter initialised" << endl << endl;
         }
